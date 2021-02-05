@@ -4,6 +4,6 @@ This repository contains material for the course Text Analysis in R during the 2
 
 The lab material is set up to run on Binder.
 
-Jupyter [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hliebert/text-analysis-in-r/master)
+Jupyter [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD)
 
-Rstudio [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hliebert/text-analysis-in-r/master?urlpath=rstudio)
+Rstudio [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=rstudio)
