@@ -1,0 +1,989 @@
+arXiv:1809.03904v1 [econ.EM] 11 Sep 2018
+
+Regression Discontinuity Designs Using Covariates∗
+Sebastian Calonico†
+
+Matias D. Cattaneo‡
+
+Max H. Farrell§
+
+Rocı́o Titiunik¶
+May 25, 2018
+
+∗
+
+We thank the co-Editor, Bryan Graham, and three reviewers for comments. We also thank
+Stephane Bonhomme, Ivan Canay, David Drukker, Kosuke Imai, Michael Jansson, Lutz Kilian,
+Pat Kline, Xinwei Ma, Andres Santos, Gonzalo Vazquez-Bare, and participants at the 2017 Annual Conference of the Society for Political Methodology for thoughtful comments and suggestions.
+Cattaneo gratefully acknowledges financial support from the National Science Foundation through
+grants SES-1357561 and SES-1459931, and Titiunik gratefully acknowledges financial support from
+the National Science Foundation through grant SES-1357561. Companion software is available at
+https://sites.google.com/site/rdpackages/.
+†
+Department of Economics, University of Miami.
+‡
+Department of Economics and Department of Statistics, University of Michigan.
+§
+Booth School of Business, University of Chicago.
+¶
+Department of Political Science, University of Michigan.
+
+Abstract
+We study regression discontinuity designs when covariates are included in
+the estimation. We examine local polynomial estimators that include discrete
+or continuous covariates in an additive separable way, but without imposing any parametric restrictions on the underlying population regression functions. We recommend a covariate-adjustment approach that retains consistency under intuitive conditions, and characterize the potential for estimation
+and inference improvements. We also present new covariate-adjusted mean
+squared error expansions and robust bias-corrected inference procedures, with
+heteroskedasticity-consistent and cluster-robust standard errors. An empirical
+illustration and an extensive simulation study is presented. All methods are
+implemented in R and Stata software packages.
+
+Keywords: regression discontinuity, covariate adjustment, causal inference, local
+polynomial methods, robust inference, bias correction, tuning parameter selection.
+JEL codes: C14, C18, C21.
+
+1
+
+1
+
+Introduction
+
+The Regression Discontinuity (RD) design is widely used in Economics, Political Science, and many other social, behavioral, biomedical, and statistical sciences. Within
+the causal inference framework, the RD design is considered to be one of the most
+credible non-experimental strategies because it relies on weak and easy-to-interpret
+nonparametric identifying assumptions, which permit flexible and robust estimation
+and inference for local treatment effects. The key feature of the design is the existence of a score, index, or running variable for each unit in the sample, which determines treatment assignment via hard-thresholding: all units whose score is above a
+known cutoff are offered treatment, while all units whose score is below this cutoff
+are not. Identification, estimation, and inference proceed by comparing the responses
+of units near the cutoff, taking those below (comparison group) as counterfactuals
+to those above (treatment group). For literature reviews and practical introductions,
+see Imbens and Lemieux (2008), Lee and Lemieux (2010), Cattaneo and Escanciano
+(2017), Cattaneo, Titiunik and Vazquez-Bare (2017), Cattaneo, Idrobo and Titiunik
+(2018a,b), and references therein.
+Nonparametric identification of the RD treatment effect typically relies on continuity assumptions, which motivate nonparametric local polynomial methods tailored
+to flexibly approximate, above and below the cutoff, the unknown conditional mean
+function of the outcome variable given the score. In practice, researchers often choose
+a local linear polynomial and perform estimation using weighted linear least squares,
+giving higher weights to observations close to the cutoff. These estimates are then
+used to assess whether there is a discontinuity in levels, derivatives, or ratios thereof,
+at the cutoff. If present, this discontinuity is interpreted as some average response to
+the treatment (assignment) at the cutoff, depending on the setting and assumptions
+under consideration.
+When practitioners employ weighted least squares to estimate RD effects, they of2
+
+ten augment their estimation models with additional predetermined covariates such
+as demographic or socio-economic characteristics of the units. Despite the pervasiveness of this practice, there has been little formal study of the consequences of
+covariate adjustment for identification, estimation, and inference of RD effects under
+standard smoothness conditions and when employing standard nonparametric local
+polynomial estimators (e.g., local linear regression). This has led to the proliferation
+of ad-hoc covariate-adjustment practices that, at best, reduce the transparency of
+the estimation and, at worst, result in generally incomparable, or even inconsistent,
+estimators. We provide results that formalize and justify covariate adjustment in
+local polynomial analysis of RD designs, offering valid and practical estimation and
+inference procedures.
+We augment the standard local polynomial regression to allow covariate adjustment in an additive separable, linear-in-parameters way, following very closely the
+estimation models typically employed by applied researchers. Our approach allows
+for the inclusion of continuous, discrete, and mixed regressors, and does not require
+additional smoothing methods such as choosing other bandwidths or kernels, nor
+parametric functional form assumptions. Importantly, although we consider estimation models where the covariates enter linearly (in parameters), this is purely a local
+linear projection, and is in no way an assumption about the functional form of the
+underlying regression functions. In other words, we study the limiting behavior of
+local linear least squares estimators of regression functions in a fully nonparametric
+sense. Within this framework, there does not appear to be broad consensus in applied work as to how exactly the covariates should enter the model. We characterize
+not only the conditions under which the inclusion of covariates is appropriate, but
+also the ways in which adjusting by covariates may lead to inconsistent or poorly
+behaved RD estimators. Thus, our formal results offer concrete guidelines for applied
+researchers who want to employ covariate-adjusted local regression methods, which
+
+3
+
+were previously unavailable.
+We advocate the use of a simple covariate-adjusted RD estimator that imposes
+the same adjustment above and below the cutoff. This estimator is easy to implement, and is consistent for the standard RD treatment effect under the mild, intuitive
+condition that the treatment has no mean effect on the covariates at the cutoff. For
+example, in the sharp RD design, the only requirement is that the covariates have
+equal conditional expectation limits from above and below at the cutoff, which is often
+conceived and presented as a falsification or “placebo” test in RD empirical studies
+(Lee, 2008). For kink RD designs, we show that additional conditions on the covariates are needed, suggesting new specification tests for empirical work (all details are
+provided in the supplemental appendix). The requirement of “balanced” covariates
+at the cutoff is the most natural and practically relevant sufficient condition. We also
+show that employing other covariate-adjusted estimators may lead to inconsistency
+and/or invalid inference.
+We offer a complete large sample analysis of our recommended covariate-adjusted
+RD estimator, including novel mean squared error (MSE) expansions, MSE-optimal
+bandwidths (with consistent data-driven implementations), MSE-optimal point estimators, and valid asymptotic inference, covering all empirically relevant RD designs
+(sharp RD, kink RD, fuzzy RD, and fuzzy kink RD), with both heteroskedastic and
+clustered data. We characterize precisely the potential for efficiency gains, which are
+guaranteed when the best linear effect of the additional covariates on the outcome,
+at the cutoff, is equal for both control and treatment groups. These results have
+immediate practical use in any RD analysis and aid in interpreting prior results. We
+illustrate our methods numerically by revisiting the data of Ludwig and Miller (2007)
+to reanalyze the effect of Head Start on child mortality, and with an extensive simulation study. We also provide Stata and R packages that implement all our methods
+(Calonico, Cattaneo, Farrell and Titiunik, 2017).
+
+4
+
+Our framework for covariate adjustment is best suited for settings where the inclusion of covariates is intended to increase the precision of the RD treatment effect
+estimator, in the same spirit as (pre-intervention) covariates are often included in the
+analysis of randomized experiments. We require that the treatment have no effect on
+the covariates at the cutoff, and the conditional expectations of potential outcomes
+and covariates given the score be continuous at the cutoff. We impose no restrictions
+on the “long” conditional expectation of potential outcomes given the score and the
+covariates. These conditions are in perfect agreement with nonparametric identification results in the RD literature and with standard regression adjustment arguments
+in the context of randomized experiments.
+An alternative motivation for the inclusion of covariates in RD analysis is to increase the plausibility of the design in cases where researchers fear that the potential
+outcomes are discontinuous at the cutoff; in these cases, the inclusion of covariates
+is intended to restore identification of some RD parameter. This second motivation
+generally requires either parametric assumptions on the regression functions to enable
+extrapolation, or other design assumptions that redefine the parameter of interest in
+a fixed local neighborhood rather than at the cutoff point. In this context, our estimation and inference results can continue to be used under stronger assumptions.
+For example, if the covariate specification in the “long” regression functions is assumed correct within a neighborhood around the cutoff, covariate-adjustment leads
+to identification, estimation, and inference of the corresponding RD treatment effect,
+as it occurs in standard parametric linear regression settings. However, our main goal
+here is on nonparametric identification, estimation, and inference of the canonical RD
+parameter at the cutoff, which is assumed to be well defined to begin with. We plan
+to investigate covariate-adjustment for identification of other RD treatment effects in
+future work.
+Our paper contributes to the large and still rapidly expanding methodological lit-
+
+5
+
+erature on RD designs—we stay away from summarizing this literature due to space
+constrains, and refer the reader to the references cited in our opening paragraph.
+From the specific perspective of covariate adjustment, our paper is related to two
+strands of the literature. First, a portion of the RD literature re-interprets the data
+as being “as good as randomized” within a small window around the cutoff, though
+this requires stronger conditions than just continuity/smoothness of conditional expectations as we maintain here (Lee, 2008; Cattaneo, Frandsen and Titiunik, 2015;
+Cattaneo, Titiunik and Vazquez-Bare, 2017; Sekhon and Titiunik, 2017). Adopting
+a local randomization perspective, our work is related in obvious ways to the large literature on covariate adjustment in randomized experiments (e.g., Imbens and Rubin,
+2015, and references therein), and shows two interesting connections. On the one
+hand, we find that the conditions under which adjusting for pre-treatment covariates
+can lead to efficiency gains parallel those required in classical experiments (Section
+4.2), although we also find that some approaches have inferior estimation and inference properties because of the intrinsic smoothing in RD methods (Lemma 1), which
+is absent in experimental methods. On the other hand, it follows from our results that
+adjusting for imbalanced covariates in order to restore identification is not possible
+without functional form assumptions, just like in randomized experiments it is not
+generally possible to remove imbalances by simply adjusting for the covariates that
+are correlated with treatment.
+Second, Frölich and Huber (2018) develop a nonparametric kernel method to account for observed covariates for RD treatment effect estimation. This localize-thensmooth method of adding covariates to RD designs involves nonparametric estimation
+over both the running variable and the covariates, and thus requires d + 2 bandwidth
+choices (where d denotes the dimension of the additional covariates included). Their
+estimator recovers a weighted average of local treatment effects, which coincides with
+the standard RD treatment effect of interest under further “balance” type conditions
+
+6
+
+on the covariates. In contrast, our methods do not require any smoothness assumptions on, or nonparametric smoothing over, the “long” conditional expectation depending on the d additional covariates, and are in perfect agreement with empirical
+practice (i.e., local regression methods adding covariates linearly and employing only
+linear projection arguments). Furthermore, we provide optimal bandwidth selectors
+and robust bias-corrected inference with valid variance estimators under both heteroskedasticity and clustering, and also cover kink RD designs in addition to sharp
+and fuzzy designs.
+The upcoming presentation is organized as follows. Section 2 introduces the
+framework, Sections 3 and 4 summarize our main methodological results, Section
+5 briefly discusses numerical results, and Section 6 concludes. Due to space limitations, we discuss only local linear estimation in sharp RD designs, but in the
+lengthy supplemental appendix we extend our results to fuzzy and kink RD designs
+for any local polynomial order, in addition to reporting several other results of interest. Companion software, replication files, and other materials can be found at
+https://sites.google.com/site/rdpackages/.
+
+2
+
+Sharp RD Designs Using Covariates
+
+The observed data is assumed to be a random sample (Yi , Ti , Xi , Z′i )′ , i = 1, 2, . . . , n.
+The key feature of any RD design is the presence of a continuous score or running
+variable Xi , with known threshold x̄, which determines treatment assignment for each
+unit in the sample. For simplicity, here we discuss only sharp RD designs, where all
+units with Xi ≥ x̄ are assigned to the treatment group and receive the treatment,
+and all units with Xi < x̄ are assigned to the control group and do not receive the
+treatment. We also normalize x̄ = 0 to save notation. All other cases are discussed
+in the supplemental appendix.
+
+7
+
+Using the potential outcomes framework, the observed outcome is Yi = Yi (0) · (1 −
+
+Ti ) + Yi (1) · Ti , where Ti = 1(Xi ≥ x̄) denotes treatment status and Yi (1) and Yi (0)
+
+are the potential outcomes with and without treatment, respectively, for each unit i
+in the sample. The parameter of interest is the average treatment effect at the cutoff:
+
+τ = E[Yi (1) − Yi (0)|Xi = 0].
+Evaluation points of functions are dropped whenever possible throughout the paper.
+Hahn, Todd and van der Klaauw (2001) give precise, easy-to-interpret conditions for
+nonparametric identification of the standard RD treatment effect τ , without additional covariates. The key substantive identifying assumption is that E[Yi (t)|Xi = x],
+t ∈ {0, 1}, are continuous at the cutoff x = 0.
+The new feature studied in this paper is the presence of additional covariates,
+collected in the random vector Zi ∈ Rd , which could be continuous, discrete, or
+mixed. We set Zi = Zi (0) · (1 − Ti ) + Zi (1) · Ti , where Zi (1) and Zi (0) denote the
+potential covariates on either side of the threshold. In practice, it is natural to assume
+that some features of the marginal distributions of Zi (1) and Zi (0) are equal near the
+cutoff or, more generally, that Zi (1) =d Zi (0), which is implied by the definition of a
+“pre-treatment” or “pre-determined” covariate in the causal inference literature.
+A large portion of the literature on estimation and inference in RD designs focuses
+on local polynomial estimators. In practice, researchers first choose a neighborhood
+around the cutoff, usually via a bandwidth choice h, and then conduct local linear polynomial inference—that is, they rely on linear regression fits using only units
+whose scores Xi lay within that pre-selected neighborhood, with the weighting scheme
+determined by the choice of kernel function K(·). The role of the kernel and bandwidth is to localize the regression fit near the cutoff. The most popular choices are
+the uniform kernel (equally weighting observations Xi ∈ [−h, h]) and the triangular
+
+8
+
+kernel (linearly down-weighting observations Xi ∈ [−h, h]). To be specific, the standard local linear RD treatment effect estimator τ̂ is obtained by running the weighted
+least squares regression of Yi on a constant, Ti , Xi , and Xi Ti using only units with
+Xi ∈ [−h, h] and applying weights K(Xi /h), which in this paper we denote by
+τ̂
+
+:
+
+Ŷi = α̂ + Ti τ̂ + Xi β̂− + Ti Xi β̂+ .
+
+(1)
+
+We give a precise definition of τ̂ and all other estimators in the supplemental
+appendix. The estimator τ̂ is, of course, numerically equivalent to the difference in
+intercepts that would be obtained from two separate weighted least squares regressions
+using observations on each side of the cutoff (with the same kernel and bandwidth).
+We set the problem as a single joint least squares linear regression fit to ease the
+upcoming comparisons with covariate-adjusted RD estimators. We maintain the local
+linear specification for simplicity but, as shown in the supplemental appendix, all our
+results apply to any p-th order local polynomial fit.
+While the standard estimator τ̂ is popular in empirical work, it is common to augment the specification with the additional covariates Zi . In practice, these covariates
+can be included in many different ways. We consider five linear covariate-adjustment
+specifications, some with centered covariates, to mimic the variety of current empirical
+practice:
+
+τ̃
+
+: Ỹi = α̃ + Ti τ̃ + Xi β̃− + Ti Xi β̃+ + Z′i γ̃,
+
+(2)
+
+τ̌
+
+: Y̌i = α̌ + Ti τ̌ + Xi β̌− + Ti Xi β̌+ + (1 − Ti )Z′i γ̌ − + Ti Z′i γ̌ + ,
+
+(3)
+
+τ̇
+
+: Ẏi = α̇ + Ti τ̇ + Xi β̇− + Ti Xi β̇+ + (Zi − Z̄)′ γ̇,
+
+(4)
+
+τ̈
+
+: Ÿi = α̈ + Ti τ̈ + Xi β̈− + Ti Xi β̈+ + (1 − Ti )(Zi − Z̄)′ γ̈ − + Ti (Zi − Z̄)′ γ̈ + , (5)
+
+...
+
+: Y i = α + Ti τ + Xi β − + Ti Xi β + + (1 − Ti )(Zi − Z̄− )′ γ − + Ti (Zi − Z̄+ )′ γ + ,
+
+τ
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+(6)
+
+9
+
+where all these weighted least squares regressions are computed only for observations
+with Xi ∈ [−h, h] and weights K(Xi /h), and Z̄, Z̄− and Z̄+ correspond, respectively,
+to the sample average of Zi for Xi ∈ [−h, h], Xi ∈ [−h, 0) and Xi ∈ [0, h].
+Our recommended approach is τ̃ in (2), which we call the covariate-adjusted RD
+estimator. This estimator broadly captures the common empirical practice of first
+choosing a neighborhood around the cutoff, and then conducting local linear least
+squares estimation and inference with covariates. We formalize two important points
+regarding the way that the additional covariates Zi are used in the local least squares
+fit: (i) additive separability between the running variable and the covariates, and
+(ii) linear-in-parameters specification for the covariates. We avoid full nonparametric
+estimation over (Xi , Z′i )′ ∈ R1+d , which would introduce d additional bandwidths and
+kernels, quickly leading to a curse of dimensionality and hence rendering empirical
+application infeasible. Furthermore, in practice, Zi could include power expansions,
+interactions, and other “flexible” transformations of the original covariates. This
+approach to RD covariate adjustment allows for any type of additional regressors,
+including fixed effects or other discrete variables.
+As discussed above, we focus on the common motivation for covariate adjustment
+based on improving the precision of the estimator of the RD treatment effect, τ ,
+analogously to the standard justification for covariate adjustment in randomized experiments. We build on this intuition and make precise the conditions required for
+consistency of the covariate-adjusted RD estimator τ̃ for τ . We also show that much
+more stringent conditions are required if the estimation model includes treatmentcovariate interactions and/or centering.
+
+2.1
+
+Notation and Regularity Conditions
+
+The following assumption defines notation and collects the conditions required for
+sharp RD designs.
+10
+
+Assumption SRD. For t ∈ {0, 1} and all x ∈ [xl , xu ], where xl , xu ∈ R such that
+xl < x̄ < xu :
+(a) The Lebesgue density of Xi , denoted f (x), is continuous and bounded away from
+zero.
+(b) µY − (x) = E[Yi (0)|Xi = x] and µY + (x) = E[Yi (1)|Xi = x] are thrice continuously
+differentiable.
+(c) µZ− (x) = E[Zi (0)|Xi = x] and µZ+ (x) = E[Zi (1)|Xi = x] are thrice continuously
+differentiable, and E[Zi (t)Yi (t)|Xi = x] is continuously differentiable.
+(d) V[(Yi (t), Zi (t)′ )|Xi = x] is continuously differentiable and invertible.
+(e) E[|(Yi (t), Zi (t)′ )|4 |Xi = x], is continuous, where | · | denotes the Euclidean norm.
+Assumption SRD imposes standard continuity/smoothness assumptions common
+to all nonparametric analyzes of RD designs (parts (a) and (b)), plus a mild assumption to allow for the inclusion of additional covariates (part (c)). Parts (d) and (e) are
+standard restrictions on the conditional variances and higher-moments. Indeed, if one
+simply ignores all statements involving the additional covariates, the conditions are
+exactly those found in the RD literature for local linear regression (the supplemental
+appendix shows the version for polynomial fits of degree p ≥ 1).
+The assumptions are placed only on features such as the mean and variance
+of the conditional distributions given the running variable Xi alone. Importantly,
+Assumption SRD does not restrict in any way the “long” conditional expectations
+E[Yi (t)|Xi , Zi (t)], t ∈ {0, 1}, which implies that our methods allow for discrete, continuous, and mixed additional covariates, and do not require any semiparametric or
+parametric modeling of this regression function. That is, we allow for complete misspecification of E[Yi (t)|Xi , Zi (t)] in any finite sample, and hence give a “best linear
+approximation” or “local linear projection” interpretation to the RD estimators (2)–
+(6). In other words, the linearity in these specifications represents the empirical use
+of the covariates, and does not impose parametric assumptions on the underlying
+11
+
+regression functions.
+
+3
+
+Estimation in Sharp RD Designs Using Covariates
+
+We now present the first main result of the paper, which constructs and gives an
+interpretation to the implicit estimands associated with the covariate-adjusted RD
+estimators. All limits are taken as n → ∞, unless otherwise noted.
+Lemma 1 (Sharp RD with Covariates). Let Assumption SRD hold, assume the
+weights obey K(u) = 1(u < 0)k(−u) + 1(u ≥ 0)k(u), with k(·) : [0, 1] 7→ R+ bounded,
+zero outside its support, and positive and continuous on (0, 1). If nh → ∞ and h → 0,
+then
+′
+
+τ̃ →P τ − µZ+ − µZ− γ Y ,
+
+
+τ̌ →P τ − µ′Z+ γ Y + − µ′Z− γ Y − ,
+
+′
+τ̇ →P τ − µZ+ − µZ− γ Y ,
+
+
+τ̈ →P τ − (µZ+ − µ̄Z )′ γ Y + − (µZ− − µ̄Z )′ γ Y − ,
+
+...
+
+τ →P τ,
+
+
+
+where γ Y = (σ 2Z− +σ 2Z+ )−1 E (Zi (0) − µZ− (Xi )) Yi (0) + (Zi (1) − µZ+ (Xi )) Yi (1) Xi = x̄ ,
+
+
+µZ− = µZ− (x̄), γ Y − = (σ 2Z− )−1 E (Zi (0) − µZ− (Xi )) Yi (0) Xi = x̄ , σ 2Z− = V[Zi (0)|Xi =
+x̄], and similarly for µZ+ , γ Y + and σ 2Z+ , and µ̄Z = µZ+ /2 + µZ− /2.
+
+It is well known that under the same conditions imposed here, τ̂ →P τ . The
+conclusion of this lemma gives a precise description of the probability limit of each
+covariate-adjusted sharp RD estimator in (2)–(6). Similar results for other RD designs
+are shown in the supplemental appendix.
+12
+
+Lemma 1 shows that our recommended covariate-adjusted RD estimator, τ̃ , is
+consistent for the standard RD treatment effect at the cutoff, τ = µY + − µY − , plus
+an additional term that depends on the RD treatment effect on the covariates, τ Z :=
+µZ+ − µZ− . It follows that a sufficient condition for τ̃ →P τ is that µZ+ = µZ− , i.e.
+that there is no RD treatment effect on the covariates. This is weaker than assuming
+that the marginal distributions of Zi (0) and Zi (1) are equal at the cutoff, which is
+the usual definition of predetermined covariates in randomized experiments.
+Further, Lemma 1 shows that the treatment-interacted covariate-adjusted RD estimator τ̌ , which corresponds to fitting two separate weighted linear regressions on
+each side of the cutoff, is consistent for τ under stronger conditions than τ̃ . The
+difference arises because including this interaction allows γ − 6= γ + in the estimation, whereas our recommended covariate-adjusted RD estimator, τ̃ , forces equality.
+The additional term, [µ′Z+ γ Y + − µ′Z− γ Y − ], can be interpreted as the difference of
+the best linear approximations at the cutoff of the unknown conditional expectations
+E[Yi (t)|Xi , Zi (0)], t ∈ {0, 1}, based on the additional covariates included in the RD
+estimation. It follows that a necessary and sufficient condition for τ̌ →P τ is that
+µ′Z+ γ Y + = µ′Z− γ Y − . However, this is harder to justify in practice than the condition
+required for the model without the interaction, since we must assume γ Y + = γ Y −
+in addition to µZ+ = µZ− (“covariate balance”) above. From a linear least squares
+regression perspective, the discrepancy between the probability limits of τ̃ and τ̌ can
+be explained as a misinterpretation of the interaction term in the estimation model.
+Finally, the last three results in Lemma 1 study different demeaning approaches
+motivated by the literature on covariate-adjustment in randomized experiments and
+by classical least squares regression with interactions. As a result of the demeaning
+of covariates, the probability limit of the estimators change: τ̇ (common demeaning)
+behaves like τ̃ , τ̈ (common demeaning, treatment-interaction) has a new probability
+...
+
+limit involving a recentering, and τ (group-demeaning, treatment-interaction) be-
+
+13
+
+haves like τ̂ . For the former two, the same condition, µZ+ = µZ− , is required for
+...
+
+consistency; τ does not require this condition because the demeaned covariates are
+essentially orthogonal to treatment status. These requirements and conclusions are
+conceptually similar to zero-correlation assumptions in standard least squares algebra.
+Despite these similarities, the nonparametric nature of the problem introduces important differences with standard least squares: formal derivations require nonparametric
+large-sample approximations (otherwise, misspecification biases appear for fixed n),
+and inference results do not follow from standard parametric least squares arguments.
+...
+
+A very important drawback of all three demeaning-based estimators (τ̇ , τ̈ , τ ) is
+that they employ some form of local average of the covariates (Z̄, Z̄− , Z̄+ ), which is
+equivalent to a kernel regression estimator with a uniform kernel. Therefore, inference using the resulting demeaned estimators is severely affected: these estimators
+exhibit slower convergence rates, new misspecification biases, and additional asymptotic variability when compared to τ̃ (or even τ̌ ). Thus, in these cases, the analogy
+with classical least squares regression breaks down. Furthermore, as shown in the
+supplemental appendix, simple demeaning does not work for other RD designs.
+Putting the above together, and from a practical perspective, not only does Lemma
+1 give general, precise, and intuitive characterizations of the probability limits of the
+various covariate-adjusted RD estimators, but it also has interesting implications for
+the analysis and interpretation of RD designs using covariates. Most notably, the
+lemma shows the conditions under which a covariate-adjusted RD estimator is consistent for the standard (causal) RD treatment effect of interest, τ , and by implication,
+establishes when estimators with and without covariate adjustment are valid (for estimating τ ) and can be compared. We conclude that for estimating τ , τ̃ requires the
+weakest assumption, µZ+ = µZ− , while at the same time is not affected by the poor
+behavior of demeaning. We therefore advocate this estimator for use in applications,
+and the rest of the paper gives a thorough analysis of its large sample properties and
+
+14
+
+empirical performance.
+In the supplemental appendix we extend the results to other RD designs, where
+we show that a new condition for “covariate balance” emerges for kink RD designs—
+(1)
+
+(1)
+
+(1)
+
+(1)
+
+the additional requirement is that µZ+ = µZ− , where µZ+ and µZ− denote the first
+derivative of the conditional expectations of the covariates at the cutoff for treatment
+and control, respectively.
+
+4
+
+Inference in Sharp RD Designs using Covariates
+
+Estimation and inference in RD designs using local polynomial methods without covariates (i.e. using only Yi and Xi ) has been studied in great detail in recent years
+(references are given in the introduction). In this section, we study the large sample
+properties of the covariate-adjusted RD estimator τ̃ (h) = τ̃ , now making the dependence on h explicit, and assuming throughout that µZ+ = µZ− in order to maintain
+the same standard RD treatment effect of interest (Lemma 1). We present new MSE
+expansions, several data-driven optimal bandwidth selectors, valid distributional approximations based on bias-correction techniques, and consistent standard errors for
+τ̃ (h). Analogous results for other RD designs and clustered data are given in the
+supplemental appendix.
+We rely on the following representation (valid for each n): τ̃ (h) = τ̂ (h)−τ̂ Z (h)′ γ̃ Y (h),
+where τ̂ (h) = τ̂ and γ̃ Y (h) = γ̃ Y are given in (1) and (2), respectively, and τ̂ Z (h)
+is a d-dimensional vector containing the standard RD treatment effect estimators for
+each covariate. In other words, each element of τ̂ Z (h) is constructed using the corresponding covariate as outcome variable in (1). Using this partial-out representation,
+it follows that
+
+
+
+
+
+
+
+
+τ̂ (h) − τ 
+ τ̂ (h) − τ 
+′
+τ̃ (h) − τ = s(h)′ 
+ {1 + oP (1)}
+=s 
+τ̂ Z (h)
+τ̂ Z (h)
+15
+
+where s(h) = (1, γ̃ Y (h)′ )′ and s = (1, γ ′Y )′ , and because s(h) →P s using the results
+underlying Lemma 1 (and, later, we will also use µZ+ = µZ− , so that τ Z = 0). The
+asymptotic analysis proceeds by studying the (joint) large-sample properties of the
+vector τ̂ S (h) := (τ̂ (h), τ̂ Z (h)′ )′ and then taking the linear combination s(h) or s, as
+appropriate. Note that τ̂ S (h) →P τ S := (τ, τ ′Z )′ under the conditions in Lemma 1.
+We give exact details in the supplemental appendix.
+
+4.1
+
+MSE Expansion and Data-driven Bandwidth Selection
+
+We first establish a valid asymptotic MSE-type expansion for the covariate-adjusted
+RD estimator, based on the representation above, which is useful to develop optimal
+bandwidth choices and optimal point estimators. Further, the bias expressions will be
+used to develop inference procedures based on robust bias-correction. The object we
+study is defined as MSE[τ̃ (h)] = E[(s′ τ̂ S (h) − s′ τ S )2 |X] = (Bias[τ̃ (h)])2 + Var[τ̃ (h)],
+where X = [X1 , X2 , · · · , Xn ]′ , Bias[τ̃ (h)] := E[s′ τ̂ S (h) − s′ τ S |X], and Var[τ̃ (h)] :=
+V[s′ τ̂ S (h)|X].
+Theorem 1 (MSE Expansion). Let the conditions of Lemma 1 hold. Then
+MSE[τ̃ (h)] = h4 Bτ̃ (h)2 {1 + oP (1)} +
+
+1
+Vτ̃ (h),
+nh
+
+where the precise expressions for all bias and variance terms are given in the supplemental appendix.
+The bias and variance expressions in Theorem 1 are different from those available
+in the literature (Imbens and Kalyanaraman, 2012; Calonico et al., 2014; Arai and Ichimura,
+2018) due to the presence of the covariates Zi . As a consequence, MSE-optimal bandwidth selection and point estimators are different when covariate-adjustment is employed. Bias-correction techniques and standard error constructions are also different,
+as discussed below.
+16
+
+The leading bias and variance formulas in Theorem 1 are derived in pre-asymptotic
+form. For the bias, the random term Bτ̃ (h) gives a pre-asymptotic stochastic approximation to the conditional bias of the linearized estimator (hence the presence of the
+oP (1) term), whereas the variance term Vτ̃ (h) is simply obtained by a conditional-onX calculation for the linearized estimator. Calonico, Cattaneo and Farrell (2018b)
+prove, using valid Edgeworth expansions, that employing pre-asymptotic approximations when conducting asymptotic inference in nonparametrics can lead to superior
+performance. Furthermore, fewer unknown features must be characterized and estimated.
+The main constants in Theorem 1 have a familiar form: the bias and variance
+are, respectively, Bτ̃ (h) = Bτ̃ + (h) − Bτ̃ − (h) and Vτ̃ (h) = Vτ̃ − (h) + Vτ̃ + (h), where
+each component stems from estimating the unknown regression function on one side
+of the cutoff. The bias is entirely due to estimating the unknown functions µY − (·)
+and µZ− (·) for the control group and µY + (·) and µZ+ (·) for the treatment group.
+When the covariates are not included, these constants reduce exactly to those already
+available in the literature. In the supplemental appendix, we also give the limiting
+version of the bias and variance constants; that is, we characterize the fixed, real
+scalars Bτ̃ and Vτ̃ that satisfy (Bτ̃ (h), Vτ̃ (h)) →P (Bτ̃ , Vτ̃ ).
+Assuming that Bτ̃ 6= 0, the MSE-optimal bandwidth choice for the local linear
+covariate-adjusted RD estimator τ̃ (h) is:
+Vτ̃ /n
+hτ̃ =
+4Bτ̃2
+
+
+1/5
+
+.
+
+This choice can be used to construct a consistent and MSE-optimal covariate-adjusted
+sharp RD point estimator, τ̃ (hτ̃ ) →P τ , provided that τ Z = 0. The convergence rate
+is not affected by d = dim(Zi ) because no nonparametric smoothing is done on the
+additional covariates.
+
+17
+
+To construct feasible MSE-optimal bandwidth choices we proceed in the familiar
+h
+i1/5
+way. For pilot bandwidths b → 0 and v → 0, we can implement h̃τ̃ = Ṽ4B̃τ̃ (v)/n
+,
+(b)2
+τ̃
+
+where the exact form of the bias estimator, B̃τ̃ (b), and variance estimator, Ṽτ̃ (v), are
+given in the supplemental appendix (we also show results for a generic degree p ≥ 1,
+where the optimal bandwidth decays as n−1/(3+2p) ). Heuristically, these estimators
+are formed as plug-in versions of the pre-asymptotic formulas obtained in Theorem
+
+1. In the supplemental appendix, we show that these feasible versions of the optimal
+bandwidths are consistent for their infeasible analogues, i.e., h̃τ̃ /hτ̃ →P 1.
+Finally, in the supplemental appendix, we also discuss other MSE-optimal bandwidth selectors, including (i) separate MSE optimizations on either side of the cutoff,
+(ii) the MSE for the sum rather than the difference of the one-sided estimators, and
+(iii) several regularized versions of the plug-in bandwidth selectors. In all cases, the
+decay rate of these bandwidths matches the MSE-optimal choice, but the exact leading constants differ, and these choices may be more stable in finite samples or more
+robust to situations where the smoothing bias may be small.
+
+4.2
+
+Asymptotic Efficiency
+
+In addition to finite-sample efficiency considerations, which are well known from the
+literature on linear least squares, we can give a precise characterization of the effect
+of introducing covariates in RD estimation on asymptotic efficiency. Using explicit
+results proven in the supplemental appendix, we can compare the asymptotic variance
+of the covariate-adjusted estimator τ̃ , denoted by Vτ̃ , to that of the standard RD
+estimator τ̂ , denoted by Vτ̂ . This comparison reduces to studying
+Vτ̃
+V[Yi (0) − Zi (0)′ γ Y |Xi = x̄] + V[Yi (1) − Zi (1)′ γ Y |Xi = x̄]
+=
+,
+Vτ̂
+V[Yi (0)|Xi = x̄] + V[Yi (1)|Xi = x̄]
+
+18
+
+where γ Y is given in Lemma 1. In general, a definitive ranking is not available
+because of the linear combination γ Y , which may not be equal to either γ Y− or γ Y+
+given in Lemma 1. However, an interesting special case is γ Y = γ Y− = γ Y+ , in
+which case γ Y reduces to the best linear approximation for each group, and therefore
+V[Yi (t) − Zi (t)′ γ Y |Xi = x̄] ≤ V[Yi (t)|Xi = x̄]. This result implies that whenever the
+effect of the additional covariates on the potential outcomes near the cutoff (via their
+local linear projections) is (roughly) the same for both control and treatment units,
+including the covariates may lead to efficiency gains.
+The efficiency results above are based on large sample nonparametric approximations using only local linear projections on the additional covariates. Remarkably, however, these results are in perfect agreement with those in the literature
+on analysis of experiments obtained using Neyman’s repeated sampling (Freedman,
+2008; Lin, 2013), where it is also found that incorporating covariates in randomized
+controlled trials using linear regression leads to efficiency gains only under particular assumptions—for example, using our notation, when E[Yi (t)|Zi (t), Xi = x̄] =
+at + Zi (t)′ bt , t = 0, 1, and b0 = b1 (note that this parametric assumption implies
+γ Y = γ Y− = γ Y+ ).
+These results also show that τ̃ (hτ̃ ) can be a better point estimator in a MSE sense
+than its counterpart without covariates, τ̂ (hτ̂ ), where hτ̂ denotes the MSE-optimal
+bandwidth choice for the standard RD estimator τ̂ (Imbens and Kalyanaraman, 2012;
+Calonico et al., 2014; Arai and Ichimura, 2018). Using the explicit formulas, it is easy
+to give conditions such that MSE[τ̃ (hτ̃ )] < MSE[τ̂ (hτ̂ )] (both have the same rate of
+decay), although this is not the main goal of our paper. We still recommend that
+τ̂ (hτ̂ ) be the benchmark point estimator because it relies on minimal identifying
+assumptions, and thus researchers can incorporate covariates to increase precision
+relative to it.
+
+19
+
+4.3
+
+Asymptotic Distribution and Valid Inference
+
+To develop valid asymptotic distributional approximations and inference procedures
+we employ nonparametric robust bias-correction—see Calonico, Cattaneo and Titiunik
+(2014) and Calonico, Cattaneo and Farrell (2018a,b). Inference based on large-sample
+distribution theory using MSE-optimal bandwidths will suffer from a first-order bias,
+leading to invalid hypothesis tests and confidence intervals because of misspecification
+errors near the cutoff. This local smoothing bias involves the bias term in Theorem
+1, Bτ̃ (h), which can be estimated and removed.
+The bias term Bτ̃ (h) is known up to the higher-order derivatives of the unknown
+regression functions, µY − (·), µZ− (·), µY + (·), and µZ+ (·), all capturing the misspecification error introduced by the local polynomial approximation. These objects can be
+estimated nonparametrically—the complete details are available in the supplemental
+appendix (we replace s by s(h) for implementation). For our presentation, we simply
+take as given the bias estimator B̃τ̃ (b) based on a local quadratic regression (in general, a higher-order polynomial than used to form τ̃ (h)) and a preliminary bandwidth
+b → 0, possibly different from h. Then, the bias-corrected covariate-adjusted sharp
+RD estimator is
+τ̃ bc (h, b) = τ̃ (h) − h2 B̃τ̃ (b)
+
+(7)
+
+An empirically useful choice is b = h, which is both allowed by our asymptotic theory
+and has some optimality properties—see Calonico, Cattaneo and Farrell (2018a,b) for
+theoretical results on robust bias-correction. This bias correction approach captures
+“flexible” regression adjustments to account for misspecification in finite samples
+(Calonico et al., 2014, Remark 7).
+The idea behind the robust bias-corrected distributional approximation is to employ an estimator of the variability of τ̃ bc (h, b) for Studentization purposes, rather
+
+20
+
+than an estimator of the variability of τ̃ (h) only. Thus, the final missing ingredient
+before we can state our asymptotic Gaussianity result is characterizing the (conditional) variance of the bias-corrected covariate-adjusted RD estimator. Its fixed-n
+variability is easily characterized by
+
+
+ ′
+′  ′
+
+ ′
+′
+bc
+bc
+bc
+Vτ̃bc (h, b) = s′ ⊗ Pbc
+− (h, b) ΣS− s ⊗ P− (h, b) + s ⊗ P+ (h, b) ΣS+ s ⊗ P+ (h, b) ,
+bc
+where the n-vectors Pbc
+− (h, b) and P+ (h, b) can be computed directly from the data,
+
+and the n(1 + d) × n(1 + d) matrices of variances and covariances, ΣS− and ΣS+ , are
+the only unknowns. The supplemental appendix collects details and specific formulas.
+The (infeasible) variance formula Vτ̃bc (h, b) differs from that presented in Theorem
+1, Vτ̃ (h), because it also accounts for the additional variability injected by the bias
+estimation, h2 B̃τ̃ (b). By virtue of the variance formula being computed both conditionally and pre-asymptotically, up to the linear combination term s, it involves only
+one unknown feature, ΣS− and ΣS+ , which must be estimated, thereby considerably
+simplifying implementation.
+To operationalize the variance formula, we replace unknown quantities by plug-in
+estimators thereof, which must account for the specific data structure at hand, such as
+heteroskedasticity or clustering. In the supplemental appendix, we discuss two different plug-in variance estimators, one based on a nearest-neighbor (NN) approach, and
+the other based on a plug-in residuals (PR) approach, covering both conditional heteroskedasticity and clustered data. Herein, we let Ṽτ̃bc (h, b) denote a generic, feasible
+estimator of Vτ̃bc (h, b).
+Putting together all the pieces, we obtain the following distributional approximation result which provides valid local polynomial inference in sharp RD designs using
+covariates.
+Theorem 2 (Asymptotic Normality). Let the conditions of Theorem 1 hold, and
+
+21
+
+assume τ Z = 0. If nh7 → 0 and lim (h/b) < ∞, then
+T̃τ̃ = q
+
+τ̃ bc (h, b) − τ
+(nh)−1 Vτ̃bc (h, b)
+
+→d N (0, 1)
+
+and
+
+Ṽτ̃bc (h, b)/Vτ̃bc (h, b) →P 1.
+
+Extensions of this result to all other popular RD designs are available in the
+supplemental appendix. One of the strengths of Theorem 2 is that the distributional approximation is valid even when the MSE-optimal bandwidth choice is used,
+which is not true of standard inference procedures. Once bandwidths are chosen,
+asymptotically valid inference procedures are easily constructed. For example, an approximately 95% robust bias-corrected covariate-adjusted confidence interval for the
+RD treatment effect τ using a common bandwidth h = b is given by
+
+
+1.96
+τ̃ (h, h) − √ ·
+nh
+bc
+
+q
+
+1.96
+Ṽτ̃bc (h, h) , τ̃ (h, h) + √ ·
+nh
+bc
+
+q
+
+
+Ṽτ̃bc (h, h) .
+
+A particularly attractive alternative to MSE-optimal bandwidth selection is to
+develop coverage error rate (CER) optimal bandwidth choices. Following the valid
+Edgeworth expansions by Calonico, Cattaneo and Farrell (2018b,a), we also propose
+the following plug-in bandwidth selector h̃CER,τ̃ = n−1/20 × h̃τ̃ . This bandwidth choice
+minimizes the coverage error rate for confidence intervals based on Theorem 2 below,
+and may be preferred for inference purposes (the supplemental appendix gives the
+rate-scaling for generic degree p ≥ 1.) See Cattaneo and Vazquez-Bare (2016) for an
+introductory discussion on bandwidth selection for RD designs.
+Theorems 1 and 2 can also be established under clustered sampling. All derivations and results remain valid, but the variance formulas will depend on the particular
+form of clustering. In this case, asymptotics are conducted under the standard assumptions: (i) each unit i belongs to exactly one of G clusters, and (ii) G → ∞ and
+Gh → ∞—see Cameron and Miller (2015) for a review of cluster-robust inference,
+and Bartalotti and Brummet (2017) for a discussion in the context of MSE-optimal
+22
+
+bandwidth selection for sharp RD designs. This extension is conceptually straightforward but notationally cumbersome, and is deferred to the supplemental appendix.
+Our companion software in R and Stata also includes cluster-robust options for bandwidth selection, MSE-optimal point estimation, and robust bias-corrected inference.
+
+5
+
+Numerical Results
+
+We briefly summarize the main numerical findings from an empirical illustration and
+a Monte Carlo study. Additional simulation results can be found in the supplemental
+appendix.
+
+5.1
+
+Empirical Illustration: Head Start Data
+
+To illustrate our methods we first re-analyze the effect of Head Start assistance on
+child mortality in the U.S., which was first studied by Ludwig and Miller (2007).
+The unit of observation is the U.S. county, the treatment is receiving technical assistance to apply for Head Start funds, and the running variable is the county-level
+poverty index constructed in 1965 by the federal government based on 1960 census
+information, with cutoff x̄ = 59.1984. The outcome is the child mortality rate (for
+children of ages five to nine) due to causes affected by Head Start’s health services
+component. We compare the standard RD estimator to the covariate-adjusted RD
+estimator employing heteroskedasticity-robust nearest-neighbor variance estimation.
+There are nine pre-intervention covariates from the 1960 U.S. Census: total population, percentage of black and urban population, and levels and percentages of
+population in three age groups (children aged 3 to 5, children aged 14 to 17, and
+adults older than 25). Full replication code in both R and Stata is available at
+https://sites.google.com/site/rdpackages/replication/.
+Table 1 presents the main results. The first row reports the local linear point
+
+23
+
+Table 1: Empirical Illustration (Head Start Data)
+MSE-optimal bandwidths:
+RD treatment effect
+Inference with h/b unrestricted
+Robust 95% CI
+CI length change (%)
+Robust p-value
+Inference with h/b = 1
+Robust 95% CI
+CI length change (%)
+Robust p-value
+h|b
+n− | n+
+
+not using covariates
+Standard
+Cov-adjusted
+−2.41
+−2.51
+[ −5.46 , −0.10 ]
+0.042
+[ −6.41 , −1.09 ]
+0.006
+6.81 | 10.72
+234 | 180
+
+using covariates
+Cov-adjusted
+−2.47
+
+[ −5.37 , −0.45 ]
+−8.25
+0.021
+
+[ −5.21 , −0.37 ]
+−9.76
+0.024
+
+[ −6.64 , −1.46 ]
+−2.86
+0.002
+6.81 | 10.72
+234 | 180
+
+[ −6.54 , −1.39 ]
+−3.23
+0.003
+6.98 | 11.64
+240 | 184
+
+Notes: (i) All estimates are computed using a triangular kernel and nearest neighbor
+heteroskedasticity-robust variance estimators. (ii) Columns under “Standard” and “Cov-adjusted”
+correspond to, respectively, standard and covariate-adjusted RD estimation and inference methods, given a choice of bandwidths. (iii) Bandwidths used (h and b) are data-driven MSE-optimal
+for either standard RD estimator or covariate-adjusted RD estimator (depending on the group of
+columns). Specifically, in the first two columns (not using covariates) the bandwidths are selected
+to be MSE-optimal for τ̂ (standard RD estimation), while in the third column (using covariates)
+the bandwidths are selected to be MSE-optimal for τ̃ (covariate-adjusted RD estimation).
+
+estimate using the corresponding MSE-optimal bandwidth h as described in each
+column. The next three rows report 95% robust bias-corrected confidence intervals,
+the percentage length change of the covariate-adjusted confidence interval relative
+to the unadjusted one, and the p-value associated with the hypothesis of zero RD
+treatment effect. These three rows appear twice, first when h for the RD point
+estimator and b for the bias estimator are chosen separately, and then when b = h.
+Finally, the last two rows report, respectively, the estimated bandwidths and the
+number of observations to the left and to the right of the cutoff with Xi ∈ [x̄−h, x̄+h].
+The empirical findings are consistent with our theoretical results: employing
+covariate-adjusted RD inference leads to precision improvements while the point estimators remain stable. The point estimate ranges from −2.41 to −2.51, and it
+is statistically different from zero at 5% level in all cases. As should be expected
+
+24
+
+when the additional covariates are truly predetermined, including covariates does not
+substantially alter the point estimates (we also implemented “placebo tests” on the
+additional covariates and found, as expected, no statistical evidence of RD treatment effects). Including covariates leads to sizable efficiency gains: the rows labeled
+“CI length change (%)” show a nearly 10% efficiency gain when the bandwidths are
+unrestricted and optimally chosen using covariates.
+
+5.2
+
+Simulation Evidence
+
+We also investigate the finite sample performance of our methods using realistic simulated data. We consider four data generating processes constructed using the data of
+Lee (2008), where all parameters were obtained from real data unless explicitly noted
+otherwise. This simulation model has been used extensively in the literature, which
+facilitates the comparison across studies. All the models include a predetermined
+covariate (previous democratic vote share), and they vary in the importance of this
+covariate: (i) in Model 1, the covariate is irrelevant; (ii) in Model 2, it enters the conditional expectation of the potential outcomes E[Yi (t)|Xi , Zi (t)], t ∈ {0, 1} according
+to the real data; (iii) Model 3 takes Model 2 but sets the residual correlation between
+the outcome and covariate to zero; and (iv) Model 4 takes Model 2 but doubles the
+residual correlation between the outcome and covariate equations. Models 3 and 4
+do not imply Cov[Yi (t), Zi (t)|Xi ] = 0, t ∈ {0, 1}.
+The constructions allow E[Yi (t)|Xi , Zi (t)] to have different coefficients on each side
+of the cutoff, while the conditional expectation of the potential covariates E[Zi (t)|Xi ],
+t ∈ {0, 1}, are constructed assuming they are continuous at the cutoff (but still with
+different coefficients on either side). Therefore, our covariate-adjusted RD estimator
+is “misspecified” when viewed as a local weighted least squares fit. To conserve
+space, all details and results of our Monte Carlo study are given in Part V of the
+supplemental appendix. All findings are consistent with our large sample theory. We
+25
+
+find that covariate-adjusted local polynomial analysis can improve both MSE and
+interval length, sometimes dramatically. The gains are largest in Model 4, with the
+amplified residual correlation, and least in Model 3, when that channel is shut down,
+as the theory predicts. The results for Model 1 show that including an irrelevant
+covariate hardly changes empirical results and conclusions. Finally, we find that our
+data-driven bandwidth selectors work reasonably well.
+
+6
+
+Conclusion
+
+We provided a formal framework for identification, estimation, and inference in RD
+designs when covariates are included in local polynomial estimation. We augmented
+the standard local polynomial estimator with covariates entering in an additiveseparable, linear-in-parameters way, and showed that the resulting covariate-adjusted
+RD estimator remains consistent for the standard RD treatment effect if the covariate adjustment is restricted to be equivalent above and below the cutoff. Furthermore, this estimator can achieve substantial efficiency gains relative to the unadjusted RD estimator. Thus, we are able to characterize precisely the potential for
+point estimation and inference improvements, and in particular, efficiency gains. We
+also provided new MSE expansions, several optimal bandwidth choices and optimal
+point estimators, robust nonparametric inference procedures based on bias-correction,
+and heteroskedasticity-consistent and cluster-robust standard errors. Our results and
+practical methods cover sharp, fuzzy, and kink RD designs, and we also discuss extensions to clustered data. Finally, we illustrated the practical implications of our
+results using both an application and simulated data.
+
+26
+
+References
+Arai, Y., and Ichimura, H. (2018), “Simultaneous Selection of Optimal Bandwidths
+for the Sharp Regression Discontinuity Estimator,” Quantitative Economics, forthcoming, 9, 441–482.
+Bartalotti, O., and Brummet, Q. (2017), “Regression Discontinuity Designs with
+Clustered Data,” in Regression Discontinuity Designs: Theory and Applications
+(Advances in Econometrics, volume 38), eds. M. D. Cattaneo and J. C. Escanciano,
+Emerald Group Publishing, pp. 383–420.
+Calonico, S., Cattaneo, M. D., and Farrell, M. H. (2018a), “Coverage Error Optimal
+Confidence Intervals,” Working paper, University of Michigan.
+(2018b), “On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference,” Journal of the American Statistical Association, forthcoming.
+Calonico, S., Cattaneo, M. D., Farrell, M. H., and Titiunik, R. (2017), “rdrobust:
+Software for Regression Discontinuity Designs,” Stata Journal, 17, 372–404.
+Calonico, S., Cattaneo, M. D., and Titiunik, R. (2014), “Robust Nonparametric Confidence Intervals for Regression-Discontinuity Designs,” Econometrica, 82, 2295–
+2326.
+Cameron, A. C., and Miller, D. L. (2015), “A Practitioner’s Guide to Cluster-Robust
+Inference,” Journal of Human Resources, 50, 317–372.
+Cattaneo, M. D., and Escanciano, J. C. (2017), Regression Discontinuity Designs:
+Theory and Applications (Advances in Econometrics, volume 38), Emerald Group
+Publishing.
+Cattaneo, M. D., Frandsen, B., and Titiunik, R. (2015), “Randomization Inference in
+
+27
+
+the Regression Discontinuity Design: An Application to Party Advantages in the
+U.S. Senate,” Journal of Causal Inference, 3, 1–24.
+Cattaneo, M. D., Idrobo, N., and Titiunik, R. (2018a), A Practical Introduction
+to Regression Discontinuity Designs: Volume I, Cambridge Elements: Quantitative and Computational Methods for Social Science, Cambridge University Press,
+forthcoming.
+(2018b), A Practical Introduction to Regression Discontinuity Designs: Volume II, Cambridge Elements: Quantitative and Computational Methods for Social
+Science, Cambridge University Press, in preparation.
+Cattaneo, M. D., Titiunik, R., and Vazquez-Bare, G. (2017), “Comparing Inference
+Approaches for RD Designs: A Reexamination of the Effect of Head Start on Child
+Mortality,” Journal of Policy Analysis and Management, 36, 643–681.
+Cattaneo, M. D., and Vazquez-Bare, G. (2016), “The Choice of Neighborhood in
+Regression Discontinuity Designs,” Observational Studies, 2, 134–146.
+Freedman, D. A. (2008), “On Regression Adjustments in Experiments with Several
+Treatments,” Annals of Applied Statistics, 2, 176–196.
+Frölich, M., and Huber, M. (2018), “Including Covariates in the Regression Discontinuity Design,” Journal of Business & Economic Statistics, forthcoming.
+Hahn, J., Todd, P., and van der Klaauw, W. (2001), “Identification and Estimation
+of Treatment Effects with a Regression-Discontinuity Design,” Econometrica, 69,
+201–209.
+Imbens, G., and Lemieux, T. (2008), “Regression Discontinuity Designs: A Guide to
+Practice,” Journal of Econometrics, 142, 615–635.
+
+28
+
+Imbens, G. W., and Kalyanaraman, K. (2012), “Optimal Bandwidth Choice for the
+Regression Discontinuity Estimator,” Review of Economic Studies, 79, 933–959.
+Imbens, G. W., and Rubin, D. B. (2015), Causal Inference in Statistics, Social, and
+Biomedical Sciences, Cambridge University Press.
+Lee, D. S. (2008), “Randomized Experiments from Non-random Selection in U.S.
+House Elections,” Journal of Econometrics, 142, 675–697.
+Lee, D. S., and Lemieux, T. (2010), “Regression Discontinuity Designs in Economics,”
+Journal of Economic Literature, 48, 281–355.
+Lin, W. (2013), “Agnostic Notes on Regression Adjustments to Experimental Data:
+Reexamining Freedman’s Critique,” Annals of Applied Statistics, 7, 295–318.
+Ludwig, J., and Miller, D. L. (2007), “Does Head Start Improve Children’s Life
+Chances? Evidence from a Regression Discontinuity Design,” Quarterly Journal of
+Economics, 122, 159–208.
+Sekhon, J., and Titiunik, R. (2017), “On Interpreting the Regression Discontinuity
+Design as a Local Experiment,” in Regression Discontinuity Designs: Theory and
+Applications (Advances in Econometrics, volume 38), eds. M. D. Cattaneo and
+J. C. Escanciano, Emerald Group Publishing, pp. 1–28.
+
+29
+
+A
+
+Supplemental Files
+• A supplemental appendix, containing the proofs of the main results, several extensions, additional methodological and technical results, and further simulation details,
+not included in the main paper to conserve space, is available here.
+• Replication files are available here.
+• All methods are implemented in the rdrobust package available here.
+
+30
+
+

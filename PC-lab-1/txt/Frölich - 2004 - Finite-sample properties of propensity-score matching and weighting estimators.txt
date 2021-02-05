@@ -1,0 +1,4448 @@
+FINITE-SAMPLE PROPERTIES OF PROPENSITY-SCORE MATCHING
+AND WEIGHTING ESTIMATORS
+Markus Frölich*
+Abstract—The finite-sample properties of matching and weighting estimators, often used for estimating average treatment effects, are analyzed.
+Potential and feasible precision gains relative to pair matching are examined. Local linear matching (with and without trimming), k-nearestneighbor matching, and particularly the weighting estimators performed
+worst. Ridge matching, on the other hand, leads to an approximately 25%
+smaller MSE than does pair matching. In addition, ridge matching is least
+sensitive to the design choice.
+
+I.
+
+Introduction
+
+M
+
+ATCHING estimators are frequently applied in treatment evaluation to estimate average treatment effects.
+In this paper, the finite-sample properties of different matching and weighting estimators are analyzed. When selection
+is on the observables, for estimating treatment effects it is
+necessary to adjust for the different distributions of the
+observed characteristics in the treated and the nontreated
+population. By doing so, the causal effect is separated from
+the effect due to nonrandom selection into treatment. Several nonparametric estimators have been suggested for this.
+Pair matching, which is most frequently used in applications, proceeds by finding for each treated observation a
+nontreated observation with identical (or very similar) characteristics. This aligns the distributions of the characteristics
+in the treated and the matched comparison sample. Finding
+matches that are identical with respect to all relevant covariates, however, can be difficult if the number of covariates is large. Nevertheless, as proposed by Rosenbaum and
+Rubin (1983), matching on the (one-dimensional) propensity score suffices to adjust for the differences in the observed covariates.
+Matching only one nontreated observation to each treated
+observation is obviously inefficient, and alternative matching estimators have been suggested. Heckman, Ichimura,
+and Todd (1997, 1998) proposed local polynomial matching, which includes kernel matching and local linear matching. An alternative approach to matching is based on
+weighting the nontreated observations by the propensity
+score, as suggested in Imbens (2000).
+Asymptotic properties of these matching and weighting
+estimators have been examined by Hahn (1998), Heckman
+et al. (1998), Abadie and Imbens (2001), Ichimura and
+Received for publication August 2, 2001. Revision accepted for publication July 29, 2003.
+* University of St. Gallen.
+The author is also affiliated with the Institute for the Study of Labor
+(IZA), Bonn. He would like to thank Yuanhua Feng, Bernd Fitzenberger,
+Hidehiko Ichimura, Michael Lechner, Jeff Smith, two anonymous referees, and participants at the Econometric Society Meeting in Venice (2002)
+and at seminars at the University of Konstanz and Mannheim for helpful
+comments and suggestions. Financial support from the Swiss National
+Science Foundation (Project NSF 4043-058311) is gratefully acknowledged.
+
+Linton (2002), and Hirano, Imbens, and Ridder (2003). The
+finite-sample properties of these estimators, however, have
+not been subject to extensive investigation. For their practical use, it would be important to know which estimator
+performs best under which conditions. In addition, many of
+these estimators require the choice of bandwidth parameters, and guidance is needed on how to select these.
+In this paper the finite-sample properties are investigated
+for pair matching, kernel matching, local linear matching,
+k-nearest-neighbor (k-NN) matching, and the weighting
+estimator. Moreover, the effect of trimming, as suggested by
+Heckman et al. (1997, 1998), is examined. In addition, an
+alternative matching estimator based on nonparametric
+ridge regression is proposed and analyzed. This ridge
+matching estimator is motivated by the observation that
+local linear regression can be very unreliable in regions of
+sparse data. Trimming the observations in regions with few
+comparisons, as in Heckman, Ichimura, and Todd (1997,
+1998), is one way to sidestep this problem. Ridge matching,
+on the other hand, seeks to stabilize the estimator through
+ridge regression (Seifert and Gasser, 1996, 2000).
+The Monte Carlo simulations consist of two parts: First,
+the mean squared error of the various estimators is simulated at their optimal bandwidth values. These results show
+the potential of each estimator, independent of the particular
+bandwidth selector. They also indicate how large the improvement in mean squared error vis-à-vis the benchmark
+pair-matching estimator could be at most. Thereafter, the
+mean squared error is examined when the bandwidth is
+chosen by cross-validation. Cross-validation is a convenient
+approach to selecting the bandwidth value and turns out to
+work reasonably well for some estimators. Ridge matching
+very often performs best among all estimators (with a mean
+squared error approximately 25% lower than for pair matching) and is robust to the simulation design. Local linear
+matching (with and without trimming) and k-NN matching
+are more susceptible to the simulation design and can often
+be worse than pair matching. The weighting estimator is
+very unreliable and has a larger MSE than pair matching in
+all simulations.
+II.
+
+Matching Estimators
+
+When evaluating the effect of a treatment, interest often
+lies in the estimation of average treatment effects. Let Y 0i
+and Y 1i denote the potential outcomes, where Y 1i is the
+outcome if the individual receives treatment, and Y 0i the
+outcome if he or she does not. Let D i 僆 {0, 1} indicate
+treatment receipt. The average treatment effect on the
+treated is
+E关Y 1 兩D ⫽ 1兴 ⫺ E关Y 0 兩D ⫽ 1兴.
+
+The Review of Economics and Statistics, February 2004, 86(1): 77–90
+© 2004 by the President and Fellows of Harvard College and the Massachusetts Institute of Technology
+
+78
+
+THE REVIEW OF ECONOMICS AND STATISTICS
+
+Whereas the first term can be estimated by the mean
+outcome among the treated individuals, the term E[Y 0 兩D ⫽
+1] is counterfactual. Identifying this counterfactual mean is
+fundamental to treatment evaluation. Generally, E[Y 0 兩D ⫽
+1] is not equal to E[Y 0 兩D ⫽ 0] if treatment selection is
+nonrandom. Nevertheless, conditional on all confounding
+factors X, that is, all factors that influenced the potential
+outcome and the decision to participate in treatment, D is
+independent of Y 0 :
+储 D兩X,
+Y 0O
+
+(1)
+E[Y 0 兩D
+
+and the counterfactual mean is identified as
+⫽ 1] ⫽
+E[E[Y 0 兩X, D ⫽ 0]兩D ⫽ 1], provided the support of X
+among the treated is contained in the support of X among
+the nontreated. If X contains only a few variables, the
+counterfactual mean can be estimated using nonparametric
+regression of Y on X in the nontreated sample. However, if
+X is high-dimensional, nonparametric regression can be
+difficult. Rosenbaum and Rubin (1983) have shown that the
+dimension of the estimation problem can be reduced substantially in that the counterfactual mean is also identified as
+E关Y 0 兩D ⫽ 1兴
+⫽
+
+冕
+
+(2)
+E关Y兩p共X兲 ⫽ ␳, D ⫽ 0兴 䡠 f p兩D⫽1 共␳兲 d␳,
+
+¥ i:D i⫽1 m̂共 p i 兲 䡠 1关 f̂ p兩D⫽0 共 p i 兲 ⬎ ␶兴
+ˆ
+0
+,
+兩D ⫽ 1兴 ⫽
+E关Y
+¥ i:D i⫽1 1关 f̂ p兩D⫽0 共 p i 兲 ⬎ ␶兴
+
+(4)
+
+where ␶ is set so that, for example, 2% or 5% of the treated
+observations are trimmed.
+Trimming, however, is a very rough solution for the
+small-sample problems of local linear regression. Various
+approaches to stabilize the local linear estimator in finite
+samples have been developed. A simple but promising
+approach is local linear ridge regression, which modifies the
+local linear estimator by adding a ridge term to its denominator to avoid near-zero denominators. The regression
+estimator of Seifert and Gasser (1996, 2000) is
+m̂共␳兲 ⫽
+
+T 1 䡠 共␳ ⫺ p៮ 兲
+T0
+,
+⫹
+S 0 S 2 ⫹ rh兩␳ ⫺ p៮ 兩
+
+(5)
+
+where
+
+where p( x) ⫽ P (D ⫽ 1兩X ⫽ x) is the one-dimensional
+propensity score, and f p兩D⫽1 is the density of p(X) in the
+treated population.
+n
+Consider a sample of i.i.d. observations {Y i , D i , p i } i⫽1
+,
+where p i ⫽ p(X i ). Denote the number of treated observations by n 1 , and the number of control observations by n 0 .
+A variety of propensity-score matching estimators have
+been proposed for estimating the counterfactual mean,
+which can be characterized as
+1
+ˆ
+0
+兩D ⫽ 1兴 ⫽
+E关Y
+n1
+
+Heckman, Ichimura, and Todd (1997) advocated local linear
+regression for its well-known optimality properties.1
+In small samples, however, local linear regression often
+leads to a very rugged curve in regions of sparse or clustered
+data (Seifert & Gasser, 1996). To deal with this erratic
+behavior, Heckman et al. (1997, 1998) implement a trimming procedure to discard the nonparametric regression
+results in regions where the density of the propensity score
+in the nontreated population is small. The trimmed matching
+estimator is
+
+冘
+
+S a 共␳兲 ⫽
+
+(3)
+
+i:D i ⫽1
+
+where m̂(␳) is an estimate of the mean outcome in the
+nontreated population conditional on the propensity score:
+m(␳) ⫽ E[Y兩p(X) ⫽ ␳, D ⫽ 0]. The matching estimators
+differ in how they estimate m(␳). The most prevalent
+estimator is pair matching, which proceeds by finding for
+each treated observation a control observation with identical
+(or very similar) value of p, that is, it uses first-nearestneighbor regression to estimate m(␳).
+Heckman et al. (1997, 1998) suggested estimating m(␳)
+by local polynomial regression: Kernel matching estimates
+m(␳) by Nadaraya-Watson regression, whereas local linear
+matching is based on a local linear regression estimator.
+
+冘
+
+Y j 共 p j ⫺ p៮ 兲 a K
+
+p jK
+
+冉 冊冒 冘 冉 冊
+
+j:D j ⫽0
+
+pj ⫺ ␳
+,
+h
+
+pj ⫺ ␳
+,
+h
+
+and
+p៮ ⫽
+
+m̂共 p i 兲,
+
+共 p j ⫺ p៮ 兲 a K
+
+j:D j ⫽0
+
+T a 共␳兲 ⫽
+
+冉 冊
+冉 冊
+
+冘
+
+冘
+
+j:D j ⫽0
+
+pj ⫺ ␳
+h
+
+K
+
+j:D j ⫽0
+
+pj ⫺ ␳
+.
+h
+
+The bandwidth value h converges to 0 with growing sample
+size, and K⵺ is a kernel weighting function. The constant
+r is the ridge parameter that ensures nonzero denominators.
+According to the rule of thumb of Seifert and Gasser (2000),
+5
+r is set to 16 for the Epanechnikov kernel and to [4 公2␲ 兰
+␾ 2 (u) du] ⫺1 ⬇ 0.35 for the Gaussian kernel. Inserting
+equation (5) in (3) gives the ridge matching estimator.
+In the Monte Carlo simulations, 11 different matching
+estimators are compared: pair matching, kernel matching
+(with Epanechnikov and Gaussian kernel), local linear matching and trimmed local linear matching (with Epanechnikov
+1 See, for example, Fan (1992, 1993), Hastie and Loader (1992) and Fan
+et al. (1997).
+
+FINITE-SAMPLE PROPERTIES OF PROPENSITY-SCORE MATCHING AND WEIGHTING ESTIMATORS
+
+and Gaussian kernel), ridge matching (with Epanechnikov
+and Gaussian kernel), and two variants of k-NN matching.
+In the first variant of k-NN matching, the standard k-NN
+regression estimator is used [which estimates m(␳) by the
+average outcome of the k selected neighbors]. In the second
+variant, m(␳) is estimated by a weighted average outcome
+of the k neighbors, where the neighbors are weighted
+according to their distance to ␳ (using Epanechnikov
+weights).
+An alternative approach to estimating the counterfactual
+mean is based on weighting by the propensity score ratio, as
+suggested in Imbens (2000). The weighting estimator is
+1
+ˆ
+0
+兩D ⫽ 1兴 ⫽
+E关Y
+n1
+
+冘
+
+i:D i ⫽0
+
+Yi
+
+pi
+.
+1 ⫺ pi
+
+(6)
+
+Because the ratio p i /(1 ⫺ p i ) can become very large for
+values of p i close to 1, some form of trimming or capping
+is necessary in finite samples. In the simulations, a ceiling c៮
+for the ratio p i /(1 ⫺ p i ) is examined (that is, ratios larger
+than c៮ are set to c៮ ). In addition, a trimming rule, viz.
+deleting the observations with the largest ratios, was considered, but performed worse.
+III.
+
+Monte Carlo Study
+
+A. Simulation Design
+
+The design of the Monte Carlo study consists of two
+parts: the distributions of the propensity score in the treated
+population ( f p兩D⫽1 ) and the nontreated population ( f p兩D⫽0 )
+(see figure 1), and the specification of m( p), that is, the
+conditional expectation function of Y given the propensity
+score (figure 2). The distribution of the propensity scores in
+figure 1 is driven by the distribution of X and the specification of the propensity score p( x). To have a simple design
+that, at the same time, allows one to generate very different
+shapes of f p兩D⫽1 and f p兩D⫽0 , the covariate X is chosen to be
+one-dimensional and drawn from the Johnson S B distribution (see figure A1), and the propensity score is specified as
+a linear function p( x) ⫽ ␣ ⫹ ␤x. (Details are given in the
+appendix.) Through the choice of different values for ␣ and
+␤, very different shapes of f p兩D⫽1 and f p兩D⫽0 can be generated, as demonstrated in Figure 1. An increase in ␣ shifts the
+average value of the propensity score upwards, so that the
+number of treated relative to the number of nontreated
+increases. Through the parameter ␤, the spread of the
+propensity score values is controlled.
+Figure 1 shows the five different distributions of the
+propensity score that are used in the Monte Carlo simulations. [The support of the propensity score is (␣, ␣ ⫹ ␤) and
+thus varies with ␣ and ␤. Figure 1 displays the densities of
+the rescaled propensity score, which is scaled by ( p ⫺ ␣)/␤
+so that its support is always (0,1). This ensures that the
+support is compatible with the regression curves in figure 2
+for all designs. In the simulations, this rescaled propensity
+
+79
+
+score is used.] The designs are chosen to illustrate different
+degrees of overlapping density mass and to represent different ratios of control to treated observations.2 In the first
+three designs, the population mean of the propensity score is
+0.5, that is, the expected ratio of control to treated observations is 1 : 1. In the fourth design the ratio is 4 : 1; in the last
+design it is 1 : 4. The fourth design is most pertinent to the
+estimation of the average treatment effect on the treated
+when the pool of control observations is large. However, if
+interest lies also in the average treatment effect or in the
+average treatment effect on the nontreated, or if multiple
+treatments are to be evaluated, the estimation of the counterfactual means involves settings where the numbers of
+treated and control observations are of similar magnitude
+and/or where the treated greatly exceed the controls.
+The first three designs, where the control-treated ratio is
+1 : 1, vary in the discrepancy between the two densities
+f p兩D⫽1 and f p兩D⫽0 . The differences in the two densities
+determine how challenging the estimation setting is for the
+matching estimator. If the two densities are rather different,
+the matching estimator (3) needs to estimate m( p) often in
+regions where there are only very few control observations.
+In design 1, for example, a substantial amount of the
+probability mass of the treated is located to the right of 0.8,
+where there is only little probability mass of the nontreated.
+Hence nonparametric regression in these regions is rather
+imprecise. In design 3, on the other hand, the two densities
+are very similar, and nonparametric regression should be
+more precise at all relevant locations. Design 2 is midway
+between design 1 and design 3 and will allow us to determine whether the measures of closeness reported below are
+monotonic in the shape.
+A useful measure of the distance between these two
+densities is the Kullback-Leibler information criterion
+(KLIC), which is defined as (Kullback and Leibler, 1951;
+Kullback, 1959)
+
+KLIC ⫽
+
+冕冉
+
+ln
+
+冊
+
+fp兩D⫽1 共␳兲
+f
+共␳兲 d␳,
+fp兩D⫽0 共␳兲 p兩D⫽1
+
+where the integral is taken over the common support of
+f p兩D⫽0 and f p兩D⫽1 . The KLIC is equal to 0 if the two densities
+are identical, and it increases with the discrepancy between
+the two distributions. The KLIC is attractive here because it
+weights the discrepancy in the densities by the probability
+mass among the treated, analogously to the weighting for
+the counterfactual mean (2). Hence regions where f p兩D⫽0 is
+small (and f p兩D⫽1 /f p兩D⫽0 is large) contribute significantly to
+an increase in the discrepancy measure only when f p兩D⫽1
+itself is large, that is, when there are many treated observations for whom m( p) needs to be estimated. In regions
+where f p兩D⫽1 is small, the density ratio hardly matters at all.
+2
+
+The support of f p兩D⫽1 and f p兩D⫽0 is identical in all designs.
+
+80
+
+THE REVIEW OF ECONOMICS AND STATISTICS
+FIGURE 1.—DENSITIES
+
+TABLE 1.—KLIC
+
+AND THE
+
+CONTROL-TREATED RATIO
+
+OF THE
+
+Design
+
+␣
+
+␤
+
+Control-treated Ratio
+
+KLIC
+
+1
+2
+3
+
+0
+0.15
+0.30
+
+1
+0.7
+0.4
+
+1:1
+1:1
+1:1
+
+0.73
+0.42
+0.23
+
+4
+5
+
+0
+0.6
+
+0.4
+0.4
+
+4:1
+1:4
+
+0.58
+0.77
+
+PROPENSITY SCORE: f p兩D⫽1
+
+Note: The control-treated ratio is the ratio of the expected numbers of controls and treated:
+E[n 0 ]/E[n 1 ].
+
+Table 1 displays the values of the KLIC and the controltreated ratio for the different designs. These two parameters are
+indicative of the level of difficulty of the estimation setting.
+Whereas a larger KLIC indicates that the shapes of the two
+densities are more different, so that the matching estimator
+more often needs to estimate m( p) in regions with few control
+observations, the control-treated ratio indicates the absolute
+number of control observations available. For a given sample
+size (n0 ⫹ n1), a larger control-treated ratio implies that more
+observations on Y are available to estimate m( p). In contrast, if
+the control-treated ratio is 1 : 4, as in design 5, there are very
+few nontreated observations to estimate m( p).
+The second part of the design of the Monte Carlo simulations concerns the specification of m( p). Six different
+regression curves with different degrees of nonlinearity are
+considered (figure 2 and table A1). The first regression
+curve is a straight line. The second has a conspicuous local
+nonlinearity,3 and the third is mildly nonlinear throughout.
+3 This regression curve might represent a situation where the potential
+outcome depends discontinuously on some confounding variables X that
+are itself strongly related to the propensity score. Consider, for example,
+a treatment whose expected potential outcome is discontinuous in age.
+
+AND
+
+f p兩D⫽0
+
+The fourth and the fifth curve are concave in shape, and the
+latter has some additional nonlinear structure. The sixth
+curve is highly nonlinear.4 A mean-zero, uniform error term
+with standard deviation 0.1 is added as noise to these
+curves.
+Though it was straightforward to interpret the KLIC and
+the control-treated ratio, in that a higher KLIC or a lower
+control-treated ratio makes the estimation setting more demanding (that is, increases the MSE), such an interpretation
+is less obvious for the regression curve m( p). Although
+curves with greater curvature imply a larger local bias for
+the nonparametric regression estimator, these biases may
+partly cancel when the matching estimator takes the average
+of the estimated m̂( p i ). Hence, more pronounced nonlinearities in itself will not necessarily increase the MSE. They
+may favor one estimator over the other, though. The straight
+line m 1 , for instance, is more suited to local linear regression.
+Rather than the type of the nonlinearities, it might be
+more important where they are located. If they are situated
+in regions where the density in the treated population is low,
+they are less relevant. To analyze the effect of nonlinearities
+on the relative performance of the various estimators, the
+regression curves are chosen such that the nonlinearities are
+located mostly to the right of the center, because that is the
+(For example, the treatment might consist of three programs: one for 10to 15-year-olds, one for 16- to 17-year-olds, and one for 18- to 20-yearolds, and only the program for the 16- to 17-year-olds, is beneficial.) If age
+is also the main determinant of the participation decision, a shape like
+regression curve 2 could result.
+4 Regression curves 2 and 6 are taken from Fan and Gijbels (1992).
+
+FINITE-SAMPLE PROPERTIES OF PROPENSITY-SCORE MATCHING AND WEIGHTING ESTIMATORS
+
+81
+
+FIGURE 2.—REGRESSION CURVES m( p)
+
+region where much of the density of the treated lies but
+rather little of the density of the controls.
+In the following sections the Monte Carlo results for
+these different designs are presented. The mean squared
+error is simulated for the various estimators for three different sample sizes: 100, 400, and 1600 observations. Pair
+matching is considered as the benchmark estimator, and the
+MSE of the other estimators is analyzed relative to that of
+pair matching. Because all other matching estimators depend on the choice of a bandwidth value, the Monte Carlo
+results consist of two parts. In section IIIB the potential
+efficiency gains are considered: The MSE of the matching
+estimators at their optimal bandwidth values is compared
+with the MSE of pair matching. This gives an indication by
+how much the MSE could be reduced if the optimal bandwidth were known. Because the optimal bandwidth is unknown in practice, section IIIC examines the finite-sample
+performance when the bandwidth is chosen by crossvalidation. This gives a feasible estimator that is easy to
+implement.
+B. Potential Efficiency Gains
+
+Table 2 provides the simulated MSE for sample size 100.
+In the first column the MSE of pair-matching is given. The
+first seven rows provide the results for the first density
+design (first graph in figure 1), the second seven rows
+represent the second density design, and so on. Within each
+block, the first six rows correspond to the results for the six
+regression curves m 1 to m 6 , and the seventh row shows the
+average result for these six curves. Examining the results for
+the first three density designs (where the control-treated
+
+ratio is 1 : 1), the MSE of pair matching decreases from
+design 1 to design 3 for all regression curves. Hence, it is
+smaller when the shapes of f p兩D⫽1 and f p兩D⫽0 are more
+similar (and the KLIC is smaller). On the other hand, the
+MSE becomes larger when the control-treated ratio differs
+from 1 : 1, particularly when the number of treated observations predominates (design 5).
+The dependence of the MSE of pair matching on the
+density design and the regression curve, however, is not of
+particular concern in this paper. It is rather of interest how
+the choice of the best estimator depends on the density
+design and the regression curve. Therefore, the MSE of the
+other estimators is always presented relative to the MSE of
+pair matching (in percent), that is, a value above 100
+indicates that pair matching is more precise, and a value
+below 100 indicates the reverse. The subsequent columns of
+table 2 provide the results for the different matching estimators: kernel matching, local linear matching, and ridged
+local linear matching, each with Epanechnikov kernel and
+with Gaussian kernel. These are followed by k-NN matching and Epanechnikov-weighted k-NN matching. Finally,
+the results for the weighting estimator are given. (In each
+row of Table 2, the smallest entries are underlined.) Table 2
+presents the MSE for the matching estimators at their
+simulated optimal bandwidth values: For each estimator and
+for each Monte Carlo design, the MSE is simulated at 60
+different bandwidth values, and the minimum of these
+simulated MSE is given.5
+5 For kernel and (ridged) local linear matching the bandwidth grid is
+0.01 公1.2 g⫺2 for g ⫽ 1, . . . , 59 and ⬁. For k-NN matching the
+
+82
+
+THE REVIEW OF ECONOMICS AND STATISTICS
+TABLE 2.—MEAN SQUARED ERROR
+
+OF
+
+ESTIMATED COUNTERFACTUAL MEAN OUTCOME
+
+AT
+
+OPTIMAL BANDWIDTH VALUE, SAMPLE SIZE 100
+
+MSE Relative to That of Pair Matching (%)
+
+Design
+
+Curve
+
+1000⫻
+MSE for
+Pair
+Matching
+
+1
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+1.77
+2.86
+1.54
+1.81
+1.96
+2.15
+
+90.4
+67.6
+69.3
+92.9
+83.3
+67.2
+
+83.9
+83.8
+66.5
+83.9
+82.6
+71.1
+
+58.6
+109.6
+65.2
+67.6
+73.7
+100.6
+
+58.2
+105.9
+64.5
+63.0
+70.5
+80.5
+
+58.5
+64.1
+64.9
+69.4
+73.1
+74.0
+
+57.6
+81.4
+61.3
+71.3
+76.6
+77.3
+
+84.6
+98.7
+68.8
+93.4
+96.0
+81.1
+
+80.4
+100.8
+66.5
+89.7
+91.2
+81.1
+
+2555
+922
+2528
+958
+1033
+1111
+
+1175
+520
+1337
+633
+623
+671
+
+2.01
+
+78.5
+
+78.6
+
+79.2
+
+73.7
+
+67.3
+
+70.9
+
+87.1
+
+85.0
+
+1518
+
+827
+
+77.7
+81.8
+66.9
+73.4
+73.5
+73.5
+
+77.0
+80.9
+67.3
+70.0
+72.4
+71.8
+
+70.0
+116.4
+63.4
+69.0
+73.3
+68.0
+
+71.8
+94.8
+63.4
+66.6
+69.6
+62.8
+
+70.5
+74.5
+63.8
+68.7
+71.3
+62.4
+
+71.8
+80.1
+62.6
+64.6
+68.9
+69.7
+
+82.4
+97.4
+73.2
+85.2
+85.2
+85.3
+
+79.8
+89.9
+70.7
+83.9
+81.6
+85.6
+
+812
+435
+885
+449
+475
+452
+
+654
+387
+755
+413
+422
+396
+
+Kernel
+Matching
+
+Local Linear
+Matching
+
+Ridge
+Matching
+
+k-NN
+Matching
+
+Weighting
+Estimator
+
+Epa
+
+Gauss
+
+Epa
+
+Gauss
+
+Epa
+
+Gauss
+
+—
+
+Epa
+
+—
+
+Opt.
+
+2
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+1.30
+1.83
+1.11
+1.06
+1.07
+1.57
+1.33
+
+74.4
+
+73.2
+
+76.7
+
+71.5
+
+68.5
+
+69.6
+
+84.8
+
+81.9
+
+585
+
+504
+
+3
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+1.19
+1.58
+0.95
+0.83
+0.84
+1.40
+
+73.7
+81.3
+66.4
+64.9
+64.5
+71.5
+
+74.0
+81.7
+65.3
+64.1
+63.5
+70.0
+
+74.0
+92.0
+64.7
+61.0
+63.6
+59.2
+
+76.0
+86.5
+64.8
+61.2
+61.3
+57.6
+
+68.0
+74.7
+62.9
+62.9
+63.0
+57.6
+
+70.8
+77.8
+62.6
+60.1
+60.2
+62.9
+
+74.6
+89.8
+72.1
+73.1
+76.8
+84.3
+
+75.4
+87.5
+69.8
+70.4
+74.6
+81.6
+
+326
+224
+371
+157
+163
+210
+
+312
+227
+370
+153
+161
+204
+
+1.13
+
+70.4
+
+69.8
+
+69.1
+
+67.9
+
+64.8
+
+65.7
+
+78.4
+
+76.6
+
+242
+
+238
+
+2.08
+3.03
+1.75
+1.56
+1.57
+2.85
+
+67.3
+58.8
+56.3
+53.3
+51.1
+42.6
+
+68.3
+57.7
+57.8
+52.6
+51.7
+41.8
+
+71.1
+59.9
+46.1
+36.1
+35.1
+28.9
+
+70.7
+57.3
+45.7
+34.7
+35.8
+28.8
+
+68.3
+57.1
+43.8
+35.8
+31.5
+29.3
+
+66.3
+56.7
+43.9
+33.6
+34.5
+27.9
+
+68.2
+78.6
+64.6
+61.0
+63.5
+69.0
+
+70.5
+68.5
+63.9
+59.9
+59.1
+63.7
+
+198
+106
+226
+126
+131
+107
+
+190
+108
+224
+125
+132
+105
+
+2.14
+
+54.9
+
+55.0
+
+46.2
+
+45.5
+
+44.3
+
+43.8
+
+67.5
+
+64.3
+
+149
+
+147
+
+2.23
+4.54
+1.88
+2.29
+2.49
+3.07
+
+105.8
+78.8
+91.8
+88.7
+86.5
+83.0
+
+88.7
+77.0
+81.7
+87.3
+87.8
+89.1
+
+61.2
+81.5
+93.7
+76.4
+78.8
+150.1
+
+61.6
+82.3
+120.2
+83.0
+84.6
+183.9
+
+65.3
+75.3
+80.5
+76.9
+76.1
+75.6
+
+64.3
+77.6
+82.9
+78.1
+78.9
+92.4
+
+97.5
+96.4
+97.8
+95.4
+96.6
+95.3
+
+91.9
+84.7
+88.6
+95.4
+92.9
+92.2
+
+2243
+667
+2156
+771
+755
+920
+
+804
+336
+952
+424
+392
+441
+
+2.75
+
+89.1
+
+85.3
+
+90.3
+
+102.6
+
+75.0
+
+79.0
+
+96.5
+
+91.0
+
+1252
+
+558
+
+4
+
+5
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+Note: The first two columns indicate the design of the propensity score densities and the regression curve, respectively. MSE of pair matching is multiplied by 1000. MSE of all other estimators is given relative
+to MSE of pair matching. In each row, the estimator with the minimum MSE and all estimators with MSE not larger than 0.5 above the minimum are underlined. Epa indicates Epanechnikov kernel; Gauss indicates
+Gaussian kernel. The MSE of the matching estimators is given at the simulated optimal bandwidth value, which is simulated over a grid of 60 different values (30 values for k-NN matching). Simulations are based
+on 10,000 replications.
+
+Inspecting these relative MSE across the different designs, it is seen that the relative performance of all matching
+estimators depends strongly on the density design and, in
+particular, on the control-treated ratio: Whereas the relative
+MSE of the matching estimators decreases somewhat when
+the propensity score densities become more similar (from
+design 1 to 3), the MSE is much lower when the controltreated ratio is high (design 4) and higher when the ratio of
+controls to treated is low (design 5). In design 4, the number
+of control observations is approximately 80, and the number
+of treated is around 20. Pair matching performs very poorly
+bandwidth grid contains only 30 values: 1, . . . , 21, 25, 29, . . . , 53, ⬁. For
+bandwidth ⬁ no local smoothing takes place and local linear regression
+corresponds to OLS. For larger sample sizes the bandwidth grid for k-NN
+matching is adopted to include larger numbers of neighbors.
+
+in this situation (the MSE of the other matching estimators
+is often 50% lower), because it uses the observations on Y
+for the 20 matched control observations only, whereas the
+other matching estimators use all control observations. In
+design 5, on the other hand, the control-treated ratio is
+reversed, and pair matching uses the 20 controls multiple
+times for matching to the 80 treated observations. Consequently, the loss of information due to pair matching is
+much smaller, and the MSE of the other matching estimators is only 10% to 25% lower than for pair matching.
+Whereas the design of the propensity score densities
+showed a clear effect on the relative precision of alternative
+matching estimators, the shape of the regression curve
+seems to be less important. On average, the relative MSE
+tends to be somewhat larger for regression curve 2 (with the
+
+FINITE-SAMPLE PROPERTIES OF PROPENSITY-SCORE MATCHING AND WEIGHTING ESTIMATORS
+
+conspicuous local peak) and slightly smaller for regression
+curve 3 (with mild nonlinearities). Nevertheless, the alternative estimators perform better than pair matching in all
+designs. In general, ridge matching performs best, followed
+by local linear matching. Ridge matching is in most designs
+the best estimator, and in those designs where it is not, it is
+usually not much worse than the best estimator. In addition,
+ridge matching is in all designs better than pair matching.
+Local linear matching also performs well in many situations, but can be worse than pair matching in other situations. Although it sometimes performs a little better than
+ridge matching, it can be much worse in other designs. In
+general, local linear matching seems to be more sensitive to
+the density design and the regression curve, performing well
+in some situations (for example, when the regression curve
+is linear) but poorly in others (for example, for regression
+curve 2 with the local peak). Kernel matching, on the other
+hand, is less sensitive to the simulation design, but performs
+worse than ridge matching in almost all designs. The choice
+of the kernel function, for these three matching estimators,
+is of lesser importance. For ridge matching, the Epanechnikov kernel is slightly preferable to the Gaussian kernel. For
+kernel matching it is the Gaussian kernel.
+The k-NN matching estimator is in many designs the
+worst of all matching estimators.6 In all designs it has a
+larger MSE than ridge matching. k-NN matching with
+Epanechnikov weights performs somewhat better, but is still
+always worse than ridge matching. Finally, in the last two
+columns the relative MSE of the weighting estimator is
+given. The MSE of the simple weighting estimator is always
+larger than the MSE of pair matching and can be up to 25
+times larger. The MSE of the capped weighting estimator
+with optimal capping rule is given in the last column. The
+optimal cap is implemented by simulating the MSE for 60
+different caps (c៮ ⫽ 1, . . . , 60) and choosing the minimum
+of these. However, even with this optimal cap, the capped
+weighting estimator is clearly worse than pair-matching in
+all designs.
+Table A2 shows the simulation results for sample size
+400. The results are largely similar to those for sample size
+100, with all matching estimators becoming somewhat more
+precise relative to pair-matching. Particularly the k-NN
+matching estimators improve their relative position. Nevertheless, the unweighted k-NN matching estimator is still the
+worst among all matching estimators in many of the designs; and ridge matching is still the best estimator in
+general. The relative MSE of the weighting estimator worsens with increasing sample size, and this trend is continued
+for sample size 1600 (not shown in the tables).
+In total, these simulation results reveal that the potential
+precision gains can be substantial. On average, ridge matching is approximately 35% more precise than pair matching
+6 It cannot be worse than pair matching, for pair-matching is equal to
+k-NN matching with k ⫽ 1.
+
+83
+
+in designs 1 to 3, 55% in design 4, and 25% in design 5 (for
+sample sizes 100 and 400).
+C. Cross-validation Bandwidth Choice
+
+The previous section examined the MSE at the optimal
+bandwidth value. Those results indicated the potential for
+precision gains, that is, the maximum reductions in MSE
+that could be achieved by the different estimators. In this
+section, feasible precision gains are analyzed, when the
+bandwidth is chosen by cross-validation. Cross-validation is
+a widely used bandwidth selector for nonparametric regression, and although it will not lead to asymptotically optimal
+bandwidth choices for the matching estimator, it is worthwhile to examine its usefulness in this setting. Crossvalidation chooses the bandwidth as
+h CV ⫽ arg min
+h
+
+冘
+
+关Yi ⫺ m̂⫺i 共 pi 兲兴2 ,
+
+i:D i ⫽0
+
+where m̂ ⫺i (␳) is the estimate with observation i removed
+from the sample.7
+Table 3 shows the relative MSE for sample size 100,
+when the bandwidth is chosen by cross-validation. (The
+structure of the table is identical to that of table 2.) In
+addition, the results for trimmed local linear matching are
+shown.8 In Table 3 it is striking how sensitive the performance of many matching estimators is to the distribution of
+the propensity score. The relative MSE of kernel, local
+linear, and k-NN matching decreases substantially (and by
+much more than would be expected from table 2) from
+design 1 to design 3. The MSE of kernel matching is
+reduced from approximately 95% in design 1 (where the
+controls and treated differ sharply in their propensity scores)
+to approximately 75% in design 3 (where the propensity
+score densities are very similar). The relative improvement
+is even more drastic for local linear matching and k-NN
+matching, which both perform very poorly in designs 1 and
+2. The particularly poor performance of local linear matching is ameliorated a little when trimming is introduced.
+Trimming discards treated observations from the sample if
+they are located in regions where there are few control
+observations. Table 3 gives the MSE of the trimmed local
+linear matching estimator (for Epanechnikov and for Gaussian kernel) for three different trimming rules: The 2%, 5%,
+or 10%, respectively, of the treated observations with the
+smallest values of f p兩D⫽0 ( p i ) are deleted.9 The trimmed local
+7 For kernel and (ridged) local linear matching the bandwidth search grid
+is 0.01 ⫻ 1.2 g⫺1 for g ⫽ 1, . . . , 29 and ⬁. For k-NN matching the grid
+is 1, . . . , 21, 25, 29, . . . , 53, ⬁.
+8 In the Monte Carlo simulations, trimming was implemented for all the
+other matching estimators as well. Here the trimming results are shown
+only for local linear matching, because for all other estimators trimming
+always led to an increase in MSE. The other results are available from the
+author.
+9 In the simulations, trimming has been carried out on the basis of the
+true density function f p兩D⫽0 and on the basis of the estimated density
+function f̂ p兩D⫽0 . The results were similar and often slightly better for
+
+84
+
+THE REVIEW OF ECONOMICS AND STATISTICS
+
+linear matching estimator has a significantly lower MSE in
+designs 1 and 2 than the nontrimmed estimator. However, its
+MSE is still very often higher than for pair matching. In
+addition, it is not clear how the trimming level should be
+chosen in practice. Whereas a trimming level of 10% would
+often be the best choice in design 1 and design 5, a trimming
+level of 2% or 5% would be preferable in designs 2 and 3.
+In design 4, a trimming level of 10% would lead to substantially worse results than no trimming at all. Ridge
+matching, in contrast, is notably less sensitive to design
+choice. Its MSE decreases only slightly, from approximately
+80% in design 1 to approximately 75% in design 3. In
+design 4 it is approximately 70%, and in design 5 approximately 90%.
+In design 4 (where the number of controls greatly exceeds
+the number of treated), all estimators perform well and their
+relative MSE are very similar: approximately 70%. In such
+a situation, trimming seems not to be useful for local linear
+matching (particularly in larger samples; see tables A3 and
+A4). In design 5, on the other hand, where the control
+observations are scarce, only ridge matching consistently
+dominates pair matching. All other estimators are usually
+worse than pair matching. Ridge matching with Epanechnikov kernel is, in fact, the only estimator that is never
+worse than pair matching in any of the designs. In addition,
+ridge matching is often the best estimator in designs 1, 2,
+and 5, and where it is not, it is usually not much worse.
+Indeed, this holds not only for the more demanding designs
+1, 2, and 5, but also for the more favorable designs 3 and 4.
+Whereas the density design strongly influences the relative performance of all matching estimators, the pattern is
+less clear-cut with respect to the shape of the regression
+curve m( p). For regression curve m 2 , ridge matching is the
+best estimator in all density designs. Nevertheless, the
+relative MSE of ridge matching is, in general, only very
+little affected by the shape of the regression curve. The
+(nontrimmed) local linear matching estimators perform, as
+expected, relatively better for the straight regression line
+(m 1 ), whereas the k-NN matching estimators perform relatively better for regression curves m 3 and m 6 . These
+patterns, however, are weak and much less pronounced than
+the dependence on the density design. The differences with
+respect to the choice of the kernel function are also not very
+conclusive. In general, the Epanechnikov kernel is somewhat better suited for ridge matching, and the Gaussian
+works slightly better for kernel matching.
+Tables A3 and A4 provide the simulation results for
+sample size 400 and 1600, respectively. With increasing
+sample size all estimators, except k-NN matching, become
+more precise in comparison with pair matching. The relative
+MSE of k-NN matching decreases for designs 2 and 3, but
+increases substantially for some regression curves in designs 1 and 5. Local linear matching (without trimming)
+f̂ p兩D⫽0 . Table 3 reports only the results based on the estimated density
+function.
+
+improves significantly with larger sample size, and with
+1600 observations it comes close to ridge matching and
+kernel matching in designs 2, 3, and 4. In the more demanding designs 1 and 5, however, it is still often substantially
+worse than pair matching. Trimming improves the local
+linear matching estimator in designs 1 and 5, but not enough
+to dominate the pair-matching estimator. In addition, the
+optimal trimming level needs to be found in practice, as the
+appropriate trimming depends on the sample size. Whereas
+5% trimming is best in designs 1 and 5 for sample size 400,
+it would lead to worse results than no trimming for sample
+size 1600. With 1600 observations, 2% trimming would be
+appropriate for designs 1 and 5, and no trimming for designs
+2, 3, and 4. But even with appropriate trimming, local linear
+matching is still usually worse than ridge matching.
+The relative MSE of kernel matching decreases when the
+sample size is increased from 100 to 400. A further increase
+to sample size 1600 affects its MSE only a little, except for
+design 5. Kernel matching is the best estimator for various
+regression curves in designs 2, 3, and 4, and it has the lowest
+MSE in designs 3 and 4 with respect to the average over all
+six regression curves. On the other hand, kernel matching
+can be worse than pair matching in designs 1 and 5, even
+with 1600 observations.
+Finally, ridge matching is still the most appealing of all
+estimators. Although its merits are less compelling in larger
+samples than they were with 100 observations, it is still
+most often the estimator with the lowest MSE. Even when
+it is worse than kernel matching, the difference is usually
+not large. In addition, ridge matching is least sensitive to the
+design choice and the shape of the regression curve m( p).
+As a rough measure of its robustness to the simulation
+design, the standard deviation of the relative MSE for the 30
+different simulation designs (5 density designs times 6
+regression curves) has been computed from Table A3. This
+standard deviation is only 6.1 for ridge matching with
+Epanechnikov kernel, whereas it is 15.1 for kernel matching
+with Gaussian kernel and far higher for all other estimators.
+Also, the range between the smallest and the largest MSE is
+much smaller for ridge matching. Hence, the performance
+of ridge matching relative to pair matching is much more
+stable than it is for the other estimators. In addition, it is the
+only estimator whose MSE never exceeded the MSE of pair
+matching in any simulation. In total, ridge matching is
+approximately 25% more precise than pair matching. When
+the number of control observations is much larger than the
+number of treated (design 4), the MSE of ridge matching is
+approximately 30% lower than the MSE of pair matching.
+In the reverse situation, when the number of treated predominates (design 5), the precision gains are smaller and
+depend on the sample size. If the sample is small (approximately 80 treated and 20 control observations), the precision gains are around 10%, and they increase to approximately 30% for sample size 1600 (with approximately 320
+
+FINITE-SAMPLE PROPERTIES OF PROPENSITY-SCORE MATCHING AND WEIGHTING ESTIMATORS
+TABLE 3.—MEAN SQUARED ERROR OF ESTIMATED COUNTERFACTUAL MEAN OUTCOME (RELATIVE TO MSE
+BANDWIDTH VALUE CHOSEN BY CROSS VALIDATION, SAMPLE SIZE 100
+
+OF
+
+85
+
+PAIR MATCHING):
+
+MSE Relative to That of Pair Matching (%)
+Kernel
+Matching
+
+Local Linear Matching with
+Epanechnikov Kernel
+
+Local Linear Matching with
+Gauss Kernel
+
+Ridge
+Matching
+
+k-NN
+Matching
+
+Design
+
+Curve
+
+Epa
+
+Gauss
+
+—
+
+Trim 2%
+
+Trim 5%
+
+Trim 10%
+
+—
+
+Trim 2%
+
+Trim 5%
+
+Trim 10%
+
+Epa
+
+Gauss
+
+—
+
+Epa
+
+1
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+104.8
+73.5
+78.3
+119.4
+112.2
+82.4
+
+96.5
+92.6
+74.9
+118.1
+111.3
+83.7
+
+105.8
+168.2
+212.0
+107.5
+133.6
+197.0
+
+104.1
+158.0
+191.3
+95.9
+116.2
+185.5
+
+107.9
+146.6
+171.6
+90.4
+103.1
+173.2
+
+126.0
+129.8
+150.1
+94.7
+95.6
+155.6
+
+109.2
+258.8
+276.1
+129.6
+180.4
+355.3
+
+103.8
+222.1
+234.1
+109.5
+145.8
+306.7
+
+105.6
+188.8
+199.5
+97.9
+119.9
+263.2
+
+121.5
+150.0
+164.5
+96.3
+102.5
+211.6
+
+76.2
+70.1
+78.4
+84.6
+87.9
+81.8
+
+71.4
+91.9
+77.3
+83.6
+89.4
+86.2
+
+162.8
+137.3
+106.5
+211.5
+173.9
+93.0
+
+146.1
+119.1
+99.3
+196.7
+161.6
+84.3
+
+95.1
+
+96.2
+
+154.0
+
+141.8
+
+132.1
+
+125.3
+
+218.2
+
+187.0
+
+162.5
+
+141.1
+
+79.8
+
+83.3
+
+147.5
+
+134.5
+
+84.9
+86.3
+72.5
+87.5
+88.5
+79.7
+
+83.4
+87.7
+72.1
+86.3
+87.4
+81.6
+
+87.7
+141.8
+120.4
+96.7
+122.5
+123.5
+
+89.5
+132.1
+107.8
+78.9
+98.8
+112.3
+
+101.2
+125.8
+102.1
+75.4
+87.0
+105.0
+
+139.1
+123.0
+108.3
+93.3
+92.3
+103.2
+
+83.8
+176.6
+109.1
+100.9
+124.5
+149.8
+
+88.1
+156.3
+97.0
+79.6
+96.4
+128.6
+
+102.3
+142.9
+93.5
+72.6
+81.7
+115.4
+
+144.4
+135.2
+103.1
+85.1
+84.8
+109.1
+
+77.2
+83.5
+73.2
+72.9
+77.2
+79.8
+
+76.1
+86.6
+73.3
+71.9
+78.0
+81.7
+
+106.0
+113.6
+84.2
+138.3
+125.7
+87.7
+
+99.9
+102.8
+82.7
+131.3
+116.2
+84.9
+
+83.2
+
+83.1
+
+115.4
+
+103.2
+
+99.4
+
+109.9
+
+124.1
+
+107.7
+
+101.4
+
+110.3
+
+77.3
+
+77.9
+
+109.3
+
+103.0
+
+75.1
+84.4
+69.7
+70.0
+69.2
+79.2
+
+80.7
+112.7
+82.5
+93.5
+102.5
+93.8
+
+85.2
+106.1
+78.1
+72.3
+79.9
+86.6
+
+99.0
+105.2
+81.4
+68.1
+71.0
+86.6
+
+137.6
+112.0
+99.8
+86.1
+80.7
+97.5
+
+77.8
+134.1
+73.9
+102.2
+103.4
+94.5
+
+84.2
+125.2
+73.7
+76.0
+78.5
+87.1
+
+100.0
+122.6
+79.3
+65.5
+67.4
+87.2
+
+140.9
+130.3
+100.6
+73.5
+71.4
+98.5
+
+77.7
+82.5
+70.2
+70.3
+74.1
+76.5
+
+75.6
+83.6
+70.7
+69.2
+72.8
+78.4
+
+80.7
+95.5
+74.5
+88.6
+87.1
+85.9
+
+78.2
+89.7
+73.7
+86.5
+81.2
+84.2
+
+2
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+3
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+75.5
+84.6
+70.0
+70.9
+70.9
+79.9
+75.3
+
+74.6
+
+94.3
+
+84.7
+
+85.2
+
+102.3
+
+97.7
+
+87.4
+
+87.0
+
+102.5
+
+75.2
+
+75.1
+
+85.4
+
+82.2
+
+4
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+70.0
+77.8
+63.8
+58.7
+60.4
+75.6
+
+70.1
+77.5
+63.6
+57.0
+60.0
+76.6
+
+73.1
+79.7
+65.5
+75.1
+72.4
+74.5
+
+83.8
+81.4
+70.6
+68.0
+67.6
+77.1
+
+90.3
+83.0
+73.9
+71.1
+70.5
+79.3
+
+114.9
+90.8
+88.6
+88.3
+87.9
+90.0
+
+72.4
+82.7
+62.7
+72.3
+70.5
+71.5
+
+83.2
+81.8
+69.2
+63.0
+62.1
+72.9
+
+89.5
+82.7
+72.9
+65.0
+63.4
+74.9
+
+114.3
+89.3
+88.9
+79.4
+75.3
+85.7
+
+72.9
+76.6
+62.4
+65.7
+62.3
+75.8
+
+71.9
+76.4
+62.8
+63.0
+63.0
+75.5
+
+70.7
+80.6
+67.0
+64.4
+64.9
+80.0
+
+71.7
+81.0
+64.7
+61.4
+61.8
+79.7
+
+67.7
+
+67.5
+
+73.4
+
+74.7
+
+78.0
+
+93.4
+
+72.0
+
+72.0
+
+74.7
+
+88.8
+
+69.3
+
+68.8
+
+71.3
+
+70.0
+
+126.3
+87.0
+116.8
+106.3
+99.4
+91.4
+
+99.1
+98.2
+102.1
+108.3
+102.2
+94.9
+
+137.7
+118.5
+223.7
+149.8
+156.8
+229.1
+
+133.2
+111.9
+203.9
+128.4
+134.6
+213.8
+
+133.9
+105.6
+184.1
+109.3
+114.1
+195.1
+
+151.0
+101.7
+164.2
+92.3
+94.2
+168.5
+
+90.9
+86.8
+149.4
+114.9
+121.1
+258.9
+
+92.1
+84.3
+144.5
+102.6
+107.6
+240.1
+
+100.8
+83.6
+144.9
+92.4
+95.9
+221.4
+
+129.6
+88.9
+155.0
+83.2
+84.3
+200.3
+
+91.5
+75.1
+97.9
+93.6
+89.8
+94.1
+
+82.4
+93.1
+90.7
+95.4
+93.7
+101.7
+
+148.3
+127.4
+161.1
+142.8
+126.3
+143.4
+
+134.4
+108.9
+142.0
+135.5
+120.9
+121.4
+
+104.5
+
+100.8
+
+169.3
+
+154.3
+
+140.3
+
+128.7
+
+137.0
+
+128.5
+
+123.2
+
+123.5
+
+90.3
+
+92.8
+
+141.6
+
+127.2
+
+5
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+Note: In each row, the estimator with the minimum MSE and all estimators with MSE not larger than 0.5 above the minimum are underlined. Epa indicates Epanechnikov kernel; Gauss indicates Gaussian kernel.
+Trim 2% means that estimator is trimmed by deleting the 2% of the observations with lowest density. The bandwidth is chosen by leave-one-out cross-validation of the nonparametric regression estimator, over a
+grid of 30 different values. Simulations are based on 10,000 replications.
+
+non-treated observations). With respect to the shape of the
+regression curve, no consistent pattern can be detected.
+IV.
+
+Conclusions
+
+In this paper the finite-sample properties of various
+propensity-score matching estimators of the counterfactual
+mean (which is the central ingredient in the computation of
+average treatment effects) have been analyzed. First, the
+potential efficiency gains of alternative matching estimators
+vis-à-vis pair matching were assessed, that is, it was examined by how much the MSE could be reduced if the optimal
+bandwidth was known. In general, ridge matching demonstrated the largest potential. In the designs where the numbers of treated and control observations were approximately
+
+equal, its MSE was approximately 35% lower. It was
+approximately 55% lower when the control observations
+exceeded the number of treated by 4 : 1, and approximately
+25% lower when the ratio was 1 : 4. Almost regardless of
+the Monte Carlo design, ridge matching was usually the best
+estimator, particularly in small samples.
+Though these simulations indicated the potential for precision gains, in practice a data-driven bandwidth choice is
+necessary to select the bandwidth value. A handy and
+easy-to-implement bandwidth selector is cross validation of
+the nonparametric regression estimator. Although crossvalidation will not lead to asymptotically optimal bandwidth
+choices, it seems to work well in practice for some estimators, at least for the sample sizes considered. In the rather
+
+86
+
+THE REVIEW OF ECONOMICS AND STATISTICS
+
+facile simulation designs (similar characteristics of treated
+and control populations, or a large control-to-treated ratio),
+kernel matching was often the best estimator, immediately
+followed by ridge matching. In more demanding situations
+(small sample size, large differences in the characteristics of
+treated and control populations, or a small number of
+control observations), however, kernel matching performed
+usually worse than ridge matching and sometimes even
+worse than pair-matching. Ridge matching with Epanechnikov kernel was often the estimator with smallest MSE,
+particularly in the more demanding designs. In addition, its
+relative MSE was least sensitive to the simulation design,
+and it was always lower than for pair matching. Hence, for
+practical guidance on estimator choice, ridge matching
+seems to be a good choice in most situations. (If the
+control-treated ratio is large, kernel matching is also an
+option.) The precision gains of ridge matching did not
+depend much on the shape of the regression curve and also
+not much on the shapes of the propensity score densities, but
+were affected somewhat by the control-to-treated ratio. For
+approximately equal numbers of controls and treated, ridge
+matching was approximately 25% more precise than pair
+matching. For a control-treated ratio of 4 : 1, the reductions
+in MSE were approximately 30%, but they were approximately 10–30% (depending on sample size) for a ratio of
+1 : 4. (To put these figures in perspective, a reduction in
+MSE of 25% means that pair matching would require
+approximately 33% more observations to achieve the same
+precision.) Although these reductions in MSE are substantial, they do not reach the potential precision gains. Particularly in the designs where the control observations exceeded the treated by 4 : 1, the potential for further
+improvement through a better bandwidth choice seems
+greatest. In all other designs, the differences between the
+potential and the feasible precision gains are not very large
+and the development of a superior bandwidth selector might
+be difficult.
+The performance of local linear matching with crossvalidation bandwidth selection, on the other hand, was
+deceptive. Although trimming improved its MSE, it was still
+clearly worse than ridge matching in most designs. Hence,
+trimming seems not to be the best response to the variance
+problems of the local linear regression estimator. In addition, it might be difficult in practice to determine the optimal
+trimming level. k-NN matching was also not very successful. Finally, the weighting estimator turned out be worst of
+all. Even with an optimal capping rule, it is far worse than
+pair matching in all of the designs.
+
+Fan, J., T. Gasser, I. Gijbels, M. Brockmann, and J. Engel, “Local
+Polynomial Regression: Optimal Kernels and Asymptotic Minimax
+Efficiency,” Annals of the Institute of Mathematical Statistics 49
+(1997), 79–99.
+Fan, J., and I. Gijbels, “Variable Bandwidth and Local Linear Regression
+Smoothers,” Annals of Statistics 20 (1992), 2008–2036.
+Hahn, J., “On the Role of the Propensity Score in Efficient Semiparametric Estimation of Average Treatment Effects,” Econometrica 66
+(1998), 315–331.
+Hastie, T., and C. Loader, “Local Regression. Automatic Kernel Carpentry,” Statistical Science 8 (1992), 120–143.
+Heckman, J., H. Ichimura, and P. Todd, “Matching as an Econometric
+Evaluation Estimator: Evidence from Evaluating a Job Training
+Programme,” Review of Economic Studies 64 (1997), 605–654.
+“Matching as an Econometric Evaluation Estimator,” Review of
+Economic Studies 65 (1998), 261–294.
+Hirano, K., G. Imbens, and G. Ridder, “Efficient Estimation of Average
+Treatment Effects Using the Estimated Propensity Score,” Econometrica 71 (2003), 1161–1189.
+Ichimura, H., and O. Linton, “Asymptotic Expansions for Some Semiparametric Program Evaluation Estimators,” University College London mimeograph (2002).
+Imbens, G., “The Role of the Propensity Score in Estimating DoseResponse Functions,” Biometrika 87 (2000), 706–710.
+Johnson, N., “Systems of Frequency Curves Generated by Methods of
+Translation,” Biometrika 36 (1949), 149–176.
+Johnson, N., S. Kotz, and N. Balakrishnan, Continuous Univariate Distributions, vol. 1, 2nd ed. (New York: Wiley, 1994).
+Kullback, J., Information Theory and Statistics (New York: Wiley, 1959).
+Kullback, J., and R. Leibler, “On Information and Sufficiency,” Annals of
+Mathematical Statistics 22 (1951), 79–86.
+Rosenbaum, P., and D. Rubin, “The Central Role of the Propensity Score
+in Observational Studies for Causal Effects,” Biometrika 70
+(1983), 41–55.
+Seifert, B., and T. Gasser, “Finite-Sample Variance of Local Polynomials:
+Analysis and Solutions,” Journal of American Statistical Association 91 (1996), 267–275.
+“Data Adaptive Ridging in Local Polynomial Regression,” Journal of Computational and Graphical Statistics 9 (2000), 338–360.
+
+APPENDIX
+1.
+
+Generation of the Propensity-Score Distributions
+
+To have a simple but versatile design for the generation of different
+distributions of the propensity score ( f p兩D⫽1 and f p兩D⫽0 ), the propensity
+score is specified as p( x) ⫽ ␣ ⫹ ␤x, where X is one-dimensional and
+distributed symmetrically in (0, 1). The parameters ␣ and ␤ are chosen
+such that 0 ⬍ p( x) ⬍ 1. The propensity-score values thus range from ␣
+to ␣ ⫹ ␤. Denote the expected value of the propensity score by P 1 ; it is
+given by P 1 ⫽ E[ p(X)] ⫽ ␣ ⫹ ␤/ 2. Let P 0 denote the size of the
+nontreated population: P 0 ⫽ 1 ⫺ P 1 . For this specification, the ensuing
+densities f p兩D⫽1 and f p兩D⫽0 are thus
+
+冉 冊
+冉 冊
+
+f p兩D⫽1 共␳兲 ⫽
+
+␳
+␳⫺␣
+䡠 fX
+,
+␤P 1
+␤
+
+f p兩D⫽0 共␳兲 ⫽
+
+1⫺␳
+␳⫺␣
+䡠f
+␤P 0 X
+␤
+
+for
+
+␣ ⬍ ␳ ⬍ ␣ ⫹ ␤,
+
+and accordingly the ratio of the two densities is given by
+REFERENCES
+Abadie, A., and G. Imbens, “Simple and Bias-Corrected Matching Estimators for Average Treatment Effects,” Harvard University mimeograph (2001).
+Fan, J., “Design-adaptive Nonparametric Regression,” Journal of the
+American Statistical Association 87 (1992), 998–1004.
+“Local Linear Regression Smoothers and their Minimax Efficiency,” Annals of Statistics 21 (1993), 196–216.
+
+␳ P0
+f p兩D⫽1 共␳兲
+.
+⫽
+f p兩D⫽0 共␳兲 1 ⫺ ␳ P 1
+Hence in a design where the treated and nontreated populations are of
+equal size (P 1 ⫽ P 0 ), the ratio f p兩D⫽1 /f p兩D⫽0 is 1 at ␳ ⫽ 0.5 and close to
+1 in its neighborhood. To be able to generate large differences between
+f p兩D⫽1 and f p兩D⫽0 (and thus a large value of the KLIC, as in the first graph
+
+FINITE-SAMPLE PROPERTIES OF PROPENSITY-SCORE MATCHING AND WEIGHTING ESTIMATORS
+FIGURE A1.—DENSITY
+
+OF
+
+fX
+
+2.
+
+87
+
+The Regression Curves
+
+TABLE A1.—REGRESSION CURVES m( p)
+m 1 (␳)
+m 2 (␳)
+m 3 (␳)
+m 4 (␳)
+m 5 (␳)
+m 6 (␳)
+
+⫽
+⫽
+⫽
+⫽
+⫽
+⫽
+
+0.15 ⫹ 0.7␳
+␳
+1
+0.1 ⫹ 2 ⫹ 2 exp[⫺200(␳ ⫺ 0.7)2]
+0.8 ⫺ 2(␳ ⫺ 0.9) 2 ⫺ 5(␳ ⫺ 0.7) 3 ⫺ 10(␳ ⫺ 0.6) 10
+0.2 ⫹ 公1 ⫺ ␳ ⫺ 0.6(0.9 ⫺ ␳) 2
+0.2 ⫹ 公1 ⫺ ␳ ⫺ 0.6(0.9 ⫺ ␳) 2 ⫺ 0.1␳ cos(30␳)
+0.4 ⫹ 0.25 sin(8␳ ⫺ 5) ⫹ 0.4 exp[⫺16(4␳ ⫺ 2.5)2]
+
+of figure 1) requires that the distribution of X have substantial probability
+mass in its tails. In addition, to ensure that the support of X is identical in
+the treated and the nontreated population, limx20 fX(x) and limx11 fX(x) should
+be both 0. The Johnson SB family provides a convenient distribution satisfying
+these properties, which is depicted in figure A1. Its density is
+f X 共 x兲 ⫽
+
+1
+
+2 冑␲x共1 ⫺ x兲
+
+冋
+
+冉 冊册
+
+1
+x
+exp ⫺ ln2
+4
+1⫺x
+
+,
+
+0 ⬍ x ⬍ 1;
+
+see Johnson, Kotz, and Balakrishnan (1994, p. 37, ␥ ⫽ 0, ␦ ⫽ 公0.5) or
+Johnson (1949).
+
+88
+
+THE REVIEW OF ECONOMICS AND STATISTICS
+TABLE A2.—MEAN SQUARED ERROR
+
+OF
+
+ESTIMATED COUNTERFACTUAL MEAN OUTCOME
+
+AT
+
+OPTIMAL BANDWIDTH VALUE, SAMPLE SIZE 400
+
+MSE Relative to That of Pair Matching (%)
+
+Design
+
+Curve
+
+1000⫻
+MSE for
+Pair
+Matching
+
+1
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+0.46
+0.56
+0.44
+0.44
+0.43
+0.56
+
+77.1
+76.9
+58.2
+89.2
+75.6
+59.8
+
+73.4
+76.9
+58.2
+77.7
+74.0
+59.0
+
+55.1
+125.2
+53.8
+60.1
+73.0
+79.5
+
+54.7
+104.6
+52.6
+59.4
+72.6
+79.2
+
+56.2
+75.2
+56.0
+58.1
+72.2
+73.3
+
+59.2
+77.2
+53.4
+60.8
+64.2
+73.9
+
+75.6
+78.6
+58.7
+89.3
+73.7
+76.1
+
+74.6
+74.8
+52.2
+83.0
+71.6
+72.3
+
+2422
+1192
+2225
+972
+1160
+1089
+
+1455
+830
+1509
+798
+863
+806
+
+0.48
+
+72.8
+
+69.9
+
+74.5
+
+70.5
+
+65.2
+
+64.8
+
+75.3
+
+71.4
+
+1510
+
+1044
+
+71.3
+80.6
+64.7
+68.3
+68.7
+72.4
+
+74.1
+79.6
+64.0
+69.4
+69.9
+68.3
+
+73.5
+75.3
+63.5
+68.1
+71.4
+63.2
+
+70.2
+76.8
+60.7
+63.8
+66.3
+66.0
+
+66.4
+69.7
+61.2
+68.6
+70.5
+59.5
+
+71.5
+74.0
+58.0
+63.8
+64.8
+70.6
+
+71.5
+83.2
+67.1
+75.5
+72.0
+82.7
+
+72.2
+76.5
+64.3
+71.6
+68.4
+80.7
+
+786
+467
+878
+459
+483
+461
+
+735
+459
+848
+451
+465
+440
+
+Kernel
+Matching
+
+Local Linear
+Matching
+
+Ridge
+Matching
+
+k-NN
+Matching
+
+Weighting
+Estimator
+
+Epa
+
+Gauss
+
+Epa
+
+Gauss
+
+Epa
+
+Gauss
+
+—
+
+Epa
+
+—
+
+Opt.
+
+2
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+0.34
+0.42
+0.28
+0.26
+0.25
+0.38
+0.32
+
+71.0
+
+70.9
+
+69.2
+
+67.3
+
+66.0
+
+67.1
+
+75.3
+
+72.3
+
+589
+
+566
+
+3
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+0.30
+0.39
+0.24
+0.20
+0.21
+0.35
+
+72.7
+78.6
+67.0
+63.0
+63.2
+70.0
+
+72.5
+79.3
+65.2
+62.8
+64.3
+66.2
+
+70.7
+71.1
+60.6
+58.8
+60.2
+59.8
+
+70.2
+73.7
+60.1
+60.6
+60.8
+60.7
+
+74.1
+75.3
+60.0
+57.0
+60.7
+59.3
+
+71.5
+76.5
+59.5
+59.0
+57.5
+64.9
+
+77.2
+80.7
+67.0
+68.8
+66.1
+79.1
+
+74.0
+81.1
+65.5
+63.7
+65.0
+80.2
+
+324
+225
+365
+154
+161
+210
+
+319
+223
+355
+154
+157
+205
+
+0.28
+
+69.1
+
+68.4
+
+63.5
+
+64.4
+
+64.4
+
+64.8
+
+73.1
+
+71.6
+
+240
+
+236
+
+0.50
+0.74
+0.43
+0.40
+0.39
+0.67
+
+70.4
+61.0
+59.2
+57.4
+56.8
+46.4
+
+69.6
+64.2
+60.4
+57.7
+53.5
+50.5
+
+71.8
+58.1
+46.7
+33.8
+33.3
+27.9
+
+70.0
+59.1
+45.9
+34.1
+33.7
+28.4
+
+72.7
+60.4
+47.0
+32.0
+32.5
+29.1
+
+68.8
+60.8
+50.6
+34.6
+33.5
+27.2
+
+71.1
+76.7
+63.8
+60.4
+62.2
+69.7
+
+69.9
+69.5
+61.8
+61.2
+59.1
+64.9
+
+198
+110
+228
+128
+131
+109
+
+199
+109
+233
+126
+134
+109
+
+0.52
+
+58.5
+
+59.3
+
+45.3
+
+45.2
+
+45.6
+
+45.9
+
+67.3
+
+64.4
+
+151
+
+152
+
+0.52
+0.64
+0.47
+0.53
+0.48
+0.57
+
+87.5
+77.7
+67.4
+92.3
+96.9
+75.2
+
+79.1
+89.2
+68.2
+83.5
+82.2
+77.6
+
+59.6
+159.9
+68.3
+67.5
+84.6
+111.6
+
+58.0
+130.1
+68.8
+68.0
+86.0
+93.5
+
+58.5
+83.9
+68.8
+79.1
+85.7
+76.5
+
+59.5
+89.9
+65.4
+71.6
+72.8
+89.9
+
+84.4
+98.1
+68.2
+91.3
+94.5
+79.7
+
+83.7
+99.7
+67.9
+97.5
+95.8
+80.5
+
+2269
+1192
+2108
+786
+927
+1157
+
+1209
+758
+1287
+565
+617
+782
+
+0.54
+
+82.9
+
+80.0
+
+91.9
+
+84.1
+
+75.4
+
+74.9
+
+86.0
+
+87.5
+
+1407
+
+870
+
+4
+
+5
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+Note: The first two columns indicate the design of the propensity-score densities and the regression curve, respectively. MSE of pair matching is multiplied by 1000. MSE of all other estimators given relative
+to MSE of pair-matching. In each row, the estimator with the minimum MSE and all estimators with MSE not larger than 0.5 above the minimum are underlined. Epa indicates Epanechnikov kernel; Gauss indicates
+Gaussian kernel. The MSE of the matching estimators is given at the simulated optimal bandwidth value, which is simulated over a grid of 60 different values (30 values for k-NN matching). Simulations are based
+on 5000 replications.
+
+FINITE-SAMPLE PROPERTIES OF PROPENSITY-SCORE MATCHING AND WEIGHTING ESTIMATORS
+TABLE A3.—MEAN SQUARED ERROR OF ESTIMATED COUNTERFACTUAL MEAN OUTCOME (RELATIVE TO MSE
+BANDWIDTH VALUE CHOSEN BY CROSS-VALIDATION, SAMPLE SIZE 400
+
+OF
+
+89
+
+PAIR MATCHING):
+
+MSE Relative to That of Pair Matching (%)
+Kernel
+Matching
+
+Local Linear Matching with
+Epanechnikov Kernel
+
+Local Linear Matching with
+Gauss Kernel
+
+Ridge
+Matching
+
+k-NN
+Matching
+
+Design
+
+Curve
+
+Epa
+
+Gauss
+
+—
+
+Trim 2%
+
+Trim 5%
+
+Trim 10%
+
+—
+
+Trim 2%
+
+Trim 5%
+
+Trim 10%
+
+Epa
+
+Gauss
+
+—
+
+1
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+92.7
+78.3
+63.5
+119.6
+83.9
+72.3
+
+90.3
+78.3
+64.1
+114.0
+76.3
+78.1
+
+74.8
+136.5
+130.5
+91.7
+109.1
+122.0
+
+76.2
+122.9
+109.6
+76.5
+97.7
+110.1
+
+98.1
+106.3
+94.2
+88.3
+101.2
+94.9
+
+186.2
+93.1
+100.4
+169.0
+161.0
+83.3
+
+76.3
+279.1
+165.9
+90.4
+209.1
+255.7
+
+76.7
+210.1
+125.6
+75.5
+143.0
+189.6
+
+99.0
+151.7
+98.0
+90.5
+113.9
+134.8
+
+189.1
+107.4
+97.4
+179.1
+162.7
+97.6
+
+66.0
+78.4
+74.0
+71.3
+80.3
+73.9
+
+64.5
+80.3
+72.4
+67.5
+75.7
+81.7
+
+196.9
+114.7
+81.8
+327.0
+220.7
+81.9
+
+85.1
+
+83.5
+
+110.8
+
+98.8
+
+97.2
+
+132.2
+
+179.4
+
+136.8
+
+114.6
+
+138.4
+
+74.0
+
+73.7
+
+170.5 157.4
+
+80.7
+79.0
+66.3
+81.4
+67.7
+77.0
+
+83.8
+79.0
+65.4
+83.8
+67.0
+76.7
+
+75.4
+90.0
+77.5
+86.7
+78.6
+87.8
+
+85.8
+86.1
+75.8
+67.1
+77.0
+82.6
+
+135.1
+89.7
+87.3
+99.9
+114.8
+83.3
+
+304.6
+108.5
+148.4
+259.8
+260.5
+100.3
+
+74.0
+105.5
+79.4
+82.0
+90.3
+103.4
+
+84.6
+93.6
+74.2
+66.2
+75.0
+87.0
+
+132.2
+95.8
+83.2
+99.8
+105.9
+84.5
+
+295.7
+115.9
+139.8
+253.1
+243.5
+102.5
+
+72.7
+78.9
+69.3
+75.6
+70.0
+77.1
+
+72.4
+79.2
+67.9
+72.6
+68.6
+78.6
+
+106.6 106.2
+84.5 83.7
+76.5 73.7
+140.0 131.5
+94.4 88.7
+82.0 80.5
+
+75.3
+
+76.0
+
+82.7
+
+79.0
+
+101.7
+
+197.0
+
+89.1
+
+80.1
+
+100.2
+
+191.8
+
+73.9
+
+73.2
+
+97.4
+
+94.0
+
+74.6
+79.9
+67.5
+66.5
+63.6
+76.0
+
+75.0
+79.7
+66.1
+65.2
+63.5
+75.6
+
+73.7
+82.6
+67.5
+85.5
+70.6
+79.1
+
+87.3
+85.8
+71.3
+66.6
+73.0
+77.8
+
+141.4
+97.9
+90.5
+109.5
+124.5
+83.9
+
+300.0
+123.7
+166.2
+289.5
+303.4
+114.6
+
+75.0
+86.6
+67.5
+83.1
+76.8
+83.2
+
+90.1
+87.7
+71.8
+63.7
+66.6
+79.3
+
+146.1
+100.0
+92.0
+105.3
+107.0
+86.4
+
+308.1
+126.5
+169.9
+281.8
+271.4
+121.9
+
+75.5
+78.9
+68.7
+79.5
+66.7
+76.4
+
+73.4
+79.8
+66.6
+77.4
+64.5
+74.3
+
+79.7
+81.8
+68.7
+80.6
+67.9
+80.4
+
+79.6
+80.4
+68.3
+75.4
+66.6
+77.7
+
+2
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+3
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+4
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+5
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+Epa
+192.1
+105.9
+73.3
+301.5
+194.1
+77.6
+
+71.3
+
+70.8
+
+76.5
+
+76.9
+
+108.0
+
+216.2
+
+78.7
+
+76.6
+
+106.1
+
+213.2
+
+74.3
+
+72.7
+
+76.5
+
+74.7
+
+70.0
+78.0
+63.7
+58.9
+58.9
+76.1
+
+71.0
+78.6
+63.9
+58.8
+59.2
+75.4
+
+71.6
+76.9
+66.2
+75.5
+62.1
+77.9
+
+80.3
+79.8
+70.1
+68.0
+69.0
+80.1
+
+107.9
+85.4
+79.5
+96.8
+100.4
+85.2
+
+190.5
+96.2
+111.1
+206.7
+194.1
+99.4
+
+69.9
+75.6
+63.3
+68.9
+64.0
+75.7
+
+78.8
+78.6
+67.7
+64.8
+66.7
+77.5
+
+107.0
+83.9
+78.0
+94.9
+95.4
+82.5
+
+191.7
+94.7
+111.8
+205.4
+188.1
+96.3
+
+70.9
+77.6
+63.4
+68.5
+60.9
+77.4
+
+72.9
+78.7
+65.9
+67.4
+59.4
+75.5
+
+73.5
+78.7
+66.3
+64.9
+61.0
+79.8
+
+71.3
+77.1
+65.4
+62.6
+59.9
+79.4
+
+67.6
+
+67.8
+
+71.7
+
+74.5
+
+92.5
+
+149.7
+
+69.6
+
+72.3
+
+90.3
+
+148.0
+
+69.8
+
+70.0
+
+70.7
+
+69.33
+
+103.7
+85.0
+74.9
+120.2
+119.5
+80.3
+
+93.0
+91.1
+71.0
+121.9
+104.9
+83.3
+
+96.4
+281.2
+208.6
+108.4
+171.5
+226.5
+
+97.9
+255.7
+176.4
+81.4
+128.8
+200.6
+
+127.1
+219.9
+145.3
+74.9
+95.4
+166.1
+
+247.7
+182.7
+146.3
+119.3
+113.3
+134.5
+
+90.3
+385.0
+217.7
+120.4
+219.5
+404.2
+
+92.8
+315.8
+172.1
+85.4
+146.3
+317.9
+
+124.2
+249.5
+138.5
+75.0
+98.8
+238.2
+
+247.5
+197.6
+144.2
+118.4
+114.7
+176.1
+
+75.3
+82.3
+81.1
+78.0
+89.5
+78.4
+
+71.5
+89.0
+79.8
+73.7
+86.0
+84.9
+
+178.5
+166.9
+101.6
+249.3
+221.7
+89.0
+
+97.3
+
+94.2
+
+182.1
+
+156.8
+
+138.1
+
+157.3
+
+239.5
+
+188.4
+
+154.0
+
+166.4
+
+80.8
+
+80.8
+
+167.8 156.3
+
+169.5
+129.8
+101.0
+255.1
+199.8
+82.8
+
+Note: In each row, the estimator with the minimum MSE and all estimators with MSE not larger than 0.5 above the minimum are underlined. Epa indicates Epanechnikov kernel; Gauss indicates Gaussian kernel.
+Trim 2% means that estimator is trimmed by deleting the 2% of the observations with lowest density. The bandwidth is chosen by leave-one-out cross-validation of the nonparametric regression estimator, over a
+grid of 30 different values. Simulations are based on 5000 replications.
+
+90
+
+THE REVIEW OF ECONOMICS AND STATISTICS
+TABLE A4.—MEAN SQUARED ERROR OF ESTIMATED COUNTERFACTUAL MEAN OUTCOME (RELATIVE TO MSE
+BANDWIDTH VALUE CHOSEN BY CROSS VALIDATION, SAMPLE SIZE 1600
+
+OF
+
+PAIR MATCHING):
+
+MSE Relative to That of Pair Matching (%)
+Kernel
+Matching
+
+Local Linear Matching with
+Epanechnikov Kernel
+
+Local Linear Matching with
+Gauss Kernel
+
+Ridge
+Matching
+
+k-NN
+Matching
+
+Design
+
+Curve
+
+Epa
+
+Gauss
+
+—
+
+Trim 2%
+
+Trim 5%
+
+Trim 10%
+
+—
+
+Trim 2%
+
+Trim 5%
+
+Trim 10%
+
+Epa
+
+Gauss
+
+—
+
+Epa
+
+1
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+93.3
+71.5
+61.4
+118.3
+73.9
+72.2
+
+96.0
+71.2
+62.0
+126.1
+73.5
+71.1
+
+63.4
+101.9
+104.6
+85.4
+104.1
+110.2
+
+81.7
+85.1
+76.8
+77.2
+97.6
+88.9
+
+182.9
+75.8
+74.4
+185.5
+174.6
+72.8
+
+541.9
+89.5
+147.9
+594.3
+457.4
+77.0
+
+54.9
+141.1
+91.1
+74.6
+89.5
+127.2
+
+71.9
+92.9
+72.2
+74.0
+92.5
+82.7
+
+172.3
+84.4
+77.4
+185.3
+178.5
+66.2
+
+535.6
+104.3
+152.7
+588.6
+461.3
+74.7
+
+62.7
+76.9
+73.0
+69.3
+79.2
+73.7
+
+62.2
+75.3
+75.0
+63.3
+72.6
+84.0
+
+327.3
+74.7
+52.8
+399.8
+120.9
+101.7
+
+272.9
+79.6
+65.0
+551.4
+145.8
+112.7
+
+81.8
+
+83.3
+
+94.9
+
+84.6
+
+127.7
+
+318.0
+
+96.4
+
+81.0
+
+127.3
+
+319.5
+
+72.5
+
+72.1
+
+179.5
+
+204.6
+
+81.9
+76.2
+62.9
+82.5
+67.1
+80.1
+
+80.2
+74.1
+64.8
+81.4
+66.0
+76.4
+
+75.1
+76.9
+69.2
+89.2
+66.1
+77.4
+
+118.4
+84.5
+74.9
+77.1
+105.5
+77.2
+
+324.9
+109.1
+117.4
+279.1
+289.8
+81.6
+
+1041.5
+176.5
+335.5
+1023.3
+859.9
+123.3
+
+68.6
+80.2
+72.1
+94.6
+68.6
+77.9
+
+98.2
+82.4
+81.3
+71.7
+107.5
+75.8
+
+272.4
+102.1
+126.1
+272.6
+276.3
+79.1
+
+905.0
+160.7
+339.0
+1042.9
+812.3
+123.4
+
+73.8
+79.7
+67.9
+87.9
+64.9
+78.0
+
+67.5
+76.4
+64.3
+87.0
+63.4
+75.9
+
+106.0
+82.4
+58.5
+134.2
+85.0
+103.8
+
+118.9
+86.4
+83.6
+131.3
+65.4
+80.0
+
+75.1
+
+73.8
+
+75.7
+
+89.6
+
+200.3
+
+593.3
+
+77.0
+
+86.2
+
+188.1
+
+563.9
+
+75.4
+
+72.4
+
+95.0
+
+94.3
+
+77.0
+78.3
+66.2
+65.6
+63.9
+76.0
+
+74.2
+79.9
+71.9
+91.9
+62.2
+73.9
+
+124.3
+86.3
+87.7
+89.6
+121.7
+75.5
+
+358.7
+117.2
+157.0
+368.0
+356.0
+84.1
+
+1038.4
+182.7
+440.1
+1271.0
+1076.7
+159.4
+
+75.6
+75.5
+68.8
+86.5
+60.3
+77.1
+
+122.4
+84.7
+83.2
+83.0
+108.9
+78.4
+
+327.2
+115.8
+148.5
+331.3
+311.0
+90.3
+
+919.0
+179.8
+410.0
+1139.2
+942.9
+183.0
+
+73.0
+79.6
+66.4
+86.5
+62.8
+72.9
+
+73.3
+81.4
+70.1
+81.6
+60.8
+78.5
+
+63.9
+92.3
+64.4
+89.7
+67.4
+77.3
+
+90.0
+82.9
+62.5
+78.3
+67.4
+82.8
+
+2
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+3
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+76.9
+78.5
+63.1
+69.9
+62.1
+77.3
+71.3
+
+71.2
+
+75.7
+
+97.5
+
+240.2
+
+694.7
+
+73.9
+
+93.4
+
+220.7
+
+629.1
+
+73.6
+
+74.3
+
+75.8
+
+77.3
+
+4
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+75.9
+80.9
+65.3
+62.5
+57.6
+80.3
+
+79.7
+76.8
+66.4
+60.3
+58.9
+76.5
+
+76.4
+77.6
+66.0
+77.3
+64.7
+74.6
+
+100.1
+81.2
+70.5
+80.1
+93.3
+77.6
+
+199.3
+89.7
+89.3
+227.0
+210.1
+82.7
+
+523.0
+110.2
+177.9
+738.0
+546.4
+101.3
+
+73.7
+74.5
+69.3
+67.5
+65.6
+80.4
+
+100.6
+77.0
+74.9
+73.4
+96.0
+83.1
+
+205.9
+84.5
+96.5
+226.0
+212.2
+87.9
+
+546.8
+101.9
+191.7
+744.6
+551.2
+106.6
+
+69.8
+77.0
+64.7
+75.3
+61.3
+77.0
+
+70.0
+79.0
+60.7
+79.1
+63.0
+78.0
+
+81.1
+69.9
+53.6
+77.1
+62.8
+82.1
+
+76.4
+73.5
+65.8
+74.8
+62.2
+79.5
+
+70.4
+
+69.8
+
+72.8
+
+83.8
+
+149.7
+
+366.1
+
+71.8
+
+84.2
+
+152.2
+
+373.8
+
+70.9
+
+71.6
+
+71.1
+
+72.0
+
+89.1
+76.2
+66.1
+128.6
+86.2
+68.6
+
+90.0
+80.5
+63.9
+118.6
+74.1
+76.1
+
+76.4
+150.3
+130.0
+104.4
+102.0
+117.0
+
+102.3
+125.7
+103.1
+73.2
+92.7
+94.1
+
+243.2
+127.4
+113.3
+152.3
+166.4
+74.9
+
+743.1
+209.0
+294.8
+493.0
+510.0
+113.1
+
+78.6
+281.7
+152.6
+84.8
+177.3
+236.8
+
+98.4
+189.7
+106.1
+68.1
+93.3
+137.8
+
+239.8
+149.1
+110.0
+159.9
+146.6
+86.6
+
+761.5
+209.2
+278.7
+495.8
+481.3
+123.3
+
+65.9
+80.0
+71.2
+72.5
+77.3
+72.4
+
+69.2
+76.7
+74.1
+68.6
+73.0
+81.3
+
+198.6
+100.3
+79.2
+442.9
+166.0
+56.3
+
+215.7
+84.9
+98.2
+323.0
+145.8
+77.2
+
+85.8
+
+83.9
+
+113.3
+
+98.5
+
+146.3
+
+393.8
+
+168.7
+
+115.5
+
+148.7
+
+391.6
+
+73.2
+
+73.8
+
+173.9
+
+157.5
+
+5
+
+m1
+m2
+m3
+m4
+m5
+m6
+
+Note: In each row, the estimator with the minimum MSE and all estimators with MSE not larger than 0.5 above the minimum are underlined. Epa indicates Epanechnikov kernel; Gauss indicates Gaussian kernel.
+Trim 2% means that estimator is trimmed by deleting the 2% of the observations with lowest density. The bandwidth is chosen by leave-one-out cross validation of the nonparametric regression estimator, over a
+grid of 30 different values. Simulations are based on 1000 replications.
+
+

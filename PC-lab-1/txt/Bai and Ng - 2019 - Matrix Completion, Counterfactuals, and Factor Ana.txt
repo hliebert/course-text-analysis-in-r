@@ -1,0 +1,5152 @@
+MATRIX COMPLETION, COUNTERFACTUALS, AND FACTOR ANALYSIS OF
+MISSING DATA
+
+Jushan Bai∗
+
+Serena Ng†
+
+arXiv:1910.06677v2 [econ.EM] 4 Nov 2019
+
+November 6, 2019
+
+Abstract
+This paper suggests an imputation procedure that uses the factors estimated from a tall
+block along with the re-rotated loadings estimated from a wide block to impute missing values in
+a panel of data. Under a strong factor assumption, it is shown that the common component can
+be consistently estimated but there will be four different convergence rates. Re-estimation of the
+factors from the imputed data matrix can accelerate convergence. A complete characterization
+of the sampling error is obtained without requiring regularization or imposing the missing at
+random assumption. Under the assumption that potential outcome has a factor structure, we
+provide a distribution theory for the estimated average and individual treatment effects on the
+treated.
+
+JEL Classification: C30, C31
+Keywords: Missing-at-random, Nuclear-norm regularization, Synthetic controls, EM algorithm.
+
+∗
+
+Columbia University, 420 W. 118 St. MC 3308, New York, NY 10027. Email: jb3064@columbia.edu
+Columbia University and NBER, 420 W. 118 St. MC 3308, New York, NY 10027. Email: serena.ng@columbia.edu
+This work is supported by the National Science Foundation SES-1658770 (Bai), SES-1558623 (Ng). We thank Ercument Cahan for helpful discussions.
+†
+
+1
+
+Introduction
+
+Missing observations are prevalent in empirical work, and it is not surprising that solutions have
+been proposed by researchers in many disciplines. The classic econometric solution is some variant
+of the EM algorithm. In the case of factor analysis with missing data, the EM approach is to predict
+the missing values using initial estimates of the factors obtained from a balanced panel and iterate.
+While convergence of the algorithm can be established, the asymptotic properties of the converged
+estimates are not well understood.
+Progress can be made if the panel of incompletely observed data X is large in both dimensions
+and have a strong factor structure. This means in particular that X has a common component C
+of reduced rank r, and whose population covariance has r largest eigenvalues that increase with
+the size of the panel. We show in this paper that in spite of missing values in X, every entry of C
+can be consistently estimated using a tall-wide (tw) algorithm that involves two applications of
+principal components. The tw estimates of the factors are already consistent, but one re-estimation
+that replaces the missing values with imputed data can accelerate convergence for estimates of C
+in the balanced sub-panel. We provide an asymptotic characterization of the estimation error for
+each Cit and show that there will be at least four convergence rates depending on observability of
+Xit . The approach can be used to construct missing values of potential outcomes satisfying a factor
+structure. The sampling error of the individual and the average treatment effect will be presented.
+The convergence rates we obtain for the estimated low rank component are the same whether
+we perform least squares or regularized estimation and holds for arbitrary types of missing data.
+This contrasts with results obtained under specific missing data mechanisms, many of which seem
+inappropriate for the time dependent and spatially correlated data that we work with. Our approach
+also contrasts with those used in matrix completions. In that literature, nuclear norm regularization
+via singular-value thresholding is crucial, and successful matrix recovery typically requires that the
+low rank component is incoherent, that the data are missing uniformly at random but that there are
+enough observed data available to recover the desired matrix.1 In our analysis, consistent estimation
+of the entire matrix C is possible using standard principal components with as few as No T + To N
+observations where No is the number of units with data observed over the entire span, and To is the
+length of the sample for which data are available for all N units. This means that a large fraction
+1−
+
+No
+N
+
+−
+
+To
+T
+
+of the data can potentially be missing.
+
+An implication of our analysis is that consistent recovery of the low rank component is possible
+
+without iteration or regularization of the singular values. Though the convergence rates are the same
+with or without regularization, the regularized estimates are biased. This suggest that results which
+are optimal from an algorithmic perspective may be suboptimal when the probabilistic structure
+1
+For example, the algorithmically optimal error bound on Ĉ given in Candes et al. (2011, Theorem 1.2) requires
+the missing data to be at most 10% of the panel.
+
+1
+
+of the data is fully specified. Indeed, our distribution theory is made possible by imposing moment
+conditions to ensure that the factor structure is strong and identifiable.
+The rest of the paper is structured as follows. After presentation of the preliminaries in Section 2,
+Section 3 presents the least squares version of Algorithm tw and studies the asymptotic properties
+of the factor estimates that the algorithm delivers. Section 4 provides a distribution theory for
+factor-based estimation of average treatment effect. Section 5 concludes.
+
+2
+
+Preliminaries
+
+We use i = 1, . . . N to index cross-section units and t = 1, . . . T to index time series observations.
+Let Xi = (Xi1 , . . . XiT )′ be a T × 1 vector of random variables and X = (X1 , X2 , . . . , XN ) be a
+
+T × N matrix. In practice, Xi is transformed to be stationary, demeaned, and often standardized.
+The normalized data Z =
+
+√X
+NT
+
+has singular value decomposition (svd)
+
+X
+= U DV ′ = Ur Dr Vr ′ + UN −r DN −r VN −r ′ .
+Z=√
+NT
+In the above, Dr is a diagonal matrix of r singular values, Ur , Vr are the corresponding left and
+right singular vectors respectively. Without loss of generality, the singular values in the diagonal
+entries of Dr are ordered such that d1 ≥ d2 . . . ≥ dr . Note that while the r large singular values of
+
+X diverge and the remaining N − r ones are bounded, the r largest singular values of Z are bounded
+
+and the remaining ones tend to zero because the singular values of Z are those of X divided by
+√
+N T . The Eckart and Young (1936) theorem posits that the best rank k approximation of Z is
+
+Uk Dk Vk ′ . The svd is also the goto algorithm for solving matrix factorization problems that seek to
+represent a matrix Z as a product of two low rank matrices. These results can be obtained without
+an assumed data generating process for Z.
+We are interested in the principal components of X viewed from the perspective of a factor
+model. Let F be a T × r matrix of common factors, Λ be a N × r matrix of factor loadings, and e
+
+be a T × N matrix of idiosyncratic errors e. The data X are assumed to have a factor structure
+′
+
+X = F 0 Λ0 + e
+
+(1)
+′
+
+where (F 0 , Λ0 ) are the true values of (F, Λ). The common component C 0 = F 0 Λ0 has reduced rank
+r because F 0 and Λ0 both have rank r. The defining characteristic of an approximate factor model
+is that the r population eigenvalues of the covariance of C diverge with N while all eigenvalues of
+the covariance of e are bounded. These are imposed through the following.
+Assumption A
+
+: There exists a constant M < ∞ not depending on N, T such that
+
+a. (Factors and Loadings):
+2
+
+(i) EkFt0 k4 ≤ M , kΛi k ≤ M ;
+(ii)
+
+′
+F0 F0 p
+T −→ΣF
+
+> 0, and
+
+′
+Λ0 Λ0 p
+N −→ΣΛ
+
+> 0.
+
+b. (Idiosyncratic Errors): Time and cross-section dependence
+(i) E(eit ) = 0, E|eit |8 ≤ M ;
+P
+(ii) E( N1 N
+i=1 eit eis ) = γN (s, t), |γN (s, s)| ≤ M ∀s and
+
+1
+T
+
+PT
+
+s=1
+
+PT
+
+t=1 |γN (s, t)|
+
+≤ M;
+
+P PN
+(iii) E(eit ejt ) = τij,t , |τij,t | ≤ |τij,t| for some τij,t ∀t, and N1 N
+i=1
+j=1 |τij,t | ≤ M ;
+P
+P
+P
+P
+N
+′
+′
+(iv) E(eit ejs ) = τij,st and N1T N
+i=1
+j=1
+t=1
+s=1 |τij,ts | < M ;
+P
+PN
+4
+(v) E|N −1/2 N
+i=1 |
+i=1 [eis eit − E(eis eit )] ≤ M for every (t, s).
+
+c. (Central Limit Theorems): for each i and t,
+PT
+d
+0
+√1
+t=1 Ft eit −→N (0, Φi ) as T → ∞.
+T
+
+√1
+N
+
+PN
+
+d
+0
+i=1 Λi eit −→N (0, Γt )
+
+as N → ∞, and
+
+Assumption A is used in Bai (2003) and underlies most theoretical results in large dimensional
+
+factor models. The moment conditions ensure that the factor structure is strong and can be separated from the idiosyncratic errors which are allowed to be weakly correlated, both in the time and
+cross-section dimensions.
+We observe X, but not F 0 or Λ0 . As F and Λ are not separately identifiable. The method of
+asymptotic principal components uses the normalizations
+
+F ′F
+T
+
+= Ir and Λ′ Λ being diagonal2 ,
+
+√
+√
+(F̃ , Λ̃) = ( T Ur , N Vr Dr ).
+For each t ∈ [1, T ] and for each i ∈ [1, N ], (F̃t , Λ̃i ) consistently estimate (Ft0 , Λ0i ) up to rotation
+matrices H and G where
+
+H =
+
+
+
+′
+
+Λ0 Λ0
+N
+
+
+
+
+′
+F 0 F̃
+Dr−2 ,
+T
+
+with G = H −1 .
+
+For generic positive integers N, T, it will be convenient to define
+2
+2
+δNT
+δNT
+−1 0
+−1
+0
+Λ0′
+F 0′ Σ−1 Φi Σ−1
+i ΣΛ Γt ΣΛ Λi +
+F Ft
+N √ √
+T t F
+= min( N, T).
+
+Vit (N, T) =
+δNT
+
+−1/2
+
+Lemma 1. from Bai (2003): Suppose that Assumption A hold. Let Qr = Dr Vr ΣΛ
+1/2
+
+where D2r
+
+1/2
+
+and Vr are the eigenvalues and eigenvectors of the r × r matrix ΣΛ ΣF ΣΛ , respectively. Then
+√
+′ 0
+plim N,T →∞ F̃ TF = Qr , plim N,T →∞ Dr2 = D2r . If N /T → 0 as N, T → ∞,
+√
+N (F̃t − H ′ Ft0 )
+2
+
+d
+
+−→
+
+N
+
+
+
+′ −2
+0, D−2
+r Q r Γt Q r D r
+
+
+
+≡ N (0, Avar(F̃t ))
+
+This began with work in Stock and Watson (2002); Bai and Ng (2002); Bai (2003).
+
+3
+
+(2a)
+
+√
+δN T
+
+
+
+T (Λ̃i −
+
+GΛ0i )
+
+C̃ − Cit0
+q it
+Ṽit (N, T )
+
+
+
+d
+
+
+
+′ −1
+
+= −→ N 0, (Qr )
+d
+
+−→
+
+Φi Q−1
+r
+
+
+
+≡ N (0, Avar(Λ̃i ))
+
+N (0, 1)
+
+(2b)
+(2c)
+
+where Ṽit (N, T ) is a consistent estimate of Vit (N, T ).
+In what follows, we use (Avar(F̃t )), Avar(Λ̃i )) to denote the expressions for the asymptotic
+variance for F̃t and Λ̃i stated above. To construct the APC estimator, we need the matrix consisting
+of left and right eigenvectors Ur and Vr . In situations when direct computation of svd is costly,
+iteration can be used to construct the orthogonal subspace spanned by the eigenvectors.3
+
+3
+
+Missing Data
+
+Missing data is a problem that researchers frequently encounter. As Zhu et al. (2019) points out,
+we can expect more occurrence of incomplete observations in the era of big data. Data can be
+missing for a variety of reasons: non-response in surveys, lack of economic activity, and staggered
+releases by statistical agencies to name a few. One can always work with a balanced panel but
+this effectively throws away information in many series and cannot be efficient. This led to simple
+methods that replace the missing values with zero or the mean as well as sophisticated methods that
+fully specify the data generating process and the missing data mechanism.4 Rubin (1976) obtains
+two sufficient conditions for unbiased estimation. First, missingness cannot depend on the missing
+values after conditioning on the observed data (a condition known as missing at random), and
+second, the parameters of the model must not depend on the missingness mechanism. These results
+are widely used to justify likelihood and Bayesian inference. See Horton and Kieinman (2007) for
+a survey of methods for cross-section data.
+For Gaussian data, the EM algorithm of Dempster et al. (1977) is commonly used to impute missing values. The EM algorithm alternates between an E-step that computes the expected log-likelihood using the most recent parameter estimates, and an M-step that maximizes
+the expected log-likelihood. In cases when the expected log-likelihood is difficult to compute, the
+Expectation-Conditional Maximization (ECM) algorithm of Meng and Rubin (1993) can be considered. Schneider (2001) considers a ridge-regression based regularized EM algorithm for imputing
+missing values in climate data.
+Missing at random can be a reasonable characterization in, for example, observational studies
+and surveys when respondents may not answer all questions at all times. But there are situations
+3
+
+See Golub and Loan (2012, Algorithm 8.2). Ke and Kanade (2005) uses subspace estimation and matrix factorization interchangeably. An alternative is the class of majorization/minorization algorithms of which the well known
+EM aglortihm is a special case.
+4
+For example, Rubin (1987) suggests a Bayesian approach that fills in missing values by repeatedly sampling from
+the predictive distribution of the missing values. Kamakura and Wedel (2000) suggests a simulation based approach
+that is aimed at handling different types of missing data in survey responses within a likelihood setup.
+
+4
+
+when the assumption is not appropriate. This motivates statistical tests of whether missingness
+depends on the data, see Little and Rubin (1987). A case of interest when the missing at random assumption is inappropriate is potential outcomes treated as missing values. As discussed in
+Athey et al. (2018), treatment may be given at the end of the sample, but it may also be staggered
+or bunched by design of the experiment.
+In the case of macroeconomic data, the missing at random assumption is particularly problematic. In some cases, we ‘know’ when the missing data will be filled because statistical agencies
+tend to stagger their releases of blocks of related series.5 In other cases, the data were simply not
+collected in early years and terminated in later years due to attrition. Dropping a series altogether
+because of partially missing data would be a loss of information. In the FRED-MD monthly data
+that span 1960 to 2018 for example, as many as 30 series can be discarded even though some are
+missing only for a handful of months. But as Honaker and King (2010) noted, methods that work
+well in a cross-section setting tend not to work well in panel data that exhibit dependence across
+units and over time. One approach is to impute the missing values using the Kalman filter which
+requires additional parametric assumptions.6
+For estimation of strict factor analysis with missing data, more options are available. Banbura and Modugno
+(2014), Jungbacker and Koopman (2009), Jungbacker et al. (2011) consider likelihood estimation
+which is conceptually appealing but non-linear filters are needed to compute the likelihood as Ft
+and Λi are both random. For approximate factor models, Stock and Watson (1998) suggests to fill
+missing values in X with the most recent estimate of the common component. That is, at iteration
+(k)
+
+(k)′ (k)
+λi
+
+k, X̂it = Ft
+
+(k)
+
+= Ĉit if (i, t) is missing and X̂it = Xit otherwise. Giannone et al. (2008) uses
+
+estimates from the balanced panel in the first step and update the estimates by the Kalman filter.
+Stock and Watson (2016) also suggests to take the initial estimates from the svd of a balanced
+panel.
+While a variety of implementations are already available for estimation of factor analysis with
+missing data, there are surprisingly few theoretical results. In a recent paper, Su et al. (2019)
+puts zeros to observations assumed to be missing at random and rescales the asymptotic principal
+components by the probability of missing data. It is shown that these estimates are consistent but
+not asymptotically normal in general, but iteration can restore normality. A finding that emerges
+from Su et al. (2019) is that imputation noise from the initial estimation will affect all subsequent
+factor estimates, a consequence of the fact that principal components are weighted averages of all
+data, including the imputed ones. Xiong and Pelger (2019) also initializes the missing values to zero
+but re-weights the data to remove bias while allowing the probability of missing data to depend on
+5
+
+See https://www.census.gov/economic-indicators/calendar-listview.html for the schedule of the US Census Bureau and https://www.bls.gov/schedule/2018/05_sched.htm for the Bureau of Labor and Statistics.
+6
+For example, Shumway and Stoffer (1982) suggests a state space approach in which the measurement equation
+makes explicit what is observed.
+
+5
+
+observables. However, the inferential theory assumes that the probabilities are known.
+Our analysis is similar in objective to that of Su et al. (2019) and Xiong and Pelger (2019) but
+differs in two ways. First, our results hold for arbitrary type of missing data and does not require
+assumptions about the missing data mechanism. Second, the estimates produced by our algorithms
+are consistent and asymptotically normal without further iteration. Re-estimation in our proposed
+methodology accelerates the convergence rate rather than restores asymptotic normality. Further
+iteration will not improve the rate, but may provide additional improvements in finite samples.
+Both Su et al. (2019) and Xiong and Pelger (2019) assume that the number of missing data points
+as a fraction of T · N is bounded away from zero. If the balanced block is of dimension To × No ,
+they implicitly require that To and T are of the comparable order, and likewise for No and N . We
+do not make such assumptions because we use a different estimation methodology.
+We will rearrange the data matrix such that the observed data are ordered first. To motivate,
+consider the T × N matrix Z with T = 8 and N = 5:
+
+z11
+z21
+
+z31
+
+z41
+Z0 = 
+z51
+
+z61
+
+ ∗
+z81
+
+z12
+∗
+z32
+z42
+z52
+z62
+z72
+z82
+
+z13
+z23
+z33
+z43
+z53
+z63
+z73
+z83
+
+z14
+z24
+z34
+z44
+z54
+∗
+z74
+z84
+
+
+
+z13
+z15
+z23
+z25 
+
+
+z33
+z35 
+
+
+
+z45 
+ → Z1 = z43
+z53
+
+z55 
+
+z63
+z65 
+
+
+z73
+z75 
+z83
+z85
+
+z15
+z25
+z35
+z45
+z55
+z65
+z75
+z85
+
+z11
+z21
+z31
+z41
+z51
+z61
+∗
+z81
+
+z12
+∗
+z32
+z42
+z52
+z62
+z72
+z82
+
+
+
+z13
+z14
+ z33
+z24 
+
+
+ z43
+z34 
+
+
+
+z44 
+ → Z2 =  z53
+ z83
+
+z54 
+
+ z23
+∗ 
+
+
+ z63
+z74 
+z84
+z73
+
+z15
+z35
+z45
+z55
+z85
+z25
+z65
+z75
+
+z11
+z31
+z41
+z51
+z81
+z21
+z61
+∗
+
+z12
+z32
+z42
+z52
+z82
+∗
+z62
+z72
+
+z14
+z34
+z44
+z54
+z84
+z24
+∗
+z74
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The transformation from Z0 to Z1 shuffles the columns so that those that are observed at all
+times are ordered first. The transformation from Z1 to Z2 shuffles the rows so that time periods
+with complete data for all units are ordered first.
+Figure 1: Reorganized Data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+bal
+
+X
+
+X
+
+wide
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+×
+
+X
+
+×
+
+X
+
+X
+
+X
+
+×
+
+...
+
+...
+
+×
+
+X
+
+tall
+
+X
+
+×
+
+miss
+
+X
+
+X
+
+X
+
+X
+
+×
+
+X
+
+×
+
+X
+
+X
+
+X
+
+X
+
+×
+
+×
+
+X
+
+X
+
+X
+
+X
+
+X
+
+×
+
+×
+
+X
+
+X
+
+X
+
+X
+
+×
+
+×
+
+×
+
+X
+
+6
+
+×
+
+X
+
+
+
+
+
+X 
+
+
+X 
+
+
+× 
+
+
+X 
+
+
+× 
+
+
+× 
+
+
+× 
+
+
+× 
+
+
+X
+
+More generally, every panel with missing data can be represented as in Figure 1. We will use
+‘o’ to denote the size of the observed and ‘m’ for the size of the missing samples, respectively. The
+northwest block, labeled bal, is a subpanel of complete data of dimension To × No . The wide block
+extends the bal block in the cross-section dimension to include data of all N units with data for To
+
+periods. The tall block extends the bal block in the time dimension to include all No units with
+complete time series observations. The southeast block collects the missing data into a Tm × Nm
+
+matrix where Tm = T − To and Nm = N − No . Principal components cannot be applied directly
+
+to this block because of missing values. This block, labeled miss, is the sub-block bordered by the
+rows To + 1 : T and columns No + 1 : N . As drawn, miss is a “largest possible” block of missing
+
+data since some points in it are actually observed.
+To give some economic content, we can think of the tall block as data for developed countries,
+the wide block for newly developed countries which have complete data over a shorter span, while
+the miss block consists of data for the less developed countries for which missing data is more
+prevalent. For financial data, acquisitions and mergers can yield the block structure. Prices are
+not recorded unless there is a trade. In education studies, missing values can be due to dropouts
+and transfers. As will be seen below, missing data also plays a role in estimation of treatment
+effects. We will assume that each unit has at least one observation available, which is a reasonable
+assumption in a wide range of settings.
+Reorganizing data into four blocks presents a different view of the missing data problem. If we
+initialize using data in balanced block , the factor estimate willl always be spanned by factors that
+are originally in the balanced block. This can be a very small chunk of the data and the information
+loss can be significant. We can make better use of the data, and in fact, no need to iterate, by more
+carefully exploit the factor structure.
+
+4
+
+A Tall-Wide Estimator
+
+Our estimator is based on the idea that a complete set of estimates of the low rank component can
+be obtained from T No + To N > To × No data points. Precisely, we exploit the fact that (F̂tall , Λ̂tall )
+can be obtained from the tall block, while (F̃wide , Λ̃wide ) can be obtained from the wide block
+
+by APC. Results from our previous work can be used to show that
+′
+F̃tall,t = Htall
+Ft0 + op (1),
+
+′
+F̃wide,t = Hwide
+Ft0 + op (1)
+
+−1 0
+Λ̃tall,i = Htall
+Λi + op (1),
+
+−1
+Λ̃wide,i = Hwide
+Λ0i + op (1).
+
+where Htall and Hwide are unknown rotation matrices. It immediately follows that
+′
+C̃tall,it = F̃tall,t
+Λ̃tall,i = Cit + op (1)
+′
+C̃wide,it = F̃wide,t
+Λ̃wide,i = Cit + op (1).
+
+7
+
+Obtaining an estimate of Cit in miss requires a bit more work because F̃tall and Λ̃wide are estimated
+from different blocks of data. From Λ0i = Hwide Λ̃wide,i + op (1) = Htall Λ̃tall,i + op (1),
+−1
+Hwide ) Λ̃wide,i + op (1).
+Λ̃tall,i = (Htall
+
+Define a new r × r rotation matrix
+
+−1
+Hmiss = Htall
+Hwide
+
+which can be estimated by regressing the No × r matrix Λ̃tall on the No × r sub-matrix Λ̃wide . This
+suggests the following;
+
+Let Ω be the T × N matrix that is one in positions when the data are
+
+Algorithm FBI-TW
+
+observed, i.e. Ωit = 1 if Xit is observed and zero otherwise. It is assumed that the order conditions
+T No > r(T + No ) and To N > r(To + N ) are satisfied.
+1. From the tall block of X, obtain (F̃tall , Λ̃tall ) by APC where F̃tall is T × r.
+
+2. From the wide block of X, obtain (F̃wide , Λ̃wide ) by APC where Λ̃wide is N × r.
+
+′ H̃
+3. Let C̃miss = F̃tall
+miss Λ̃wide where H̃miss (r × r) is obtained by regressing Λ̃tall on Λ̃wide .
+
+4. Output X̃ = PΩ (X) + PΩ⊥ (C̃), where
+
+(
+Xit
+X̃it =
+C̃it
+
+Ωit = 1
+Ωit = 0.
+
+(3)
+
+When the number of factors in tall and wide do not coincide, we let r = max(rtall , rwide ) in Step
+(3).
+The acronym tw stands for tall-wide and is motivated by the fact that the procedure necessitates estimation of the factors from the two blocks. The C̃it returned by algorithm tw satisfies:
+0
+C̃miss,it − Cmiss,it
+
+=
+=
+=
+
+=
+
+′
+
+′
+
+F̃tall,t H̃miss Λ̃wide,i − Ft0 Λ0i
+
+
+′
+
+−1
+−1
+0
+0
+′
+0
+′ 0
+F̃tall,t − Htall Ft + Htall Ft H̃miss Λ̃wide,i − Hwide Λi + Hwide Λi − Ft0′ Λ0i
+
+
+
+
+
+
+′
+−1
+−1
+′
+Λ0i
+Λ0i + Ft0′ Htall H̃miss Λ̃wide,i − Hwide
+F̃tall,t − Htall
+Ft0 H̃miss Λ̃wide,i − Hwide
+
+
+
+′
+
+−1
+−1
+′
++ F̃tall,t − Htall
+Ft0 H̃miss Hwide
+− Ir Λ0i − Ft0′ Λi
+Λ0i + Ft0′ Ir + Htall H̃miss Hwide
+
+
+
+
+
+
+1
+1
+1
+1
+1
++ Op √
++ Op √
++ Op (
+Op √
++ )
+No
+To
+No T o
+To
+No
+
+−1
+since as shown in the appendix, Htall H̃miss Hwide
+= Ir + Op (1/No + 1/To ).
+
+Algorithm tw produces three different estimators for Cit :- one for (i, t) ∈ tall, one for (i, t) ∈
+
+wide, and one for (i, t) ∈ miss. Either the tall or the wide estimate is valid for Cit in bal. Since
+
+the different blocks have different sample sizes, the convergence rate differs across blocks.
+
+8
+
+Proposition 1. Suppose that Assumption A holds, there are No units with complete data over all
+T rows, and there are To periods for which data are available for all N units. Let (F̃tall , Λ̃tall ) =
+P
+P
+minF,Λ (i,t)∈tall (Xit − Ft′ λi )2 and (F̃wide , Λ̃wide ) = minF,Λ (i,t)∈wide (Xit − Ft′ λi )2 . Let Gb = Hb−1
+for b = tall, wide. Suppose that No → ∞ as N → ∞ and To → ∞ as T → ∞. Then all (i, t)
+
+
+C̃it − Cit0
+d
+−→N (0, 1)).
+δN,T q
+Ṽit (N, T)
+
+√
+√
+i. For i ∈ [1, No ] and t ∈ [1, T ] in tall, δN,T = min( No , T ) and
+
+ √
+√
+d
+0
+′
+a. No (F̃tall,t − Htall Ft )−→N 0, Avar(F̃tall,t ) if TNo → ∞.
+ √
+√
+d
+0
+b. T (Λ̃tall,i − Gtall Λi )−→N (0, Avar(Λ̃tall,i ) if NTo → 0.
+
+√ √
+ii. For i ∈ [1, N ] and t ∈ [1, To ] in wide, δN,T = min( N , To ) and
+
+ √
+√
+d
+′
+0
+a. N (F̃wide,t − Hwide Ft )−→N 0, Avar(F̃wide,t ) if TN
+→ ∞.
+o
+
+ √
+√
+d
+b. To (Λ̃wide,i − Gwide Λ0i )−→N 0, Avar(Λ̃wide,i ) if NTo → 0;
+iii. For i ∈ [1, No ] and t ∈ [1, To ] in bal.
+
+√
+√
+a. If min(No , T ) > min(N, To ), then C̃bal,it = C̃tall,it and δN,T = min( No , T ).
+√ √
+b. If min(N, To ) > min(No , T ), then C̃bal,it = C̃wide,it and δN,T = min( N , To ).
+
+√
+√
+iv. For (i, t) ∈ miss, δN,T = min( No , To ).
+The asymptotic variances are the same as defined in Lemma 1; only the convergence rate differ
+because estimation is no longer based on the full sample. Part (i) gives results for the tall block
+while part (ii) gives results for the wide. The bal block can choose between estimates obtained
+from tall or the wide block and thus has the best convergence rate possible, being
+
+
+p
+√
+√ p
+max min( No , T ), min( N , To ) .
+
+In contrast, the convergence rate of Cit ∈ miss is always the slowest possible. Regardless, Proposi-
+
+tion 1 shows that the estimates of the entire Cit matrix are consistent and asymptotically normal
+without restrictions on the nature of missingness. Iteration is not necessary to obtain these results.
+
+4.1
+
+Re-Estimation Using Imputed Data
+
+While Algorithm tw produces factor estimates that are mutually orthogonal within the four blocks
+of data, they are not mutually orthogonal over the entire data matrix. Furthermore, the estimates
+
+9
+
+in tall do not use all information available, and similarly for the estimates in wide. Re-estimation
+using X̃ provides an opportunity to use both the observed and imputed entries in the missing block
+not used when C̃it was constructed. However, embedded in imputed X̃ are imputation errors which
+will propagate to other blocks in re-estimation because the APC is a weighted average of X̃. A
+formal analysis is needed to determine whether re-estimation using X̃ can be justified.
+Since X̃ was constructed using estimates of F constructed from the tall block, and of Λ
+constructed from the wide block, we only need these estimates for an analysis of re-estimation.
+Accordingly, we partition the matrices as follows. For T = To + Tm and N = No + Nm ,
+
+
+
+Fo0
+|{z}
+ To ×r 
+
+F0 = 
+0 ,
+ Fm
+|{z}
+Tm ×r
+
+Assumption B:
+
+√
+N
+min{No ,To }
+
+
+
+
+Λ0o
+|{z}
+ No ×r 
+
+Λ0 = 
+ Λ0m  ,
+|{z}
+
+F̃tall
+
+
+F̃o
+|{z}
+ To ×r 
+
+=
+ F̃m  ,
+|{z}
+
+Λ̃wide
+
+Tm ×r
+
+Nm ×r
+
+→ 0 and
+
+
+
+√
+
+T
+min{No ,To }
+
+
+
+
+Λ̃o
+|{z}
+ No ×r 
+
+=
+ Λ̃m 
+|{z}
+Nm ×r
+
+→ 0 as N → ∞ and T → ∞.
+
+Assumption B allows pN = No /N → 0 and pT = T0 /T → 0. It is shown in the Appendix that
+
+for those (i, t) with Ωit = 0,
+
+C̃it − Cit0 = uit + vit + rN T,it
+
+(4)
+
+) uniformly in (i, t) such that Ωit = 1, and
+where rN T,it = Op (δT−2
+o ,No
+uit
+vit
+
+−1
+
+
+
+No
+1
+1 X
+0
+=
+Λk ekt = Op √
+No
+No
+k=1
+ 0′ 0 −1 X
+
+
+T
+1 o 0
+1
+0′ Fo Fo
+√
+= Ft
+F eis = Op
+.
+To
+To s=1 s
+To
+Λ0′
+i
+
+
+
+0
+Λ0′
+o Λo
+No
+
+The dependence of uit and vit on (To , No ) is suppressed for notational simplicity. Imputation injects
+three errors into X̃it when Xit is not observed:- a quantity rN T,it that is negligible, an error from
+estimating Ft and one from estimating Λi , and uit + vit + rN T,it will differ from the true error eit .
+These results, together with the definition of X̃ from (3) implies
+0
+X̃it = Λ0′
+i Ft + eit ,
+
+if
+
+0
+X̃it = Λ0′
+i Ft + uit + vit + rN T,it
+
+Bai and Ng (2002) shows that in the complete data case,
+
+Ωit = 1
+
+if Ωit = 0.
+1
+T
+
+PT
+
+t=1 kF̃t − H
+
+′ F 0 k2
+t
+
+−2
+= Op (δN
+T ). The
+
+corresponding result when the factors are estimated from imputed data is as follows.
+√
+√
+Lemma 2. For X̃ = Ũ D̃ Ṽ ′ , let (F̃ + , Λ̃+ ) = ( T Ũr , N Ṽr D̃r ) be the APC estimates based on X̃
+with the normalization
+
+F̃ +′ F̃ +
+T
+
+= Ir . Let H + = (Λ0′ Λ0 /N )(F 0′ F̃ + /T )D̃r−2 and G+ = (H + )−1 . Then
+10
+
+i.
+
+1
+T
+
+PT
+
++
+t=1 kF̃t
+
+−2
+).
+− H +′ Ft0 k2 = Op (δN
+o ,To
+
+p
+
+F 0′ F̃ +
+T
+
+ii. D̃r2 −→D2r and
+
+→p Q where Dr and Q are defined in Lemma 1 for complete data.
+
+Lemma 2 says that the average squared error of the factors estimated from X̃ depends on the
+size of the balanced panel, being To and No . The convergence rate is evidently slower than when
+all data are observed.
+To obtain a distribution theory for the factor estimates, we also need the representation for F̃ +
+and Λ̃+ . We show in the Appendix that
+
+
+
++′ F 0
+
+1 PN
+F̃
+0
+−2
+
+D̃r
+
+i=1 Λi eit + ξ̂N T,t
+T
+N
++′ 0
++
+
+ 
+
+F̃t − H Ft =
+′
+PN
+P No 0
+
+1
+F̃ + F 0
+0
+−2
+ˆ
+
+D̃r
+i=1 Λi eit +
+i=No +1 Λi (uit + vit ) + ξN T,t
+T
+N
+
+t ≤ To
+
+.
+
+t > To .
+
+−2
+) uniformly in t. The first representation is for those estimates of Ft when
+where ξ̂N T,t = Op (δN
+o ,To
+
+t ≤ To , where we recall that To is the number of time series observations for which all units have
+data available. Except for the ξˆN T,i term that is asymptotically negligible, the representation is
+the same as the case when all data are observed. More interesting is the t > To case when X̃it has
+−1 →p I ,
+0′ 0
+0
+imputation error. Assuming (Λ0′
+r
+m Λm /Nm )(Λo Λo /No )
+
+1
+N
+
+N
+X
+
+Λ0i (uit + vit ) =
+
+No
+Nm 1 X
+Λ0i eit + op ((N To )−1/2 ).
+N No
+i=1
+
+i=No +1
+
+Since N = No + Nm , it follows that for t > To ,
+F̃t+
+
+−H
+
++′
+
+Ft0
+
+=
+
+Dr−2
+
+= Dr−2
+
+
+
+
+
+F̃ +′ F 0
+T
+F̃ +′ F
+T
+
+
+
+
+0
+
+No Nm
++
+N
+N
+
+1
+No
+
+No
+X
+
+
+
+No
+1 X
+Λ0i eit + ξˆN T,i + Op ((N To )−1/2 )
+No
+i=1
+
+Λ0i eit + ξ̂N T,i + Op ((N To )−1/2 )
+
+i=1
+
+Similar derivations show that
+
+PT
++′ 1
+0
+
+H T t=1 Ft eit + η̂N T,i
++ 0
+Λ̃+
+i − G Λi = 
+ +′ 1 PTo 0
+H To t=1 Ft eit + η̂N T,i + Op ((No T )−1/2 )
+
+i ≤ No
+i > No .
+
+−2
+) uniformly in i. These representations lead to the following.
+where η̂N T,i = Op (δN
+o ,To
+
+Proposition 2. Under Assumptions A and B, the following holds as N → ∞ and T → ∞:
+a. For t ≤ To :
+b. For t > To :
+c. For i ≤ No :
+
+√
+N (F̃t+ − H +′ Ft0 ) →d N (0, Avar(F̃t+ ));
+
+√
+No (F̃t+ − H +′ Ft0 ) →d N (0, Avar(F̃t+ ));
+√
+
+d
+
++
++
++ −1
++ 0
+T (Λ̃+
+i − G Λi )−→N (0, Avar(Λ̃i )), where G = (H ) ;
+
+11
+
+d. For i > No :
+
+√
+
+d
+
++
++ 0
++
++ −1
+To (Λ̃+
+i − G Λi )−→N (0, Avar(Λ̃i )) where G = (H ) .
+
+Note that there is only a single rotation matrix (instead of two) for the factor estimates which
+are mutually orthogonal. This is a consequence of the fact that the factors are now estimated from
+√
+X̃ in its entirety, instead of sub-blocks. Proposition 2 indicates that F̃t+ is N consistent for t ≤ To ,
+√
+T consistent for i ≤ No . These rates are improved over those stated in Proposition 1
+while Λ̃+
+is
+i
+
+for Algorithm tw. This has direct implications for estimation of the common component.
+
+Theorem 1. Let C̃it+ = F̃t+ ′ Λ̃+
+i be the common component estimated from X̃ in which missing
+values of X are replaced by the tw estimates of the common component C. Under Assumptions A
+and B, it holds that as N → ∞ and T → ∞,
+
+ +
+C̃it − Cit0
+d
+−→N (0, 1)
+δN,T q
++
+Ṽit (N, T)
+
+where Ṽ+
+it (N, T) consistently estimates Vit (N, T) defined in Lemma 1 for complete data and
+
+√ √
+
+i ≤ No , t ≤ To
+min( N , T )
+
+
+
+min(√N , √T ) i ≤ N , t > T
+o
+o
+√ o√
+δN,T =
+
+min(
+N
+,
+T
+)
+i
+>
+N
+,
+T
+≤
+T
+o
+o
+o
+
+
+
+min(√N , √T ) i > N , t > T .
+o
+o
+o
+o
+
+Theorem 1 makes clear that re-estimation generates efficiency gains. This is due to the simple
+
+fact that C̃it is based on information in tall and wide only, while C̃it+ also exploits the factor
+structure in miss. As a result, the convergence rate of C̃it+ for (i, t) ∈ bal is now min(N, T ), which
+
+is the same as if X were completely observed.
+
+From the proof of Theorem 1 in Appendix, the asymptotic representation for C̃it+ − Cit0 implies
+
+the following error average rate in Frobenius norm (denoted k · k) for the four blocks:
+1. For the block defined by i ≤ No , T ≤ To :
+2. For the block defined by i ≤ No , t > To :
+3. For block defined by i > No , T ≤ To :
+
+kC̃1+ −C10 k
+√
+No To
+kC̃2+ −C20 k
+√
+No Tm
+
+kC̃3+ −C30 k
+√
+
+4. For the block defined by i > No , t > To :
+
+Nm To
+
+−2
+).
+= Op ( √1N ) + Op ( √1T ) + Op (δN
+o ,To
+−2
+= Op ( √1N ) + Op ( √1T ) + Op (δN
+).
+o ,To
+o
+
+−2
+).
+= Op ( √1N ) + Op ( √1T ) + Op (δN
+o ,To
+
+kC̃4+ −C40 k
+√
+Nm Tm
+
+o
+
+−2
+).
+= Op ( √1N ) + Op ( √1T ) + Op (δN
+o ,To
+o
+
+o
+
+This in turn implies an average squared error for the entire common components matrix
+1
+1
+1
+1
+1
+1
+1
+1 i
+kC̃ + − C 0 k2 h
+−4
+)
+= w1 Op ( + ) + w2 Op (
++ ) + w3 Op ( + ) + w4 Op (
++
+) + Op (δN
+o ,To
+NT
+N T
+No T
+N To
+Nm Tm
+
+where the weights are the proportions of block size:
+N T 
+N T 
+N T 
+N T 
+o m
+m o
+m m
+o o
+, w2 =
+, w3 =
+, w4 =
+.
+w1 =
+NT
+NT
+NT
+NT
+12
+
+The sum of the first four terms in the average squared error is Op ( N1 ) + Op ( T1 ) + (1 − pN )(1 −
+pT )Op ( N1o +
+
+1
+To )
+
+where pN = No /N and pT = To /T . We have the following.
+
+Corollary 1. Under Assumptions A and B:
+
+
+
+ 
+ 
+
+
+
+p
+kC̃ + − C 0 k
+1
+1
+1
+1
+√
++ Op √
+.
+= Op √
++ Op √
++ (1 − pT )(1 − pN ) Op √
+No
+To
+NT
+N
+T
+
+The first term in the square bracket is present even in the complete data case. The second term
+
+is due entirely to missing data, and the magnitude depends on the fraction of missing data but does
+not depend on the missing data mechanism.
+
+4.2
+
+Nuclear Norm Regularization
+
+In the machine learning literature, the matrix completion problem is typically solved using nuclear
+norm regularization, which is a convexified implementation of a minimum rank restriction. The
+rank-restricted solution often involves truncation of singular values through the soft-thresholding
+operator defined as
+Diiγ = (Dii − γ)+ ,
+
+where γ > 0.
+
+To incorporate the idea of rank regularization into factor analysis, we first need to move away
+from APC estimation because normalizing the factors or the loadings to unit length makes it difficult
+to impose constraints. Bai and Ng (2019) defines the robust principal components (RPC) estimator
+√
+√
+(F̂ , Λ̂) = ( T Ur (Drγ )1/2 , N Vr (Drγ )1/2 ) = (F̃ (Drγ )1/2 , Λ̃(Drγ )−1/2 ).
+
+(5)
+
+As shown in Bai and Ng (2019), the cost of regularization is that the resulting factor estimates are
+biased. In particular, if the robust estimate of Cit is C̄it = F̄t′ Λ̄i , then
+
+
+
+
+√ √
+d
+0
+min( N , T ) C̄it − Cit − biasit −→N 0, Avar(C̄it ) .
+
+(6)
+
+−1
+−1
+where H̄N T = ĤN T ∆N T and ḠN T = ∆2N T H̄N
+T 6= H̄N T . It is straightforward to replace the apc
+
+part in Algorithm tw by rpc to incorporate regularization.
+
+Proposition 3. Let C̄b = F̄b Λ̄′b be obtained by Algorithm tw using robust principal components
+defined for b=tall and wide. Suppose that No → ∞ as N → ∞ and To → ∞ as T → ∞. Then
+√ √
+d
+min( N, T)(C̄it − Cit0 − biasit )−→N (0, Avar(C̄it )) where the four convergence rates are the same
+as defined in Proposition 1 when γ = 0.
+
+The thrust of Proposition 3 is that rank regularized estimation of the low rank component
+with missing values inherits the properties of missing data and rank regularization. Missing data
+dictates the convergence rate of C̄it while rank-regularization is responsible for the bias. This bias
+
+13
+
+can be completely eliminated if minimum rank is not a concern because the entire matrix C can be
+consistently estimated without regularization as shown in Proposition 1.
+While factor analysis with missing data solves a similar problem as matrix completion, there are
+important differences. For one thing, the algorithmic error bounds obtained for matrix completion
+hold for any given N and T , whereas our results are asymptotic in nature. Successful matrix recovery
+requires certain incoherence conditions and missing uniformly at random, eg. Cai et al. (2008). In a
+recent paper, Athey et al. (2018) treats potential outcomes as missing data and suggests to solve a
+matrix completion problem by nuclear norm regularization. Assuming σ-sub-Gaussian data so that
+concentration inequalities can be applied, their main theorem studies the average error in estimating
+C for a given N and T . The worse case error is found to depend on the regularization parameter
+and the unspecified distribution that generates Ω. We are able to characterize the sampling error of
+each C̃it , not just the average over i and t by assuming a strong factor structure so that the first r
+largest singular values are well separated from the small singular values. The assumed probabilistic
+structure is what allows us to obtain Proposition 1 without restricting the nature of missingness
+while allowing N T >> No To .
+
+4.3
+
+Finite Sample Properties
+
+Simulations are used to compare the performance of tw with and without updating. For comparison, we also consider an iterative algorithm considered in Stock and Watson (2016) which will
+be denoted iterols. Starting from estimates from the balanced panel, the algorithm repeatedly
+regresses X on F and then X on Λ by ols till convergence. Note, however, that the converged
+factor estimates produced by iterols may not be mutually orthogonal.
+Data are generated from F ∼ N (0, Dr ) and Λ ∼ N (0, Dr ) with r = 2, the diagonal entries in
+
+Dr are equally spaced between 1 and 1/r, and eit ∼ N (0, 1). We report results for N = T = 200
+
+only as results for (N, T ) = (200, 400) and (N, T ) = (400, 200) are similar. For each replication,
+
+kC̃ − C 0 kF is computed for the four blocks. Also reported are results for oracle, which is the
+
+infeasible case when all data are observable.
+
+Our theory is silent about how to compute principal components. In the case of complete data,
+a common practice is to standardize the data prior to PCA estimation. But with missing data, one
+also needs to take into account that excessive variability can be introduced if the sample size used
+to compute the means and standard deviations are too small. Hence, we consider three versions of
+the estimator: one applied to the raw data X, one to the demeanend data, one to the standardized
+data. These are labled TW(2,1,0) in the tables reported. The mean and standard deviation used
+in the centering and normlization are computed using the observations available for each series.
+Table 1 compares the mean error over 5000 replications, normalized by the size of the corresponding block. Not surprisingly, the error in estimating the low rank component is inflated by
+
+14
+
+missing data. Re-estimation of the low rank component always give better estimates. Regardless
+of whether re-estimation is performed, C̃it is well approximated by the normal distribution. These
+are not reported to conserve space. As seen from Table 1, re-estimation using imputed raw data
+(ie. mathod (0)) always have smaller errors than re-estimation using standardized data (ie. method
+(2)). One possible explanation is that having to estimate the mean and standard deviation from
+the imputed data inject additional noise into the factor estimates. The results for iterols which
+also entails demeaning is similar in performance to results from re-estimation of Z̃. All procedures
+yield estimates of C̃i that are strongly correlated with Ci . In results not reported the squared
+correlation between C̃i and Ct averaged over i is over 0.93 when all data are observed. For the four
+parameterizations of missing data considered in Table 1, the squared correlations are are 0.89, 0.85,
+0.85, 0.81 using TW, and 0.92, 0.93, 0.90, and 0.86 upon re-estimation.
+The Frobenius normed error strongly favors C̃(X̃), but this is based on averaging the error over
+all T × N estimates of C. Table 2 reports the root-mean-square-error for four chosen (i, t) pairs,
+one in each of the four blocks. Evidently, the error depends on observability of Xit . The estimation
+
+error is largest if Xit is in the miss block and smallest when Xit is in the bal block. As in Table 1,
+the error is smallest when the factors are re-estimated using X̃. This is consistent with the theory.
+In summary, the proposed tw is already consistent but the convergence rate of Cit depends on
+the position of all (i, t) as given in Proposition 1. The updated estimates make use of additional
+information and have improved statistical properties.
+
+5
+
+Factor Based Estimation of the Treatment Effects
+
+The imputed data are often intermediate rather than the final object of interest. For example, if
+X is a panel of GDP growth, C̃it is an ‘in-sample’ estimate of GDP growth for some i > No in
+period t > To . It is also possible to obtain an ‘out-of-sample’ growth rate for any i ∈ [1, N ] at time
++
+′
+T ∗ > T . For example, C̃i,T ∗ = FT′ ∗ λ̃+
+i has variance FT ∗ var(λ̃i )FT ∗ . This out-of-sample conditional
+
+mean prediction is a counterfactual in a macroeconomic setting. We now show that Algorithm tw
+can also be used to estimate microeconomic type counterfactuals.
+Program evaluation is widely used in economic analysis. Because we do not observe untreated
+outcomes for the treated group, a counter-factual analysis can be thought of as estimating missing
+values. Let T denote the treated group (now indexed by 1) with cardinality N1 , and C be the control
+
+group (now indexed by 0) with cardinality N0 . Then N = N1 + N0 . Unit i receives treatment in
+period T0,i + 1 so T0,i is number of pretreatment periods for unit i. In this paper, we assume that
+T0i = T0 and define T1 = T − T0 . The control group is never exposed to treatment. Let Yit (1) be
+
+the potential outcome if individual i receives the treatment, and Yit (0) be the potential outcome
+if individual i does not receive the treatment in period t. The individual and average treatment
+
+15
+
+effects on the treated are, respectively,
+θit = Yit (1) − Yit (0), i ∈ T , t > T0
+
+
+1 X
+1 X
+Yit (1) − Yit (0) =
+θit .
+ATTt =
+N1
+N1
+i∈T
+
+i∈T
+
+As discussed in Athey et al. (2018), the treatment effect/matching regression literature tends to
+focus on N units being observed in To periods. It then exploits the cross-section pattern in wide
+to predict the missing values in the remaining periods. The synthetic control literature pioneered
+in Abadie et al. (2010) uses the data on the N1 units being treated for T1 periods to impute the
+counterfactual outcome of those that are not treated. The imputation bias is shown to be close
+to zero when the pre-intervention period is large relative to the scale of the transitory shock. A
+‘parallel-trend’ condition is needed so that the weighted average of the sample path of the treated
+move in parallel with the control units. Synthetic control analyses typically require that the mean
+of the treatment unit before treatment is in the span of the mean vectors of the control group (also
+known as donor) before treatment.
+When the potential outcome is assumed to have a factor structure, estimation of treatment
+effect is very much related to factor estimation in the presence of missing values. Hsiao et al. (2012)
+considers least squares estimation when the sample size is too small for estimation of the common
+factors, effectively using the outcome of the control units in place of Ft . Gobillon and Magnac
+(2016) establishes conditions under which the average treatment effect can be identified. Xu (2017)
+directly estimates the factors by principal components when N and T are large. However, there
+are few results for the properties of θ̂it . Li (2018) suggests a procedure to determine r and provides some asymptotic results for the case of a single treated unit in the absence of exogenous
+covariates. Amjad et al. (2018) analyses the mean-squared error of a robust synthetic procedure.
+Xiong and Pelger (2019) considers estimation of treatment effect from large factor models allowing
+the probability of missing data to be a function of observables and that the number of missing data
+increases with the size of the data matrix so that the fraction of observed data is bounded away
+from zero. We leave the missing data mechanism and the relative sample size unspecified.
+Let xit be a K × 1 vector of observed covariates. Let Dit be the treatment indicator of whether
+
+individual i is treated in period t. We observe
+
+Yit = Dit Yit (1) + (1 − Dit )Yit (0)
+= θit Dit + x′it β + Λ′i Ft + eit
+
+where Ft be r × 1 vector of latent common factors. Following Bai (2009), we refer to Cit = Λ′i Ft as
+interactive fixed effect. The effect of treatment on the treated is defined, for t > T0 , as:
+
+
+1 X
+1 X
+θit .
+Yit (1) − Yit (0) =
+ATTt =
+N1
+N1
+i∈T
+
+i∈T
+
+16
+
+We only observe Yit (1) on the treated and thus need to impute their potential outcomes had they
+not been treated, which correspond to the miss block in
+
+
+Y (0)T0 ×N0 Y (0)T0 ×N1
+Y (0) =
+.
+Y (0)T1 ×N0
+miss
+This can be accomplished using an extension of tw algorithm as follows.
+Algorithm ATT-TW:
+1 (IFE): Interactive fixed effect estimation of β using observations in the control group. Let R
+be T × N matrix of residuals where Rit = yit − x′it β̂
+2 (tw): Estimate F from Rtall and Λ from the Rwide ; compute C̃ = F̃tall H̃miss Λ̃wide ′ and
+C̃ + = F̃ + Λ̃+′ .
+3 Predict Ymiss (0)
+a. replace the (i, t)th entry in Ymiss (0) by Ŷit (0) = x′it β̂ + C̃it , OR
+b. replace the (i, t)th entry in Ymiss (0) by Ŷit (0) = x′it β̂ + C̃it+ .
+[t =
+4 Compute the average treatment effect ATT
+
+1
+N1
+
+P
+
+i∈T
+
+θ̂it .
+
+Under the assumed factor structure, we see that for (i, t) ∈ miss
+Yit (0) − Ŷit (0) = x′it (β − β̂) + Cit − Ĉit + eit ,
+where Ĉit is either C̃it or C̃it+ , depending on whether 3(a) or 3(b) of Algortihm ATT-TW is used. In
+the following analysis, we assume 3(b) so that Ĉit = C̃it+ . There are three errors in the counterfactual
+Ŷit (0), one from estimation of β, one from estimation of interactive fixed effects, and an idiosyncratic
+noise eit . Since Yit (1) − Ŷit (0) = θit + xit (β − β̂) + Cit − Ĉit + eit , it follows that
+X
+1 X
+1 X
+[ t − ATTt = 1
+ATT
+x′it (β − β̂) +
+(Cit − Ĉit ) +
+eit .
+N1
+N1
+N1
+i∈T
+
+As
+
+√1
+N1
+
+P
+
+i∈T
+
+i∈T
+
+i∈T
+
+[ t − ATTt is at most
+eit = Op (1), the convergence rate for ATT
+
+√
+N1 . Now β is
+
+homogeneous across i and t by assumption. It follows from Bai (2009), that β̂ − β = Op ( √T1 N )
+0 0
+√
+implying that the first term is Op (1/ T0 N0 ) and is dominated. By (A.20) in Appendix (or equation
+(A.4) if 3a in the algorithm is used)
+ ′ −1
+ ′ −1
+T0
+No
+
+ΛΛ
+1 XX
+1 X
+1 X
+−2
+′ F F
+Fs eis + Λ̄T
+(Ĉit − Cit ) = Ft
+)
+Λk ekt + Op (δN
+o ,To
+N1
+T
+T0 N1
+N
+N
+o
+s=1
+i∈T
+
+i∈T
+
+k=1
+
+17
+
+1
+N1
+
+P
+
+Λi is the average of factor loadings in the treatment group. If N1 is large, the
+√
+first term on the right is Op (1/ T0 N1 ), which is also dominated. Thus when N1 is large we have
+where Λ̄T =
+
+i∈T
+
+the asymptotic representation
+[ t − ATTt =
+ATT
+
+
+
+−1
+
+No
+1 X
+1 X
+eit
+Λk ekt +
+No
+N1
+i∈T
+k=1
+
+
+
+
+1
+1
+2
++Op √
+).
++ Op √
++ Op (1/δN
+o ,To
+N0 T0
+To N1
+
+−Λ̄′T
+
+Λ′ Λ
+N
+
+This distribution depends on that of eit when N1 is small. However, when N1 is large, it is asymptotically normal.
+Proposition 4. Suppose the assumptions of Theorem 1 and those in Bai (2009) hold. Then as
+N0 , T0 , N1 → ∞,
+δNo ,N1
+where δNo ,N1
+
+
+
+[ t − ATTt
+ATT
+p
+VATT,t
+
+√
+√
+= min{ No , N1 } and VATT,t =
+
+2
+δN
+o ,N1
+N0
+
+
+
+Λ̄′T
+
+→ N (0, 1)
+
+
+Λ′ Λ
+N
+
+−1 
+−1
+Λ′ Λ
+Γt N
+Λ̄T +
+
+2
+δN
+o ,N1
+N1
+
+σe2 .
+
+√
+√
+[ t − ATTt is min( N0 , N1 ). Let
+The proposition highlights that the convergence rate of ATT
+
+σ̂ATT,t = VATT,t /δN0 ,N1 . When Λi and σe2 are replaced by consistent estimates, the asymptotic 95%
+[ t ± 1.96σ̂ATT,t ). We can estimate σe2 from êit = Yit (0) − Ŷit (0)
+confidence interval for ATTt is (ATT
+of the control group.7 Then for K = dim(β),
+σ̂e2
+
+T
+XX
+1
+=
+ê2it .
+T N0 − r(T + N0 ) + r 2 − K
+t=1
+i≤No
+
+The estimation of ATT by tw presented above can be generalized to allow T0 to vary with i, as
+in Xu (2017). This approach was first considered in the unpublished dissertation of Cahan (2013),
+and which we analyze further in Cahan et al. (2019).
+
+5.1
+
+Treatment Effect on a Single Unit
+
+Consider now the estimation of treatment effect on a single unit j for some j > N0 . Then
+ ′ −1  X
+T0
+
+1
+′
+′ F F
+b
+θjt − θjt = xjt (β − β̂) − Ft
+Fs ejs
+T
+T0
+s=1
+ ′ −1
+N
+o
+1 X
+ΛΛ
+2
+Λk ekt + ejt + Op (1/δN
+).
+−Λ′j
+o ,To
+N
+No
+k=1
+
+As before, we can ignore x′jt (β − β̂). Imputation error from the second and third terms on the
+√
+√
+right hand side contributes to the standard errors in the order of O(1/ T0 ) + O(1/ N0 ). But as
+7
+
+An alternative is to estimate it from the control group plus the treatment group before the treatment period.
+
+18
+
+distinct from the average of the treatment over i = N0 + 1, . . . , N , now ejt dominates the composite
+estimation error. The distribution of θbjt − θjt thus depends on the distribution of ejt . If one is
+
+willing to assume ejt is identically distributed across i and t, its distribution can be estimated using
+the residuals êit = Yit (0) − Ŷit (0). The estimated individual treatment effect has variance
+σθ̂2
+jt
+
+
+
+
+
+ ′ −1
+ ′ −1
+1 ′ Λ′ Λ −1
+F F
+ΛΛ
+1 ′ F ′ F −1
+Φi
+Ft +
+Γt
+Λj + σe2
+F
+Λ
+=
+T0 t
+T
+T
+N0 j N
+N
+
+If σe2 = var(ejt ) = σt2 (time-varying heteroskedasticity), we may estimate σt2 by σ̂t2 =
+
+1
+N −1
+
+PN −1
+
+2
+i,i6=j êit .
+
+If ejt is assumed to be normally distributed,
+an estimate of itsvariance suffices for a confidence
+
+interval to be constructed as θjt ∈ θbjt − 1.96σ̂θ̂jt , θbjt + 1.96σ̂θ̂jt .
+
+It is also of interest to consider the average treatment effect over the treatment period for a
+P
+P
+P
+single unit, defined as θj = T11 s>T0 θjs . Let θ̂j = T11 s>T0 θ̂js and F̄ = T11 s>T0 Fs . It can be
+shown that a result similar to Proposition 4 holds:
+δT0 ,T1
+
+
+
+(θ̂j − θj )
+q
+Vθ̂j
+
+√ √
+where δT0 ,T1 = min{ T0 , T1 } and Vθ̂j =
+√ √
+gence rate of θ̂j − θj is min{ To , T1 }.
+
+6
+
+
+
+→d N (0, 1)
+
+
+
+F ′F
+T
+
+2
+δT
+′
+0 ,T1
+T0 F̄
+
+−1
+
+Φi
+
+
+
+F ′F
+T
+
+−1
+
+F̄ +
+
+2
+δT
+0 ,T1
+T1
+
+σe2 . The conver-
+
+Conclusion
+
+Missing data is prevalent in empirical work. There is presumption that iteration is needed to
+impute missing values, and successful matrix recovery requires solving a regularized problem under
+a missing at random and certain assumptions about incoherence. This paper shows that if we are
+willing to impose a strong factor structure, then the entire low rank component of the data can be
+consistently estimated by our proposed tw procedure without iteration or restriction on the pattern
+of missingness. The methodology can be used within the potential outcomes framework to estimate
+the effect of treatment on the treated, and a complete distribution theory is provided.
+The tw approach is convenient because the entire (empirical and theoretical) analysis can
+proceed once To and No are found. In a companion paper Cahan et al. (2019), we suggest an tp
+algorithm that uses projections to estimate the rotated Λi directly without going through estimating
+the rotation matrix (Hmiss ). This allows us to customize the number of missing values for each series
+at the cost of requiring r (the number of factors) to be determined by the tall block. The tw and
+tp constitute a suite of factor based imputation (FBI) procedures for handling missing values in a
+big data environment.
+
+19
+
+Table 1: Simulations:
+
+case
+1
+1
+1
+1
+1
+2
+2
+2
+2
+2
+3
+3
+3
+3
+3
+4
+4
+4
+4
+4
+
+block
+full
+long
+wide
+bal
+miss
+full
+long
+wide
+bal
+miss
+full
+long
+wide
+bal
+miss
+full
+long
+wide
+bal
+miss
+
+(N, T)
+( 200,200)
+( 120,200)
+( 200,120)
+( 120,120)
+( 80, 80)
+( 200,200)
+( 120,200)
+( 200, 60)
+( 120, 60)
+( 80,140)
+( 200,200)
+( 60,200)
+( 200,120)
+( 60,120)
+( 140, 80)
+( 200,200)
+( 60,200)
+( 200, 60)
+( 60, 60)
+( 140,140)
+
+var(e)
+var(X)
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+0.74
+
+(2)
+full
+0.13
+0.17
+0.17
+0.22
+0.32
+0.13
+0.17
+0.24
+0.31
+0.24
+0.13
+0.24
+0.17
+0.31
+0.24
+0.13
+0.24
+0.24
+0.43
+0.19
+
+0.16
+0.21
+0.21
+0.26
+0.41
+0.19
+0.24
+0.35
+0.43
+0.38
+0.20
+0.35
+0.25
+0.45
+0.38
+0.23
+0.39
+0.41
+0.70
+0.34
+
+√1 kĈ
+NT
+
+(1)
+TW
+0.16
+0.20
+0.20
+0.26
+0.41
+0.19
+0.23
+0.34
+0.43
+0.38
+0.19
+0.34
+0.25
+0.44
+0.37
+0.22
+0.38
+0.40
+0.69
+0.33
+
+− C 0k
+
+(0)
+0.15
+0.19
+0.19
+0.24
+0.37
+0.17
+0.22
+0.31
+0.41
+0.33
+0.18
+0.32
+0.23
+0.42
+0.34
+0.20
+0.36
+0.36
+0.66
+0.29
+
+(2)
+(1)
+(0)
+TW Updated
+0.14 0.14 0.12
+0.17 0.17 0.15
+0.18 0.17 0.15
+0.22 0.21 0.19
+0.38 0.37 0.33
+0.16 0.16 0.14
+0.18 0.18 0.16
+0.29 0.27 0.24
+0.33 0.31 0.28
+0.36 0.35 0.31
+0.16 0.16 0.14
+0.27 0.26 0.24
+0.19 0.18 0.16
+0.31 0.30 0.27
+0.35 0.34 0.32
+0.20 0.20 0.18
+0.30 0.29 0.27
+0.33 0.32 0.28
+0.49 0.46 0.41
+0.32 0.32 0.28
+
+iterols
+0.14
+0.17
+0.17
+0.22
+0.38
+0.16
+0.18
+0.28
+0.31
+0.36
+0.16
+0.27
+0.19
+0.31
+0.34
+0.20
+0.30
+0.32
+0.45
+0.33
+
+Note: (2) denotes standardized, (1) demeaned, (0) raw.
+DGP: The T × N data matrix X is generated by X = F Λ′ + e, F ∼ N (0, Dr ), Λ ∼ (0, Dr ) with r = 2, e ∼
+N (0, 2.5), and diag(D) = [1; .5]. (N, T) is the number of columns and rows in the block. Four configurations
+of missing data are considered with case 1 having the smallest miss block and case 4 the largest. Reported
+are the medians over 5000 replications.
+
+20
+
+Table 2: Root Mean-Squared-Error at four (i, t) pairs
+(2)
+case
+1
+1
+1
+1
+2
+2
+2
+2
+3
+3
+3
+3
+4
+4
+4
+4
+
+block
+tall
+wide
+bal
+miss
+tall
+wide
+bal
+miss
+tall
+wide
+bal
+miss
+tall
+wide
+bal
+miss
+
+full
+0.27
+0.26
+0.26
+0.26
+0.27
+0.26
+0.26
+0.26
+0.27
+0.26
+0.26
+0.26
+0.27
+0.26
+0.26
+0.26
+
+0.33
+0.31
+0.31
+0.34
+0.38
+0.36
+0.36
+0.41
+0.39
+0.38
+0.38
+0.42
+0.43
+0.42
+0.42
+0.48
+
+1
+1
+1
+1
+2
+2
+2
+2
+3
+3
+3
+3
+4
+4
+4
+4
+
+tall
+wide
+bal
+miss
+tall
+wide
+bal
+miss
+tall
+wide
+bal
+miss
+tall
+wide
+bal
+miss
+
+0.27
+0.26
+0.26
+0.26
+0.27
+0.26
+0.26
+0.26
+0.27
+0.26
+0.26
+0.26
+0.27
+0.26
+0.26
+0.26
+
+0.30
+0.29
+0.29
+0.34
+0.30
+0.29
+0.29
+0.42
+0.38
+0.37
+0.37
+0.41
+0.38
+0.37
+0.37
+0.48
+
+(1)
+TW
+0.32
+0.31
+0.31
+0.33
+0.37
+0.36
+0.36
+0.41
+0.38
+0.37
+0.37
+0.41
+0.42
+0.41
+0.41
+0.47
+TP
+0.30
+0.29
+0.29
+0.33
+0.30
+0.29
+0.29
+0.42
+0.36
+0.35
+0.35
+0.40
+0.36
+0.35
+0.35
+0.47
+
+21
+
+(0)
+0.30
+0.29
+0.29
+0.30
+0.35
+0.34
+0.34
+0.36
+0.36
+0.35
+0.35
+0.38
+0.40
+0.40
+0.40
+0.42
+0.30
+0.29
+0.29
+0.33
+0.30
+0.29
+0.29
+0.43
+0.36
+0.35
+0.35
+0.39
+0.36
+0.35
+0.35
+0.48
+
+(2)
+(1)
+(0)
+TW updated
+0.27 0.26 0.23
+0.28 0.27 0.25
+0.28 0.27 0.25
+0.31 0.30 0.27
+0.28 0.27 0.24
+0.28 0.28 0.25
+0.28 0.28 0.25
+0.39 0.38 0.33
+0.27 0.27 0.24
+0.34 0.33 0.31
+0.34 0.33 0.31
+0.39 0.38 0.35
+0.30 0.28 0.25
+0.35 0.34 0.32
+0.35 0.34 0.32
+0.46 0.45 0.40
+TP updated
+0.27 0.26 0.24
+0.28 0.27 0.25
+0.28 0.27 0.25
+0.31 0.30 0.27
+0.28 0.27 0.24
+0.28 0.28 0.26
+0.28 0.28 0.26
+0.39 0.39 0.34
+0.28 0.27 0.24
+0.33 0.32 0.30
+0.33 0.32 0.30
+0.38 0.37 0.34
+0.30 0.28 0.25
+0.35 0.34 0.32
+0.35 0.34 0.32
+0.46 0.45 0.40
+
+itols
+0.27
+0.28
+0.28
+0.31
+0.27
+0.28
+0.28
+0.39
+0.27
+0.33
+0.33
+0.38
+0.28
+0.35
+0.35
+0.47
+0.27
+0.28
+0.28
+0.31
+0.27
+0.28
+0.28
+0.39
+0.27
+0.33
+0.33
+0.38
+0.28
+0.35
+0.35
+0.47
+
+Table 3: Estimated Treatment Effects: r = 2
+N1
+
+N0
+
+T0
+
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+20
+20
+20
+20
+20
+20
+20
+20
+20
+20
+20
+20
+20
+20
+20
+20
+
+40
+80
+120
+200
+40
+80
+120
+200
+40
+80
+120
+200
+40
+80
+120
+200
+40
+80
+120
+200
+40
+80
+120
+200
+40
+80
+120
+200
+40
+80
+120
+200
+
+15
+15
+15
+15
+30
+30
+30
+30
+50
+50
+50
+50
+100
+100
+100
+100
+15
+15
+15
+15
+30
+30
+30
+30
+50
+50
+50
+50
+100
+100
+100
+100
+
+bias rmse
+covr
+θN0 +1,T0 +5
+0.052 1.117 0.967
+0.047 1.114 0.966
+-0.008 1.095 0.970
+-0.026 1.133 0.961
+0.030 1.094 0.970
+0.018 1.051 0.969
+-0.010 1.041 0.983
+0.015 1.056 0.974
+-0.009 1.058 0.976
+-0.017 1.031 0.978
+-0.011 1.013 0.971
+-0.014 1.020 0.968
+-0.003 1.023 0.980
+-0.009 0.991 0.986
+0.032 1.036 0.975
+0.060 0.993 0.984
+-0.018 1.106 0.973
+0.036 1.101 0.969
+-0.035 1.106 0.970
+-0.004 1.082 0.964
+0.027 1.058 0.981
+-0.079 1.071 0.967
+0.002 1.051 0.971
+-0.030 1.034 0.968
+0.035 1.028 0.983
+0.008 1.038 0.983
+0.032 1.046 0.964
+-0.004 1.026 0.974
+0.000 1.036 0.991
+0.005 1.006 0.984
+0.065 0.988 0.978
+-0.026 1.013 0.982
+
+bias
+0.006
+0.017
+-0.022
+0.014
+0.019
+-0.020
+-0.005
+0.005
+-0.007
+-0.024
+-0.014
+-0.015
+-0.012
+0.010
+-0.002
+0.021
+0.012
+-0.011
+-0.001
+-0.003
+-0.007
+-0.005
+-0.009
+-0.003
+0.006
+0.011
+-0.005
+-0.006
+-0.011
+0.007
+-0.006
+-0.003
+
+rmse
+θT0 +5
+0.504
+0.470
+0.487
+0.496
+0.472
+0.469
+0.480
+0.481
+0.451
+0.463
+0.463
+0.455
+0.471
+0.457
+0.455
+0.452
+0.298
+0.264
+0.264
+0.255
+0.257
+0.245
+0.242
+0.230
+0.251
+0.243
+0.234
+0.225
+0.237
+0.234
+0.232
+0.219
+
+covr
+
+bias
+
+0.931
+0.948
+0.931
+0.932
+0.937
+0.943
+0.940
+0.948
+0.958
+0.951
+0.948
+0.964
+0.949
+0.966
+0.956
+0.953
+0.883
+0.917
+0.909
+0.918
+0.926
+0.937
+0.943
+0.946
+0.938
+0.939
+0.956
+0.958
+0.949
+0.953
+0.944
+0.964
+
+-0.001
+-0.006
+-0.004
+-0.001
+0.004
+-0.008
+0.001
+-0.009
+-0.010
+-0.003
+-0.009
+0.004
+0.007
+-0.002
+-0.003
+0.000
+0.007
+-0.002
+-0.001
+-0.003
+-0.005
+0.000
+-0.003
+0.001
+0.010
+0.006
+0.004
+-0.001
+-0.004
+-0.000
+-0.000
+0.003
+
+rmse
+θ̄
+0.519
+0.500
+0.493
+0.489
+0.482
+0.475
+0.473
+0.467
+0.471
+0.459
+0.461
+0.456
+0.465
+0.458
+0.454
+0.458
+0.295
+0.270
+0.261
+0.249
+0.267
+0.250
+0.239
+0.236
+0.250
+0.239
+0.235
+0.231
+0.240
+0.233
+0.232
+0.229
+
+covr
+0.918
+0.928
+0.932
+0.933
+0.938
+0.942
+0.945
+0.948
+0.947
+0.949
+0.950
+0.952
+0.949
+0.952
+0.956
+0.949
+0.883
+0.906
+0.916
+0.929
+0.913
+0.930
+0.937
+0.940
+0.935
+0.942
+0.945
+0.949
+0.946
+0.948
+0.945
+0.950
+
+Note: “bias” is the estimation bias; “rmse” is the root mean square error; “covr” is the coverage probability.
+
+22
+
+References
+Abadie, A., Diamond, A. and Hainmueller, J. 2010, Synthetic Control Methods for Comparative
+Case Studies: Estimating the Effect of California Tobacco Control Program, Journal of the
+American Statistical Association 105, 493–505.
+Amjad, M., Shah, D. and Shen, D. 2018, Robust Synthetic Control, Journal of Machine Learning
+Research 19, 1–51.
+Athey, S., Bayati, M., Doudchenko, N., Imbens, G. and Khosravi, K. 2018, Matrx Completion
+Methods for Causal Panel Data Methods, arXiv:1710.10251v2.
+Bai, J. 2003, Inferential Theory for Factor Models of Large Dimensions, Econometrica 71:1, 135–
+172.
+Bai, J. 2009, Panel Data Models with Interactive Fixed Effects, Econometrica 77, 1229–1279.
+Bai, J. and Ng, S. 2002, Determining the Number of Factors in Approximate Factor Models, Econometrica 70:1, 191–221.
+Bai, J. and Ng, S. 2019, Regularized Estimation of Approximate Factor Models, Journal of Econometrics 78-96, 212:1.
+Banbura, M. and Modugno, M. 2014, Maximum Likelihood Estimation of Factor Models on Datasets
+with Arbitrary Pattern of Missing Data, Journal of Applied Econometrics 29(1), 133–16–.
+Cahan, E. 2013, Inferential Theory for Factor Models of Large Dimensions under Monotone-Missing
+Data, unpublished Ph.D thesis, University of Washington.
+Cahan, E., Bai, J. and Ng, S. 2019, Factor Based Imputation of Missing Data and Covariance
+Matrix Estimation. unpublished manucript, Columbia University.
+Cai, J., Candes, E. and Shen, Z. 2008, A Singular Value Thresholding Algorithm For Matrix
+Completion, Siam Journal on Optimization 40(4), 1956–1982.
+Candes, E., Li, X., Ma, Y. and Wright, J. 2011, Robust Principal Compoennt Analysis, Journal of
+the ACM 58(3), Article 11.
+Dempster, A., Laird, N. and Rubin, D. 1977, Maximum Likelihood from Incomplete Data via the
+EM Algorithm, Journal of the Royal Statistical Association Series B 39, 1–38.
+Eckart, C. and Young, G. 1936, The Approximation of One Matrix by Another of Lower Rank,
+Psychometrika.
+Giannone, D., Reichlin, L. and Small, D. 2008, Nowcasting: The Real-Time Informational Content
+of Macroeconomic Data, Journal of Monetary Economics 55:4, 665–676.
+Gobillon, L. and Magnac, T. 2016, Regional Policy Evaluation: Interactive Fixed Effects and Synthetic Controls, Review of Economics and Statistics 98:3, 535–551.
+Golub, G. H. and Loan, C. F. V. 2012, Matrix Computations, 3rd edn, Johns Hopkins University
+Press, Baltimore, MD.
+Honaker, J. and King, G. 2010, What do Do About Missng Values in Time Series Cross-Section
+Data, American Journal of Political Science 52:2, 561–581.
+Horton, N. and Kieinman, K. 2007, Much Ado About Nothing: A Comparison of Missing Data
+Methods and Software to Fit Incomplete Data Regresssion Methods, American Statistician
+61:1, 79–90.
+23
+
+Hsiao, C., Ching, H. and Wan, S. 2012, A Panel Data Approach for Program Evaluation: Measuring
+the Benefits of Political and Eocnomic Integration of Hong Kong with Mainland China, Journal
+of Applied Econometrics 27:5, 705–740.
+Jungbacker, B. and Koopman, S. J. 2009, Dynamic Factor Analysis in the Presence of Missing Data.
+Tinbergen Institute Discussion Paper 09-010/4.
+Jungbacker, B., Koopman, S. and van der Wel, M. 2011, Maximum Likelihood Estimation for
+Dynamic Factor Models with Missing data, Journal of Economic Dyanmics and Control 35, 1358–
+1368.
+Kamakura, W. and Wedel, M. 2000, Factor Analysis and Missing Data, Journal of Marketing
+Research 37(4), 490–498.
+Ke, Q. and Kanade, T. 2005, Robust L1 Norm Factorization in the Presence of Outliers and Missing
+Data by Alternative Convex Programming, IEEE Conference on Computer Vision and Pattern
+Recognition June, 1–8.
+Li, K. 2018, Inference for Factor Model Based Average Treatment Effects.
+Little, R. and Rubin, D. 1987, Statistical Analysis with Missing data, John Wiley and Sons, New
+York.
+Meng, X. and Rubin, D. 1993, Maximum Likelihood Estimation via the ECM Algorithm: A General
+Framework, Biometrika 80(2), 267–278.
+Rubin, D. B. 1976, Inference and Missing Data, Biometrika 63(3), 581–592.
+Rubin, D. B. 1987, Multiple Imputation for Nonresponse in Surveys, John Wiley and Sons, New
+York.
+Schneider, T. 2001, Analysis of Incomplete Climate Data: Estimation of Mean Values and Covariance Matrices and Imputation of Missing Values, Journal of Climate 14, 853–871.
+Shumway, R. and Stoffer, D. 1982, An Approach to Time Sries Modeling and Forecasting Uisng the
+EM Algorithm, Journal of Time Series Analysis 3, 253–264.
+Stock, J. and Watson, M. 2016, Factor Models and Structural Vector Autoregressions in Macroeconomics, in J. B. Taylor and H. Uhlig (eds), Handbook of Macroeconomics, Vol. 2A, pp. 415–526.
+Stock, J. H. and Watson, M. W. 1998, Diffusion Indexes, NBER Working Paper 6702.
+Stock, J. H. and Watson, M. W. 2002, Forecasting Using Principle Components from a Large
+Number of Predictors, Journal of American Statistical Association 97(460), 1167–1179.
+Su, L., Miao, K. and Jin, S. 2019, On Factor Models with Random Missing: EM Estimation,
+Inference, and Cross Validation, Singapore Management University, mimeo.
+Xiong, R. and Pelger, M. 2019, Large Dimensional Latent Factor Modeling with Missing Observations and Applications to Causal Inference, SSRN Working Paper 3465337.
+Xu, Y. 2017, Generalized Synthetic Control Methods: Causal Inference with Interactive Fixed
+Effects Models, Political Analysis pp. 56–75.
+Zhu, Z., Wang, T. and Samworth, R. 2019, High Dimensional Principal Component Analysis with
+Heterogeneous Missingness, ArXiv:1906.12125.
+
+24
+
+Appendix A
+This appendix provides proofs to the results in the main text along with more general results that
+are of independent interest.
+Recall the notation T = To + Tm ; N = No + Nm and
+
+
+Fo0
+F =
+0
+Fm
+0
+
+T ×r
+
+
+
+Λ0
+Λ = 0o
+Λm
+0
+
+,
+
+N ×r
+
+,
+
+F̃tall
+
+
+F̃o
+,
+=
+F̃m
+
+
+Λ̃wide
+
+
+
+Λ̃o
+=
+Λ̃m
+
+
+
+0 is T × r; Λ0 is N × r and Λ0 is N × r. The partitions of F̃
+where Fo0 is To × r, and Fm
+m
+0
+m
+tall and
+o
+m
+Λ̃wide are the same. We write (i, t) ∈ Ω if Ωit = 1, and (i, t) ∈ Ω⊥ if Ωit = 0.
+−2
+′ F 0 /T )(Λ′ Λ /N ), then
+′
+(F̃tall
+Similar to the rotation matrix H given in Section 2, let Htall
+= Dtall
+o
+o o
+the tall estimator satisfies (see Bai (2003), Theorem 1)
+
+F̃tall,t −
+
+′
+Ft0
+Htall
+
+=
+
+1
+−2
+′
+(F̃tall
+F 0 /T )
+Dtall
+No
+
+No
+X
+
+Λ0k ekt + ξN T,t ,
+
+t = 1, 2, ..., T
+
+(A.1)
+
+k=1
+
+where ξN T,t = Op (1/No + 1/T ) uniformly in t. Similarly, there is a rotation matrix Hwide such that
+for each i, the wide estimator satisfies (see Bai (2003), Theorem 2)
+−1
+′
+Λ̃wide,i − Hwide
+Λ0i = Hwide
+
+To
+1 X
+Fs0 eis + ηN T,i ,
+To
+
+i = 1, 2, ..., N
+
+(A.2)
+
+s=1
+
+where ηN T,i = Op (1/To + 1/N ) uniformly in i. Let Ω and Ω⊥ be defined as in the main text. Let
+−1
+Hwide , and define for (i, t) ∈ Ω⊥
+Hmiss = Htall
+′
+C̃it = F̃tall,t
+H̃miss Λ̃wide,i
+
+where H̃miss is an estimator for Hmiss obtained by regressing Λ̃tall,i on Λ̃wide,i for i = 1, 2, ..., No .
+Lemma A.1. Under the assumptions of Proposition 1:
+(i)
+−1
+2
+)
+H̃miss = Htall
+Hwide + Op (1/δN
+o To
+
+(A.3)
+
+(ii) For (i, t) ∈ Ω⊥
+No
+To
+1 X
+1 X
+Fs0 eis +rN T,it
+Λ0k ekt + Ft0′ (Fo0′ Fo0 /To )−1
+No
+To
+s=1
+k=1
+{z
+}
+{z
+} |
+
+0′ 0
+−1
+C̃it − Cit0 = Λ0′
+i (Λo Λo /No )
+
+|
+
+(A.4)
+
+vit
+
+uit
+
+where rN T,it = Op (1/To + 1/No ) uniformly in (i, t) ∈ Ω⊥ .
+
+Proof of Lemma A.1 Consider part (i). Rewrite the representation in (A.2) as
+Hwide Λ̃wide,i = Λ0i + (Fo0′ Fo0 /To )−1
+
+To
+1 X
+2
+Fs0 eis + Op (1/δN
+To )
+To
+s=1
+
+This follows from
+
+2
+′
+= (Fo0′ Fo0 /To )−1 + Op (1/δN
+Hwide Hwide
+To )
+
+25
+
+(A.5)
+
+[see Bai (2003), p 166) and Bai and Ng (2019)],
+Similarly, the Tall estimator has the asymptotic representation
+Htall Λ̃tall,i = Λ0i + (F 0′ F 0 /T )−1
+
+T
+1X 0
+2
+F eis + Op (1/δN
+)
+oT
+T s=1 s
+
+This implies
+Λ̃tall,i = Hmiss Λ̃wide,i + ϕN T,i ,
+
+i = 1, 2..., No
+
+where
+ϕN T,i =
+
+1
+−1
+(F 0′ F 0 /T )−1
+Htall
+T
+
+T
+X
+
+Fs0 eis
+
+s=1
+
+−
+
+To
+X
+0′ 0
+−1 1
+−1
+Fs0 eis
+Htall (Fo Fo /To )
+To
+s=1
+
+2
+)
++ Op (1/δN
+o To
+
+Regression gives
+H̃miss
+
+No
+No
+ 1 X
+ 1 X
+−1
+′
+=
+Λ̃tall,i Λ̃wide,i
+Λ̃wide,i Λ̃′wide,i
+No
+No
+i=1
+
+It follows that
+
+H̃miss = Hmiss +
+
+i=1
+
+No
+No
+ 1 X
+−1
+ 1 X
+ϕN T,i Λ̃′wide,i
+Λ̃wide,i Λ̃′wide,i
+No
+No
+i=1
+
+i=1
+
+P o
+′
+Note N1o N
+i=1 Λ̃wide,i Λ̃wide,i converges in probability to a positive definite matrix. Consider the
+numerator.
+To
+T
+No
+No X
+No X
+1 X
+1 X
+1 X
+2
+)
+Fs0 Λ̃′wide,i eis +Op (1/δN
+Fs0 Λ̃′wide,i eis +Op (1)
+ϕN T,i Λ̃′wide,i = Op (1)
+o To
+No
+No T
+No To
+i=1 s=1
+
+i=1 s=1
+
+i=1
+
+′
+Replace Λ̃′wide,i by Λ0′
+i Hwide (ignore higher orders), we see the two terms on the right hand side are
+√
+2
+each O(1/ No To ), thus dominated by Op (1/δN
+). This proves (A.3).
+o To
+We next proof part (ii). We can rewrite the representations in (A.1) by
+
+−1′
+Htall
+F̃tall,t − Ft0 = (Λ′o Λo /No )−1
+
+No
+1 X
+2
+Λk ekt + Op (1/δN
+)
+oT
+No
+
+(A.6)
+
+k=1
+
+−1′
+This follows by multiplying (A.1) by Htall
+and using
+′
+−1′ −2
+′
+−1′ −2
+F 0 /T )(Λ′o Λo /No )(Λ′o Λo /No )−1
+Dtall (F̃tall
+F 0 /T ) = Htall
+Dtall (F̃tall
+Htall
+−1′ ′
+= Htall
+Htall (Λ′o Λo /No )−1 = (Λ′o Λo /No )−1
+′ . Rewrite (A.5) as
+where F̃tall = (F̃tall,1 , ..., F̃tall,T )′ . The second equality uses the definition of Htall
+
+Hwide Λ̃wide,i −
+
+Λ0i
+
+=
+
+(Fo0′ Fo0 /To )−1
+
+To
+1 X
+2
+Fs0 eis + Op (1/δN
+To )
+To
+s=1
+
+0′
+Multiply (A.6) by Λ0′
+i and multiply (A.7) by F , we have
+−1′
+0
+2
+Λ0′
+i (Htall F̃tall,t − Ft ) = vit + Op (1/δNo T )
+
+26
+
+(A.7)
+
+2
+Ft0′ (Hwide Λ̃wide,i − Λ0i ) = uit + Op (1/δN
+To )
+
+where uit and vit are defined earlier. Thus
+
+−1
+−1′
+′
+Htall
+Hwide Λ̃wide,i − Ft0′ Λ0i = (Htall
+F̃tall,t
+F̃tall,t − Ft0 + Ft0 )′ (Hwide Λ̃wide,i − Λ0i + Λ0i ) − Cit0
+−1′
+= (Htall
+F̃tall,t − Ft0 )′ (Hwide Λ̃wide,i − Λ0i )
+
+−1′
++Ft0′ (Hwide Λ̃wide,i − Λ0i ) + (Htall
+F̃tall,t − Ft0 )′ Λ0i
+p
+2
+)
+= Op (1/ No To ) + uit + vit + Op (1/δN
+o To
+
+2
+)
+= uit + vit + Op (1/δN
+o To
+
+Using (A.3), we have
+′
+C̃it − Cit0 = F̃tall,t
+H̃miss Λ̃wide,i − Cit0
+
+−1
+′
+−1
+′
+Hwide Λ̃wide,i − Cit0
+Htall
+Hwide )Λ̃wide,i + F̃tall,t
+(H̃miss − Htall
+= F̃tall,t
+2
+)
+= uit + vit + Op (1/δN
+o To
+
+proving (A.4).
+
+1
+
+Analysis based on imputed data matrix
+
+Let X̃it = Xit , (i, t) ∈ Ω and X̃it = C̃it , (i, t) ∈ Ω⊥ so the missing values are replaced by the
+0
+0
+(i, t) ∈ Ω and X̃it = Λ0′
+estimated common components C̃it . We have Xit = Λ0′
+i Ft +
+i Ft + eit ,
+uit + vit + rN T,it , (i, t) ∈ Ω⊥ . Consider estimating the factor and factor loadings using the T × N
+matrix X̃ = (X̃it ). Let F̃ + be the first r eigenvectors corresponding to the first r largest eigenvalues
+(arranged in decreasing order) of the matrix X̃ X̃ ′ /(N T ) with the normalization F̃ +′ F̃ + /T = Ir ,
+that is,
+1
+X̃ X̃ ′ F̃ + = F̃ + D̃r2
+NT
+where D̃r2 is an r × r diagonal matrix consisting of the eigenvalues. Let Λ̃+ =
+rotation matrix
+H ≡ H + = (Λ0′ Λ0 /N )(F 0′ F̃ + /T )D̃r−2
+
+1
+′ +
+T X̃ F̃ .
+
+Define the
+
+(The main text uses H + , here we use H for notational simplicity). We begin with some lemmas.
+Lemma A.2.
+
+T
+1X +
+kF̃ − H ′ Ft0 k2 = Op (1/No + 1/To )
+T t=1 t
+
+Lemma A.3.
+D̃r2 →p D2 = diag(vo , ..., vr ),
+1/2
+
+1/2
+
+F 0′ F̃ + p
+→ Q
+T
+−1/2
+
+where (vo , ..., vr ) are the eigenvalues of ΣΛ ΣF ΣΛ (in decreasing order), and Q = D1/2 Υ′ ΣΛ ,
+and columns of Υ are the corresponding eigenvectors. These limiting matrices are the same as in
+the complete data matrix.
+Proposition A.1. (asymptotic representation for F̃ + )
+P
+0
+ˆ
+(a) for t ≤ To , F̃t+ − H ′ Ft0 = D̃r−2 (F̃ +′ F 0 /T ) N1 N
+k=1 Λk ekt + ξN T,t ;
+P o 0
+−1/2 ), where
+(b) for t > To , F̃t+ − H ′ Ft0 = D̃r−2 (F̃ +′ F 0 /T ) N1o N
+i=1 Λi eit + ξ̂N T,t + Op ((N To )
+ξ̂N T,t = Op (1/ min{No , To }) uniformly in t.
+27
+
+To understand part (b) of Proposition A.1, note that for t > To ,
+F̃t+
+
+−H
+
+′
+
+Ft0
+
+=
+
+D̃r−2 (F̃ +′ F 0 /T )
+
+N
+No
+
+X
+1 X
+0
+Λ0i (uit + vit ) + ξ̂N T,t .
+Λi eit +
+N
+i=1
+
+i=No +1
+
+But
+1
+N
+
+N
+X
+
+Λ0i (uit + vit ) =
+
+i=No +1
+
+1
+N
++
+
+N
+X
+
+′
+−1
+Λ0i Λ0′
+i (Λo Λo /No )
+
+i=No +1
+
+1
+N
+
+No
+1 X
+Λ0k ekt
+No
+k=1
+
+N
+X
+
+Λ0i Ft0′ (Fo0′ Fo0 /To )−1
+
+To
+1 X
+Fs0 eis = I1 + I2 .
+To
+s=1
+
+i=No +1
+
+The first term on the right is
+N − No
+1
+I1 =
+(
+N
+N − No
+
+N
+X
+
+′
+−1
+Λ0i Λ0′
+i )(Λo Λo /No )
+
+No
+No
+N − No 1 X
+1 X
+0
+Λk ekt ∼
+Λ0k ekt
+No
+N
+No
+k=1
+
+i=No +1
+
+k=1
+
+−1 → I (it can be easily modified to allow this limit to
+0′ 0
+0
+where we assume (Λ0′
+r
+m Λm /Nm )(Λo Λo /No )
+be non-identity matrix). The term I2 is negligible because it can be rewritten as
+
+I2 = Ft0′ (Fo0′ Fo0 /To )−1
+
+1
+N To
+
+To
+N
+X
+X
+
+Fs0 Λ0i eis = Op ((N To )−1/2 )
+
+i=No +1 s=1
+
+Here note that Ft0′ (Fo0′ Fo0 /To )−1 Fs0 is a scalar and is commutable with Λ0i . Summarizing result, for
+t > To ,
+No
+hN
+N − No i 1 X
+o
+F̃t+ − H ′ Ft0 = D̃r−2 (F̃ +′ F 0 /T )
++
+Λ0i eit + ξˆN T,t + Op ((N To )−1/2 )
+N
+N
+No
+i=1
+
+= D̃r−2 (F̃ +′ F 0 /T )
+
+1
+No
+
+No
+X
+
+Λ0i eit + ξ̂N T,t + Op ((N To )−1/2 ).
+
+i=1
+
+−1
+0
+0′ 0
+p
+Note that it is easy to find the√asymptotic distribution if (Λ0′
+m Λm /Nm )(Λo Λo /No ) → ΣΛ2 ΣΛ1 6= Ir .
+The convergence rate is still No . This case might be of interest when the loadings corresponding
+to the missing block (treatment group) have some characteristics (different from the control group).
+√
+Corollary A.1. (a) for t ≤ To , N (F̃t+ − H ′ Ft0 ) →d N (0, D−2 QΓt Q′ D−2 ), and (b) for t > To ,
+√
+No (F̃t+ − H ′ Ft0 ) →d N (0, D−2 QΓt Q′ D−2 ).
+
+Proposition A.2. (asymptotic representation of the estimated factor loadings)
+PT
+0
+−1 Λ0 = H ′ 1
+(a) for i ≤ No Λ̃+
+i
+t=1 Ft eit + η̂N T,i ;
+i −H
+T
+
+P
+P
+
+P
+To
+To
+0e
+′ 1
+0 (u +v ) +η̂
+0e + T
+−1 Λ0 = H ′ 1
++
+F
+=
+H
+F
+F
+(b) for i > No , Λ̃+
+−H
+it
+it
+it
+N
+T,i
+it
+t
+t
+t
+i
+t=1
+t=To +1
+t=1
+i
+T
+To
+η̂N T,i + Op ((T No )−1/2 ) where η̂N T,i = Op (1/No + 1/To ) uniformly in i.
+
+28
+
+The second equality in part (b) of Proposition A.2 follows from the fact that assuming station0′ F 0 /T )(F 0′ F 0 /T )−1 → I ,
+arity of Ft0 so that (Fm
+m
+o
+r
+m
+o o
+1
+T
+1
+T
+
+T
+X
+
+Ft0 uit = Op ((T No )−1/2 )
+
+t=To +1
+T
+X
+
+1
+
+Ft0 vit =
+
+T
+
+t=To +1
+
+T
+X
+
+t=To +1
+
+To
+To
+
+1 X
+T − To 1 X
+Ft0 Ft0′ (Fo0′ Fo0 /To )−1
+Fs0 eis ∼
+F 0 eis .
+To s=1
+T To s=1 s
+
+PTo 0
+−1/2 ) as stated
+−1 Λ0 = H ′ 1
+This implies that for i > No , Λ̃+
+i
+t=1 Ft eit + η̂N T,i + Op ((T No )
+i −H
+To
+in the Proposition. It is also easy to find the asymptotic representation for nonstationary√factors
+0′ F 0 /T )(F 0′ F 0 /T )−1 → Σ Σ−1 6= I . The convergence rate for Λ̃+ is still
+such that (Fm
+To .
+r
+o
+F2 F1
+m
+o o
+m
+i
+√
+−1 Λ0 ) → N (0, Q′−1 Φ Q−1 ) and (b) for i > N ,
+Corollary A.2. (a) for i ≤ No , T (Λ̃+
+i
+o
+i
+i − H
+√
+−1 Λ0 ) → N (0, Q′−1 Φ Q−1 ).
+To (Λ̃+
+−
+H
+i
+i
+i
+
+2
+
+Proofs of results based on imputed data matrix
+
+P
+For any matrix A, let kAk denote the Frobenius norm, so that kAk2 = tr(AA′ ) = ij a2ij .
+Write
+ 0
+ 0
+
+
+
+
+
+
+Fo
+Λo
+E11 E12
+E11 E12
+0
+0
+0
+0
+†
+F =
+Λ =
+, e=
+, e =
+, RN T =
+0 ,
+Fm
+Λ0m
+E21 E22
+E21 u + v
+0 rN T
+where Ejk are sub-blocks of e, partitioned conformably, for example,
+
+E21
+
+
+
+eTo +1,1 eTo +1,2 · · · eTo +1,No
+eT +2,1 eT +2,2 · · · eT +1,N
+o
+m
+o
+ o
+= .
+..
+..
+ ..
+.
+.
+eT,1
+eT,2
+···
+eT,No
+
+Tm ×No
+
+
+
+
+
+
+(E21 )′o
+ (E21 )′ 
+m
+
+=
+.. 
+
+. 
+
+
+(E21 )′Tm
+
+with (E21 )′t representing the tth row of E21 (t = 1, 2, ..., Tm ). Furthermore, the matrices
+u = (uit ),
+
+v = (vit ),
+
+rN T = (rN T,it )
+
+all Tm × Nm , where uit , vit and rN T,it are defined earlier.
+For notational simplicity, we use F and F 0 interchangeably (that is, we may suppress the
+0 and F 0 ). The same is true for Λ and Λ0 . They represent the true
+superscript “0” from F 0 , F00 , Fm
+t
+quantities. Their estimated values will have a tilde.
+Given these notations,
+X = F Λ′ + e
+X̃ = F Λ′ + e† + RN T
+Let B = (Λ′o Λo /No )−1 . We can write the matrix u as
+
+(E21 )′To +1 Λo BΛNo +1 (E21 )′To +1 Λo BΛNo +2 · · · (E21 )′To +1 Λo BΛN
+′
+′
+′
+1 
+(E21 )To +2 Λo BΛNo +1 (E21 )To +2 Λo BΛNo +2 · · · (E21 )To +2 Λo BΛN
+u=
+
+..
+..
+..
+No 
+.
+.
+.
+′
+′
+′
+(E21 )T Λo BΛNo +1
+(E21 )T Λo BΛNo +2
+···
+(E21 )T Λo BΛN
+=
+
+1
+E21 Λo BΛ′m
+No
+29
+
+
+
+
+
+
+
+Let A = (Fo0′ Fo0 /To )−1 , we can write v as
+
+P o
+P o
+P o
+Fs0 eNo +1,s FT0′o +1 A T1o Ts=1
+Fs0 eNo +2,s · · · FT0′o +1 A T1o Ts=1
+Fs0 eN,s
+FT0′o +1 A T1o Ts=1
+P
+P
+P
+ 0′
+o
+o
+o
+Fs0 eNo +1 FT0′o +2 A T1o Ts=1
+Fs0 eNo +2,s · · · FT0′o +2 A T1o Ts=1
+Fs0 eN,s
+ FTo +2 A T1o Ts=1
+
+v=
+..
+..
+..
+.
+.
+.
+
+1 PTo
+1 PTo
+1 PTo
+0
+0′
+0
+0′
+0′
+FT A To s=1 Fs eNo +2,s
+· · · FT A To s=1 Fs0 eN,s
+FT A To s=1 Fs eNo +1,s
+=
+
+From
+
+1 0
+F AF 0′ E12
+To m o
+
+
+
+
+
+
+
+
+1
+X̃ X̃ ′ F̃ + = F̃ + D̃r2
+NT
+
+we have
+
+1
+(F Λ′ + e† + RN T )(ΛF ′ + e†′ + RN T )F̃ + = F̃ + D̃r2
+NT
+The terms involving RN T are dominated. We focus on the remaining terms. Expanding the preceding equation, ignoring the terms involving RN T , we obtain
+F (Λ′ Λ/N )(F ′ F̃ + /T ) + F Λ′ e†′ F̃ + /(N T ) + e† ΛF ′ F̃ + /(N T ) + e† e†′ F̃ + /(N T ) = F̃ + D̃r2
+
+(A.8)
+
+Let H = (Λ′ Λ/N )(F ′ F̃ + /T )D̃r−2 . Then
+
+
+F̃ + − F 0 H = F Λ′ e†′ F̃ + /(N T ) + e† ΛF ′ F̃ + /(N T ) + e† e†′ F̃ + /(N T ) D̃r−2
+
+The squared Frobenius norm of F̃ + − F 0 H, divided by T is
+
+T
+1X +
+1
+kF̃ + − F 0 Hk2 =
+kF̃ − H ′ Ft0 k2
+T
+T t=1 t
+
+Proof of Lemma A.2. We first collect some basic results. First,
+1 1
+k eΛk2 = Op (1/N )
+T N
+This is equal to
+T
+T
+N
+1X 1 X
+1X 1 ′ 2
+k et Λk =
+k
+Λi eit k2 = Op (1/N )
+T
+N
+T
+N
+t=1
+
+e′t
+
+t=1
+
+i=1
+
+e′
+
+where is the tth row of matrix e (or = (eo , em , ..., eT ).)
+Similarly,
+1 1
+k E11 Λo k2 = Op (1/No )
+To No
+1 1
+k E21 Λo k2 = Op (1/No )
+Tm No
+1 1
+k
+E12 Λm k2 = Op (1/Nm )
+To Nm
+It follows that
+
+1 1
+To No 2
+k E11 Λo k2 =
+( ) Op (1/No ) = Op (1/N )
+T N
+T N
+30
+
+(A.9)
+(A.10)
+(A.11)
+
+Similarly
+
+Tm No 2
+1 1
+k E21 Λo k2 =
+( ) Op (1/No ) = Op (1/N )
+T N
+T N
+1 1
+To Nm 2
+k E12 Λm k2 =
+(
+) Op (1/Nm ) = Op (1/N )
+T N
+T N
+
+Next consider
+i
+1 Nm 2 1
+Tm Nm 2 h 1 1
+1 1
+k uΛm k2 = (
+) k E21 Λo B(Λ′m Λm /Nm )k2 ≤
+(
+)
+k E21 Λo k2 kB(Λ′m Λm /Nm )k
+T N
+T N
+No
+T N
+Tm No
+
+Using B(Λ′m Λm /Nm ) = Op (1) ( r by r matrix), and (A.10),
+
+1 1
+Tm Nm 2 1
+k uΛm k2 =
+(
+)
+Op (1) = Op (1/No )
+T N
+T N No
+which can be of a much smaller magnitude, depending on Tm /T and Nm /N . Consider
+1 1 1 0
+1 1
+k vΛm k2 = k
+F AF 0′ e3 Λm k2
+T N
+T N To m o
+But the r × r matrix
+so
+
+1 1 0′
+F e3 Λm = Op ((N To )−1/2 )
+N To o
+
+1 1
+1 0 2 1 1 0′
+1
+k vΛm k2 ≤ ( kFm
+Ak )k
+Fo e3 Λm k2 =
+Op (1)
+T N
+T
+N To
+N To
+
+this term is dominated by others. Summarizing results, we have
+1 1 † 2
+Tm Nm 2 1
+k e Λk = Op (1/N ) +
+(
+)
+Op (1) = Op (1/No )
+T N
+T N No
+Now
+
+
+1 1
+1
+1
+1
+kF Λ′ e†′ F̃ + /(N T )k2 ≤ ( kF k2 )( kF̃ + k2 )
+k Λ′ e†′ k2 = Op (1/No )
+T
+T
+T
+T N
+
+
+1 †
+1 1 † 2
+ke ΛF ′ F̃ + /(N T )k2 ≤
+k e Λk kF ′ F̃ + /T k2 = Op (1/No )Op (1) = Op (1/No )
+T
+T N
+P
+Bai and Ng (2002) show that, using T1 Tt=1 kF̃t k2 = Op (1), for the error matrix e, which is of
+dimension (T × N ),
+1
+kee′ F̃ /(N T )k2 = Op (1/T + 1/N )
+(A.12)
+T
+Here we will show
+1 † †′ +
+ke e F̃ /(N T )k2 = Op (1/No + 1/To )
+(A.13)
+T
+Notice
+
+
+′ + E (u + v)′ ]F̃ +
+′ + E E ′ )F̃ +
+[E11 E21
+(E11 E11
+12
+12 12 o
+† †′ +
+m
+e e F̃ =
+′ + (u + v)E ′ ]F̃ + [E E ′ + (u + v)(u + v)′ ]F̃ +
+[E21 E11
+22 22
+m
+12 o
+Consider the first block. Let eo = (E11 , E12 ) (a matrix of dimension To × N ), then the first block is
+eo e′o F̃o+ , which is a subblock of ee′ F̃ + . Thus, from (A.12),
+1
+1
+keo e′o F̃o+ /(N T )k2 ≤ kee′ F̃ + /(N T )k2 = Op (1/T + 1/N )
+T
+T
+31
+
+[in fact, with more detailed analysis, it is of (To /T )Op (1/T + 1/N )]. Next consider the off-diagonal
+block. First
+′
++ 2
+′ 2
++ 2
+kE11 E21
+F̃m
+k ≤ kE11 E21
+k kF̃m
+k
+′ is N × T . This means
+E11 is To × No , and E21
+o
+m
+′ 2
+kE11 E21
+k =
+
+To X
+Tm  X
+No
+X
+t=1 h=1
+
+ejt ej,To +h
+
+j=1
+
+2
+
+To X
+No
+Tm 
+2
+To Tm No 2  1 X
+1 X
+1
+′
++
++ 2
+ejt ej,To +h (kF̃m
+kkE11 E21
+F̃m
+/(N T )k2 ≤
+( )
+k /T )
+T
+T T N
+To Tm
+No
+t=1 h=1
+
+=
+
+j=1
+
+To Tm No
+( )Op (1/N )
+T T N
+
+Here for simplicity, we assume the non-overlapping errors are uncorrelated. The block
+is of the same order of magnitude as above. Next,
+
+1
+2
+′
++
+T kkE21 E11 F̃o /(N T )k
+
+′
+kE22 E22
+/(Tm Nm )k2 = Op (1/Tm + 1/Nm )
+
+this implies
+
+1
+Tm Nm
+′
++
+kE22 E22
+F̃m
+/(T N )k2 =
+Op (1/T + 1/N )
+T
+T N
+
+Next consider
++
+E12 u′ F̃m
+=
+
+Thus
+
+1
+′
++
+E12 Λm BΛ′o E21
+F̃m
+No
+
+1 Nm 2 1
+1
+1
++
+′ 2
++ 2
+kE12 u′ F̃m
+/(N T )k2 ≤ 2 (
+) k
+E12 Λm k2 (kBk2 )k Λ′o E21
+k (kF̃m
+k /T )
+T
+T N
+Nm
+No
+Nm 2 To Tm
+Nm To Tm 1
+=(
+) ( )(
+)Op (1/(No Nm )) = (
+)( )(
+) Op (1/No )
+N
+T
+T
+N
+T
+T N
+
+the last equality uses results (A.10) and (A.11). Similarly,
+We now analyze the block.
+
+1
+′ +
+2
+T kE12 v F̃m /(N T )k
+
+is negligible.
+
+1
++
+k(u + v)(u + v)′ F̃m
+/(N T )k2
+T
+and the dominating terms in this block are
+1
++
+kuu′ F̃m
+/(N T )k2 ,
+T
+
+and
+
+1
++
+kvv ′ F̃m
+/(N T )k2
+T
+
+We analyze each of them. Now
++
+uu′ F̃m
+=
+
+1
+′
++
+E21 Λo B(Λ′m Λm )BΛ′o E21
+F̃m
+No2
+
+note B(Λ′m Λm /Nm )B = Op (1),
+2 1
+1
+Nm 2 Tm 2  1 1
++ 2
++
+kuu′ F̃m
+) (
+)
+k )Op (1)
+/(N T )k2 ≤ (
+k E21 Λo k2 ( kF̃m
+T
+N
+T
+Tm No
+T
+=(
+
+Nm 2 Tm 2
+) (
+) Op (1/No2 ) = Op (1/No2 )
+N
+T
+32
+
+where we use (A.10) and
+
+1
++ 2
+T kF̃m k
+
+= Op (1). Next
+
++
+vv ′ F̃m
+/(N T ) =
+
+1 0
+′
+0′ +
+F A(Fo0′ E12 E12
+Fo0 )A(Fm
+F̃m /T )/N
+To2 m
+
+The r × r matrices satisfy
+1
+1 1
+′
+(F 0′ E12 E12
+Fo0 ) =
+Nm To o
+Nm
+
+To
+To
+N
+′ i
+ X
+h 1 X
+X
+= Op (1)
+Ft0 eit
+Ft0 eit
+To t=1
+t=1
+
+i=No +1
+
+0′ F̃ + /T ) = O (1), and kAk = O (1), thus
+(Fm
+p
+p
+m
+
+1
+Nm 2 Tm 1 1
+Nm 2 Tm
++
+0 2
+kvv ′ F̃m
+)
+) (
+)Op (1/To2 )
+/(N T )k2 = (
+(
+kFm
+k )Op (1) = (
+2
+T
+N
+T To Tm
+N
+T
+Summarizing results gives us (A.13). This completes the proof of Lemma A.2.
+Proof of Lemma A.3. Left multiplying (A.8) by F ′ on each side and dividing by T ,
+(F ′ F/T )(Λ′ Λ/N )(F ′ F̃ + /T ) + (F ′ F/T )Λ′ e†′ F̃ + /(N T ) + F ′ e† ΛF ′ F̃ + /(N T 2 )
++F ′ e† e†′ F̃ + /(N T 2 ) = (F ′ F̃ + /T )D̃r2
+By the argument of Bai (2003), it is sufficient to prove each of the last 3 terms on the left hand
+side converges in probability to zero. That is,
+Λ′ e†′ F̃ + /(N T ) →p 0
+
+(A.14)
+
+F ′ e† Λ/(N T ) →p 0
+
+(A.15)
+
+F ′ e† e†′ F̃ + /(N T 2 ) → 0
+
+Consider (A.15) first.
+
+(A.16)
+
+′
+′
+E21 Λo + Fo′ E12 Λm + Fm
+(u + v)Λm ]/(N T )
+F ′ e† Λ/(N T ) = [Fo′ E11 Λo + Fm
+
+The first 3 terms are each Op ((N T )−1/2 ). The last term is
+′
+′
+Fm
+uΛm /(N T ) + Fm
+vΛm /(N T ) = a + b
+
+a=
+
+1 ′
+Nm 1
+F E21 Λo BΛ′m Λm /(N T ) =
+F ′ E21 Λo B(Λ′m Λm /Nm )
+No m
+N T No m
+
+Nm Tm
+Nm
+Op ((Tm No )−1/2 ) =
+Op ((T No )−1/2 )
+N T
+N
+Tm 0′ 0
+1
+Tm
+1 0′ 0
+Fm Fm AFo0′ E12 Λm /(N T ) =
+(Fm Fm /Tm )A
+Fo0′ E12 Λm =
+Op ((N To )−1/2 )
+b=
+To
+T
+N To
+T
+=
+
+This proves (A.15). For (A.14),
+Λ′ e†′ F̃ + = Λ′ e†′ (F̃ + − F 0 H + F 0 H)
+After dividing by N T , the term involving F̃ + − F 0 H is negligible, using Lemma A.2. Consider
+Λ′ e†′ F 0 H/(N T )
+33
+
+the above is the transpose of (A.15) (ignoring H). This proves (A.14). Similarly,
+F ′ e† e†′ F̃ + /(N T 2 ) = F ′ e† e†′ (F̃ + − F 0 H + F 0 H)/(N T 2 )
+The term involving (F̃ + − F 0 H) is negligible. It suffices to show
+F ′ e† e†′ F 0 /(N T 2 ) →p 0
+Bai and Ng (2002) proved F ′ ee′ F/(N T 2 ) to be op (1). Given the difference between e and e† , it
+remains to study
+′
+′
+Fm
+(u + v)(u + v)′ Fm /(N T 2 ) = Fm
+(uu′ + uv ′ + vu′ + vv ′ )Fm )/(N T 2 ) →0 0
+′ vv ′ F )/(N T 2 ), which is equal to
+The dominating term (Fm
+m
+′
+Fm
+vv ′ Fm /(N T 2 ) =
+
+Tm 2 Nm 1
+1 0′ 0
+′
+0′ 0
+F F AF 0′ E12 E12
+Fo0 AFm
+Fm = (
+)
+Op (1) = op (1)
+To2 m m o
+T
+N To
+
+The above analysis shows that
+(F ′ F/T )(Λ′ Λ/N )(F ′ F̃ + /T ) + op (1) = (F ′ F̃ + /T )D̃r
+The remaining proof is similar to the proof of Proposition 1 of Bai (2003). This implies that F ′ F̃ + /T
+converges to Q, and D̃r converges to D. This complete the proof of Lemma A.3.
+Proof of Proposition A.1. Let e†it denote the (i, t)th entry of e† .
+F̃t+ − H ′ Ft0 = D̃r−2
+
+T N
+N
+N T
+1 XX + ′ † 0
+1 XX + † †
+1 X
+Λi e†it + D̃r−2
+F̃s eis eit
+F̃s Λi eis Ft + D̃r−2 (F̃ +′ F/T )
+NT
+N
+NT
+s=1 i=1
+
+i=1
+
+i=1 s=1
+
+2
+), the limiting
+We can show that the first and the last terms on the right hand side are Op (1/δN
+o ,To
+distribution is determined by the second term. That is,
+
+F̃t+ − H ′ Ft0 = D̃r−2 (F̃ +′ F/T )
+
+N
+1 X
+2
+Λi e†it + Op (1/δN
+)
+o ,To
+N
+
+(A.17)
+
+i=1
+
+For t ≤ To , then e†it = eit for all i. This gives part (a) of Proposition A.1. But for t > To
+
+eit
+i ≤ No
+†
+eit =
+uit + vit i > No
+Plugging in e†it into the preceding formula gives part (b) of Proposition A.1.
+P
+d
+Proof of Corollary A.1. Using D̃r →p D and F̃ +′ F/T →p Q, part (a) follows from √1N N
+i=1 Λi eit →
+P
+No
+d
+N (0, Γt ). Part (b) follows from √1N
+i=1 Λi eit → N (0, Γt ).
+o
+Proof of Proposition A.2. Given Proposition A.1, the proof of Proposition A.2 invokes some
+symmetric argument, as in Bai (2003). The details are omitted.
+Proof of Corollary A.2. This follows from the asymptotic representation in Proposition A.2.
+We are ready to prove the results stated in the main text.
+Proof of Proposition 1. For the missing block, that is, for (i, t) ∈ Ω⊥ , the limiting distribution
+for the estimated common component follows from the asymptotic representation in (A.4). For all
+other non-missing blocks, the results are obtained by applying Lemma 1 to these blocks.
+Proof of Lemma 2. Part (i) of Lemma 2 is implied by Lemma A.2, and part(ii) is implied by
+Lemma A.3.
+34
+
+Proof of Proposition 2. Parts (a) and (b) of the proposition are implied by Corollary A.1
+and parts (c) and (d) of the proposition are implied by Corollary A.2.
+Proof of Theorem 1. Consider the case for i ≤ No and t ≤ To . We need to show
+(
+
+1
+1
+Vit + Wit )−1/2 (C̃it+ − Cit0 ) →d N (0, 1)
+N
+T
+
+(A.18)
+
+−1
+−1
+−1
+′
+where Vit = Λ′i Σ−1
+Λ Γt ΣΛ Λi and Wit = Ft (ΣF Φi ΣF )Ft .
+To see this, rewrite the representations in part (a) of Proposition A.1 as
+
+H ′−1 F̃t+ − Ft0 = (Λ′ Λ/N )−1
+
+N
+1 X
+2
+)
+Λk ekt + Op (1/δN
+o ,To
+N
+k=1
+
+This follows from
+H −1′ D̃r−2 (F̃ +′ F 0 /T ) = H −1′ D̃r−2 (F̃ +′ F 0 /T )(Λ′ Λ/N )(Λ′ Λ/N )−1 = H −1′ H ′ (Λ′ Λ/N )−1 = (Λ′ Λ/N )−1
+Similarly rewrite the representation in part (a) of Proposition A.2 as
+H Λ̃+
+i
+
+−
+
+Λ0i
+
+′
+
+−1
+
+= (F F/T )
+
+T
+1X
+2
+Fs eis + Op (1/δN
+)
+o ,To
+T
+s=1
+
+2
+). Thus
+Here we have used HH ′ = (F ′ F/T )−1 + Op (1/δN
+o ,To
++′ −1
++′ −1
+′
+′
+C̃it+ − Cit = F̃t+′ Λ̃+
+H Λ̃+
+− Ft′ + Ft′ )(H Λ̃+
+i − Ft Λi = F̃t H
+i − Ft Λi = (F̃t H
+i − Λi + Λi ) − Cit
+′
+′
+−1
+= (F̃t+′ H −1 − Ft′ )(H Λ̃+
+i − Λi ) + Ft (F F/T )
+
++Λ′i (Λ′ Λ/N )−1
+
+T
+1X
+Fs eis
+T s=1
+
+(A.19)
+
+N
+1 X
+2
+) = I1 + I2 + I3 + I4
+Λk ekt + Op (1/δN
+o ,To
+N
+k=1
+
+√
+√
+2
+2
+2
+).
+By
+assumption,
+where both I1 and I4 are Op (1/δN
+)
+→
+0,
+and
+)→
+NO
+(1/δ
+T Op (1/δN
+p
+,T
+N
+,T
+o o
+o o
+o ,To
+P
+N
+−1/2
+d
+0, so I1 and I4 are dominated terms. Also by assumption, N
+k=1 Λk ekt → N (0, Γt ), it follows
+that, conditional on Λi (if it is random),
+√
+
+N Λ′i (Λ′ Λ/N )−1
+
+N
+1 X
+Λk ekt →d N (0, Vit )
+N
+k=1
+
+and similarly,
+√
+
+T
+
+Ft′ (F ′ F/T )−1
+
+T
+1X
+Fs eis →d N (0, Wit )
+T s=1
+
+Two limiting distributions are asymptotically independent, this implies (A.18) (see the proof of
+Theorem 3 in Bai, 2003).
+Now consider t > To , still with i ≤ No . From part (b) of Proposition A.1, rewrite the representation as
+No
+1 X
+2
+H ′−1 F̃t+ − Ft0 = (Λ′ Λ/N )−1
+)
+Λk ekt + Op (1/δN
+o ,To
+No
+k=1
+
+35
+
+Using the same argument as in the proof of (A.18), we have
+C̃it+
+
+− Cit =
+
+Ft′ (F ′ F/T )−1
+
+No
+T
+X
+1X
+′
+′
+−1 1
+2
+Fs eis + Λi (Λ Λ/N )
+)
+Λk ekt + Op (1/δN
+o ,To
+T
+No
+s=1
+
+k=1
+
+√
+The limit of the first term was discussed. The second term, multiplying No , is asymptotically
+d
+normal. The two terms are asymptotically independent. Thus ( N1o Vit + T1 Wit )(C̃it+ − Cit )−→N (0, 1).
+The Proof of for the block i > No , t ≤ To is the same. The asymptotic representation becomes
+C̃it+
+
+− Cit =
+
+Ft′ (F ′ F/T )−1
+
+To
+N
+X
+1 X
+′
+′
+−1 1
+2
+Fs eis + Λi (Λ Λ/N )
+Λk ekt + Op (1/δN
+)
+o ,To
+To s=1
+N
+k=1
+
+d
+
+This implies ( N1 Vit + T1o Wit )(C̃it+ − Cit )−→N (0, 1). Finally, for i > No and t > To (the missing
+block), the asymptotic representation is
+C̃it+ − Cit = Ft′ (F ′ F/T )−1
+
+To
+No
+1 X
+1 X
+2
+)
+Fs eis + Λ′i (Λ′ Λ/N )−1
+Λk ekt + Op (1/δN
+o ,To
+To
+No
+s=1
+
+(A.20)
+
+k=1
+
+This implies ( N1o Vit + T1o Wit )−1/2 (C̃it+ − Cit0 ) →d N (0, 1).
+Proof of Corollary 1. Consider the block defined by i ≤ No , T ≤ To . From the representation
+in (A.19). Term I2 is Op (T −1/2 ) for each i and t. Taking squared value and then averaging over this
+block gives the rate Op (1/T ). The squared root of the average is Op (T −1/2 ). Similarly, averaging
+the squared value of term I3 gives Op (1/N ). The square root of this average is Op (N −1/2 ). Term
+2
+). Thus its Frobenus norm over the
+I1 and term I4 are both uniformly bounded by Op (1/δN
+o ,To
+corresponding blocks is still of this magnitude. This implies
+
+kC̃1+ −C10 k
+√
+No To
+
+= Op ( √1N ) + Op ( √1T ) +
+
+−2
+). The proofs for other blocks are the same. For example, for the block i > No and t > To ,
+Op (δN
+o ,To
+kC̃ + −C 0 k
+
+−2
+4
+4
+we use (A.20) to obtain √N
+). Corollary 1 is obtained by
+= Op ( √1N ) + Op ( √1T ) + Op (δN
+o ,To
+o
+m Tm
+o
+averaging the four blocks, the weight for each block corresponds to the block size.
+
+36
+
+

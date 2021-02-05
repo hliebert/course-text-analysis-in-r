@@ -1,0 +1,6149 @@
+arXiv:1905.10116v2 [econ.EM] 20 Jul 2019
+
+Semi-Parametric Efficient Policy Learning with
+Continuous Actions
+Mert Demirer
+MIT
+mdemirer@mit.edu
+
+Vasilis Syrgkanis
+Microsoft Research
+vasy@microsoft.com
+
+Greg Lewis
+Microsoft Research
+glewis@microsoft.com
+
+Victor Chernozhukov
+MIT
+vchern@mit.edu
+
+Abstract
+We consider off-policy evaluation and optimization with continuous action spaces.
+We focus on observational data where the data collection policy is unknown and
+needs to be estimated. We take a semi-parametric approach where the value
+function takes a known parametric form in the treatment, but we are agnostic
+on how it depends on the observed contexts. We propose a doubly robust offpolicy estimate for this setting and show that off-policy optimization based on
+this estimate is robust to estimation errors of the policy function or the regression
+model. Our results also apply if the model does not satisfy our semi-parametric
+form, but rather we measure regret in terms of the best projection of the true value
+function to this functional space. Our work extends prior approaches of policy
+optimization from observational data that only considered discrete actions. We
+provide an experimental evaluation of our method in a synthetic data example
+motivated by optimal personalized pricing and costly resource allocation.
+
+1
+
+Introduction
+
+We consider off-policy evaluation and optimization with continuous action spaces from observational
+data, where the data collection (logging) policy is unknown. We take a semi-parametric approach
+where we assume that the value function takes a known parametric form in the treatment, but we are
+agnostic on how it depends on the observed contexts/features. In particular, we assume that:
+V (a, z) = hθ0 (z), φ(a, z)i
+
+(1)
+
+for some known feature functions φ but unknown functions θ0 . We assume that we are given
+a set of n observational data points (x1 , ..., xn ) that consist of i.i.d copies of the random vector
+x = (y, a, z) ∈ Y × A × Z, such that E[y | a, z] = V (a, z).1
+Our goal is to estimate a policy π̂ : Z → A from a space of policies Π that achieves good regret:
+sup E[V (π(z), z)] − E[V (π̂(z), z)] ≤ R(Π, n)
+
+(2)
+
+π∈Π
+
+for some regret rate that depends on the policy space Π and the sample size n.
+The semi-parametric value assumption allows us to formulate a doubly robust estimate VDR of the
+value function, from the observational data, which depends on first stage regression estimates of the
+1
+
+In most of the paper, we can allow for the case where z is endogenous, in the sense that E[y | a, z] =
+V (a, z) + f0 (z). In other words, the noise in the random variable y can be potentially correlated with z.
+However, we assume that conditional on z, there is no remaining endogeneity in the choice of the action in our
+data. The latter is typically referred to as conditional ignorability/exogeneity [11].
+
+coefficients θ0 (z) and the conditional covariance of the features Σ0 (z) = E[φ(a, z)φ(a, z)T | z].
+The latter is the analogue of the propensity function when actions are discrete. Our estimate is doubly
+robust in that it is unbiased if either θ0 or Σ0 is correct. Then we optimize this estimate:
+π̂ = sup VDR (π)
+
+(3)
+
+π∈Π
+
+Main contributions. We show that the double robustness property implies that our objective
+function satisfies a Neyman orthogonality criterion, which in turn implies that our regret rates depend
+only in a second order manner on the estimation errors on the first stage regression estimates of the
+functions θ0 , Σ0 . Moreover, we prove a regret rate whose leading term depends on the variance of
+the difference of our estimated value between any two policy values within a “small regret-slice” and
+on the entropy integral of the policy space. We achieve this with a computationally efficient variant
+of the empirical risk minimization (ERM) algorithm (of independent interest) that uses a validation
+set to construct a preliminary policy and use it to regularize the policy computed on the training set.
+Hence, we manage to achieve variance-based regret bounds without the need for variance or moment
+penalization [15, 20, 9] used in prior work and which can render a computationally tractable policy
+learning problem, non-convex. We also show that the asymptotic variance of our off-policy estimate
+(which governs the scale of the leading regret term) is asymptotic minimax optimal, in the sense that
+it achieves the semi-parametric efficiency lower bound.
+Robustness to mis-specification. Notably, our approach provides meaningful guarantees even
+when our semi-parametric value function assumption is violated. Suppose that the true value function
+does not take the form of Equation (1), but rather takes some other form V0 (a, z). Then one can
+consider the projection of this value function onto the forms of Equation (1), as:
+
+
+θp (z) = arg inf E (V0 (a, z) − hθ(z), φ(a, z)i)2 | z
+(4)
+θ
+
+where the expectation is taken over the distribution of observed data. Then our approach takes
+the interpretation of achieving good regret bounds with respect to this best linear semi-parametric
+approximation. This is an alternative to the kernel smoothing approximation proposed by [20] in
+contextual bandit setting, as a regret target, and related to [12]. If there is some rough domain
+knowledge on the form of how the action affects the reward, then our semi-parametric approximate
+target should achieve better performance when the dimension of the action space is large, as the bias
+of kernel methods will typically incur an exponential in the dimension bias.
+Double robustness. In cases where the collection policy is known, our doubly robust approach can
+be used for variance reduction via fitting first stage regression estimates to the policy value, whilst
+maintaining unbiasedness. Thus we can apply our approach to improve regret in the counterfactual
+risk minimization framework [20], [12] and as a variance reduction method in contextual bandit
+algorithms with continuous actions [20].
+Related Literature. Our work builds on the recent work at the intersection of semi-parametric
+inference and policy learning from observational data. The important work of [1] analyzes the
+binary treatments and infinitesimal nudges to continuous treatments. They also take a doubly robust
+approach so as to obtain regret bounds whose leading term depends on the semi-parametric efficient
+variance and the entropy integral and which is robust to first stage estimation errors. The problem we
+study in this paper is different in that we consider optimizing over continuous action spaces, rather
+than infinitesimal nudges, under semi-parametric functional form. This assumption is without loss of
+generality if treatment is binary or multi-valued. Hence, our results are a generalization of binary
+treatments to arbitrary continuous actions spaces, subject to our semi-parametric value assumption.
+In fact we show formally in the Appendix how one can recover the result of [1] for the binary setting,
+from our main regret bound. In turn our work builds on a long line of work on policy learning and
+counterfactual risk minimization [17, 26, 27, 1, 13, 28, 2, 7, 20, 12, 14]. Notably, the work of [28]
+extends the work of [1] to many discrete actions, but only proves a second moment based regret
+bound, which can be much larger than the variance. Our setting also subsumes the setting of many
+discrete actions and hence our regularized ERM offers an improvement over the rates in [28]. [9]
+formulates a general framework of statistical learning with a nuisance component. Our method falls
+into this framework and we build upon some of the results in [9]. However, for the case of policy
+learning the implications of [9] provide a variance based regret only when invoking second moment
+2
+
+penalization, which can be intractable. We side-step this need and provide a computationally efficient
+alternative. Finally, most of the work on policy learning in machine learning assumes that the current
+policy (equiv. Σ0 (z)) is known. Hence, double robustness is used mostly as a variance reduction
+technique. Even for this literature, as we discuss above, our method can be seen an alternative of
+recent work on policy learning with continuous actions [12, 14] that makes use of non-parametric
+kernel methods.
+Our work also connects to the semi-parametric estimation literature in econometrics and statistics.
+Our model is an extension of the partially linear model which has been extensively studied in the
+econometrics [8, 19]. By considering context-specific coefficients (random coefficients) and modeling
+a value function that is non-linear in treatment, we substantially extend the partially linear model.
+[24, 10] studied a special case of our model where output is linearly dependent on treatment given
+context, with the aim of estimating the average treatment effect. [10] constructed the doubly robust
+estimator and showed its semi-parametric efficiency under the linear-in-treatment assumption. We
+extend their results to a more general functional form and use the double-robustness property and semiparametric efficiency for policy evaluation and optimization rather than treatment effect estimation.
+Our work is also connected to the recent and rapidly growing literature on the orthogonal/locally
+robust/debiased estimation literature [5, 6, 21].
+
+2
+
+Orthogonal Off-Policy Evaluation and Optimization
+
+Let θ̂ be a first stage estimate of θ0 (z), which can be obtained by minimizing the square loss:
+h
+i
+2
+θ̂ = arg inf En (y − hθ(z), φ(a, z)i)
+θ∈Θ
+
+(5)
+
+where Θ is an appropriate parameter space for the parameters θ(z). Let Σ0 (z) denote the conditional
+covariance matrix:
+Σ0 (z) = E[φ(a, z) φ(a, z)T | z]
+This is the analogue of the propensity model in discrete treatment settings. An estimate Σ̂(z) can be
+obtained by running a multi-task regression problem for each entry to the matrix, i.e.:
+
+
+Σ̂ij = arg inf E (φi (a, z) φj (a, z) − Σij (z))2
+(6)
+Σij ∈Sij
+
+where Sij is some appropriate hypothesis space for these regressions. Finally, the doubly robust
+estimate of the off-policy value takes the form:
+VDR (π) = En [vDR (y, a, z; π)]
+
+(7)
+
+where:
+vDR (y, a, z; π) = hθDR (y, a, z), φ(π(z), z)i
+−1
+
+θDR (y, a, z) = θ̂(z) + Σ̂(z)
+
+φ(a, z) (y − hθ̂(z), φ(a, z)i)
+
+(8)
+(9)
+
+The quantity θDR (y, a, z) can be viewed as an estimate of θ0 (z), based on a single observation. In
+fact, if the matrix Σ̂ was equal to Σ0 , then one can see that θDR (y, a, z) is an unbiased estimate
+of θ0 (z). Our estimate vDR also satisfies a doubly robust property, i.e. it is correct if either θ̂ is
+unbiased or Σ̂−1 is unbiased (see Appendix E for a formal statement). Finally, we will denote with
+0
+θDR
+(y, a, z) the version of θDR , where the nuisance quantities θ and Σ are replaced by their true
+0
+values, and correspondingly define vDR
+(y, a, z; π). We perform policy optimization based on this
+doubly robust estimate:
+π̂ = arg max VDR (π)
+(10)
+π∈Π
+
+Moreover, we let
+
+π∗0
+
+be the optimal policy:
+π∗0 = arg max V (π)
+π∈Π
+
+(11)
+
+Remark 1 (Multi-Action Policy Learning). A special case of our setup is the setting where the number
+of actions is finitely many. This can be encoded as a ∈ {e1 , . . . , en } and φ(a, z) = a. In that case,
+observe that the covariance matrix becomes a diagonal matrix: Σ0 (z) = diag(p1 (z), . . . , pn (z)),
+3
+
+with pi (z) = Pr[a = ei | z]. In this case, we simply recover the standard doubly robust estimate that
+combines the direct regression part with the inverse propensity weights part, i.e.:
+θDR,i (y, a, z) = θ̂i (z) +
+
+1
+1{a = ei } (y − θ̂i (z))
+p̂i (z)
+
+Thus our estimator is an extension of the doubly robust estimate from discrete to continuous actions.
+Remark 2 (Finitely Many Possible Actions: Linear Contextual Bandits). Another interesting special
+case of our approach is a generalization of the linear contextual bandit setting. In particular, suppose
+that there is only a finite (albeit potentially large) set of N > p possible actions A = {a1 , . . . , aN }
+and ai ∈ Rp . However, unlike the multi-action setting, where these actions are the orthonormal basis
+vectors, in this setting, each action ai ∈ A, maps to a feature vector φi (z) := φ(ai , z). Then the
+reward y that we observe satisfies E[y | z, a] = hθ(z), φ(a, z)i. This is a generalization of the linear
+contextual bandit setting, in which the coefficient vector θ(z) is a constant parameter θ as opposed
+PN
+to varying with z. In this case observe that: Σ0 (z) = i=1 pi (z) φi (z) φi (z)T = U DU T , i.e. it is
+the sum of N rank one matrices where D = diag(p1 (z), . . . , pn (z)), pi (z) = Pr[a = ai | z] and
+U = [φi (z), . . . , φN (z)] The doubly robust estimate of the parameter takes the form:
+θDR (y, a, z) = θ̂(z) + (U DU T )−1 φ(a, z) (y − hθ̂(z), φ(a, z)i)
+This approach leverages the functional form assumption to get an estimate that avoids a large
+variance that depends on the number of actions N but rather mostly depends on the number of
+parameters p. This is achieved by sharing reward information across actions.
+Remark 3 (Linear-in-Treatment Value). Consider the case where the value is linear in the action
+φ(a, z) = a ∈ Rp . In this case observe that: Σ0 (z) = Var(a | z). For instance, suppose
+that we assume that experimentation is independent across actions in the observed data. Then
+Σ0 (z) = diag(σ12 (z), . . . , σp2 (z)), where σi2 = Var(ai | z). Then the doubly robust estimate of the
+parameter takes the form:
+θDR,i (y, a, z) = θ̂i (z) +
+
+3
+
+ai
+(y − hθ̂(z), ai)
+σ̂i2 (z)
+
+(12)
+
+Theoretical Analysis
+
+Our main regret bounds are derived for a slight variation of the ERM algorithm that we presented
+in the preliminary section. In particular, we crucially need to augment the ERM algorithm with a
+“validation” step, where we split our data into a training and validation step, and we restrict attention
+to policies that achieve small regret on the training data, while still maintaining small regret on
+the validation set. This extra modification enabled us to prove variance based regret bounds and
+is reminiscent of standard approaches in machine learning, like k-fold cross-validation and early
+stopping, hence could be of independent interest.
+
+1
+
+2
+3
+4
+
+Algorithm 1: Out-of-Sample Regularized ERM with Nuisance Estimates
+The inputs are given by the sample of data S = (x1 , . . . , xn ), which we randomly split in two parts
+S1 , S2 . Moreover, we randomly split S2 into validation and training samples S2v and S2t .
+Estimate the nuisance functions θ̂(z) and Σ̂(z) using Equations (5) and (6) on S1 .
+Use the output of Step 2 to construct the doubly robust moment in Equation (7) on S2v . Run ERM
+given in Equation (10) over policy space Π1 on S2v to learn a policy function π1 .
+Use the output of Step 3 to construct a function class Π2 defined as
+Π2 = {π ∈ Π : ES v [vDR (y, a, z; π1 ) − vDR (y, a, z; π)] ≤ µn }
+
+5
+
+for some µn and ES v denotes the empirical expectation over the validation sample.
+Use the output of Step 1 to construct the doubly robust moment in Equation (7) on S2t . Run a
+constrained ERM on S2t over Π2 .
+We note that we present our theoretical results for the simpler case where the nuisance estimates are
+trained on a separate split of the data. However, our results qualitatively extend to the case where we
+use the cross-fitting idea of [5] (i.e. train a model on one half and predict on the other and vice versa).
+4
+
+Regret bound. To show the properties of this algorithm, we first show that the regret of the doubly
+robust algorithm is impacted in a second order manner by the errors in the first stage estimates.
+We will p
+also make the following preliminary definitions. For
+p any function f we denote with
+2
+2
+kf k2 = E[f (x) ], the standard L norm and with kf k2,n = En [f (x)2 ] its empirical analogue.
+Furthermore, we define the empirical entropy of a function class H2 (, F, n) as the largest value,
+over the choice of n samples, of the logarithm of the size of the smallest empirical -cover of F on
+the samples with respect to the k · k2,n norm. Finally, we consider the empirical entropy integral:
+(
+)
+ˆ rr
+H2 (, F, n)
+κ(r, F) = inf 4α + 10
+d ,
+(13)
+α≥0
+n
+α
+Our statistical learning problem corresponds to learning over the function space:
+FΠ = {vDR (·; π) : π ∈ Π}
+
+(14)
+
+where the data is x = (y, a, z). We will also make a very benign assumption on the entropy integral:
+ASSUMPTION 1. The function class FΠ satisfies that for any constant r, κ(r, F) → 0 as n → ∞.
+Theorem 1 (Variance-Based Oracle Policy Regret). Suppose that the nuisance estimates satisfy
+that their mean squared error is upper bounded w.p. 1 − δ/2 by h2n,δ , i.e. w.p. 1 − δ/2 over the
+randomness of the nuisance sample:
+n
+o
+max E[(θ̂(z) − θ0 (z))2 ], E[kΣ̂(z) − Σ0 (z)k2F ro ] ≤ h2n,δ
+(15)
+
+
+q
+p
+Let r = supπ∈Π E[vDR (z; π)2 ] and µn = Θ κ(r, FΠ ) + r log(1/δ)
+. Moreover, let
+n
+Π∗ () = {π ∈ Π : V (π∗0 ) − V (π) ≤ },
+denote an -regret slice of the policy space. Let n = O(µn +
+V20 =
+
+sup
+π,π 0 ∈Π∗ (n )
+
+h2n,δ )
+
+(16)
+
+and
+
+0
+0
+Var(vDR
+(x; π) − vDR
+(x; π 0 ))
+
+(17)
+
+denote the variance of the difference between any two policies in an n -regret slice, evaluated at the
+true nuisance quantities. Then the policy π2 returned by the out-of-sample regularized ERM, satisfies
+w.p. 1 − δ over the randomness of S:
+!
+r
+q
+V20 log(1/δ)
+0
+2
+0
+V (π∗ ) − V (π2 ) = O κ( V2 , FΠ ) +
++ hn,δ
+(18)
+n
+
+
+q
+p
+V20
+2
+2
+0
+Expected regret is O κ( V2 , FΠ ) +
+n + hn , with hn is expected MSE of nuisance functions.
+We provide a proof of this Theorem in Appendix B. The regret result contains two main contributions:
+1) first the impact of the nuisance estimation error is of second order (i.e. h2n,δ instead of hn,δ ), 2) the
+leading regret term depends on the variance of small-regret policy differences and the entropy integral
+of the policy space. The first property stems from the Neyman orthogonality property of the doubly
+robust estimate of the policy. The second property stems from the out-of-sample
+regularization step
+√
+that we added to the ERM algorithm. Typically, we will have h2n,δ = o(1/ n) and thereby this term
+is of lower order than the leading term. Moreover, for many policy spaces κ(0, FΠ ) = 0, in which
+case we see that if the setting satisfies a “margin” condition (i.e. the best policy is better by a constant
+∆ margin), then eventually the variance of small regret policies is 0, since it only
+√ contains the best
+policy. In that case, our bound leads to fast rates of log(n)/n as opposed to 1/ n, since the leading
+term vanishes (similar to the log(n)/n achieved in bandit problems with such a margin condition).
+Dependence on the quantity V20 is quite intuitive: if two policies have almost equivalent regret up to
+a µn rate, then it will be very easy to be mislead among them if one has much higher variance than
+the other. For some classes of problems, the above also implies a regret rate that only depends on
+the variance of the optimal policy (e.g. when all policies with low regret have a variance that is not
+much larger than the variance of the optimal policy. In Appendix F we show that the latter is always
+the case for the setting of binary treatment studied in [1] and therefore applying our main result, we
+recover exactly their bound for binary treatments.
+5
+
+Semi-parametric efficient variance. Our regret bound depends on the variance of our doubly robust estimate of the value function. One then wonders if there are other estimates of the value function
+that could achieve better variance than VDR (π). However, we show that at least asymptotically and
+without further assumptions on the functions θ0 (z) and Σ0 (z), this cannot be the case. In particular,
+we show that our estimator achieves what is known as the semi-parametric efficient variance limit for
+our setting. More importantly for our regret result, this is also true for the semiparametric efficient
+variance of the policy differences. This is the case in our main setup; where the model is mis-specified
+and only a projection of the true value; and even if we assume that our model is correct, but make the
+extra assumption of homoskedasticity, i.e., the conditional variance of residuals of outcomes y do not
+depend on (a, z).
+Theorem 2 (Semi-parametric Efficiency). If the model is mis-specified, i.e, V0 (a, z) 6= V (a, z)
+the asymptotic variance of VDR (π) is equal to the semi-parametric efficiency bound for the policy
+value hθp (z), π(z)i defined in Equation (4). If the model is correctly specified, VDR (π) is semiparametrically efficient under homoskedasticity, i.e. E[(y − V (a, z))2 | a, z] = E[(y − V (a, z))2 ].
+We provide a proof for the value function, but this result also extends to the difference of values. We
+conclude the section by providing concrete examples of rates for policy classes of interest.
+Example 1 (VC Policies). As a concrete example, consider the case when the class FΠ is
+a VC-subgraph class of VC dimension d (e.g. the policy space has small VC-dimension or
+pseudo-dimension), and let S = E[supπ vDR (x; π)2 ]. Then Theorem 2.6.7 of [22] shows that:
+H2 (, FΠ , n) = O(d(1 + log(S/))) (see also discussion in Appendix F). This implies that
+ˆ r
+
+ √ p
+
+p
+κ(r, FΠ ) = O
+d(1 + log(S/))d = O r d 1 + log(S/r) .
+0
+
+
+
+q
+q
+p
+V20
+Hence, we can conclude that regret is O
+V20 (1 + log(S/V20 )) nd +
+
+log(1/δ)
+n
+
++
+
+h2n,δ
+
+
+. For
+
+the case of binary action policies (as we discuss in Appendix F) this result recovers the result of [1]
+for binary treatments up to constants and extends it to arbitrary action spaces and VC-subgraph
+policies.
+Example 2 (High-Dimensional Index Policies). As an example, we consider the class of policies,
+characterized by a constant number of `1 or `0 -bounded linear indices:
+Π1 = {z → Γ(hβ1 , zi, . . . , hβd , zi) : βi ∈ Rp , kβi k1 ≤ s}
+
+(19)
+
+where Γ : Rd → Rm is a fixed L-Lipschitz function of the indices, with d, m constants, while p >> n
+(and similarly for Π0 , where use kβi k0 ≤ s). Assuming vDR (y, a, z; π) is a Lipschitz function of
+π(z) and since Γ is a Lipschitz function of hβ, zi, we have by a standard multi-variate Lipschitz
+contraction argument (and since d, m are constants), that the entropy of FΠ is of the same order as
+the maximum entropy of each of the linear index spaces: B1 := {z → hβi , zi : β ∈ Rp , kβi k1 ≤ s}.
+Moreover, by known covering arguments (see e.g. [25], Theorem
+if kzk∞ ≤ 1, then:
+ 3) that
+q
+ 2
+
+s log(d)
+H2 (, B, n) = O
+. Thus we get κ(r, FΠ ) = O s log(n) log(d)
++ nr , which
+2
+n
+
+
+q
+q
+V20 log(1/δ)
+2
++
++
+h
+leads to regret O s log(n) log(d)
+n,δ . In this setting, we observe that
+n
+n
+the policy space is too large for the variance to drive the asymptotic regret. There is a leading term that remains even if the worse-case variance of policies in a small-regret slice is
+0. Intuitively this stems from the high-dimensionality of the linear indices, which introduces
+an extra dimension of error, namely bias due to regularization. On the contrary, for exactly
+sparse policies B0 := {z → hβi , zi : β ∈ Rp , kβi k0 ≤ s}, we have that since for any
+possible
+support
+the entropy at scale  is at most O(s log(1/)), we can take a union over all
+
+
+ep s
+p
+possible
+whichimplies H2 (, FΠ , n) = O(s (log(d/s) + log(1/)).
+s ≤
+s
+ sparse supports,
+q
+p
+s log(d/s)
+Thus κ(r, FΠ ) = O r log(1/r)
+, leading to policy regret similar to the VC classes:
+n
+
+
+q
+q
+p
+V20 log(1/δ)
+s log(d/s)
+2
+0
+0
+O
+V2 log(1/V2 )
++
++ hn,δ .
+n
+n
+Remark 4 (Instrumental Variable Estimation). Our main regret results extend to the instrumental
+variables settings where treatments are endogenous but we have a vector of instrumental variables w
+6
+
+satisfying
+E[(y − hθ0 (z), φ(a, z)i)w | z] = 0,
+and ΣI0 (z) = E[wφ(a, z)T | z] is invertible. Then we can use the following doubly robust moment
+θDR,I (y, a, z, w) = θ̂(z) + Σ̂I (z)−1 w(y − hθ̂(z), φ(a, z)i).
+Remark 5 (Estimating the First Stages). Bounds on first stage errors as a function of sample
+complexity measures for the first stage hypotheses spaces can be obtained by standard results on
+the MSE achievable by regression problems (see e.g. [18, 23]). Essentially these are bounds for
+the regression estimates θ̂(z) and Σ̂(z), as a function of the complexity of their assumed hypothesis
+spaces. Since the latter is a standard statistical learning problem that is orthogonal to our main
+contribution, we omit technical details. Since the square loss is a strongly convex objective the rates
+achievable for these problems are typically fast rates on the MSE (e.g. h2n,δ is of the order 1/n for the
+√
+case of parametric hypothesis spaces, and typically o(1/ n) for reproducing kernel Hilbert spaces
+2
+with fast eigendecay (see e.g. [23])). Thus the term hn,δ is of lower order. For instance, the required
+rates for the term h2n,δ to be of second order in our regret bounds are achievable if these nuisance
+regressions are `1 -penalized linear regressions and several regularity assumptions are satisfied by
+the data distribution, even when the dimension p of z is growing with n.
+Extension: Semi-Bandit Feedback Suppose that our value function takes the form: V (a, z) =
+φ(a, z)T Θ0 (z) φ(a, z), where Θ0 (z) is a p × p matrix and we observe semi-bandit feedback, i.e. we
+observe a vector Y s.t.: E[Y | a, z] = Θ0 (z)T φ(a, z). Then we can apply our DR approach to each
+coordinate of Y separately.
+h
+
+
+i
+VDR (π) = En φ(π(z), z)T Θ̂(z) + Σ̂(z)−1 φ(a, z) (Y T − φ(a, z)T Θ̂(z)) φ(π(z), z)
+All the theorems in this section extend to this case, which will prove useful in our pricing application
+where a is the price of a set of products and Y is the vector of observed demands for each product.
+
+4
+
+Application: Personalized Pricing
+
+Consider the personalized pricing of a single product. The objective is the revenue:
+V (p, z) = p (a(z) − b(z) p)
+where b(z) ≥ γ > 0 and a(z) + b(z)p gives the unknown, context-specific demand function. We
+assume that we observe an unbiased estimate d of demand:
+E[d | z, p] = a(z) − b(z) p
+We want to optimize over a space of personalized pricing policies Π. If, for instance, the observational
+policy was homoskedastic (i.e. the exploration component was independent of the context z), we
+show in Appendix G that doubly robust estimators for a(z) and b(z) are
+
+
+ĝ(z) − p
+aDR (z) = â(z) + 1 + ĝ(z)
+(d − â(z) − b̂(z) p)
+σ̂ 2
+p − ĝ(z)
+bDR (z) = b̂(z) +
+(d − â(z) − b̂(z) p)
+σ̂ 2
+where g(z) = E[p | z] and the variance σ 2 . Thus, in this example, we only need to estimate the mean
+treatment policy E[p | z] and the variance σ 2 .
+Experimental evaluation. We empirically evaluate our framework on the personalized pricing
+application with synthetic data. In particular, we use simulations to assess our estimator’s ability to
+evaluate and optimize personalized pricing functions. To do this, we compare the performance of
+our doubly robust estimator with (1) Direct estimator, hθ̂(z), φ(a, z)i, (2) Inverse propensity score
+o
+estimator 2 , (3) Oracle orthogonal estimator, vDR
+(x, π).
+2
+
+θIP S (y, a, z) = Σ̂(z)−1 φ(a, z) y
+
+7
+
+4.6
+7.6
+●
+
+●
+
+●
+●
+
+●
+
+3.6
+
+4.5
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+Value
+
+Value
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+2.8
+
+●
+
+●
+
+2000
+
+5000
+
+●
+
+●
+●
+
+2.7
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+10000
+
+1000
+
+2000
+
+5000
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+7.4
+
+●
+
+●
+
+2.6
+
+●
+
+●
+
+●
+
+7.2
+
+●
+
+7.0
+
+2.5
+
+4.2
+1000
+
+●
+●
+
+●
+
+●
+
+●
+
+4.3
+
+3.5
+
+●
+
+●
+
+●
+
+●
+
+4.4
+
+Value
+
+●
+●
+
+3.7
+
+Value
+
+3.8
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+5.75
+11.0
+6.00
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+5.00
+
+Value
+
+Value
+
+5.25
+
+●
+
+5.75
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+4.0
+
+●
+
+●
+
+●
+
+10.5
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+Value
+
+●
+
+●
+
+Value
+
+5.50
+
+3.5
+
+5.50
+
+●
+
+●
+●
+
+10.0
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+9.5
+
+4.75
+9.0
+
+5.25
+
+4.50
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2.7
+
+2000
+
+5000
+
+10000
+
+4.6
+2.5
+1.5
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+2.4
+
+●
+
+2.3
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+4.4
+
+●
+
+●
+
+2.4
+
+1.4
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+Value
+
+Value
+
+●
+
+●
+
+●
+
+Value
+
+●
+●
+
+2.5
+
+Value
+
+2.6
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+4.2
+
+●
+
+●
+
+●
+
+●
+
+●
+
+1.3
+●
+
+●
+
+●
+
+2.2
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+4.0
+
+2.3
+1.2
+2.1
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+7.4
+4.4
+
+●
+
+3.6
+
+●
+
+●
+
+●
+
+●
+
+●
+
+3.5
+
+●
+
+●
+
+4.3
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+2.7
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+4.2
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+Value
+
+●
+
+Value
+
+Value
+
+●
+
+●
+
+●
+
+2.6
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+7.2
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+Value
+
+3.7
+
+●
+
+2.5
+
+●
+
+7.0
+
+●
+
+●
+
+●
+
+6.8
+
+4.1
+3.4
+
+2.4
+4.0
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+Direct
+
+●
+
+10000
+
+1000
+
+IPS
+
+●
+
+●
+
+2000
+
+Doubly Robust
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+Oracle
+
+●
+
+(a) Policy Evaluation
+0.12
+
+0.04
+
+0.6
+
+0.04
+
+0.03
+●
+
+0.02
+
+●
+
+0.2
+
+●
+
+●
+
+0.4
+
+Regret
+
+●
+
+Regret
+
+Regret
+
+Regret
+
+0.04
+●
+
+0.08
+
+0.00
+
+●
+
+●
+
+1000
+
+●
+
+●
+
+●
+
+2000
+
+●
+
+●
+
+●
+
+5000
+
+●
+
+●
+
+0.00
+
+●
+
+10000
+
+●
+
+●
+
+1000
+
+●
+
+●
+
+●
+
+2000
+
+●
+●
+●
+
+●
+
+0.01
+●
+
+●
+
+●
+●
+
+0.02
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+5000
+
+●
+●
+
+●
+
+0.0
+
+●
+
+10000
+
+●
+
+●
+
+●
+
+1000
+
+●
+
+●
+
+●
+
+2000
+
+●
+●
+
+●
+
+5000
+
+●
+
+●
+●
+
+●
+
+0.00
+
+●
+
+10000
+
+●
+
+●
+
+1000
+
+●
+
+●
+
+●
+
+2000
+
+●
+
+●
+
+●
+
+5000
+
+●
+
+●
+
+10000
+
+6
+●
+
+●
+
+3
+
+4
+
+1
+
+●
+●
+
+●
+
+4
+●
+
+2
+
+2
+
+●
+
+1
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+1000
+
+●
+
+●
+
+●
+
+2000
+
+●
+
+●
+
+●
+
+●
+
+●
+
+0
+
+●
+
+0.05
+
+●
+
+Regret
+
+●
+
+2
+
+Regret
+
+Regret
+
+Regret
+
+0.10
+3
+
+●
+
+5000
+
+●
+
+●
+
+●
+●
+
+●
+
+10000
+
+0.00
+
+●
+
+●
+
+●
+
+1000
+
+●
+
+2000
+
+●
+
+Direct
+
+●
+
+●
+●
+
+●
+
+●
+
+5000
+
+●
+
+IPS
+
+●
+
+●
+
+0
+
+●
+
+10000
+
+●
+
+●
+
+1000
+
+Doubly Robust
+
+●
+●
+
+●
+
+2000
+
+●
+
+●
+
+●
+
+●
+
+5000
+
+●
+
+●
+
+●
+
+10000
+
+0
+
+●
+
+●
+
+1000
+
+●
+
+●
+
+●
+
+2000
+
+●
+
+●
+
+●
+
+5000
+
+●
+
+●
+
+●
+
+●
+
+10000
+
+Oracle
+
+(b) Regret
+
+Figure 1: (a) Black line shows the true value of the policy and each line shows the mean and standard
+deviation of the value of the corresponding policy over 100 simulations. (b) Each line shows the
+mean and standard deviation of regret over 100 simulations. The top half reports the regret for a
+constant policy, the bottom half reports regret for a linear policy.
+
+Data Generating Process. Our simulation design considers a sparse model. We assume that there
+are k continuous context variables distributed uniformly zi ∼ U (1, 2) for i = 1, . . . , k but only
+l of them affects demand. Let z̄ = 1/l(zi + · · · + zl ). Price p and demand d are generated as
+x ∼ N (z̄, 1), d = a(z̄) − b(z̄)x +  and  ∼ N (0, 1). We consider four functional forms for the
+demand model: (i) (Quadratic) a(z) = 2z 2 , b(z) = 0.6z, (ii) (Step) a(z) = 5{z < 1.5} + 6{z >
+1.5}, b(z) = 0.7{z < 1.5} + 1.2{z > 1.5}, (iii) (Sigmoid) a(z) = 1/(1 + exp(z)) + 3, b(z) =
+2/(1 + exp(z)) + 0.1, (iv) (Linear) a(z) = 6z, b(z) = z
+These functions and the data generating process ensure that the conditional expectation function
+of demand given z is non-negative for all z, the observed prices are positive with high probability,
+and the optimal prices are in the support of the observed prices. In each experiment, we generate
+1000, 2000, 5000, and 10000 data points, and report results over 100 simulations. We estimate the
+nuisance functions using 5-fold cross-validated lasso model with polynomials of degrees up to 3 and
+all the two-way interactions of context variables. We present the results for two regimes: (i) Low
+dimensional with k = 2, l = 1, (ii) High dimensional with k = 10, l = 3.
+Policy Evaluation. For policy evaluation we consider four pricing functions: (i) Constant, π(z) =
+1, (ii) Linear, π(z) = z, (iii) Threshold, π(z) = 1 + 1{z > 1.5}, (iv) Sin, π(z) = sin(z). The
+results for the low dimensional regime are summarized in Figure 1(a), where each row and column
+corresponds to a different demand function and a policy function, respectively3 . The results show that,
+as expected, our the performance of our method is very similar to the oracle estimator and achieves a
+significantly better performance than the direct and inverse propensity score methods, which suffer
+from large biases. These results also support our claim that the asymptotic variance of the doubly
+robust estimate is the same as the variance of the oracle method. It is also important to point out that
+we obtain similar performances across two different regimes.
+Regret. To investigate the regret performance of our method, we consider a constant pricing
+function, π(z) = γ and a linear policy π(z) = (γ1 z1 + · · · + γk zk ). We compute the optimal pricing
+functions in these two function spaces and report the distribution of regret in Figure 4(b) under the low
+3
+
+The results are very similar for the high dimensional model which are reported in Figure 4(a) in the appendix.
+
+8
+
+7.6
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+4.5
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+2.6
+
+3.7
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+7.4
+
+●
+
+●
+
+3.9
+
+●
+
+●
+
+●
+●
+
+2.2
+
+●
+
+3.3
+
+●
+
+2.4
+
+Value
+
+●
+
+Value
+
+Value
+
+Value
+
+4.2
+3.5
+
+7.2
+●
+●
+
+7.0
+●
+
+●
+
+3.6
+
+●
+
+●
+
+6.8
+
+●
+
+2.0
+3.1
+5000
+
+10000
+
+1000
+
+7
+
+6.0
+
+2000
+
+●
+●
+
+●
+
+●
+
+5.0
+
+6
+
+●
+
+10000
+
+●
+
+●
+
+1000
+
+●
+
+●
+
+2000
+
+5000
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+3.5
+●
+
+●
+
+●
+
+3.0
+
+●
+
+●
+
+10.5
+●
+
+●
+
+●
+
+●
+
+●
+
+9.5
+
+●
+
+●
+
+10.0
+
+●
+
+●
+
+10000
+
+●
+
+11.0
+
+●
+
+●
+
+●
+
+5
+
+●
+
+5000
+
+●
+
+●
+
+●
+
+●
+
+●
+
+2000
+
+4.0
+
+Value
+
+Value
+
+●
+
+1000
+
+●
+
+5.5
+●
+
+10000
+
+●
+
+●
+●
+
+4.5
+
+5000
+
+Value
+
+2000
+
+Value
+
+1000
+
+●
+●
+
+9.0
+
+●
+
+●
+
+●
+
+2.4
+
+1000
+
+5000
+
+10000
+
+●
+
+●
+
+10000
+
+●
+●
+
+1000
+
+1.3
+
+4.4
+
+●
+●
+●
+
+5000
+
+●
+
+●
+
+●
+
+10000
+
+●
+
+●
+
+2000
+
+●
+
+5000
+
+●
+
+●
+
+10000
+
+●
+
+●
+
+●
+
+1000
+
+●
+
+5000
+
+●
+
+●
+
+3.75
+
+●
+
+●
+
+●
+
+1000
+
+●
+
+●
+●
+●
+
+2.2
+
+2000
+
+●
+
+3.50
+
+●
+
+●
+
+●
+
+●
+
+5000
+
+●
+
+●
+
+●
+
+7.2
+
+●
+
+10000
+
+●
+
+●
+
+●
+
+7.0
+●
+
+6.8
+
+●
+●
+
+●
+
+3.2
+
+●
+●
+
+●
+
+10000
+
+●
+
+●
+
+●
+
+●
+
+2.4
+
+Value
+
+Value
+
+●
+●
+
+2000
+
+●
+
+2.6
+
+4.00
+3.4
+
+●
+●
+
+●
+
+1.1
+
+●
+
+4.25
+
+3.6
+
+10000
+
+●
+
+4.0
+
+1000
+
+●
+
+5000
+
+4.2
+
+●
+
+Value
+
+2000
+
+●
+
+●
+
+●
+●
+
+●
+
+1.2
+
+●
+
+1.8
+1000
+
+2000
+
+●
+
+●
+
+2.2
+
+Value
+
+5000
+
+●
+●
+
+●
+●
+
+2.0
+
+2000
+
+●
+
+●
+
+2.2
+
+●
+
+1000
+
+1.4
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+
+2.3
+
+2000
+
+●
+
+2.4
+●
+
+Value
+
+10000
+
+●
+
+Value
+
+5000
+
+●
+
+●
+
+2.5
+
+Value
+
+2000
+
+●
+
+Value
+
+1000
+
+2.6
+
+●
+●
+
+6.6
+
+2.0
+
+●
+
+3.25
+
+3.0
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+Direct
+
+●
+
+1000
+
+Doubly Robust
+
+●
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+Oracle
+
+●
+
+(a) Policy Evaluation
+0.006
+
+0.0020
+
+0.002
+
+●
+
+0.02
+
+0.003
+
+0.0015
+●
+
+0.0010
+●
+
+0.0005
+
+●
+
+●
+
+●
+●
+
+0.000
+
+●
+
+●
+
+1000
+
+●
+
+●
+
+●
+
+2000
+
+●
+
+●
+
+5000
+
+●
+
+0.00
+
+●
+
+10000
+
+●
+
+●
+
+1000
+
+●
+
+●
+
+●
+
+5000
+
+0.002
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+0.000
+
+●
+
+10000
+
+1000
+
+●
+
+0.001
+
+●
+
+0.0000
+
+●
+●
+
+2000
+
+Regret
+
+●
+
+Regret
+
+0.04
+
+●
+●
+
+Regret
+
+Regret
+
+0.004
+
+0.0025
+
+●
+
+0.004
+
+2000
+
+5000
+
+●
+
+10000
+
+●
+
+●
+
+1000
+
+●
+
+●
+
+2000
+
+●
+
+5000
+
+●
+
+●
+
+10000
+
+0.05
+0.006
+
+●
+●
+
+0.03
+
+●
+
+Regret
+
+Regret
+
+Regret
+
+●
+
+0.005
+
+0.02
+0.01
+
+●
+●
+
+0.000
+1000
+
+●
+
+2000
+
+5000
+
+●
+
+●
+
+●
+
+●
+
+10000
+
+1000
+
+●
+●
+
+●
+
+●
+
+2000
+
+●
+
+●
+
+●
+
+●
+
+5000
+
+Direct
+
+0.00
+
+●
+
+●
+
+10000
+
+●
+
+●
+
+1000
+
+Doubly Robust
+
+●
+
+●
+
+●
+
+2000
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+0.00
+
+●
+
+0.004
+
+0.002
+
+●
+
+●
+
+●
+
+●
+●
+
+0.04
+0.02
+
+●
+
+●
+
+Regret
+
+0.06
+
+0.04
+0.010
+
+●
+
+●
+
+5000
+
+●
+
+●
+
+●
+●
+
+10000
+
+●
+
+0.000
+1000
+
+●
+
+●
+
+2000
+
+5000
+
+●
+
+10000
+
+Oracle
+
+(b) Regret
+
+Figure 2: Quadratic, Low Dimensional Regime: (a) Black line shows the true value of the policy,
+each line shows the mean and standard deviation of the value of the corresponding policy over 100
+simulations. (b) Each line shows the mean and standard deviation of regret over 100 simulations. We
+omit the results for the inverse propensity score method since they are too large to report together
+with the other estimates in the high dimensional regime.
+dimensional regime and in Appendix H under the high dimensional regime. Across the four demand
+functions and two pricing functions we consider, our method achieves small regrets, comparable to
+the oracle method. The direct and inverse propensity methods, depending on the demand function,
+yield large regrets.
+4.1
+
+Quadratic Model
+
+Finally, we consider the same simulation exercise under the assumption that an unbiased estimate of
+revenue rather than demand is observed. Since revenue depends on the p2 the model is now quadratic
+r = a(z)p − b(z)p2 + 
+For the data generating process we use the same functions a(z) and b(z) as in the personalized
+pricing example 4 . Figures 2 and 5 in Appendix H summarize results for policy evaluation and
+optimization. The overall performance of our doubly robust estimator is similar to the demand model,
+and it performs better the direct model. One important difference to note is that when the sample size
+is small, we observe some finite sample biases for some function classes.
+
+5
+
+Application: Costly Resource Allocation
+
+Motivated by a resource allocation scenario, we also analyze experimentally the special case where
+φ(a, z) = a. Consider the case where we have p possible tasks to invest in, and we have investment
+costs. Each task yields a return on investment that is a linear function of the investment, but an
+unknown function θ(z) of the context z. Moreover, to maintain an investment portfolio of π(z) we
+need to pay a known cost C(π(z)). Given a policy space Π : Z → Rp , our goal is to optimize:
+sup E [hθ(z), π(z)i − C(π(z))]
+π∈Π
+4
+
+We provide the calculation of the doubly robust estimators for this example in Appendix G.
+
+9
+
+(20)
+
+1.5
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+0.5
+
+●
+
+0.2
+
+●
+
+0.0
+●
+
+●
+
+●
+
+0.0
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+1.5
+
+●
+
+1.0
+
+Value
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+Value
+
+Value
+
+0.5
+
+●
+
+2.0
+
+0.4
+
+●
+●
+
+Value
+
+●
+
+1.0
+
+●
+
+●
+
+●
+
+●
+
+0.5
+
+●
+
+●
+
+●
+
+●
+
+1.0
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+0.0
+
+0.0
+
+−0.2
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+●
+
+10000
+
+Direct
+
+1000
+
+Doubly Robust
+
+●
+
+2000
+
+●
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+Oracle
+
+(a) Low Dimensional Regime
+1.00
+1.5
+●
+
+0.4
+
+●
+
+1.5
+
+●
+
+●
+●
+
+●
+●
+
+0.25
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+1.0
+
+●
+●
+
+0.5
+
+●
+
+0.2
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+0.0
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+2000
+
+5000
+
+10000
+
+●
+
+1000
+
+2000
+
+●
+
+5000
+
+Direct
+
+10000
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+0.0
+
+0.00
+1000
+
+●
+
+1.0
+0.5
+
+●
+
+0.0
+
+●
+
+Value
+
+●
+
+0.50
+
+Value
+
+●
+
+Value
+
+Value
+
+0.75
+
+1000
+
+2000
+
+Doubly Robust
+
+●
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+Oracle
+
+(b) High Dimensional Regime
+
+Figure 3: Costly Resource Allocation: Each line shows the mean and standard deviation of regret
+over 100 simulations.
+This falls into our framework, if we treat the offset part as of the form hθ0 (z), C(π(z))i but with a
+known θ0 (z) = 1. So in that case we simply consider θDR,0 (z) = θ0 (z) = 1. Then applying our
+framework we optimize:
+sup En [hθDR (z), π(z)i − C(π(z))]
+(21)
+π∈Π
+
+In the case of quadratic costs C(π(z)) = λ2 kπ(z)k22 , then this boils down to exactly optimizing a
+square loss objective, since:
+
+
+
+λ 
+(22)
+inf En kθDR (z)/λ − π(z)k2 ⇔ sup E [hθDR (z), π(z)i] − En kπ(z)k22
+A
+2
+A
+Thus policy optimization reduces to a multi-task regression problem where we are trying to predict
+θDR (z)/λ from z.5
+We can consider sparse linear policies:
+Π = {z → Az : kAk11 :=
+
+X
+
+kαi k1 ≤ s}
+
+(23)
+
+i
+
+where αi corresponds to the i-th row of matrix A. In this case our problem reduces to the MultiTask
+Lasso problem where the label is θ(z)/λ.
+Experimental Evaluation.
+and a2 :
+
+For experimental evaluation we consider a model with two tasks, a1
+y = a(z)a1 + b(z)a2 + 
+
+We use the same distributions and functions, a(z) and b(z), given above for the pricing application.
+To estimate the optimal allocation and its regret, we run a 5-fold cross validated MultiTask Lasso
+algorithm and set λ = 1. We report the distribution of return on investment obtained from different
+models in Figure (3). The results suggest that doubly robust method achieves a significantly lower
+regret than the direct method in both regimes and its performance is similar to the oracle method 6 .
+
+References
+[1] Susan Athey and Stefan Wager. Efficient policy learning. arXiv preprint arXiv:1702.02896,
+2018.
+P
+The above reasoning extends to heterogeneous costs across tasks e.g. C(π(z)) = i ci πi (z)2 . In this case
+the label of the i-th task of the multi-task regression problem is θDR,i (z)/ci and we need to perform a weighted
+multi-task regression where the weight on the square loss for task i is equal ci .
+6
+For comparison, the value achieved by best-in-class policy is 22.2 in low dimensional regime and ? in high
+dimensional regime. We omit the inverse propensity score regrets since they are too large to report together with
+other estimates
+5
+
+10
+
+[2] Alina Beygelzimer and John Langford. The offset tree for learning with partial labels. In
+Proceedings of the 15th ACM SIGKDD international conference on Knowledge discovery and
+data mining, pages 129–138. ACM, 2009.
+[3] Peter J Bickel, Chris AJ Klaassen, Peter J Bickel, Y Ritov, J Klaassen, Jon A Wellner, and
+YA’Acov Ritov. Efficient and adaptive estimation for semiparametric models, volume 4. Johns
+Hopkins University Press Baltimore, 1993.
+[4] Gary Chamberlain. Efficiency bounds for semiparametric regression. Econometrica: Journal of
+the Econometric Society, pages 567–596, 1992.
+[5] Victor Chernozhukov, Denis Chetverikov, Mert Demirer, Esther Duflo, Christian Hansen,
+Whitney Newey, and James Robins. Double/debiased machine learning for treatment and
+structural parameters. The Econometrics Journal, 21(1):C1–C68, 2018.
+[6] Victor Chernozhukov, Juan Carlos Escanciano, Hidehiko Ichimura, Whitney K Newey, and
+James M Robins. Locally robust semiparametric estimation. arXiv preprint arXiv:1608.00033,
+2016.
+[7] Miroslav Dudík, John Langford, and Lihong Li. Doubly robust policy evaluation and learning.
+In Proceedings of the 28th International Conference on International Conference on Machine
+Learning, pages 1097–1104. Omnipress, 2011.
+[8] Robert F Engle, Clive WJ Granger, John Rice, and Andrew Weiss. Semiparametric estimates
+of the relation between weather and electricity sales. Journal of the American statistical
+Association, 81(394):310–320, 1986.
+[9] Dylan J Foster and Vasilis Syrgkanis.
+arXiv:1901.09036, 2019.
+
+Orthogonal statistical learning.
+
+arXiv preprint
+
+[10] Bryan S Graham and Cristine Campos de Xavier Pinto. Semiparametrically efficient estimation
+of the average linear regression function. Working paper, National Bureau of Economic
+Research, 2018.
+[11] Guido W Imbens and Donald B Rubin. Causal inference in statistics, social, and biomedical
+sciences. Cambridge University Press, 2015.
+[12] Nathan Kallus and Angela Zhou. Policy evaluation and optimization with continuous treatments.
+arXiv preprint arXiv:1802.06037, 2018.
+[13] Toru Kitagawa and Aleksey Tetenov. Who should be treated? empirical welfare maximization
+methods for treatment choice. Econometrica, 86(2):591–616, 2018.
+[14] Akshay Krishnamurthy, John Langford, Aleksandrs Slivkins, and Chicheng Zhang. Contextual bandits with continuous actions: Smoothing, zooming, and adapting. arXiv preprint
+arXiv:1902.01520, 2019.
+[15] Andreas Maurer and Massimiliano Pontil. Empirical bernstein bounds and sample variance
+penalization. In The 22nd Conference on Learning Theory (COLT), 2009.
+[16] Whitney K Newey. Semiparametric efficiency bounds. Journal of applied econometrics,
+5(2):99–135, 1990.
+[17] Min Qian and Susan A Murphy. Performance guarantees for individualized treatment rules.
+Annals of statistics, 39(2):1180, 2011.
+[18] Alexander Rakhlin, Karthik Sridharan, Alexandre B Tsybakov, et al. Empirical entropy, minimax
+regret and minimax risk. Bernoulli, 23(2):789–824, 2017.
+[19] Peter M Robinson. Root-n-consistent semiparametric regression. Econometrica: Journal of the
+Econometric Society, pages 931–954, 1988.
+[20] Adith Swaminathan and Thorsten Joachims. Counterfactual risk minimization: Learning from
+logged bandit feedback. In International Conference on Machine Learning, pages 814–823,
+2015.
+[21] Mark J Van der Laan and Sherri Rose. Targeted learning: causal inference for observational
+and experimental data. Springer Science & Business Media, 2011.
+[22] A. W. Van Der Vaart and J. A. Wellner. Weak Convergence and Empirical Processes: With
+Applications to Statistics. Springer Series, March 1996.
+11
+
+[23] Martin J. Wainwright. High-Dimensional Statistics: A Non-Asymptotic Viewpoint. Cambridge
+Series in Statistical and Probabilistic Mathematics. Cambridge University Press, 2019.
+[24] Jeffrey M Wooldridge. Estimating average partial effects under conditional moment independence assumptions. Working paper, cemmap working paper, 2004.
+[25] Tong Zhang. Covering number bounds of certain regularized linear function classes. Journal of
+Machine Learning Research, 2(Mar):527–550, 2002.
+[26] Yingqi Zhao, Donglin Zeng, A John Rush, and Michael R Kosorok. Estimating individualized treatment rules using outcome weighted learning. Journal of the American Statistical
+Association, 107(499):1106–1118, 2012.
+[27] Xin Zhou, Nicole Mayer-Hamblett, Umer Khan, and Michael R Kosorok. Residual weighted
+learning for estimating individualized treatment rules. Journal of the American Statistical
+Association, 112(517):169–187, 2017.
+[28] Zhengyuan Zhou, Susan Athey, and Stefan Wager. Offline multi-action policy learning: Generalization and optimization. arXiv preprint arXiv:arXiv:1810.04778, 2018.
+
+12
+
+A
+
+Proof of Universal Orthogonality Lemma
+
+We first start by defining a sufficient condition for the notion of universal orthogonality of a loss
+function, as defined by [9]. A loss function L(π; h) = E[`(x, π(z); h(z))] is universally orthogonal
+with respect to h if for any π ∈ Π:
+E[∇h(z),π(z) `(x, π(z); h0 (z)) | z] = 0
+
+(24)
+
+where h0 is the true value of the nuisance parameter h.
+Lemma 3. The loss function L(π; h) = −E[hθDR (y, a, z), φ(π(z), z)i] is universally orthogonal
+with respect to h = (θ, Σ).
+Proof. We show that the population loss function that corresponds to the doubly robust estimate,
+satisfies the universal orthogonality condition. For simplicity of notation let K(z) = Σ(z)−1 . Then
+the population loss is:
+hD
+Ei
+0
+VDR
+(π; θ̂, Σ−1 ) = E θ̂(z) + Σ−1 (z) φ(a, z) (y − hθ̂(z), φ(a, z)i), φ(π(z), z)
+Let:
+β(a, z, ξ, K) = ξ + Kφ(a, z) (y − hξ, φ(a, z)i)
+Observe that:
+0
+VDR
+(π; θ̂, Σ−1 ) = E
+
+hD
+
+β(a, θ̂(z), Σ−1 (z)), φ(π(z), z)
+
+Ei
+
+To show universal orthogonality it suffices to show that:
+
+
+E ∇ξ,K β(a, z, θ0 (z), Σ−1
+0 (z)) | z = 0
+This follows easily by simple algebraic manipulations:
+
+
+
+
+−1
+T
+E ∇ξ β(a, z, θ0 (z), Σ−1
+0 (z)) | z = E I − Σ0 (z) φ(a, z)φ(a, z) | z
+
+
+−1
+T
+= I − Σ−1
+0 (z)E φ(a, z)φ(a, z) | z = I − Σ0 (z) Σ0 (z) = 0
+and
+
+
+E ∇Kij β(a, θ0 (z), Σ−1
+0 (z)) | z = E [φj (a, z) (y − hθ0 (z), φ(a, z)i) | z]
+Now observe that since θ0 (z) is the minimizer of the conditional squared loss, taking the first order
+condition implies:
+E[(V0 (a, z) − hθ0 (z), φ(a, z)i) φ(a, z) | z] = 0 ⇐⇒
+E[V0 (a, z) φ(a, z) | z] = E[hθ0 (z), φ(a, z)i) φ(a, z) | z]
+Moreover:
+E[y φ(a, z) | z] = E[E[y | a, z] φ(a, z)] = E[V0 (a, z) φ(a, z)]
+Combining the two yields:
+E [φ(a, z) (y − hθ0 (z), φ(a, z)i) | z] = 0
+which implies orthogonality with respect to K.
+
+B
+
+Proof of Main Regret Theorem 1
+
+We first consider an arbitrary empirical loss minimization problem of the form:
+n
+
+fn = arg min En [f (x)] :=
+f ∈F
+
+1X
+f (xi )
+n i=1
+
+(25)
+
+where xi ∈ X are i.i.d. drawn from an unknown distribution and X is an arbitrary data space.
+Throughout the section we will assume that: supf ∈F |f (x)| ≤ 1. All the results can be generalized
+13
+
+to the case of supf ∈F |f (x)| ≤ R, for some arbitrary R, by simply first re-scaling the losses, and
+then invoking the theorems of this section.
+We will p
+also make the following preliminary definitions. For
+p any function f we denote with
+kf k2 = E[f (x)2 ], the standard L2 norm and with kf k2,n = En [f (x)2 ] its empirical analogue.
+The localized Rademacher complexity is the defined as:
+"
+#
+n
+1X
+i f (xi )
+R(r, F) = E,x1:n
+sup
+(26)
+f ∈F :kf k2 ≤r n i=1
+where i are independent Rademacher variables that take values {−1, 1} with equal probability.
+Furthermore, we define the empirical entropy of a function class H2 (, F, n) as the largest value,
+over the choice of n samples, of the logarithm of the size of the smallest empirical -cover of F on
+the samples with respect to the k · k2,n norm. Finally, we consider the empirical entropy integral
+defined as:
+(
+)
+ˆ rr
+H2 (, F, n))
+κ(r, F) = inf 4α + 10
+d ,
+(27)
+α≥0
+n
+α
+Throughout this section we will make the following benign assumption that essentially makes the
+problem learnable:
+ASSUMPTION 1. The function class satisfies that for any constant r, κ(r, F) → 0 as n → ∞
+We will use the following theorems from the prior work of [9] as a starting point as they are formalized
+in manner convenient for our problem.
+Theorem 4 (Foster, Syrgkanis [9], Theorem 4). Consider any function class F : X → [−1, 1] and
+let fn be the outcome of the constrained ERM. Pick any f∗ ∈ F and let r = supf ∈F kf − f∗ k2 .
+Then for some constants C1 , C2 and for any δ > 0, w.p. 1 − δ:
+!
+r
+log(1/δ) log(1/δ)
+∗
+E[fn (x) − f∗ (x)] ≤ C1 R(r, F − f ) + r
++
+n
+n
+!
+r
+log(1/δ) H2 (r, F, n) log(1/δ)
++
++
+.
+≤ C1 C2 κ(r, F) + r
+n
+n
+n
+Lemma 5 (Foster, Syrgkanis [9], Lemma 4). Consider a function class F : X → [−1, 1] and pick
+any f∗ : X → [−1, 1] (not necessarily in F). Moreover, let:
+Zn (r) =
+sup
+|En [f (x) − f∗ (x)] − E[f (x) − f∗ (x)]|
+(28)
+f ∈ F :kf −f ∗ k2 ≤r
+
+Then for some constant C3 and for any δ > 0, w.p. 1 − δ:
+!
+r
+log(1/δ) log(1/δ)
+∗
++
+Zn (r) ≤ C3 R(r, F − f ) + r
+n
+n
+Our goal is to replace r in the latter Theorem with the worst-case variance of the functions f ∈ F in
+a small “regret”-ball around the optimal. We will achieve this by considering a slight modification
+of the ERM algorithm. In particular, we will split the data in half, and we will use one half as a
+regularization sample and the other half as the training sample. In particular, we will find the optimal
+function on the training sample, within the class of functions that also have relatively small regret on
+the regularization sample.
+Out-of-Sample Regularized ERM Consider the following algorithm:
+• We split the samples S in two parts S1 , S2 and let En1 [·] and En2 [·] denote the corresponding
+empirical expectations.
+• We run ERM over F on the first half and let f1 be the outcome.
+• Then we define the class of functions that have the constraint that they don’t achieve much
+worse value than f1 on the first half, i.e. we regularize policies based on their regret on the
+first half. More formally, for some constant µn to be defined later:
+F2 = {f ∈ F : En1 [f (x) − f1 (x)] ≤ µn }
+(29)
+14
+
+• Then we run constrained ERM on the second sample over the function space F2 :
+f2 = arg min En2 [f (x)]
+
+(30)
+
+f ∈F2
+
+Theorem 6 (Variance-Based Regret). Let f∗ = arg minf ∈F E[f (x)], r = supf ∈F kf k2 and choose
+
+
+q
+H2 (r,F ,n)
+log(6/δ)
+log(6/δ)
+µn = C κ(r, F) + r
++
++
+, with C = 8 max{C1 C2 , C3 C2 }. Then,
+n
+n
+n
+w.p. 1 − δ over the sample S, the outcome f2 of the Out-of-Sample Regularized ERM satisfies:
+!
+r
+p
+V2 log(3/δ)
+E[f2 (x) − f∗ (x)] = O κ( V2 , F∗ (µn )) +
+(31)
+n
+with: F∗ (µn ) = {f ∈ F : E[f (x) − f∗ (x)] ≤ µn } and V2 = supf ∈F∗ (µn ) Var(f (x) −
+f∗ (x)).
+Moreover, the 
+expected regret, in expectation over the samples S1 , S2 is also of order
+
+q
+√
+V2
+O κ( V2 , F) +
+n .
+Proof. First we argue that w.p. 1 − δ/6, f∗ ∈ F2 . By the choice of µn and Theorem 4, we know that
+w.p. 1 − δ/4 over the randomness of sample S1 :
+E[f1 (x) − f∗ (x)] ≤ µn /2
+
+(32)
+
+Moreover, by Lemma 5, w.p. 1 − δ/6 over the randomness of sample S1 :
+sup |En1 [f (x) − f∗ (x)] − E[f (x) − f∗ (x)]| ≤ µn /2
+
+f ∈F
+
+Combining the latter two properties we have, w.p. 1 − δ/3:
+|En1 [f∗ (x) − f1 (x)]| ≤ |E[f∗ (x) − f1 (x)]| + µn /2 ≤ µn
+Thus in this event, f∗ ∈ F2 .
+Applying Theorem 4 for the last stage of the algorithm with function space F2 and conditioning on
+the event that the first stage sample is such that f∗ ∈ F2 , we have that with probability 1 − δ/3 over
+the randomness of the second sample:
+!
+r
+log(3/δ) H2 (r2 , F2 , n) log(3/δ)
+E[f2 (x) − f∗ (x)] = C1 C2 κ(r2 , F2 ) + r2
++
++
+n
+n
+n
+where r2 = supf ∈F2 kf k2 . Thus by a union bound we get that with probability 1 − 2δ/3 over the
+randomness of both samples, the latter bound holds.
+Observe that for f ∈ F2 , by Lemma 5, w.p. 1 − δ/6 over the first sample:
+sup |En1 [f (x) − f1 (x)] − E[f (x) − f1 (x)]| ≤ 2 sup |En1 [f (x)] − E[f (x)]| ≤ µn /2
+
+f ∈F
+
+f ∈F
+
+Thus w.p. 1 − δ/6, F2 is a subset of the class:
+F20 = {f ∈ F : |E[f (x) − f1 (x)]| ≤ µn /2}
+
+(33)
+
+Moreover, since f1 has small regret, we know by the triangle inequality, for all f ∈
+
+F20 ,
+
+|E[f (x) − f∗ (x)]| ≤ |E[f (x) − f1 (x)]| + |E[f1 (x) − f∗ (x)]| ≤ µn
+Thus w.p. 1 − δ/3, F20 is in turn a subset of the function space:
+F∗ (µn ) = {f ∈ F : |E[f (x) − f∗ (x)]| ≤ µn }
+which is a space of policies with regret at most µn .
+Thus we have that w.p. 1 − δ/3 over the first sample:
+r22 = sup E[(f (x) − f∗ (x))2 ] ≤
+f ∈F2
+
+=
+
+sup
+
+sup
+f ∈F∗ (µn )
+
+Var(f (x) − f∗ (x)) + E[f (x) − f∗ (x))]2
+
+f ∈F∗ (µn )
+
+≤
+
+sup
+f ∈F∗ (µn )
+
+E[(f (x) − f∗ (x))2 ]
+
+Var(f (x) − f∗ (x)) + µ2n
+
+15
+
+
+
+w.p. 1 − δ/3:
+
+We thus have that:
+r2 =
+
+r
+
+Var(f (x) − f∗ (x)) + 2µn =
+
+sup
+
+p
+
+V2 + 2µn
+
+(34)
+
+f ∈F∗ (µn )
+
+Combining the latter with the regret bound for f2 (excluding lower order terms in n) we have that
+w.p. 1 − δ:
+!
+r
+p
+V2 log(3/δ)
+E[f2 (x) − f∗ (x)] = O κ( V2 + 2µn , F∗ (µn )) +
+n
+Moreover, using the concavity of the entropy integral with respect to its first argument, we have that:
+s
+√
+p
+p
+H2 ( V2 , F, n)
+κ( V2 + 2µn , F) ≤ κ( V2 , F∗ (µn )) + 2µn
+(35)
+n
+√
+Since κ(r, F) → 0, we
+√ have that µn = o(1) and H2 ( V2 , F, n) is a constant. Thus, the second term
+decays faster than 1/ n and hence is asymptotically negligible. Thus we get:
+!
+r
+p
+V2 log(1/δ)
+E[f2 (x) − f∗ (x)] = O κ( V2 , F∗ (µn )) +
+n
+The expected regret bound follows by standard arguments by simply integrating the above high
+probability bound.
+Going back to our policy learning problem, let x = (y, a, z) and:
+vDR (x; π) = hθDR (y, a, z), φ(π(z), z)i
+
+(36)
+
+be the doubly robust proxy value at every sample x and policy π. Then we can apply this general
+theorem to the policy learning problem where, x = (y, a, z) and function space:
+FΠ = {−vDR (·; π) : π ∈ Π}
+
+(37)
+
+Then Theorem 6 yields the following corollary:
+Corollary 7 (Variance-Based Policy
+Regret). Let π∗ 
+= arg maxπ∈Π E[vDR (x; π)], r =
+
+q
+p
+log(1/δ)
+supπ∈Π E[vDR (z; π)2 ], µn = Θ κ(r, FΠ ) + r
+and
+n
+V2 =
+
+Var(vDR (x; π) − vDR (x; π∗ )).
+
+sup
+
+(38)
+
+π∈Π: E[vDR (x;π∗ )−vDR (x;π)]≤µn
+
+Then the policy π2 returned by the out-of-sample regularized ERM, satisfies w.p. 1 − δ over the
+randomness of S:
+!
+r
+p
+V2 log(1/δ)
+E[vDR (π∗ ) − vDR (π2 )] = O κ( V2 , FΠ ) +
+(39)
+n
+
+q 
+√
+and expected regret O κ( V2 , FΠ ) + Vn2 .
+To arrive at our final theorem, we also need to account for the difference between E[vDR (x; π)] and
+V (π). This difference essentially stems from the error in the nuisance estimates, which introduce an
+error in θDR (y, a, z), such that E[θDR (y, a, z) | z] 6= θ(z). However, we can invoke the orthogonality
+of the doubly robust estimator and the general theorem of [9] on generalization bounds of orthogonal
+losses to get:
+Lemma 8. For any policy π0 ∈ Π, let π̂ be the outcome of any possibly randomized algorithm that
+satisfies w.p. 1−δ/2 a regret bound on the doubly robust objective, i.e. E[vDR (x; π0 )−vDR (x; π̂)] ≤
+Rn,δ . Moreover, suppose that the nuisance estimates satisfy a mean-squared error bound
+n
+o
+max E[(θ̂(z) − θ0 (z))2 ], E[kΣ̂(z) − Σ0 (z)k2F ro ] := χ2n
+(40)
+Then w.p. 1 − δ over the randomness of the policy sample:
+V (π0 ) − V (π̂) ≤ O Rn,δ + χ2n
+16
+
+
+
+(41)
+
+Proof. By Lemma 3 we have that the loss function −E[vDR (x; π)] is universally orthogonal as
+defined in [9]. Moreover, the loss is smooth with respect to the outputs of the nuisance functions and
+hence the second order derivatives of the loss with respect to the outputs of the nuisance functions are
+bounded. Thus the lemma follows by Theorem 2 of [9].
+If we assume that the nuisance estimation algorithm guarantees that w.p. 1 − δ, χ2n ≤ h2n,δ then
+observe that combining Corollary 7 and Lemma 8, we get that for any policy π0 , the policy π2 of the
+out-of-sample regularized ERM satisfies, w.p. 1 − δ:
+!
+r
+p
+V2 log(1/δ)
+V (π0 ) − V (π2 ) ≤ O κ( V2 , FΠ ) +
++ h2n,δ
+n
+Similarly, if we assume that the nuisance esitmation algorithm satisfies E[χ2n ] ≤ h2n , then:
+!
+r
+p
+V2 log(1/δ)
+2
+E[V (π0 ) − V (π2 )] ≤ O κ( V2 , FΠ ) +
++ hn
+n
+We continue by proving the probabilistic regret bound of the theorem and the in-expectation bound
+follows analogously.
+Finally, we need to account for the error introduced by the nuisance errors on the quantity V2 , so as
+to connect it with the semi-parametric efficiency variance of each policy, i.e.:
+0
+Var(vDR
+(x; π))
+
+(42)
+
+0
+0
+0
+where vDR
+(x; π) = hθDR
+(y, a, z), φ(π(z), z)i, and θDR
+(y, a, z) is the analogue of the doubly robust
+function, θDR (y, a, z), evaluated at the true nuisance functions. Moreover, we want our the “regret
+slice” to be with respect to the true regret, i.e. we want to depend on the variance of policies that
+satisfy:
+0
+0
+V (π∗0 ) − V (π) := E[vDR
+(x; π∗0 ) − vDR
+(x; π)] ≤ µ0n
+(43)
+0
+where π∗ = arg maxπ∈Π V (π). We prove such a property in the following lemma:
+Lemma 9. Consider the setting of Corollary 7. Suppose that the mean squared error of the nuisance
+estimates is upper bounded w.p. 1 − δ by h2n,δ and let n = µn + h2n,δ . Then:
+
+V20 =
+
+sup
+π,π 0 ∈Π∗ (n )
+
+0
+0
+Var(vDR
+(x; π) − vDR
+(x; π 0 ))
+
+(44)
+
+Then V2 ≤ V20 + O(hn,δ ).
+Proof. First observe that by Lemma 8 with π0 = π∗ and π̂ = π (for any π ∈ FΠ2 ), we have that:
+E[vDR (π∗ ) − vDR (π)] ≤ µn =⇒ V (π∗ ) − V (π) ≤ µn + O(h2n,δ )
+0
+Similarly if we let π∗0 = arg maxπ∈Π E[vDR
+(x; π)] := V (π), then observe that by definition of π∗ :
+0
+E[vDR (x; π∗ ) − vDR (x; π∗ )] ≤ 0. Thus applying again Lemma 8 with π0 = π∗0 and π̂ = π∗ :
+
+E[vDR (π∗0 ) − vDR (π∗ )] ≤ 0 =⇒ V (π∗0 ) − V (π∗ ) ≤ O(h2n,δ )
+Let Π0∗ () = {π ∈ Π : V (π∗0 ) − V (π) ≤ } and let n = O(µn + h2n,δ ). Thus we have that:
+V2 ≤
+
+sup
+
+Var(vDR (x; π) − vDR (x; π∗ ))
+
+π∈Π∗ (n )
+
+Moreover, observe that π∗ ∈ Π0∗ (n ). Hence:
+V2 ≤
+
+sup
+
+Var(vDR (x; π) − vDR (x; π 0 ))
+
+π,π 0 ∈Π∗ (n )
+
+Moreover, by Lipschitzness of θDR (y, a, z) on the output of the nuisance functions, we also have
+that for any π, π 0 ∈ Π(n ):
+0
+0
+Var(vDR (x; π) − vDR (x; π 0 )) ≤ Var(vDR
+(x; π) − vDR
+(x; π 0 )) + O(hn,δ )
+
+17
+
+(45)
+
+Hence, if we denote with:
+V20 =
+
+sup
+π,π 0 ∈Π∗ (n )
+
+Then we conclude that:
+
+0
+0
+Var(vDR
+(x; π) − vDR
+(x; π 0 ))
+
+V2 = V20 + O(hn,δ )
+
+Invoking Lemma 9 and the concavity of the entropy integral function we get:
+!
+r
+q
+0 log(1/δ)
+V
+1
+2
+V (π∗0 ) − V (π̂) ≤ O κ( V20 , FΠ ) +
++ h2n,δ + hn,δ √
+n
+n
+
+(46)
+
+Since hn,δ = o(1), the last term is of lower order. This concludes the proof of the main regret
+Theorem 1.
+
+C
+
+Review of Semi-parametric Efficiency Bounds
+
+In this section, we review the theory of semi-parametric efficiency bounds studied in [16] and [3].
+C.1
+
+Definitions
+
+Definition 1 (Mean Square Differentiability). Let f (x; η) denote the probability density function
+of a random variable x where η ∈ H is a finite dimensional parameter. f (x; η)1/2 is µ-mean
+square
+continuously differentiable with respect to η on
+´ H with derivative fη (x; η) if for each η ∈ H
+´
+kfη (x; η)k2 dµ is finite, and for every ηi → η with kfη (x; ηi ) − fη (x; η)k2 dµ → 0
+ˆ 
+2
+f (x; ηi )1/2 − f (x; η)1/2 − fη (x; η)0 (ηi − η) dµ/kηi − ηk2 → 0
+Definition 2 (Smoothness). f (x; η) is smooth if (i) η ∈ H, H is open; (ii) there is a measure µ
+dominating f (x; η) for η ∈ H such that f (x; η) is continuous on H a.s. µ ; (iii) f (x; η)1/2 is mean
+square differentiable.
+Definition 3 (Score and Information Matrix). For smooth f (x; η) the score for η is defined as
+Sη (x; η) := 2
+
+fη (x; η)
+f (x; η)
+
+in the support of x and the information matrix is
+ˆ
+I(η) = Sη Sη0 f (x; η)dµ.
+Definition 4 (Regularity). A likelihood function f (x; η), η ∈ H, is regular if it is smooth and
+information matrix is non-singular in H. The efficiency bound of a regular model is given by
+Cramer-Rao bound and equals I(η)−1 .
+Definition 5 (Linearity). Define a set T to be linear if as1 + bs2 ∈ T for all real scalars a and b
+and elements s1 and s2 of T .
+C.2
+
+Derivation of the Efficiency Bound
+
+Let data (x1 , . . . , xn ) consist of i.i.d copies of the random vector (y, a, z). A semi-parametric model
+consists of a parameter vector α and a set of restrictions on the joint behavior of observables. In our
+model, the restrictions are given by the first order conditions of the linear projection
+E [ (y − hθ0 (z), φ(a, z)i)φ(a, z) | z] = 0
+and the parameter is
+
+ˆ
+α=
+
+hθ(z), φ(π(z), z)if (z)dz
+
+where f (z) denotes the probability distribution function of z. First, we provide the definition of a
+parametric submodel.
+18
+
+Definition 6 (Parametric Submodel). For estimators with i.i.d data, a parametric submodel corresponds to a parameter vector η and a likelihood function `(x|η) for a single observation that satisfies
+the semi-parametric restrictions.
+A parametric submodel is a subset of the model distributions satisfying the semi-parametric assumptions. The reason parametric submodels are useful in analyzing semi-parametric efficiency is that
+for parametric models, the Cramer-Rao bound gives the lower bound on the variance of estimators
+of a parameter under some regulatory conditions. Since semi-parametric models impose weaker
+restrictions than any parametric model, it is natural to expect that the asymptotic variance of a
+semi-parametric model is no smaller than the bound for the parametric model.
+In a parametric submodel, our parameter of interest can be written as
+ˆ
+α = hθ(z; η), φ(π(z), z)if (z; η)dz
+
+(47)
+
+Next, we define the semi-parametric efficient bounds.
+Definition 7 (Semi-parametric Efficiency Bound). The semi-parametric efficiency bound of a semiparametric estimator is defined as the supremum of the Cramer-Rao bounds for all regular parametric
+submodels.
+This definition is intuitive because any semi-parametric estimator that is consistent and asymptotically
+normal cannot have a lower variance than the supremum of Cramer-Rao bounds. The regulatory
+conditions defined in Section C.1 guarantee that the Cramer-Rao bound is well-defined and gives an
+asymptotic efficiency bound.
+To be able to obtain the Cramer-Rao bound for the parameter of interest under a parametric submodel,
+the parameter must be pathwise differentiable.
+Definition 8 (Pathwise Differentiability). A parameter α is pathwise-differentiable if α(η) is differentiable for all smooth parametric submodels and there exists q × 1 random vector d such that E[d0 d]
+is finite and for all regular parametric submodels
+∂α(η0 )
+= E[dSη0 ]
+∂η
+where η0 denotes the true value of the parameter in the sense that `(x|η0 ) corresponds to the
+likelihood function that generates the data.
+Pathwise differentiability of a parameter is a weak condition because, by Riesz representation
+theorem, a parameter is pathwise-differentiable if it can be written as a functional that is mean-square
+continuous. From the definition of α in Equation (47) it is easy to see that α is pathwise-differentiable
+by Riesz representation theorem.
+For a pathwise-differentiable parameter, the Cramer-Rao bound can be written as a function of the
+pathwise derivative using the Delta method.
+∂α(η0 )
+∂α(η0 )
+(E[Sη Sη0 ])−1
+∂η
+∂η
+0
+0 −1
+= E[dSη ](E[Sη Sη ]) E[Sη d0 ]
+
+0
+
+Var(α(η0 )) =
+
+We can write Var(α(η)) as a second moment of a random variable as follows
+Var(α(η0 )) = E[dSη0 ](E[Sη Sη0 ])−1 E[Sη d0 ]
+
+
+= E E[dSη0 ](E[Sη Sη0 ])−1 Sη Sη0 (E[Sη Sη0 ])−1 E[Sη d0 ]
+= E[dη d0η ]
+Note that dη is mean-zero since
+
+
+E[dη ] = E E[dSη0 ](E[Sη Sη0 ])−1 Sη ]
+= E[dSη0 ](E[Sη Sη0 ])−1 E[Sη ]
+=0
+19
+
+This is useful because the Cramer-Rao bound of α under a parametric submodel equals the variance
+of dη . Note further from the definition of dη that it is the linear projection of pathwise-derivative d on
+score Sη . Therefore, the largest value of this projection can be obtained by considering the projection
+space as the scores corresponding to all parametric submodels. To formalize this, we next define the
+tangent set:
+Definition 9 (Tangent Set). Define the tangent set T to be the mean square closure of all qdimensional linear combinations of scores Sη for smooth parametric submodels:
+T = {s ∈
+
+R : E[ksk2] ≤ ∞,
+
+∃Aj Sηj
+
+with
+
+lim E[ks − Aj Sηj k2 ] = 0}
+
+j→∞
+
+The projection of d on the tangent set should have a larger variance than any particular submodel,
+suggesting that the projection should give the semi-parametric efficiency bound. The mathematical
+meaning of this projection on the tangent set is a least-squares projection in a Hilbert space of random
+vectors. This projection is defined as:
+δ∈T,
+
+E[(d − δ)s] = 0
+
+for all s ∈ T
+
+If T is linear, then δ exists and unique. It is called the efficient score because it equals the efficient
+influence function in asymptotically linear estimators.
+Theorem 10 ([16], Theorem 3.1). Suppose that the parameter is differentiable, T is linear, and
+E[δδ 0 ] is nonsingular, for the projection δ of d on T . Then semi-parametric efficiency bound equals
+E[δδ 0 ].
+
+D
+
+Proof of Theorem 2
+
+Proof. We follow the steps outlined in Section (C.2) to calculate the semi-parametric efficiency
+bound of the parameter of interest:
+α := E[hθ0 (z), φ(π(z), z)i]
+
+(48)
+
+Let f (y, a | z) and f (z) denote the conditional distribution of (y, a) given z and the marginal
+distribution of z, respectively. The density of data (y, a, z) is then equal to:
+f (y, a, z) = f (y, a | z)f (z)
+We consider a regular parametric submodel, parameterized by η, to calculate the pathwise derivative
+of α(η):
+f (y, a, z; η) = f (y, a | z; η)f (z; η)
+The corresponding scores for the parametric submodel is given by:
+sη (y, a, z; η) = sη (y, a | z; η) + sη (z; η)
+where sη (y, a, z; η) = 2
+
+fη (y, a, z; η)
+, and other scores are defined similarly.
+f (y, a, z; η)
+
+Under the parametric submodel α can be written as:
+ˆ
+α(η) = hθ(z; η), φ(π(z), z)if (z; η)dz
+
+(49)
+
+The first step in semi-parametric efficiency bound derivation is to show that α(η) is pathwise
+differentiable, i.e. there exists d(y, a, z; η0 ) such that
+∂α(η)
+= E[d(y, a, z; η)Sη (y, a, z; η)]
+∂η
+Let η0 denote the true parameter value in the sense that f (y, a, z; η0 ) corresponds to the density of
+the data. To show pathwise differentiability, we differentiate Equation (49) under the integral sign
+and evaluate at η = η0 :
+
+ˆ 
+ˆ
+∂α(η0 )
+∂θ(z; η0 )
+∂f (z; η0 )
+=
+, φ(π(z), z) f (z; η0 )dz + hθ0 (z; η0 ), φ(π(z), z)i
+dz (50)
+∂η
+∂η
+∂η
+
+
+∂θ(z; η0 )
+=E
+, φ(π(z), z)
++ E[hθ(z; η0 ), φ(π(z), z)isη (z; η0 )]
+(51)
+∂η
+20
+
+To calculate ∂θ(z; η0 )/∂η inside the expectations we use the first order conditions of the linear
+projection:
+E [ (y − hθ0 (z), φ(a, z)i)φ(a, z) | z] = 0
+
+ˆ
+
+(y − hθ(z; η0 ), φ(a, z)i)φi (a, z)f (y, a | z; η0 )dyda = 0
+Taking the derivative under the integral sign and evaluating at η0 for all i:
+ 
+
+∂θ(z; η0 )
+E
+, φ(a, z)φ(a, z)T | z + E[(y − hθ(z; η0 ), φ(a, z)i)φ(a, z)sη (y, a | z, η0 ) | z] = 0
+∂η
+Solving for ∂θ(z; η0 )/∂η
+
+
+∂θ(z; η0 )/∂η = E Σ(z)−1 φ(a, z)(y − hθ(z; η0 ), φ(a, z)i)sη (y, a | z; η0 ) | z
+Substituting this into Equation (51):
+
+
+
+∂α(η0 )
+= E Σ0 (z)−1 φ(a, z)(y − hθ0 (z), φ(a, z)i), φ(π(z), z)i sη (y, a | z; η0 ) +
+(52)
+∂η
+E[hθ0 (z), φ(π(z), z)isη (z; η0 )]
+
+
+
+= E hθ0 (z) + Σ0 (z)−1 φ(a, z)(y − hθ0 (z), φ(a, z)i), φ(π(z), z)i − α(η0 ) (sη (y, a | z, η0 ) + sη (z; η0 ))
+= E [d(y, a, z; η0 ) (sη (y, a | z; η0 ) + sη (z; η0 ))]
+= E [d(y, a, z; η0 ) (sη (y, a | z; η0 ))]
+
+(53)
+
+The second line follows because:
+E[hθ0 (z), φ(π(z), z)isη (y, a | z, η0 )] = E[hθ0 (z), φ(π(z), z)iE[sη (y, a | z, η0 ) | z]] = 0
+E[α(η0 )sη (z; η0 )] = α(η0 )E[sη (z; η0 )] = 0
+and
+E[hΣ0 (z)−1 φ(a, z)(y − hθ0 (z), φ(a, z)i), φ(π(z), z)isη (z; η0 )] = 0
+Subtracting α(η0 ) in the second line makes the pathwise derivative mean zero, which will prove
+useful later when projecting d(y, a, z; η0 ) on the tangent set.
+Since Equation (52) satisfies the condition given in the defition of pathwise differentiability, the
+pathwise derivative of α(η) is:
+
+d(y, a, z; η0 ) = hθ0 (z) + Σ0 (z)−1 φ(a, z)(y − hθ0 (z), φ(a, z)i), φ(π(z), z)i − α
+The semi-parametric efficiency bound for α is the variance of the projection of d(y, a, z; η0 ) onto the
+tangent space defined as the closed linear span of the scores:
+T = {s(y, a | z) + s(z)}
+Note that the joint distribution is unrestricted so the only restrictions on the score functions are
+E[s(y, x | z) | z] = 0 and E[s(z)] = 0 and they are smooth.
+Next, we show that the pathwise derivative is already in the tangent set d(y, a, z; η0 ) ∈ T . To see
+this we can write d(y, a, z; η0 ) as the sum of two functions:
+
+
+d(y, a, z; η0 ) = Σ0 (z)−1 φ(a, z)(y − hθ0 (z), φ(a, z)i), φ(π(z), z)i + hθ0 (z), φ(π(z), z)i − α
+The first component is mean independent of z:
+E[hΣ0 (z)−1 φ(a, z)(y − hθ0 (z), φ(a, z)i), φ(π(z), z)i | z] = 0
+The second component is function of only z and has zero mean:
+E[hθ0 (z), φ(π(z), z)i − α] = 0
+Therefore, the pathwise derivative equals the sum of two functions that satisfy the restrictions on
+score functions in the tangent set, namely, E[s(y, x | z) | z] = 0 and E[s(z)] = 0. From this, we
+21
+
+conclude that d(y, a, z; η0 ) is in the tangent set; so the projection of d(y, a, z; η0 ) onto T is equal to
+itself.
+Therefore, the efficiency bound for α is:
+Vef f (α) = V ar(d(y, a, z; η0 ))
+= V ar(vDR (y, a, z; π))
+Therefore, the doubly robust estimator, vDR (y, a, z; π), achieves the semi-parametric efficiency
+bound. This result extends to the difference of value functions by linearity of pathwise derivative.
+To investigate the semi-parametric efficiency bound under the correct specification we use a result
+from [4] who shows that under the correct specification the efficiency bound is:
+
+c
+Vef
+f (α) = V ar hθ0 (z), φ(π(z), z)i
+
+
++ E φ(π(z), z)E[φ(a, z)E[2 | a, z]−1 φ(a, z)0 | z]−1 φ(π(z), z)T
+where  = (y − hθ0 (z), φ(a, z)i) is defined as residuals.
+Under the homoskedastivity assumption, E[2 | a, z] = σ 2 , this efficiency bound becomes:
+
+c
+Vef
+f (α) = V ar hθ0 (z), φ(π(z), z)i +
+
+
+σ 2 E φ(π(z), z)E[φ(a, z)φ(a, z)0 | z]−1 φ(π(z), z)T
+
+
+
+= V ar hθ0 (z), φ(π(z), z)i + σ 2 E φ(π(z), z)Σ0 (z)−1 φ(π(z), z)T
+which is equal to the variance of the doubly robust estimator:
+
+Vef f (α) = V ar hθ0 (z), φ(π(z), z)i +
+
+
+E φ(π(z), z)E[Σ0 (z)−1 φ(a, z)2 φ(a, z)0 Σ(z)−1 | z]φ(π(z), z)T
+
+= V ar hθ0 (z), φ(π(z), z)i +
+
+
+σ 2 E φ(π(z), z)Σ0 (z)−1 E[φ(a, z)φ(a, z)0 | z]Σ(z)−1 φ(π(z), z)T
+
+= V ar hθ0 (z), φ(π(z), z)i +
+
+
+σ 2 E φ(π(z), z)Σ0 (z)−1 Σ0 (z)−1 Σ0 (z)−1 φ(π(z), z)T
+
+
+
+= V ar hθ0 (z), φ(π(z), z)i + σ 2 E φ(π(z), z)Σ0 (z)−1 φ(π(z), z)T
+= V ar(vDR (y, a, z; π))
+
+E
+
+Double Robustness Property of Policy Estimator
+
+Theorem 11 (Double Robustness). VDR (π) is an unbiased estimate of V0 (π(z), z) if for all z, either
+ES1 ∼Dn/2 [θ̂(z)] = θ0 (z) or ES1 ∼Dn/2 [Σ̂(z)−1 ] = Σ0 (z)−1 , where expectation is taken over the
+randomness of the nuisance estimation sample S1 .
+Proof. Let θ̄(z) = ES1 ∼Dn/2 [θ̂(z)] and Σ̄−1 (z) = ES1 ∼Dn/2 [Σ̂(z)−1 ], be the expected value of the
+estimates at any input z, where the expectation is with respect to the randomness on the half-split of
+n/2 samples that were used for training the estimates. Due to sample-splitting and cross-fitting, the
+expected value of the doubly robust policy estimate can be written as:
+
+
+E[VDR (π)] = E θ̄(z) + Σ̄(z)−1 φ(a, z) (y − hθ̄(z), φ(a, z)i), φ(π(z), z)
+(54)
+where the random variables (y, a, z) are a fresh independent draw of the data generating process that
+generated the observational data.
+Observe that y is an unbiased estimate of V (a, z) conditional on z. Moreover, since θ0 (z) is the
+minimizer of the conditional squared loss, taking the first order condition implies:
+E[(V0 (a, z) − hθ0 (z), φ(a, z)i)φ(a, z) | z] = 0 ⇐⇒
+E[y φ(a, z) | z] = E[hθ0 (z), φ(a, z)i) φ(a, z) | z]
+22
+
+Thus we can re-write the expected value of the doubly robust policy estimate as:
+
+
+E[VDR (π)] = E θ̄(z) + Σ̄(z)−1 φ(a, z) (Y − hθ̄(z), φ(a, z)i), φ(π(z), z)
+
+
+= E θ̄(z) + Σ̄(z)−1 φ(a, z) hθ0 (z) − θ̄(z), φ(a, z)i, φ(π(z), z)
+
+
+= E θ̄(z) + Σ̄(z)−1 φ(a, z)φ(a, z)T (θ0 (z) − θ̄(z)), φ(π(z), z)
+
+
+= E θ̄(z) + Σ̄(z)−1 E[φ(a, z)φ(a, z)T | z](θ0 (z) − θ̄(z)), φ(π(z), z)
+
+
+= E θ̄(z) + Σ̄(z)−1 Σ0 (z)(θ0 (z) − θ̄(z)), φ(π(z), z)
+
+
+= E θ̄(z) + Σ̄(z)−1 Σ0 (z)(θ0 (z) − θ̄(z)), φ(π(z), z)
+Hence we have:
+E[VDR (π)] − V0 (π) = E
+
+
+
+
+
+
+Σ̄(z)−1 Σ0 (z) − I θ0 (z) − θ̄(z) , φ(π(z), z)
+
+The right hand side is zero if either θ̄(z) = θ0 (z) or if Σ̄(z)−1 = Σ0 (z).
+
+F
+
+Lipschitz Variogram Settings and Binary Treatment
+
+0
+For simplicity of notation, we let v(x; π) = vDR
+(x; π) and π∗ = π∗0 throughout this section, as the
+results are not specific to the doubly robust value function. Suppose that the value function of the
+policy learning problem has the following self-bounded Lipschitz property:
+
+Var(v(x; π)) − C Var(v(x; π∗ )) ≤ L |E[v(x; π)] − E[v(x; π∗ )]| = L(V (π∗ ) − V (π))
+for some constants C, L, i.e. if a policy has value close to the optimal policy, the it does not have
+much larger variance. Then we have that:
+Var(v(x; π) − v(x; π)) ≤
+
+sup
+π,π 0 ∈Π∗ (n )
+
+sup
+
+4 Var(v(x; π))
+
+π∈Π∗ (n )
+
+≤ 4C Var(v(x; π∗ )) + 4 L
+
+sup (V (π) − V (π∗ ))
+π∈Π∗ (n )
+
+≤ 4C Var(v(x; π∗ )) +4 L n
+|
+{z
+}
+V∗
+
+Thus we get regret rates of the form:
+r
+
+V∗ log(1/δ)
+1
++ n √
+n
+n
+!
+r
+p
+V∗ log(1/δ)
+= O κ(2 C V∗ , FΠ ) +
+n
+
+!
+
+p
+V (π∗ ) − V (π2 ) = O κ(2 C V∗ , FΠ ) +
+
+since n = o(1).
+Example 3 (Binary Treatment). In the case of binary treatment, the loss took the form:
+v(x; π) = Γ(z) · (2π(z) − 1)
+
+(55)
+
+with π : Z → {0, 1}. In this case observe that the self-bounded property is satisfied since:
+Var(v(x; π)) = E[v(x; π)2 ] − E[v(x; π)]2
+= E[Γ(z)2 (2π(z) − 1)2 ] − V (π)2
+= E[Γ(z)2 ] − V (π)2
+Where the latter property holds since (2π(z) − 1)2 = 1 irrespective of π(z). Thus the first part in the
+variance is independent of the policy, which is the crucial special property of the binary treatment
+case. This leads to the fact that:
+Var(v(x; π)) − Var(v(x; π∗ )) = V (π∗ )2 − V (π)2 ≤ 2 |V (π) − V (π∗ )|
+
+(56)
+
+Hence, the self-boundedness property holds with C = 1 and L = 2. Thus for the binary treatment
+setting we can achieve a regret rate whose leading term only depends on the semi-parametric efficient
+variance of the optimal policy.
+23
+
+As a concrete example, consider the case when the class FΠ is a VC-subgraph class of VC dimension d, and let Sn = En [supπ v(x; π)2 ] = En [Γ(z)2 ]. Then Theorem 2.6.7 of [22] shows that:
+H2 (, FΠ , n) = O(d(1 + log(Sn /))). This implies that
+ˆ r
+
+ √ p
+
+p
+κ(r, FΠ ) = O
+d(1 + log(Sn /))d = O r d 1 + log(S/r) .
+0
+
+Moreover, by Markov’s inequality w.p. 1−δ, Sn ≤ E[Sn ]/δ = E[supπ v(x; π)2 ]/δ = E[Γ(z)2 ]/δ :=
+S/δ. Hence, we can conclude that w.p. 1 − δ:
+!
+r
+r
+p
+d
+log(1/δ) d(1 + log(S/r)) log(1/δ)
+V (π∗ ) − V (π2 ) = O r 1 + log(S/r)
++r
++
+.
+n
+n
+n
+n
+Combining all the above we get a bound of the form (excluding lower order terms):
+!
+r
+r
+p
+d
+V∗ log(1/δ)
+V∗ (1 + log(S/V∗ ))
+.
++
+V (π∗ ) − V (π2 ) = O
+n
+n
+which recovers the result of [1] for binary treatments up to constants.
+
+G
+G.1
+
+Doubly Robust Estimators in Pricing Experiment
+Linear Model
+
+We want to estimate some regression models of a(z) and b(z) in the demand model. For instance,
+if these fall in some high-dimensional linear function class, we can estimate a regression between
+demand and the linear function class. Moreover, we need to estimate the covariance matrix, which in
+this case takes the simple form:
+
+
+1
+E[p | z]
+Σ0 (z) =
+(57)
+E[p | z] E[p2 | z]
+whose inverse takes the form:
+
+
+1
+E[p2 | z] −E[p | z]
+1
+Var(p | z) −E[p | z]
+
+Σ0 (z)−1 =
+
+(58)
+
+If for instance the observational policy was homoskedastic (i.e. the exploration component was
+independent of the context z), then Var(p | z) is a constant σ 2 independent of z. Moreover, we can
+write:
+E[p2 | z] = σ 2 + E[p | z]2
+(59)
+Thus we only need to estimate the mean treatment policy g(z) = E[p | z] and the variance σ 2 . Then
+the doubly robust estimate of a(z) takes the form:
+
+
+ĝ(z) − p
+aDR (z) = â(z) + 1 + ĝ(z)
+(d − â(z) − b̂(z) p)
+σ̂ 2
+p − ĝ(z)
+bDR (z) = b̂(z) +
+(d − â(z) − b̂(z) p)
+σ̂ 2
+G.2
+
+Quadratic Model
+
+In the case where we observe the revenue our model becomes quadratic in prices
+r = a(z)x − b(z)x2 + 
+The covariance matrix takes the form:
+ 2
+
+E[p | z] E[p3 | z]
+Σ0 (z) =
+E[p3 | z] E[p4 | z]
+whose inverse is:
+Σ0 (z)−1 =
+
+
+1
+E[p4 | z]
+4
+2
+3
+3
+E[p | z]E[p | z] − E[p | z] −E[p3 | z]
+24
+
+
+−E[p3 | z]
+E[p2 | z]
+
+Let µk (z) denote E[pk | z]. If the observational policy was homoskedastic and none of the central
+moments of price depends on z, using the recursive structure, the nuisance functions in the covariance
+matrix can be written as
+µ2 (z) = µc2 + µ1 (z)2
+µ3 (z) = µc3 + 3µ2 (z)µ1 (z) − 2µ1 (z)3
+µ4 (z) = µc4 + 4µ3 (z)µ1 (z) − 6µ1 (z)µ2 (z) + 3µ1 (z)4
+where µck denotes the k-th central moment of p. Therefore, we only need to estimate the mean
+treatment policy µ1 (z) and the central moments µc2 , µc3 and µc4 . Then, the doubly robust estimate of
+a(z) and b(z) take the form:
+
+
+µ4 (z)p − µ3 (z)p2
+(d − â(z)p − b̂(z) p2 )
+aDR (z) = â(z) +
+µ4 (z)µ2 (z) − µ3 (z)2
+
+
+µ2 (z)p2 − µ3 (z)p
+bDR (z) = b̂(z) +
+(d − â(z)p − b̂(z) p2 )
+µ4 (z)µ2 (z) − µ3 (z)2
+
+H
+
+Additional Experiment Results
+7.6
+
+2.8
+3.7
+●
+
+●
+
+●
+
+●
+
+4.5
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+2.7
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+Value
+
+●
+●
+
+Value
+
+Value
+
+●
+
+●
+●
+
+Value
+
+●
+
+●
+●
+
+3.6
+
+●
+
+●
+
+7.5
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+7.4
+
+4.4
+
+2.6
+
+3.5
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+5.0
+
+●
+
+●
+
+●
+
+●
+
+5.9
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+5.8
+
+1000
+
+10.1
+
+3.9
+●
+
+3.8
+
+2000
+
+5000
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+1000
+
+2000
+
+5000
+
+1000
+
+2000
+
+5000
+
+10000
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+1000
+
+2000
+
+5000
+
+10000
+
+2.3
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+4.0
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+3.9
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+1.90
+
+●
+
+●
+
+●
+
+1.4
+
+●
+
+2.2
+
+Value
+
+●
+
+●
+
+●
+
+Value
+
+●
+
+Value
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+4.1
+1.5
+
+●
+
+●
+●
+
+9.8
+
+10000
+
+2.10
+
+●
+
+●
+
+●
+●
+
+10.0
+
+3.5
+
+10000
+
+1.95
+
+10000
+
+9.9
+
+●
+
+2.4
+
+2.05
+
+5000
+
+●
+
+3.6
+
+5.6
+1000
+
+2.15
+
+2000
+
+10.2
+
+3.7
+5.7
+
+4.6
+
+Value
+
+10000
+
+Value
+
+●
+●
+
+●
+
+●
+
+4.7
+
+2.00
+
+5000
+
+4.0
+
+Value
+
+Value
+
+●
+
+●
+
+Value
+
+●
+
+●
+
+4.8
+
+2000
+
+4.1
+6.0
+
+4.9
+
+3.8
+
+1.3
+3.7
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+2.70
+4.40
+
+3.60
+
+7.30
+2.65
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+4.35
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+4.30
+
+●
+
+2.60
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+7.25
+●
+
+●
+
+●
+●
+
+Value
+
+●
+●
+
+Value
+
+●
+
+●
+●
+
+3.50
+
+Value
+
+Value
+
+3.55
+
+2.55
+3.45
+
+2.50
+3.40
+
+●
+
+●
+●
+
+7.20
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+7.15
+
+4.25
+
+7.10
+
+4.20
+2.45
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+●
+
+10000
+
+Direct
+
+1000
+
+Doubly Robust
+
+●
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+Oracle
+
+●
+
+(a) Policy Evaluation
+2.0
+
+0.04
+0.06
+
+0.02
+
+●
+
+●
+
+1000
+
+1.0
+
+●
+
+●
+
+●
+
+2000
+
+●
+
+5000
+
+●
+
+●
+
+●
+
+●
+
+0.00
+
+10000
+
+●
+
+1000
+
+●
+
+●
+
+●
+
+●
+
+●
+
+2000
+
+0.02
+
+0.01
+
+0.5
+●
+
+●
+●
+
+0.00
+
+0.03
+
+1.5
+
+●
+
+●
+
+0.01
+
+●
+
+0.04
+
+Regret
+
+●
+
+0.02
+
+Regret
+
+Regret
+
+Regret
+
+0.03
+
+●
+
+●
+
+●
+
+5000
+
+●
+
+●
+
+0.0
+
+●
+
+10000
+
+●
+●
+
+●
+
+1000
+
+●
+
+●
+
+2000
+
+●
+
+5000
+
+●
+
+●
+●
+
+0.00
+
+●
+
+10000
+
+●
+
+●
+
+1000
+
+2.0
+
+●
+
+●
+
+2000
+
+●
+
+●
+
+5000
+
+●
+
+●
+
+●
+
+10000
+
+0.05
+
+0.075
+
+●
+
+1000
+
+2000
+
+5000
+
+●
+
+●
+
+10000
+
+2000
+
+●
+
+●
+
+●
+
+5000
+
+Direct
+
+●
+
+●
+
+●
+
+●
+
+0.0
+
+10000
+
+●
+
+0.02
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+0.03
+
+0.01
+
+●
+
+●
+
+0.000
+1000
+
+●
+
+0.5
+
+●
+●
+●
+
+●
+
+1.0
+
+Regret
+
+●
+
+●
+
+●
+●
+●
+
+0.00
+
+0.050
+
+0.025
+
+●
+
+●
+
+Regret
+
+●
+●
+
+0.04
+
+1.5
+
+●
+●
+
+0.02
+
+Regret
+
+Regret
+
+0.04
+
+1000
+
+Doubly Robust
+
+●
+●
+
+2000
+
+●
+
+●
+
+5000
+
+●
+
+●
+
+●
+
+●
+
+10000
+
+●
+
+●
+●
+●
+
+0.00
+1000
+
+2000
+
+5000
+
+●
+
+●
+
+●
+
+10000
+
+Oracle
+
+(b) Regret
+
+Figure 4: Linear, High Dimensional Regime: (a) Black line shows the true value of the policy, and
+each line shows the mean and standard deviation of the policy over 100 simulations. (b) each line
+shows the mean and standard deviation of the value of the corresponding policy over 100 simulations.
+We omit the results for the inverse propensity score method since they are too large to report together
+with the other estimates in the high dimensional regime.
+
+25
+
+2.8
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+4.5
+
+●
+
+3.6
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+3.0
+
+●
+●
+
+7.6
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+4.0
+
+2.0
+●
+
+3.5
+
+●
+
+●
+
+●
+
+2.8
+2000
+
+5000
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+6.8
+
+●
+●
+
+●
+
+1.6
+
+6.4
+
+3.0
+1000
+
+●
+
+7.2
+
+●
+
+Value
+
+●
+
+3.2
+
+Value
+
+Value
+
+Value
+
+●
+
+2.4
+
+3.4
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+8
+5
+
+●
+●
+
+●
+
+●
+
+6
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+5
+
+●
+●
+
+2000
+
+●
+
+●
+
+10000
+
+●
+
+9
+
+●
+
+2.25
+
+2000
+
+5000
+
+10000
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+1000
+
+2000
+
+10000
+
+●
+
+●
+
+●
+
+●
+
+●
+
+1.3
+
+5000
+
+●
+
+●
+
+●
+
+1000
+
+4.00
+
+●
+
+●
+
+1.1
+●
+
+●
+
+1.75
+
+●
+
+10000
+
+●
+
+●
+
+●
+
+3.75
+
+●
+
+●
+
+●
+●
+●
+
+●
+
+0.9
+
+●
+
+●
+
+5000
+
+●
+●
+
+Value
+
+●
+
+2.00
+
+Value
+
+●
+
+2000
+
+●
+
+●
+
+●
+
+1.8
+
+●
+
+●
+●
+●
+
+2
+1000
+
+●
+
+●
+
+●
+
+●
+
+10
+
+●
+
+●
+
+●
+
+●
+
+Value
+
+Value
+
+5000
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+1000
+
+●
+
+●
+
+●
+
+●
+
+4
+
+2.0
+
+●
+●
+
+4
+
+3
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+Value
+
+Value
+
+●
+
+●
+
+●
+
+4
+
+●
+
+11
+
+●
+
+●
+
+5
+
+●
+
+●
+
+●
+
+7
+
+●
+
+Value
+
+●
+
+Value
+
+6
+
+1.6
+
+3.50
+
+●
+
+●
+
+1.50
+1000
+
+3.6
+
+2000
+
+●
+
+5000
+
+●
+
+●
+
+●
+
+●
+
+10000
+
+●
+
+●
+
+1000
+
+4.4
+
+●
+
+2000
+
+●
+
+●
+
+●
+
+5000
+
+●
+
+10000
+
+●
+
+●
+
+●
+
+1000
+
+●
+
+5000
+
+●
+
+●
+
+●
+
+●
+
+●
+
+3.4
+
+2.4
+
+4.0
+
+10000
+
+●
+
+●
+
+2000
+
+●
+
+5000
+
+●
+
+●
+
+●
+
+●
+
+10000
+
+●
+
+●
+
+●
+
+7.0
+
+●
+
+3.6
+●
+
+●
+
+Value
+
+Value
+
+●
+●
+
+3.0
+
+2.0
+●
+
+●
+●
+●
+
+6.5
+
+●
+
+2.8
+
+1000
+
+●
+
+●
+
+●
+
+3.2
+
+Value
+
+Value
+
+2000
+
+3.2
+
+●
+
+●
+
+1.6
+
+●
+
+●
+
+2.6
+1000
+
+2000
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+●
+
+Direct
+
+10000
+
+●
+
+1000
+
+Doubly Robust
+
+2000
+
+●
+
+5000
+
+10000
+
+1000
+
+2000
+
+5000
+
+10000
+
+Oracle
+
+(a) Policy Evaluation
+
+Figure 5: Quadratic, High Dimensional Regime: (a) Black line shows the true value of the policy,
+and each line shows the mean and standard deviation of the policy over 100 simulations. (b) each line
+shows the mean and standard deviation of the value of the corresponding policy over 100 simulations.
+We omit the results for the inverse propensity score method since they are too large to report together
+with the other estimates in the high dimensional regime.
+
+26
+
+

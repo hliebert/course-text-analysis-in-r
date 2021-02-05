@@ -1,0 +1,2950 @@
+Journal of Business & Economic Statistics
+
+ISSN: 0735-0015 (Print) 1537-2707 (Online) Journal homepage: https://www.tandfonline.com/loi/ubes20
+
+External Validity in Fuzzy Regression Discontinuity
+Designs
+Marinho Bertanha & Guido W. Imbens
+To cite this article: Marinho Bertanha & Guido W. Imbens (2019): External Validity in
+Fuzzy Regression Discontinuity Designs, Journal of Business & Economic Statistics, DOI:
+10.1080/07350015.2018.1546590
+To link to this article: https://doi.org/10.1080/07350015.2018.1546590
+
+Published online: 02 Apr 2019.
+
+Submit your article to this journal
+
+Article views: 387
+
+View related articles
+
+View Crossmark data
+
+Full Terms & Conditions of access and use can be found at
+https://www.tandfonline.com/action/journalInformation?journalCode=ubes20
+
+External Validity in Fuzzy Regression
+Discontinuity Designs
+Marinho B ERTANHA
+Department of Economics, University of Notre Dame, Notre Dame IN 46556 (mbertanha@nd.edu )
+
+Guido W. I MBENS
+Graduate School of Business and Department of Economics, Stanford University, Stanford, CA 94305
+NBER, Cambridge, MA 02138 (imbens@stanford.edu )
+Fuzzy regression discontinuity designs identify the local average treatment effect (LATE) for the subpopulation of compliers, and with forcing variable equal to the threshold. We develop methods that assess
+the external validity of LATE to other compliance groups at the threshold, and allow for identification
+away from the threshold. Specifically, we focus on the equality of outcome distributions between treated
+compliers and always-takers, and between untreated compliers and never-takers. These equalities imply
+continuity of expected outcomes conditional on both the forcing variable and the treatment status. We
+recommend that researchers plot these conditional expectations and test for discontinuities at the threshold
+to assess external validity. We provide new commands in STATA and MATLAB to implement our
+proposed procedures.
+KEY WORDS: Exogeneity; External validity; Fuzzy regression discontinuity designs; Potential outcomes; Treatment effects
+
+1.
+
+INTRODUCTION
+
+untreated individuals on both sides of the threshold. We draw
+an analogy between testing for external validity and testing for
+exogeneity of treatment participation. If compliance is independent of potential outcomes, so is treatment participation,
+and thus external validity is related to exogeneity of treatment.
+In regression models of outcomes on treatment participation
+with constant treatment effects across individuals, exogeneity
+is typically assessed with the Hausman test (Hausman, 1978).
+Angrist (2004) discusses the interpretation of the Hausman test
+in models with heterogeneous effects, and proposes a more
+attractive test for exogeneity of treatment participation. In the
+FRD setting, equality of distribution of outcomes for nevertakers and untreated compliers has been previously explored in
+an important article by Battistin and Rettore (2008).
+In this article, we extend the Hausman and Angrist tests to
+the nonparametric FRD setting, and we propose an alternative
+test. The Hausman test of exogeneity compares the limits of
+the ordinary least-squares (OLS) and instrumental variables
+(IV) estimators in parametric models. The nonparametric FRD
+estimator is analogous to the IV estimator applied to a regression of outcomes on treatment participation using observations
+near the threshold; treatment eligibility (i.e., forcing variable
+above or below threshold) serves as an instrument for treatment
+participation. By the same principle, the analog of the OLS
+estimator is a local least-squares regression of outcomes on
+treatment participation using observations near the threshold.
+
+In empirical studies in economics and other social sciences,
+researchers are often concerned about the possible endogeneity
+of variables of interest. Recently, many studies address these
+concerns using regression discontinuity (RD) designs, originally developed in the psychology literature by Thistlewaite
+and Campbell (1960). See Imbens and Lemieux (2008), Van
+Der Klaauw (2008), and Lee and Lemieux (2010) for recent
+surveys, and Cook (2008) for a historical perspective. In sharp
+regression discontinuity (SRD) settings, treatment is received
+if and only if the (pretreatment) forcing variable is on the
+right (or left) of a fixed policy threshold. In Fuzzy regression
+discontinuity (FRD) settings, the probability of receiving the
+treatment changes discontinuously at this threshold. Hahn,
+Todd, and Van Der Klaauw (2001, HTV from hereon) show
+identification of a local average treatment effect under mild
+smoothness conditions and propose an estimator. This local
+average treatment effect (LATE) is the effect on the subpopulation of compliers with forcing variable equal to the threshold.1
+However, researchers are often interested in average treatment
+effects for subpopulations other than compliers.
+In the current article, we study the implications of “external validity” defined as the independence between potential
+outcomes and compliance types. External validity implies that
+the average effect on compliers at the threshold is equal to
+the average effect on the subpopulations of always-takers and
+never-takers at the threshold. It also implies identification
+of average effects for subpopulations with forcing variable
+different from the threshold because FRD has treated and
+
+c 2019 American Statistical Association
+
+Journal of Business & Economic Statistics
+XXXX, 2019, Vol. 00, No. 0
+DOI: 10.1080/07350015.2018.1546590
+Color versions of one or more of the figures in the article can be
+found online at www.tandfonline.com/r/jbes.
+
+1
+
+We use the compliance terminology of Imbens and Angrist (1994) extended to
+the FRD case by HTV.
+
+1
+
+2
+
+We show that equality of the limits of local OLS and local IV
+estimators is equivalent to a linear relationship among average
+outcomes of always-takers, compliers and never-takers with adhoc weights. Thus, the null hypothesis implied by the Hausman
+test is unattractive and difficult to interpret in FRD settings.
+Angrist’s improved version of the Hausman test compares
+two differences of average outcomes: treated compliers minus
+untreated compliers to always-takers minus never-takers. Both
+the Hausman and the Angrist methods only test one restriction
+involving all four average outcomes that are identified, that is,
+treated compliers and always-takers, and untreated compliers
+and never-takers. Therefore, tests of two restrictions involving
+the four average outcomes better assess external validity than
+tests based on a single restriction.
+Our first point is that researchers should test jointly for
+the following pair of restrictions: (i) equality between the
+average outcome of always-takers and treated compliers at the
+threshold; (ii) equality between the average outcome for nevertakers and untreated compliers at the threshold. If either one
+of the restrictions (i) and (ii) fails, external validity does not
+hold. Failing to reject (i) and (ii) lends support to external
+validity. Our second point is that the pair of restrictions (i) and
+(ii) is equivalent to continuity of the conditional expectation
+of the outcome as a function of the forcing variable at the
+threshold, separately for each of the two treatment regimes.
+Our first recommendation to the current practice of FRD
+is to look for discontinuities in those two conditional mean
+graphs. The second recommendation is to test formally the null
+hypothesis that both graphs are continuous at the threshold. In
+case pretreatment covariates other than the forcing variable are
+available, we propose a practical method to control for these
+covariates in order to balance observed characteristics across
+compliance types.
+The idea of comparing distributions of potential outcomes
+across compliance types is not new. It appears under different
+motivations in the conventional IV setting such as testing for
+selection on observables, homogeneity of treatment effects,
+exogeneity of treatment, and conditional effect ignorability.
+See, for example, Angrist and Fernandez-Val (2010), Huber and
+Mellace (2015), Angrist et al. (2016), Battistin, De Nadai, and
+Vuri (2017), and Black et al. (2017). In the context of RD, there
+have been a number of alternative proposals for assessing and
+improving the external validity of estimates. In a key article,
+Battistin and Rettore (2008) proposed a test of selection on
+observables in FRD with pretreatment covariates. They derive
+one testable restriction which is continuity of the expected outcome conditional on the forcing variable, pretreatment covariates, and no treatment participation as a function of the forcing
+variable. The main contribution of our article is to formalize
+a joint test of the two testable restrictions of external validity
+in the context of FRD with or without pretreatment covariates.
+Computation of nonparametric estimates may be difficult in the
+case with pretreatment covariates because it requires additional
+tuning parameters and presents low convergence rates. Under
+a flexible functional form assumption, we circumvent these
+difficulties and provide tests that are easily implementable with
+existing RD software tools.
+Other RD methods focus on extrapolating the average effect
+away from the threshold. Recent work has used data variation in
+
+Journal of Business & Economic Statistics, XXXX 2019
+
+the value of the threshold to identify treatment effects for other
+values of the forcing variable. See, for example, Cattaneo et al.
+(2016) and Bertanha (2017). In the setting with one threshold,
+Dong and Lewbel (2015) provided inference procedures for
+the discontinuity in the first and higher order derivatives of
+the regression function at the threshold. Under smoothness
+conditions, knowledge of the higher order derivatives allows
+extrapolation of the local effect away from the threshold. The
+Dong and Lewbel methods apply to both SRD and FRD cases
+without requiring the presence of additional covariates. Angrist
+and Rokkanen (2015) exploited the presence of pretreatment
+covariates, and assess whether conditional on these covariates
+the dependence between the forcing variable and outcome vanishes. Similarly, Rokkanen (2015) used pretreatment covariates
+along with the forcing variable as noisy measures of a latent
+factor. The distribution of outcomes is then assumed to be
+independent of the forcing variable after conditioning on this
+latent factor. In both cases, the assignment can be thought of
+as good as random conditional on the additional covariates
+or latent factors, and average effects at the cutoff become
+constant across different values of the forcing variable after
+conditioning. The Angrist–Rokkanen methods apply to both the
+SRD and FRD cases. These approaches are all complementary
+to ours. In contrast to the Dong-Lewbel and Angrist-Rokkanen
+methods, our approach requires the RD to be fuzzy rather than
+sharp. Unlike the Angrist-Rokkanen methods, our approach
+does not require additional covariates, although it is more
+powerful if covariates are available.
+The remainder of this article is organized as follows. In
+Section 2, we introduce the notation for the FRD setting, define
+parameters of interest, and state regularity and identification
+conditions. Section 3 discusses methods to assess the plausibility of external validity in the simplest setting with one
+pretreatment variable, that is, the forcing variate. In Section 4,
+we extend the analysis to settings with additional covariates.
+Section 5 illustrates our proposed methods with two datasets
+previously used by Jacob and and Lefgren (2004) and 2008
+to estimate the effect of summer school programs on academic
+performance. Section 6 concludes. An appendix presents all the
+proofs and additional robustness checks of our estimates. We
+provide new commands in STATA and MATLAB that compute
+the estimates, standard errors, and test statistics proposed by
+this article.2
+2.
+
+SETUP
+
+In this section, we set up the framework for analyzing FRDs.
+We follow the widely used Rubin Causal Model or Potential
+Outcome setup extended to the FRD by HTV. Recent theoretical contributions include Porter (2003), McCrary (2008),
+Imbens and Kalyanaraman (2012), Calonico, Cattaneo, and
+Titiunik (2014, 2015), Dong and Lewbel (2015), Dong (2018),
+Bertanha (2017), Gelman and Imbens (2014), Armstrong and
+Kolesar (2018), and Imbens and Wager (2018). Influential
+applications include Berk and Rauma (1983), Black (1999),
+Angrist and Lavy (1999), Van Der Klaauw (2002), Jacob and
+2
+
+Available at www.nd.edu/∼mbertanh.
+
+Bertanha and Imbens: External Validity in Fuzzy Regression Discontinuity Designs
+
+Lefgren (2004), Lee, Moretti, and Butler (2004), Battistin and
+Rettore (2008), Lee (2008), Lalive (2008), and Matsudaira
+(2008). Surveys of regression discontinuity methods include
+Van Der Klaauw (2008), Imbens and Lemieux (2008), and Lee
+and Lemieux (2010).
+2.1.
+
+2.2.
+
+3
+
+Causal Estimands
+
+We define the main causal estimands considered in this
+article. In RD settings, identification is typically obtained only
+at the cut-off value. The average effect for individuals with
+Xi = x is denoted
+τ (x) = E [Yi (1) − Yi (0)|Xi = x] .
+
+Notation
+
+We have a random sample of individuals drawn independently and identically distributed from a large population, with
+the units in the sample indexed by i = 1, . . . , N. Let Wi be
+the binary treatment indicator, which is potentially correlated
+to unobserved individual characteristics (i.e., endogenous). We
+are interested in the causal effect of the treatment on some
+outcome. Let Yi (0) and Yi (1) denote the potential outcomes.
+For units in the sample, the observed outcome is
+
+Yi (0) if Wi = 0,
+Yi =
+Yi (1) if Wi = 1.
+In addition, we observe pretreatment characteristics of individuals in the sample. One of these characteristics is the forcing
+variable denoted by Xi with support X. For the time being, we
+focus the analysis on the case where Xi is the only pretreatment
+variable we observe. Section 4 extends the analysis to the case
+where we have data on an additional vector Vi of pretreatment
+characteristics. The incentives to participate in the treatment
+depend on the value of the forcing variable relatively to a
+threshold t inside the support X. The value of this threshold
+is exogenously set by the policy maker, and we assume the
+joint distribution of Yi (0) and Yi (1) conditional on Xi does not
+depend on the value of the threshold.
+Consider the application we are using in this paper, that is,
+the assignment to summer school. The forcing variable Xi is
+a test-score prior to the summer program. The school district
+sets a threshold t, and students scoring below the threshold are
+in general required to participate in the summer program. The
+treatment eligibility or requirement is thus equal to the indicator
+function I{Xi ≤ t}. It is deterministically equal to either zero or
+one once we know the value of Xi for individual i. The actual
+participation in summer school depends on unobserved factors
+beyond Xi which makes participation random for individual i
+when Xi is all we observe. Treatment participation is modelled
+as a stochastic function of the policy threshold t, that is, Wi :
+X → {0, 1}. The random variable Wi (t) is the potential outcome
+denoting whether individual i participates in the treatment if the
+threshold is set equal to t. Both Xi and Wi (·) are considered
+pretreatment individual characteristics.
+For simplicity, we assume there are four types of functions
+Wi (·), and we define four types of individuals based on that.
+They are denoted Gi = a (always-takers), Gi = c (compliers),
+Gi = n (never-takers), and Gi = d (defiers), depending on the
+behavior of Wi (·).
+⎧
+a if Wi (t) = 1,
+⎪
+⎪
+⎨
+c if Wi (t) = I{Xi ≤ t},
+Gi =
+(1)
+n if Wi (t) = 0,
+⎪
+⎪
+⎩
+d if Wi (t) = I{Xi > t}.
+The policy maker sets t = T  in the support X, and the
+researcher observes the random variables Xi , Wi = Wi (T  ),
+and Yi .
+
+We are also interested in the overall average effect which is
+τ ate = E [Yi (1) − Yi (0)] = E[τ (Xi )].
+In addition, we define the LATE as the average effect for
+compliers with Xi = T 
+
+
+τ late = E Yi (1) − Yi (0)|Gi = c, Xi = T  .
+As shown by HTV, and discussed in more detail below, the
+traditional regression discontinuity assumptions are sufficient
+for identification of τ late . Our approach to external validity
+considers assumptions that allow for identification of τ (T  ) and
+τ ate . Identification of τ (T  ) requires extending the conditioning
+set to always-takers and never-takers at the threshold; identification of τ ate requires extending the conditioning set to units
+with values of the forcing variable away from the threshold.
+2.3.
+
+FRD and Exogenous Estimands
+
+Next, we define the probability limits of estimators motivated by either FRD or exogeneity type of assumptions. First,
+the FRD estimator is based on dividing the estimated difference
+in the side-limits of the average of Yi at the cutoff by the
+estimated difference in the side-limits of the average of Wi at
+the cutoff. Such estimator is consistent for
+τ frd
+lim E[Yi |T  −  < Xi ≤ T  ] − E[Yi |T  < Xi < T  + ]
+=
+
+↓0
+
+lim E[Wi |T  −  < Xi ≤ T  ] − E[Wi |T  < Xi < T  + ]
+
+.
+
+↓0
+
+(2)
+Second, we consider the estimator for the difference in
+outcomes between treated and untreated local to the threshold
+T  which relies on local exogeneity of the treatment indicator.
+This is equivalent to running an OLS regression of Yi on Wi
+using the subsample of Xi that is close to T  . Such estimator is
+consistent for
+τ ols = lim E[Yi |Wi = 1, T  −  < Xi < T  + ]
+↓0
+
+− E[Yi |Wi = 0, T  −  < Xi < T  + ].
+2.4.
+
+(3)
+
+Assumptions
+
+We make the following assumptions, which are similar to
+standard assumptions in the regression discontinuity literature.
+See HTV, Dong and Lewbel (2015), Imbens and Lemieux
+(2008), Porter (2003), and Calonico, Cattaneo, and Titiunik
+(2014).
+Assumption 1. The probability of defiers is equal to zero, i.e.
+pr(Gi = d) = 0.
+
+4
+
+Journal of Business & Economic Statistics, XXXX 2019
+
+Assumption 2. For every w ∈ {0, 1} and g ∈ {a, c, n}: (i) the
+conditional distribution function of Yi (w) given Xi = x, Gi = g
+is continuous in x at all x ∈ X, and all of the moments of Yi (w)
+given Xi = x, Gi = g are finite; (ii) the conditional probability
+pr(Gi = g|Xi = x) is continuous in x for all x ∈ X.
+Assumption 3. The distribution of Xi has a continuous
+probability density function (pdf) fX (x) and support X. The
+probability pr(Wi = 1|Xi = x) is strictly between zero and
+one for any x ∈ X.
+Assumption 4. There are compliers at the threshold: pr(Gi =
+c|Xi = T  ) > 0.
+Assumption 2 implies continuity of the expectation of potential outcomes conditional on the compliance type and the
+forcing variable as a function of the forcing variable. It also
+implies continuity of the probability of the compliance type
+conditional on the forcing variable, as a function of this forcing
+variable. See Cattaneo et al. (2016), Arai et al. (2018), and
+Dong (2018) for examples of identification in FRD using
+smoothness conditions. Under these assumptions, the LATE
+parameter is identified by τ frd , a result due to HTV and stated
+here without proof.
+Lemma 1. Suppose Assumptions 1–4 hold. Then, τ frd =
+
+τ late .
+3.
+
+TESTING FOR EXOGENEITY AND EXTERNAL
+VALIDITY
+
+To set the stage and connect this article to the literature, we
+first take a step back and consider the conventional IV setting
+with a binary endogenous regressor, binary instrument, and the
+usual assumptions for identification of the LATE ruling out
+defiers (Imbens and Angrist, 1994; Angrist, Imbens, and Rubin,
+1996). Let Gi ∈ {a, c, n} denote the compliance types, and
+suppose that Zi is independent of (Yi (0), Yi (1), Gi ).
+For an arbitrary measurable function g, Abadie (2002)
+demonstrates identification of the following quantities:
+
+
+E g(Yi (w))|Gi = c
+E[g(Yi )I{Wi = w}|Zi = 1] − E[g(Yi )I{Wi = w}|Zi = 0]
+=
+E[I{Wi = w}|Zi = 1] − E[I{Wi = w}|Zi = 0]
+for w ∈ {0, 1},
+
+
+
+
+E g(Yi (1))|Gi = a = E g(Yi )|Wi = 1, Zi = 0 ,
+
+
+
+
+E g(Yi (0))|Gi = n = E g(Yi )|Wi = 0, Zi = 1 .
+The choice gy (Yi ) = I{Yi ≤ y}, for all y in the support
+of Yi , yields identification of the full distribution of outcomes
+for treated and untreated compliers, always-takers and nevertakers. External validity is defined as independence between
+compliance types and potential outcomes. Comparisons of the
+distribution of Yi (1) between compliers and always-takers, and
+of the distribution of Yi (0) between compliers and never-takers
+serve as a test for external validity. See for example, Huber and
+Mellace (2015), Angrist et al. (2016), Battistin, De Nadai, and
+Vuri (2017), and Black et al. (2017). The test does not have
+power to detect all violations of external validity because of
+
+the unidentified distributions of Yi (1) for never-takers and Yi (0)
+for always-takers. The main argument is that rejecting equality
+of the identified distributions rejects external validity, whereas
+failure to reject equality lends further support to it.
+We study FRD and focus on the mean case, that is, g(Yi ) =
+Yi . Although equality of means does not imply equality of
+distributions, this article focuses on the mean case because of
+its widespread use in the applied community and its immediate
+implementation in statistical packages. In case of failure to
+reject equality of means, researchers may further evaluate the
+plausibility of external validity by using nonparametric tests of
+equality of the whole distribution functions across compliance
+types.
+In the rest of this section, we briefly discuss two existing
+approaches in the literature used for testing exogeneity of treatment participation in the conventional IV setting. Exogeneity
+is related to external validity because independence between
+compliance types and potential outcomes implies independence
+between treatment participation and potential outcomes. We
+extend these two approaches to the FRD nonparametric setting,
+and we show that their testing restriction is one linear combination of two testable restrictions implied by external validity.
+We then propose a more attractive procedure that consists of
+testing both of these restrictions jointly. Most importantly, the
+testing restrictions imply continuity of two conditional mean
+graphs which makes the visual implementation of our test very
+practical. External validity is also shown to imply identification
+of average treatment effects for subpopulations with forcing
+variable different from the threshold.
+3.1.
+
+The Hausman Test in FRD
+
+In a setting with homogeneous treatment effects (i.e., Yi (1)−
+Yi (0) is constant), the Hausman test assesses exogeneity of
+treatment participation. The testing restriction of the Hausman
+test is described as follows. Consider the OLS slope estimator
+β̂ ols computed by regressing outcomes Yi on an intercept and
+treatment participation Wi . The IV estimator β̂ iv uses the
+exogenous treatment eligibility Zi as an instrument for Wi . In
+large samples, the probability limit of these estimators are
+E[Yi |Zi = 1] − E[Yi |Zi = 0]
+,
+E[Wi |Zi = 1] − E[Wi |Zi = 0]
+
+(4)
+
+β ols = E[Yi |Wi = 1] − E[Yi |Wi = 0],
+
+(5)
+
+β iv =
+
+and the Hausman null hypothesis states that
+H0H,iv : β ols = β iv .
+
+(6)
+
+A natural question to ask is how to interpret the testing
+restriction β ols = β iv in the conventional LATE setting with
+heterogenous treatments (i.e., Yi (1)−Yi (0) is not constant). The
+null hypothesis H0H,iv is equivalent to
+πa
+· E[Yi (1)|Gi = a] − E[Yi (1)|Gi = c]
+πa + πc · pz
+(7)
+πn
+=
+· E[Yi (0)|Gi = n] − E[Yi (0)|Gi = c] .
+πn + πc · (1 − pz )
+
+H0H,iv :
+
+Bertanha and Imbens: External Validity in Fuzzy Regression Discontinuity Designs
+
+where πg = pr(Gi = g) for g ∈ {a, c, n}, and pz = pr(Zi = 1).
+The proof of this equivalence is found in Appendix A, between
+the proofs of Lemmas 2 and 3.
+In the FRD setting, the natural analog of β iv is τ frd , and of
+β ols is τ ols . Simply compare Equations (2) and (3) to Equations
+(4) and (5). Thus, the Hausman test applied to the subsample
+local to the threshold is essentially testing
+H0H,frd : τ ols = τ frd .
+
+Lemma 2. Suppose that Assumptions 1–4 hold. Then the
+null hypothesis H0H,frd is equivalent to the null hypothesis
+H0H,frd
+
+πa
+:
+πa + πc /2
+
+· E[Yi (1)|Gi = a, Xi = T  ] − E[Yi (1)|Gi = c, Xi = T  ]
+πn
+=
+πn + πc /2
+· E[Yi (0)|Gi = n, Xi = T  ] − E[Yi (0)|Gi = c, Xi = T  ] .
+where we redefined the compliance-type probabilities at the
+threshold as πg = pr(Gi = g|Xi = T  ) for g ∈ {a, c, n}.
+The slight change in the weights relative to the conventional
+IV case comes from the continuity of the distribution of the
+forcing variable at the threshold. The probability pz is replaced
+by the probability of being to the left of the cut-off conditional
+on being very close to the threshold which converges to 1/2.
+Note that, if the design is sharp rather than fuzzy (πa = πn =
+0), then H0H,frd is always true; that is, a simple difference of
+means between treated and untreated near the cutoff yields the
+treatment effect on the entire population local to the cutoff.
+The Hausman null hypothesis is unattractive to assess external
+validity in FRD because it consists of a single weighted average
+of two testable restrictions whose weights do not have a
+substantive interpretation.
+3.2.
+
+The Angrist (2004) Restrictions
+
+Angrist (2004) considered the conventional IV setting with
+heterogeneous treatment effects and suggests testing the following null hypothesis of exogeneity:
+H0A,iv :
+
+the average effect for compliers to the difference in average
+outcomes for always-takers and never-takers. This appears a
+more natural and intuitive comparison.
+In the FRD setting, the natural analog of H0A,iv is
+H0A,frd : τ frd = lim E[Yi |Wi = 1, T  < Xi < T  + ]
+↓0
+
+− E[Yi |Wi = 0, Xi = T  −  < Xi ≤ T  ].
+
+(8)
+
+Similar to the equivalence between (6) and (7), Lemma 2
+states the equivalence between τ ols = τ frd and an equality of
+weighted averages of potential outcomes of compliers, alwaystakers and never-takers.
+
+E[Yi |Zi = 1] − E[Yi |Zi = 0]
+E[Wi |Zi = 1] − E[Wi |Zi = 0]
+
+= E[Yi |Wi = 1, Zi = 0] − E[Yi |Wi = 0, Zi = 1].
+Using arguments similar to the proofs of Section 3.1, one can
+show that H0A,iv is equivalent to the null hypothesis
+H0A,iv : E[Yi (1)|Gi = a] − E[Yi (1)|Gi = c]
+= E[Yi (0)|Gi = n] − E[Yi (0)|Gi = c].
+Compared to the Hausman null hypothesis H H,iv , the Angrist
+null hypothesis H A,iv drops the weights, and it simply compares
+
+5
+
+Lemma 3. Suppose that Assumptions 1–4 hold. Then the
+null hypothesis H0A,frd is equivalent to the null hypothesis
+H0A,frd : E[Yi (1)|Gi = a, Xi = T  ] − E[Yi (1)|Gi = c, Xi = T  ]
+= E[Yi (0)|Gi = n, Xi = T  ] − E[Yi (0)|Gi = c, Xi = T  ].
+Angrist (2004) motivated his proposed test primarily by
+arguments concerning the statistical power. In our view his
+test is also conceptually more attractive than the Hausman test
+because it has a more intuitive interpretation.
+3.3.
+
+External Validity
+
+Regression discontinuity estimates are valid locally, where
+the qualifier “locally” limits their generalizability in two
+aspects. These estimates are valid only for units with the value
+of the forcing variable Xi close to the threshold T  , and they are
+valid only for compliers. Often times we are also interested in
+causal effects for noncompliers, and for units with values of the
+forcing variable away from the threshold. In this section, we
+explore the following assumption that validates extrapolation
+of treatment effects to individuals of different compliance types
+and to individuals with different values of the forcing variable.
+Assumption 5. (External Validity)
+The study has external validity if,
+⊥
+Gi ⊥
+
+Yi (0), Yi (1)
+
+Xi .
+
+(9)
+
+This assumption is related to what Angrist (2004) calls
+the “no-selection bias” condition in the conventional IV setting, and what Dong and Lewbel call the “local invariance
+assumption.” Our notion of external validity is in terms of
+independence of the entire distribution of potential outcomes
+with respect to compliance types rather than simply mean
+independence. One could argue that most analyses in the
+literature focus on average effects (rather than distribution
+effects) and a definition of external validity in terms of mean
+independence would suffice. The more general definition in
+Assumption 5 is desirable because it is rather difficult to
+think of empirical examples where external validity holds in
+terms of mean independence, but it does not hold in terms of
+distribution independence. In such examples, external validity
+in terms of mean independence fails to hold after a simple log
+transformation of outcomes in the data.
+The following theorem shows that external validity yields
+extrapolation of the average effect on compliers at the threshold
+to other compliance types. It also obtains identification of
+average effects away from the threshold.
+
+6
+
+Journal of Business & Economic Statistics, XXXX 2019
+
+Theorem 1. Suppose Assumptions 1–5 hold. Then, τ (x) is
+identified for every x ∈ X,
+τ (x) =E[Yi (1) − Yi (0)|Gi , Xi = x]
+=E[Yi |Wi = 1, Xi = x] − E[Yi |Wi = 0, Xi = x],
+
+(10)
+
+and thus τ ate is identified:
+τ ate = E [τ (Xi )] .
+
+(11)
+
+In the FRD case, we observe Yi for all values of the
+forcing variable for both treated and untreated individuals.
+In general, comparing treated and untreated outcomes away
+from the threshold does not identify treatment effects because
+treated and untreated individuals belong to different compliance
+subpopulations. Under external validity and the restriction on
+the heterogeneity of Wi (·), the average potential outcome does
+not vary across compliance subpopulations, and the comparison
+of treated and untreated outcomes away from the threshold does
+identify treatment effects.
+Let us now explore the testable restrictions of external
+validity in the context of FRD. External validity implies the
+following conditional independence restriction:
+⊥ Yi (1) Xi = T  .
+Gi ⊥
+This in turn implies
+⊥ Yi (1) Gi ∈ {a, c}, Xi = T  ,
+Gi ⊥
+so that
+E[Yi (1)|Gi = c, Xi = T  ] = E[Yi (1)|Gi = a, Xi = T  ], (12)
+and, by a similar argument,
+E[Yi (0)|Gi = c, Xi = T ] = E[Yi (0)|Gi = n, Xi = T ]. (13)
+
+
+
+
+These two restrictions are in terms of unobserved variables.
+However, they imply a pair of restrictions on observed variables, as summarized in the following corollary of Theorem 1.
+Corollary 1. Suppose Assumptions 1–5 hold. Then:
+
+
+lim E Yi | Wi = w, T  < Xi < T  + 
+↓0
+
+
+= lim E Yi | Wi = w, T  −  < Xi ≤ T  ,
+↓0
+
+(14)
+
+for w = 0, 1.
+Battistin and Rettore (2008) first pointed out the same
+testing restriction for untreated individuals (i.e., w = 0) in
+the case with pretreatment covariates. Equation (14) is our key
+equation, and there is a simple graphical representation of it.
+The expectation of Yi conditional on Wi = w and Xi = x is
+continuous in x at the threshold T  for w = 0, 1. This pair of
+restrictions can be assessed by estimating two functions of x
+E [ Yi | Wi = 1, Xi = x]
+
+and
+
+E [ Yi | Wi = 0, Xi = x]
+
+and checking for a discontinuity at x = T  in both of them.
+Thus, the implementation of this test is very similar to the
+existing statistical inference procedures for regression discontinuity designs. Note, however, that the density of the forcing
+
+variable Xi conditional on Wi = w may be discontinuous at the
+threshold, whereas in the standard RD analysis of E [ Yi | Xi = x]
+we expect the density of Xi to be continuous at T  . This
+amounts to a slight change in the asymptotic variance of the
+nonparametric side-limit estimator.
+The two restrictions (12) and (13) together imply the restriction tested by the Hausman test, H0H,frd , as well as the restriction tested by Angrist’s test, H0A,frd . However, the two restrictions are stronger than the restrictions tested by either the
+Hausman or the Angrist test on their own. We view testing the
+pair of restrictions (12) and (13) jointly as more attractive than
+simply one linear combination of them. For example, suppose
+the Angrist null hypothesis H0A,frd does hold, but the pair of
+restrictions (12) and (13) does not hold. In this case, the Angrist
+null hypothesis would no longer hold after a transformation of
+the outcome, for example, Yi to ln(Yi ).
+The joint test of Equation (14) is implemented as follows.
+Fix w ∈ {0, 1} and select the subsample such that Wi = w.
+Choose a symmetric kernel density function k(·) with bounded
+support such as the triangular kernel k(u) = I{|u| ≤ 1} · (1 −
+|u|)). Compute the bandwidth h using a data-driven optimal rule
+for sharp RD and local linear regression such as the Imbens and
+Kalyanaraman (2012) (denoted IK) or the Calonico, Cattaneo,
+and Titiunik (2014) (denoted CCT). These bandwidth choices
+introduce bias in the asymptotic distribution of the normalized
+estimator. A bias-corrected estimator for the jump discontinuity
+is computed using a local quadratic regression (see Remark
+7 by CCT). Regress Yi on a constant, (Xi − T  ), (Xi − T  )2 ,
+I{Xi ≤ T  }, I{Xi ≤ T  } · (Xi − T  ), and I{Xi ≤ T  } · (Xi −
+T  )2 , where observations are weighted by the square root of
+
+. Call τ bc (w) the coefficient on the dummy variable
+k Xi −T
+h
+I{Xi ≤ T  }. For the joint test, we need an estimator  for the
+variance–covariance matrix of [τ bc (0) τ bc (1)]. One may use
+the Wild Bootstrap of Bartalotti et al. (2017), or the nearestneighbor formula of CCT. Both of these methods take into
+account the additional variance arising from the bias correction.
+The test statistic is [τ bc (0) τ bc (1)]  −1 [τ bc (0) τ bc (1)] , and it
+is asymptotically distributed as Chi-square with 2 degrees of
+freedom under the null hypothesis of external validity.
+
+4.
+
+EXTERNAL VALIDITY AND COVARIATES
+
+Empirical studies using FRD often have data on pretreatment variables beyond the forcing variable Xi . In credible RD
+settings, the distribution of pretreatment variables conditional
+on Xi = x should be the same when x is barely above or
+below the threshold. Controlling for these pretreatment variables could potentially improve estimation precision, but failure
+to control for them does not introduce inconsistency. These
+issues are fundamentally different for the question of external
+validity.
+We may well find that the conditional expectation of Yi
+given Xi = x and Wi = w is discontinuous at the cutoff only
+because of differences across compliance groups in terms of
+pretreatment covariates. As a result, external validity becomes
+a more plausible assumption when the analysis is conditional on
+these pretreatment characteristics of individuals. In the summer
+
+Bertanha and Imbens: External Validity in Fuzzy Regression Discontinuity Designs
+
+school example, always-taker students may be less skilled
+than compliers and never-takers because always-takers attend
+summer school irrespective of the policy threshold. In this case,
+outcomes for treated compliers are likely to be different from
+those for always-takers if we only condition on the forcing
+variable Xi . A richer dataset contains additional pretreatment
+characteristics like parental education, household income, or
+even other test-scores different from the forcing variable. For
+example, potential outcomes for always-takers could differ
+from never-takers and compliers solely because always-takers
+come from lower socio-economic status homes. In this case, the
+study is externally valid conditional on the forcing variable and
+the additional pretreatment characteristics.
+Let Vi be a vector of q covariates describing the characteristics of individual i before the treatment. The support of
+Vi is denoted V ⊂ Rq . We modify Assumptions 2 and 3 to
+accommodate the analysis conditional on covariates Vi .
+Assumption 6. For every w ∈ {0, 1} and g ∈ {a, c, n}: (i) the
+conditional distribution function of (Yi (w), Vi ) given Xi = x,
+and Gi = g is continuous in x at all x ∈ X, and all of the
+moments of (Yi (w), Vi ) given Xi = x, and Gi = g are finite;
+(ii) the conditional probability pr(Gi = g|Xi = x, Vi = v) is
+continuous in x for all x ∈ X, and all v ∈ V.
+Assumption 7. The distribution of Xi has a continuous pdf
+fX (x) and support X. The probability pr(Wi = 1|Xi = x, Vi = v)
+is strictly between zero and one for any x ∈ X and v ∈ V.
+In this section, we are interested in testing the plausibility of
+external validity conditional on Xi and Vi .
+Assumption 8 (Conditional External Validity). The study has
+conditional external validity if,
+Gi ⊥
+⊥
+
+Yi (0), Yi (1)
+
+Xi , Vi
+
+(15)
+
+This is a generalized version of the “conditional effect
+ignorability” assumption of Angrist and Fernandez-Val (2010).
+Testable restrictions as in Equation (14) extend naturally to the
+case of covariates.
+Corollary 2. Suppose Assumptions 1, 4, 6, 7, and 8 hold.
+Then:
+
+
+lim E Yi | Wi = w, T  < Xi < T  + , Vi = v
+↓0
+
+
+= lim E Yi | Wi = w, T  +  < Xi ≤ T  , Vi = v
+↓0
+
+(16)
+for w = 0, 1 and v ∈ V.
+For the case with w = 0, this is the test first proposed by
+Battistin and Rettore (2008). In the same spirit of Theorem 1,
+the conditional mean E[Yi (w)|Xi = x, Vi = v] is identified by
+E[Yi |Wi = w, Xi = x, Vi = v] under Assumption 8. Integration
+over the distribution of (Xi , Vi ) conditional on Wi = w gives the
+global average E[Yi (w)]. The difference between w = 0 and
+w = 1 yields τ ate . The result in Corollary 2 leads us to look at
+the conditional expectation of Yi given Xi = x, Wi = w, and
+
+7
+
+Vi = v as a function of x around the threshold T  for all values
+of v.
+A discontinuity at x = T  is evidence against external
+validity. Nonparametric estimation of this conditional mean
+may be difficult in practice. The practitioner needs to select
+bandwidths for both Xi and Vi , and the estimator presents
+slow convergence rates when the dimension of Vi is large.
+To facilitate estimation, we assume the conditional mean of
+potential outcomes is linear in Vi .
+Assumption 9. There exists a function ψ : {0, 1} × {a, c, n} ×
+X → Rq that is continuous in x such that
+E[Yi (w)|Gi = g, Xi = x, Vi = v] = ψ(w, g, x) v
+
+(17)
+
+for w ∈ {0, 1}, g ∈ {a, c, n}, x ∈ X, and v ∈ V.
+The researcher may construct a bigger vector Vi∗ by using
+powers and interactions of covariates in Vi . The richer Vi∗ is,
+the less restrictive is Assumption 9. External validity (Assumption 8) implies the conditional mean of potential outcomes does
+not depend on g
+E[Yi (w)|Gi = g, Xi = x, Vi = v] = ψ(w, x) v
+which leads to
+E [ Yi | Wi = w, Xi = x, Vi = v] = E[Yi (w)|Xi = x, Vi = v]
+(18)
+= ψ(w, x) v,
+where ψ(w, x) is a continuous function of x.
+Assumption 9 makes the conditional mean function in Equation (18) linear in v. Therefore, a consistent estimator for (18)
+is the intercept estimator of a local linear regression of Yi on
+an intercept, (Xi − x) and (Vi − v) using the sample of Xi local
+to x, and Wi = w, but not necessarily Vi local to v. There is
+no need to choose additional bandwidths for each covariate in
+Vi . The test for external validity looks for a discontinuity in the
+intercept of such regression.
+The discontinuity is estimated as follows. Select the subsample such that Wi = w for w ∈ {0, 1}. Choose a bandwidth h
+and a symmetric kernel density function with bounded support
+k(u). Regress Yi on a constant, (Xi − T  ), I{Xi ≤ T  }, I{Xi ≤
+T  }·(Xi −T  ), and (Vi −V), where V is the sample average of Vi ,
+
+.
+and observations are weighted by the square root of k Xi −T
+h
+
+Call τ (w) the coefficient on the dummy variable I{Xi ≤ T }.
+Calonico et al. (2018) (denoted CCFT) study the properties of
+a similar type of estimator and develop data-driven bandwidth
+selectors for h. There are three main differences between τ (w)
+and the estimator considered by CCFT. First, we recenter Vi
+around V. This does not affect consistency or the asymptotic
+distribution of τ (w) because V converges faster than τ (w).
+Second, we use the sample conditional on Wi = w, and the pdf
+of Xi conditional on Wi = w, that is, fX|W , is not continuous at
+x = T  . The discontinuity occurs because of the discrete change
+in the pool of compliance types at the cutoff. Third, even if
+E[Vi |Xi = 0− ] − E[Vi |Xi = 0+ ] = 0, the same may not be true
+for E[Vi |Xi = 0− , Wi = w] − E[Vi |Xi = 0+ , Wi = w]. Again,
+there is a discrete change in the pool of compliance types at the
+
+8
+
+Journal of Business & Economic Statistics, XXXX 2019
+
+cutoff, and the average of covariates may be different among
+the compliance groups.
+Following the arguments in CCFT, we derive the probability
+limit of τ (w) and demonstrate it is equal to zero under external
+validity conditional on covariates.
+
+The test statistic is [τ bc (0) τ bc (1)]  −1 [τ bc (0) τ bc (1)] , and
+it is asymptotically distributed as chi-square with 2 degrees of
+freedom under the null hypothesis of external validity.
+5.
+
+Lemma 4. Suppose Assumptions 6 and 7 hold. As the
+sample size increases n → ∞, assume h → 0 such that
+nh → ∞. For w ∈ {0, 1}, the estimator τ (w) constructed above
+is consistent for
+p
+τ (w) → [μY− (w) − μY+ (w)] − γ (w) [μV− (w) − μV+ (w)],
+where μY+ (w) (or μV+ (w)) denotes the mean of Yi (or of Vi )
+conditional on Wi = w and Xi = x as x approaches T  from
+the right; μY− (w) (or μV− (w)) denotes the mean of Yi (or of
+Vi ) conditional on Wi = w and Xi = x as x approaches T  from
+2 (w) and
+the left; same idea for the conditional variances σV+
+2
+σV− (w), and conditional covariances σVY+ (w) and σVY− (w);
+−1
+
+2
+2
+(w) + κ+ (w)σV+
+(w)
+γ (w) = κ− (w)σV−
+
+
+κ− (w)σVY− (w) + κ+ (w)σVY+ (w) ;
+ ∞
+k(u) du; and
+κ+ (w) = lim fX|W (T  + ; w)
+↓0
+0
+ ∞
+k(u) du.
+κ− (w) = lim fX|W (T  − ; w)
+↓0
+
+0
+
+Furthermore, if external validity (Assumption 8) and linearity
+in Vi (Assumption 9) hold, then
+p
+τ (w) → 0.
+Intuitively, the estimator τ (w) adjusts the discontinuity
+μY− (w) − μY+ (w) by the average change in covariates at the
+cutoff μV− (w) − μV+ (w). Under external validity conditional
+on Vi , changes in covariates among compliance types fully
+account for the difference in outcomes, and the adjusted
+discontinuity must be zero. If the adjusted discontinuity is
+different from zero, unobserved characteristics beyond Vi
+explain the discontinuity in outcomes, and external validity
+does not hold.
+The joint test of Equation 16 is implemented as follows. Fix
+w ∈ {0, 1} and select the subsample such that Wi = w. Choose
+a symmetric kernel density function k(·) with bounded support
+such as the triangular kernel k(u) = I{|u| ≤ 1} · (1 − |u|)).
+Compute the bandwidth h using a data-driven optimal rule for
+sharp RD and local linear regression such as the IK’s or the
+CCFT’s rules. These bandwidth choices introduce bias in the
+asymptotic distribution of the normalized estimator. A biascorrected estimator for the jump discontinuity is computed
+using a local quadratic regression. Regress Yi on a constant,
+(Xi − T  ), (Xi − T  )2 , I{Xi ≤ T  }, I{Xi ≤ T  } · (Xi − T  ),
+I{Xi ≤ T  } · (Xi − T  )2 , and (Vi − V), where V is the sample
+average of Vi , and observations are weighted by the square root
+
+. Call τ bc (w) the coefficient on the dummy variable
+of k Xi −T
+h
+I{Xi ≤ T  }. For the joint test, we need an estimator  for the
+variance–covariance matrix of [τ bc (0) τ bc (1)]. One may use
+the Wild Bootstrap of Bartalotti et al. (2017), or the nearestneighbor formula of CCFT. Both of these methods take into
+account the additional variance arising from the bias correction.
+
+TWO APPLICATIONS
+
+In this section, we illustrate our methods using data from
+Jacob and Lefgren (2004) and Matsudaira (2008). Both articles
+estimate the effect of remedial summer school programs on
+academic performance of students using FRD methods.
+5.1.
+
+The Jacob and Lefgren (2004) data
+
+Jacob and Lefgren (2004) use administrative data from the
+Chicago Public Schools which instituted in 1996 an accountability policy that tied summer school attendance and promotional decisions to performance on standardized tests. This
+policy was followed by other school districts in the country. In
+Section 5.2, we apply our methods to Matsudaira (2008) who
+studied a similar policy adopted by a district in Northeastern
+United States. The standard rule is to send a student to summer
+school if the minimum between his reading and mathematics
+test-score is below a certain threshold. The final decision is up
+to teacher’s discretion which leads to an FRD design.
+There are many reasons to expect potential outcomes of
+summer school to differ across compliance groups. Nevertakers may have been judged to have scored below expectations
+and viewed as not in need of summer school, and thus better
+than compliers with similar presummer school scores. Alternatively, never-takers could also be reluctant to participate in
+summer school and actually be worse in terms of academic
+ability than compliers. Similarly, it could be that alwaystakers are students viewed as particularly in need of the extra
+instruction, and thus worse in terms of academic ability than
+compliers with the same scores prior to summer school. On the
+other hand, always-takers could be students that are particularly
+eager for additional educational experiences and who would
+have done better than compliers regardless of their summer
+school participation.
+Jacob and Lefgren used observations around a test-score
+cutoff to estimate the impact of attending summer school on
+academic performance. They find a positive impact on achievement for third graders. We use the data for third graders in years
+1997–1999. The forcing variable Xi is the minimum between
+reading and math score before the summer school minus the
+threshold (2.75 in this application). The outcome variable Yi is
+measured by the math score after the summer school. Table 1
+presents summary statistics of Jacob–Lefgren’s data.
+Figure 1 displays the conditional mean plots that are relevant
+for the external validity analysis. Scatterplots illustrate the variability of the raw data. Appendix B compares these conditional
+mean curves to scatterplots of binned averages of the raw data
+following the procedures in Calonico, Cattaeno, and Titiunik
+(2015). In each panel of Figure 1, we estimate the conditional
+mean curve by local linear regression with triangular kernel and
+optimal IK bandwidth for the sharp RD discontinuity at x = T ∗ .
+Table 2 presents discontinuity estimates that are bias-corrected
+using local quadratic regressions.
+
+Bertanha and Imbens: External Validity in Fuzzy Regression Discontinuity Designs
+
+Table 1. Jacob and and Lefgren (2004)—summary statistics
+Overall
+
+Treated
+
+Untreated
+
+4.503
+(1.069)
+0.234
+(0.979)
+0.398
+(0.489)
+−1.107
+(1.065)
+
+3.811
+(0.831)
+−0.660
+(0.527)
+1.000
+(0.000)
+−1.903
+(0.725)
+
+4.961
+(0.957)
+0.825
+(0.728)
+0.000
+(0.000)
+−0.581
+(0.917)
+
+70,831
+26,180
+
+28,180
+11,777
+
+42,651
+14,403
+
+Mean and SD
+Outcome Yi
+Forcing Xi
+Treatment Wi
+Covariate Vi
+Number of obs.
+Overall
+Within smallest bandwidth
+
+NOTE: The outcome variable Y is the math score (after the summer school); the forcing
+variable X is the minimum between the reading and math score (before the summer school)
+minus the cutoff; W is the participation indicator; and the covariate V is the math Rasch
+score (before the summer school). The table reports the number of observations both in
+the overall sample and in the sample local to the threshold according to the smallest of the
+bandwidths used for estimation.
+
+In Figure 1a, we plot the probability of attending summer
+school given the value of the forcing variable. Most of the
+students that are eligible for summer school do attend it, and
+the change in the probability of attendance at the cutoff is
+estimated at 0.888 (SE 0.007). This is the estimated proportion
+of compliers. Next, in Figure 1(b), we plot the conditional
+mean of the math test-score after summer school given the
+minimum test-score prior to summer school. Conditional on
+having the minimum test-score close to the threshold, there is
+a significant discontinuity in the outcome for those who are
+eligible to attend summer school compared to those who are not
+eligible to attend summer school. This discontinuity divided by
+the proportion of compliers yields the LATE parameter, that is,
+the causal effect of summer school on academic performance of
+compliers. The estimate for the LATE is approximately 0.190
+(SE 0.032).
+In Figure 1(c)–(d), we present estimates of the expected
+value of the outcome conditional on both the forcing variable
+and treatment status E[Yi |Xi , Wi = w] for w ∈ {0, 1}. We
+do not find a substantial difference between never-takers and
+untreated compliers. The discontinuity in the conditional mean
+E[Yi |Xi , Wi = 0] is estimated at 0.079 (SE 0.067). On the
+other hand, there is a substantial difference in average outcomes
+between always-takers and treated compliers. The discontinuity
+in the conditional mean E[Yi |Xi , Wi = 1] is estimated at
+0.416 (SE 0.198). Always-takers perform substantially worse
+than treated compliers (Table 2). This is consistent with the
+notion that always-takers are guided toward the summer program even if they score slightly above the threshold. In this
+application, the Hausman and Angrist null hypotheses are
+rejected at the 5% level, suggesting heterogeneity of treatment
+effects across compliance groups. Our approach finds evidence
+supporting homogeneity of potential outcomes between compliers and never-takers. However, the test of the pair of restrictions for always-takers and compliers, and for never-takers
+
+9
+
+and compliers, is rejected at 5%, with an F-statistic equal
+to 5.873.
+The Jacob–Lefgren data contain information on test-scores
+prior to the year of the summer school program. These testscores are proxies for ability and may well explain differences
+in potential outcomes across compliance types. We follow
+Section 4 and use the math Rasch score before summer school
+as an additional covariate Vi . Adjusting for prior test scores
+reduces the F-statistic of our proposed test to 1.353, and we
+now fail to reject the null hypothesis. This finding suggests that
+always-takers and compliers, and never-takers and compliers,
+are similar after controlling for ability as captured by the math
+Rasch score before summer school (Figures 1e,f). Table 5 in
+Appendix C reproduces Table 2 using the CCT bandwidth.
+The optimal bandwidth rule changes with the inclusion of the
+covariate Vi , and the last two discontinuities of Table 5 are
+estimated using the CCFT bandwidth. The conclusion of the
+joint tests of external validity are robust to these alternative
+bandwidth choices.
+
+5.2.
+
+The Matsudaira (2008) data
+
+Matsudaira (2008) used administrative data from a large
+urban school district in Northeastern United States to evaluate
+the impact of summer school on academic performance.3 One
+of the promotion criteria in this school district requires students
+to score above a given threshold to pass to the next grade.
+Scores are from year-end examinations in both mathematics
+and reading. Students who fail to score above the cutoff are
+more likely to be required to attend a summer school program.
+Besides passing the test-score in reading and math, there
+are other criteria for promotion like attendance which is not
+recorded in these data. This makes the assignment to summer
+school fuzzy around the test cutoff, similar to the Jacob–
+Lefgren study.
+We use individual level data for fifth grade students with
+reading and math test-scores taken in 2001 and 2002. The
+forcing variable Xi is the minimum of the 2001 reading score
+and the 2001 math score, minus the threshold for passing. The
+outcome variable Yi is the standardized math score in 2002.
+Table 3 presents summary statistics.
+Estimates are computed with the same procedure used in the
+analysis of the Jacob–Lefgren data. Figure 2 presents estimates
+of conditional mean graphs, and Table 4 displays statistics used
+to assess external validity. Figure 4 in Appendix B complements Figure 2 by showing less smoothed plots of the data.
+First, in Figure 2(a), we present the probability of attending
+summer school given the value of the forcing variable. The
+discontinuity in the graph gives the proportion of compliers,
+estimated at 0.395 (SE 0.012). Issues related to external validity are even more relevant to the Matsudaira data because
+compliers only account for 40% of the population. In the
+Jacob–Lefgren data, compliers made for almost 90% of the
+population.
+
+3
+
+Matsudaira (2008) did not disclose the name of the school district as part of
+an agreement to use the data.
+
+10
+
+Journal of Business & Economic Statistics, XXXX 2019
+
+Figure 1. Jacob and and Lefgren (2004)—conditional mean plots. The outcome variable Y is the math score (after summer school); the
+forcing variable X is the minimum between the reading and math score (before summer school) minus the cutoff; W is the participation indicator;
+and the covariate V is the math Rasch score (before summer school). The support of X is restricted to [−2, 2] to make all plots comparable. We
+estimated the conditional mean curves by local linear regression with triangular kernel evaluated on a grid of 100 points on each side of the
+cutoff, and optimal IK bandwidth for sharp RD in six conditional mean functions: E [ Yi | Xi = x] (bandwidth 0.54), E [ Wi | Xi = x] (bandwidth
+0.78), E [ Yi | Wi = w, Xi = x] for w = 0, 1 (bandwidths 0.66 and 0.49), and E [ Yi | Wi = w, Xi = x, Vi = E[Vi ]] for w = 0, 1 (bandwidths 0.66
+and 0.49). Scatterplots exhibit the dispersion of the raw data. Darker points refer to data points that are more frequently observed than lighter
+points. In Panels (e) and (f), the scatter plots are conditional on V being within one standard deviation of its average.
+
+Next, in Figure 2(b), we present the conditional mean of
+the math test-score after summer school given the minimum
+test-score before summer school. Conditional on having the
+minimum test-score close to the threshold, there is a significant
+discontinuity in the outcome for those who are eligible to
+attend summer school compared to those who are not eligible to attend summer school. The estimated LATE is 0.171
+(SE 0.041).
+We report the graph for the expected value of the outcome
+conditional on both the forcing variable and treatment status
+E[Yi |Xi , Wi = w] for w ∈ {0, 1} in Figure 2(c)–(d). Similar to
+the Jacob–Lefgren data, the average potential outcome if treated
+is statistically different between always-takers and compliers,
+but we do not find evidence differentiating untreated outcomes
+between never-takers and compliers (Table 4).
+
+Finally, we check if previous information on test-scores help
+explain heterogeneity of achievement among compliance types.
+We use the math score in year 2000 (one year before summer
+school) as an additional covariate and follow the procedures of
+Section 4. In contrast to the Jacob–Lefgren data, the difference
+between always-takers and compliers remain substantial even
+after controlling for the math score in 2000 (Figure 2(f)).
+Compared to the uncontrolled estimates, the F-statistic goes
+down from 9.753 to 5.035, and it becomes insignificant at
+the 1% and 5% levels. Appendix C reproduces the estimates
+in Table 4 using the CCT and CCFT bandwidths. Although
+both of the joint tests are insignificant, we still find evidence
+suggesting different average outcomes between always-takers
+and compliers before controlling for the math score in year
+2000.
+
+Bertanha and Imbens: External Validity in Fuzzy Regression Discontinuity Designs
+
+11
+
+Table 2. Jacob and and Lefgren (2004)—external validity statistics
+Estimand
+
+Estimate
+
+SE
+
+πc
+πa
+πn
+
+0.888
+0.018
+0.095
+
+(0.007)
+(0.003)
+(0.006)
+
+4.376
+3.952
+4.187
+4.274
+
+(0.022)
+(0.197)
+(0.022)
+(0.064)
+
+Participation
+
+E[Yi (1)|Xi
+E[Yi (1)|Xi
+E[Yi (0)|Xi
+E[Yi (0)|Xi
+
+Cond. means of
+potential outcomes
+
+= T ∗ , Gi
+= T ∗ , Gi
+= T ∗ , Gi
+= T ∗ , Gi
+
+= c]
+= a]
+= c]
+= n]
+
+p-value
+
+LATE
+
+ ] − E[Y |X = T  ]
+E[Yi |Xi = T−
+i i
++
+ ] − E[W |X = T  ]
+E[Wi |Xi = T−
+i i
++
+
+0.190
+
+(0.032)
+
+OLS
+
+ ] − E[Y |W = 0, X = T  ]
+E[Yi |Wi = 1, Xi = T±
+i i
+i
+±
+
+0.158
+
+(0.028)
+
+Hausman
+
+LATE minus OLS
+
+0.032
+
+(0.016)
+
+0.041
+
+Angrist
+
+LATE minus
+
+0.512
+
+(0.214)
+
+0.017
+
+0.079
+0.416
+
+(0.067)
+(0.198)
+
+0.240
+0.036
+
+Tests
+
+ ] − E[Y |W = 0, X = T  ]
+E[Yi |Wi = 1, Xi = T+
+i i
+i
+−
+
+
+
+
+
+ − E Y | W = 0, X = T 
+E  Yi | Wi = 0, Xi = T−
+i
+i
+i
++
+
+
+ − E Y | W = 1, X = T 
+E Yi | Wi = 1, Xi = T−
+i
+i
+i
++
+
+Conditional
+jumps
+Joint F-test
+
+5.873
+
+0.053
+
+Adj. for covariate
+
+
+
+
+ − E Y | W = 0, X = T 
+E Yi | Wi = 0, Xi = T−
+i
+i
+i
++
+
+
+
+− E Vi | Wi = 0, Xi = T−
+
+
+
+γ (0)
+−E Vi | Wi = 0, Xi = T+
+
+Conditional
+jumps
+
+
+
+
+
+ − E Y | W = 1, X = T 
+E Yi | Wi = 1, Xi = T−
+i
+i
+i
++
+
+
+
+− E Vi | Wi = 1, Xi = T−
+
+
+
+γ (1)
+−E Vi | Wi = 1, Xi = T+
+Joint F-test
+
+−0.037
+
+(0.055)
+
+0.494
+
+0.174
+
+(0.186)
+
+0.349
+
+1.353
+
+0.508
+
+NOTE: The outcome variable Y is the math score (after the summer school); the forcing variable X is the minimum between the reading and math score (before the summer school) minus
+ (or X = T  ) denote the limit of the
+the cutoff; W is the participation indicator; and the covariate V is the math Rasch score (before the summer school). Means conditional on Xi = T+
+i
+−
+ denote the limit of the mean conditional on X being in a shrinking
+mean conditional on Xi being in a shrinking neighborhood on the right (or left) of T  . Means conditional on Xi = T±
+i
+neighborhood on both sides of T  . The parameters γ (0) and γ (1) are defined in Lemma 4. Nonparametric bias-corrected estimates are obtained by local quadratic regression, triangular
+kernel, and IK optimal bandwidth for sharp RD using local linear regression. Estimates on this table are based on jump discontinuities at x = T  in six conditional mean functions:
+
+
+
+
+
+
+
+
+E Yi | Xi = x (bandwidth 0.54), E Wi | Xi = x (bandwidth 0.78), E Yi | Wi = w, Xi = x for w = 0, 1 (bandwidths 0.66 and 0.49), and E Yi | Wi = w, Xi = x, Vi = E[Vi ] for w = 0, 1
+(bandwidths 0.66 and 0.49). The standard errors of all estimates are computed using 10,000 simulations of the Wild Bootstrap of Bartalotti et al. (2017) which captures the additional
+variance from the bias correction. The F-test is a χ 2 statistic computed as a quadratic form of the 2 × 1 vector of the conditional jumps inversely weighted by the covariance matrix of
+such vector.
+
+6.
+
+CONCLUSION
+
+External validity of FRD analyses is often a concern because
+identification is credible only around the threshold of the
+forcing variable and for the subpopulation of compliers. In
+many cases, however, researchers are also interested in generalizing the findings to subpopulations with values of the forcing
+variable away from the threshold and to subpopulations other
+than compliers. In this paper we explore assumptions that allow
+
+for such generalizations, and we derive testable implications
+of such assumptions that are easy and more attractive to test
+compared to existing approaches in the literature. We show
+that these implications can be assessed by inspecting the conditional expectation of the outcome given the forcing variable
+separately by treatment status. As a matter of routine, we recommend that researchers present graphs containing estimates
+of these conditional expectations and test for continuity at the
+threshold.
+
+12
+
+Journal of Business & Economic Statistics, XXXX 2019
+
+= E[Yi (1)|Gi = a, Ai, ] · pr(Gi = a|Wi = 1, A−
+i, )
+
+Table 3. Matsudaira (2008)–summary statistics
+Overall
+
+Treated
+
+Untreated
+
+Mean and SD
+
+· pr(A−
+i, |Wi = 1, Ai, )
++ E[Yi (1)|Gi = a, Ai, ] · pr(Gi = a|Wi = 1, A+
+i, )
+· pr(A+
+i, |Wi = 1, Ai, )
+
+0.000
+(1.000)
+10.320
+(41.266)
+0.224
+(0.417)
+633.463
+(38.529)
+
+Outcome Yi
+Forcing Xi
+Treatment Wi
+Covariate Vi
+
+−0.610
+(0.852)
+−20.003
+(38.308)
+1.000
+(0.000)
+607.403
+(31.744)
+
+0.176
+(0.970)
+19.079
+(37.797)
+0.000
+(0.000)
+640.991
+(37.005)
+
+· pr(A−
+i, |Wi = 1, Ai, )
++
++ E[Yi (1)|Gi = c, A−
+i, ] · pr(Gi = c|Wi = 1, Ai, )
+
+· pr(A+
+i, |Wi = 1, Ai, )
+= E[Yi (1)|Gi = a, Ai, ] · pr(Gi = a|Gi ∈ {a, c}, A−
+i, )
+·
+
+−
+pr(Wi = 1|A−
+i, )pr(Ai, )
+
+s
+s
+s∈{−,+} pr(Wi = 1|Ai, )pr(Ai, )
+
+Number of obs.
+Overall
+Within smallest bandwidth
+
+−
++ E[Yi (1)|Gi = c, A−
+i, ] · pr(Gi = c|Wi = 1, Ai, )
+
++ E[Yi (1)|Gi = a, Ai, ] · pr(Gi = a|Gi = a, A+
+i, )
+68,798
+37,580
+
+15,420
+10,379
+
+53,378
+27,201
+
+NOTE: The forcing variable X is the 2001 minimum score between reading and math
+minus the cutoff for passing; the outcome variable Y is the standardized math score in
+2002, and W is the participation indicator; the covariate V is the math score in 2000. The
+table reports the number of observations both in the overall sample and in the sample local
+to the threshold according to the smallest of the bandwidths used for estimation.
+
+It should be noted that, unlike in most regression discontinuity analyses, exogenous covariates play an important role in
+our testing procedures. Adjusting for observed differences in
+covariates between control and treatment groups can make a
+substantial difference. In the first of our applications, evidence
+of external validity is only found after our proposed adjustment
+for covariates is applied.
+
+·
+
++
+pr(Wi = 1|A+
+i, )pr(Ai, )
+
+s
+s
+s∈{−,+} pr(Wi = 1|Ai, )pr(Ai, )
+−
++ E[Yi (1)|Gi = c, A−
+i, ] · pr(Gi = c|Gi ∈ {a, c}, Ai, )
+−
+pr(Wi = 1|A−
+i, )pr(Ai, )
+·
+s
+s
+s∈{−,+} pr(Wi = 1|Ai, )pr(Ai, )
++
++ E[Yi (1)|Gi = c, A−
+i, ] · pr(Gi = c|Gi = a, Ai, )
++
+pr(Wi = 1|A+
+i, )pr(Ai, )
+·
+s
+s
+s∈{−,+} pr(Wi = 1|Ai, )pr(Ai, )
+= E[Yi (1)|Gi = a, Ai, ] · pr(Gi = a|Gi ∈ {a, c}, A−
+i, )
+−
+pr(Gi ∈ {a, c}|Ai, )
+·
+−
++
+−
+pr(Gi ∈ {a, c}|Ai, ) + pr(Gi = a|A+
+i, )pr(Ai, )/pr(Ai, )
+
++ E[Yi (1)|Gi = a, Ai, ] · 1
+
+APPENDIX A:
+
+PROOFS
+
+Proof of Lemma 1: See Hahn, Todd, and Van Der Klaauw (2001).
+Proof of Lemma 2: By the arguments in Hahn, Todd, and Van Der
+Klaauw (2001),
+τ frd = E[Yi (1)|Gi = c, Xi = T  ] − E[Yi (0)|Gi = c, Xi = T  ].
+Define the following events and probabilities:
+Ai, = {T  −  < Xi < T  + },
+
+
+A+
+i, = {T < Xi < T + },
+
+
+A−
+i, = {T −  < Xi ≤ T },
+
+πa = πa (T  ) = pr(Gi = a|Xi = T  ),
+πc = πc (T  ) = pr(Gi = c|Xi = T  ),
+
+pr(Gi = a|A+
+i, )
+−
++
++
+pr(Gi ∈ {a, c}|Ai, )pr(A−
+)/pr(A
+i,
+i, ) + pr(Gi = a|Ai, )
+−
++ E[Yi (1)|Gi = c, A−
+i, ] · pr(Gi = c|Gi ∈ {a, c}, Ai, )
+pr(Gi ∈ {a, c}|A−
+i, )
+·
+−
++
+−
+pr(Gi ∈ {a, c}|Ai, ) + pr(Gi = a|A+
+i, )pr(Ai, )/pr(Ai, )
+
+·
+
++0
+Now, take the limit as  ↓ 0. By Assumption 2, the conditional
+mean of potential outcomes given each compliance type and the
+forcing variable is a continuous function of the forcing variable;
+also, the conditional probability of each compliance type given the
+forcing variable is a continuous function of the forcing variable; lastly,
+continuity of the density of the forcing variable at the threshold implies
++
+lim↓0 pr(A−
+i, )/pr(Ai, ) = 1. Therefore,
+lim E[Yi |Wi = 1, Ai, ]
+
+and
+
+↓0
+
+πn = πn (T  ) = pr(Gi = n|Xi = T  ).
+Next, consider the first term in τols , lim↓0 E[Yi |Wi = 1, Ai, ] without
+the limit operator:
+E[Yi |Wi = 1, Ai, ] = E[Yi (1)|Wi = 1, Ai, ]
+= E[Yi (1)|Wi = 1, Gi = a, Ai, ] · pr(Gi = a|Wi = 1, Ai, )
++ E[Yi (1)|Wi = 1, Gi = c, Ai, ] · pr(Gi = c|Wi = 1, Ai, )
+= E[Yi (1)|Gi = a, Ai, ] · pr(Gi = a|Wi = 1, Ai, )
++ E[Yi (1)|Gi = c, A−
+i, ] · pr(Gi = c|Wi = 1, Ai, )
+
+πa
+πa + πc
+·
+πa + πc 2πa + πc
+πa
++E[Yi (1)|Gi = a, Xi = T  ] ·
+2πa + πc
+πc
+πa + πc
+
++E[Yi (1)|Gi = c, Xi = T ] ·
+·
+πa + πc 2πa + πc
+πa
++ E[Yi (1)|Gi = c, Xi = T  ]
+= E[Yi (1)|Gi = a, Xi = T  ] ·
+πa + πc /2
+πc /2
+·
+πa + πc /2
+= E[Yi (1)|Gi = a, Xi = T  ] ·
+
+Bertanha and Imbens: External Validity in Fuzzy Regression Discontinuity Designs
+
+13
+
+Figure 2. Matsudaira (2008)–conditional mean plots. The forcing variable X is the 2001 minimum score between reading and math minus
+the cutoff for passing; the outcome variable Y is the standardized math score in 2002, and W is the participation indicator; the covariate V is the
+math score in 2000. The support of X is restricted to [−70, 70] to make all plots comparable. We estimated the conditional mean curves by local
+linear regression with triangular kernel evaluated on a grid of 100 points on each side of the cutoff, and optimal IK bandwidth for sharp RD in
+six conditional mean functions: E [ Yi | Xi = x] (bandwidth 28), E [ Wi | Xi = x] (bandwidth 40), E [ Yi | Wi = w, Xi = x] for w = 0, 1 (bandwidths
+28 and 37), and E [ Yi | Wi = w, Xi = x, Vi = E[Vi ]] for w = 0, 1 (bandwidths 28 and 37). Scatterplots exhibit the dispersion of the raw data.
+Darker points refer to data points that are more frequently observed than lighter points. In Panels (e) and (f), the scatterplots are conditional on
+V being within one standard deviation of its average.
+By a similar argument
+
+πc /2
+πa + πc /2
+πn
+= n, Xi = T  ] ·
+πn + πc /2
+πc /2
+= c, Xi = T  ] ·
+πn + πc /2
+
++E[Yi (1)|Gi = c, Xi = T  ] ·
+−E[Yi (0)|Gi
+
+lim E[Yi |Wi = 0, Ai, ]
+
+↓0
+
+= E[Yi (0)|Gi = n, Xi = T  ] ·
+
+πn
+πn + πc /2
+
+πc /2
++ E[Yi (0)|Gi = c, Xi = T  ] ·
+πn + πc /2
+
+−E[Yi (0)|Gi
+
+−E[Yi (1)|Gi = c, Xi = T  ] + E[Yi (0)|Gi = c, Xi = T  ]
+τ ols − τ frd
+
+
+πa
+E[Yi (1)|Gi = a, Xi = T  ]
+πa + πc /2
+
+−E[Yi (1)|Gi = c, Xi = T  ]
+
+πn
+E[Yi (0)|Gi = n, Xi = T  ]
+−
+πn + πc /2
+
+−E[Yi (0)|Gi = c, Xi = T  ] .
+
+=
+Finally,
+τ ols − τ frd
+= E[Yi (1)|Gi = a, Xi = T  ] ·
+
+πa
+πa + πc /2
+
+
+
+14
+
+Journal of Business & Economic Statistics, XXXX 2019
+
+Table 4. Matsudaira (2008)–external validity statistics
+Estimand
+
+Estimate
+
+SE
+
+πc
+πa
+πn
+
+0.395
+0.132
+0.473
+
+(0.012)
+(0.007)
+(0.010)
+
+−0.211
+−0.343
+−0.381
+−0.343
+
+(0.021)
+(0.030)
+(0.036)
+(0.017)
+
+Participation
+
+E[Yi (1)|Xi
+E[Yi (1)|Xi
+E[Yi (0)|Xi
+E[Yi (0)|Xi
+
+Cond. means of
+potential outcomes
+
+= T ∗ , Gi
+= T ∗ , Gi
+= T ∗ , Gi
+= T ∗ , Gi
+
+= c]
+= a]
+= c]
+= n]
+
+p-value
+
+LATE
+
+ ] − E[Y |X = T  ]
+E[Yi |Xi = T−
+i i
++
+ ] − E[W |X = T  ]
+E[Wi |Xi = T−
+i i
++
+
+0.171
+
+(0.041)
+
+OLS
+
+ ] − E[Y |W = 0, X = T  ]
+E[Yi |Wi = 1, Xi = T±
+i i
+i
+±
+
+0.091
+
+(0.016)
+
+LATE minus OLS
+
+0.080
+
+(0.038)
+
+0.034
+
+LATE minus
+
+0.170
+
+(0.064)
+
+0.008
+
+0.018
+0.099
+
+(0.021)
+(0.033)
+
+0.414
+0.003
+
+Tests
+Hausman
+Angrist
+
+ ] − E[Y |W = 0, X = T  ]
+E[Yi |Wi = 1, Xi = T+
+i i
+i
+−
+
+Conditional
+jumps
+
+
+
+
+
+ − E Y | W = 0, X = T 
+E  Yi | Wi = 0, Xi = T−
+i
+i
+i
++
+
+
+ − E Y | W = 1, X = T 
+E Yi | Wi = 1, Xi = T−
+i
+i
+i
++
+
+Joint F-test
+
+9.753
+
+0.008
+
+Adj. for covariate
+Conditional
+jumps
+
+
+
+
+
+ − E Y | W = 0, X = T 
+E Yi | Wi = 0, Xi = T−
+i
+i
+i
++
+
+
+
+− E Vi | Wi = 0, Xi = T−
+
+
+
+γ (0)
+−E Vi | Wi = 0, Xi = T+
+
+
+
+
+ − E Y | W = 1, X = T 
+E Yi | Wi = 1, Xi = T−
+i
+i
+i
++
+
+
+
+− E Vi | Wi = 1, Xi = T−
+
+
+
+γ (1)
+−E Vi | Wi = 1, Xi = T+
+
+Joint F-test
+
+0.008
+
+(0.020)
+
+0.699
+
+0.068
+
+(0.031)
+
+0.027
+
+5.035
+
+0.081
+
+NOTE: The forcing variable X is the 2001 minimum score between reading and math minus the cutoff for passing; the outcome variable Y is the standardized math score in 2002,
+ (or X = T  ) denote the limit of the mean conditional on X being in
+and W is the participation indicator; the covariate V is the math score in 2000. Means conditional on Xi = T+
+i
+i
+−
+ denote the limit of the mean conditional on X being in a shrinking neighborhood on both sides
+a shrinking neighborhood on the right (or left) of T  . Means conditional on Xi = T±
+i
+of T  . The parameters γ (0) and γ (1) are defined in Lemma 4. Nonparametric bias-corrected estimates are obtained by local quadratic regression, triangular kernel, and IK optimal
+
+
+bandwidth for sharp RD using local linear regression. Estimates on this table are based on jump discontinuities at x = T  in six conditional mean functions: E Yi | Xi = x (bandwidth
+
+
+
+
+
+
+28), E Wi | Xi = x (bandwidth 40), E Yi | Wi = w, Xi = x for w = 0, 1 (bandwidths 28 and 37), and E Yi | Wi = w, Xi = x, Vi = E[Vi ] for w = 0, 1 (bandwidths 28 and 37). The
+standard errors of all estimates are computed using 10,000 simulations of the Wild Bootstrap of Bartalotti et al. (2017) which captures the additional variance from the bias correction.
+The F-test is a χ 2 statistic computed as a quadratic form of the 2 × 1 vector of the conditional jumps inversely weighted by the covariance matrix of such vector.
+
+Proof of the equivalence between (6) and (7): In the proof of
+Lemma 2 above, change the definitions of the events Ai, as follows:
+Ai,  → {Xi ∈ X},
+
+A+
+i,  → {T < Xi } = {Zi = 0},
+
+A−
+i,  → {Xi ≤ T } = {Zi = 1},
+
+and the probabilities πa = pr(Gi = a), πc = pr(Gi = c), πn =
+pr(Gi = n), and πz = pr(Zi = 1). Follow the same lines of
+the proof of Lemma 2, replace the definitions above, and recall that
+
+Zi ⊥ (Yi (0), Yi (1), Wi (t)). We have that
+E[Yi |Wi = 1]
+πa
+πa + π c
+= E[Yi (1)|Gi = a] ·
+·
+πa + πc πa + πc + πa (1 − pz )/pz
+πa
++E[Yi (1)|Gi = a] ·
+(πa + πc )pz /(1 − pz ) + πa
+πc
+πa + π c
++E[Yi (1)|Gi = c] ·
+·
+πa + πc πa + πc + πa (1 − pz )/pz
+πa
+πc pz
+= E[Yi (1)|Gi = a] ·
++ E[Yi (1)|Gi = c] ·
+.
+πa + πc pz
+πa + πc pz
+
+Bertanha and Imbens: External Validity in Fuzzy Regression Discontinuity Designs
+
+15
+
+Figure 3. Jacob and and Lefgren (2004)—Optimal RD plots. The outcome variable Y is the math score (after summer school); the forcing
+variable X is the minimum between the reading and math score (before summer school) minus the cutoff; W is the participation indicator; and
+the covariate V is the math Rasch score (before summer school). The support of X is restricted to [−2, 2] to make all plots comparable. Optimal
+data-driven plots split the x-axis into equally sized bins on each side of the cutoff and average Yi within each bin (dots on the graph). The optimal
+number of bins on each side of the cutoff was computed using Calonico, Cattaneo, and Titiunik’s (2015)’s STATA code rdplot. In Panels (e)
+and (f): the average within each bin is the average of Y predicted at the average value of V using a linear regression of Y on a constant, X and V.
+Conditional mean curves are computed as in Figure 1.
+Proof of Lemma 3: As shown before,
+
+Similarly,
+E[Yi |Wi = 0]
+πn
++ E[Yi (0)|Gi = c]
+= E[Yi (0)|Gi = n] ·
+πn + πc (1 − pz )
+·
+
+πc (1 − pz )
+.
+πn + πc (1 − pz )
+
+Finally,
+β ols − β iv
+= E[Yi |Wi = 1] − E[Yi |Wi = 0] − ( E[Yi (1)|
+Gi = c] − E[Yi (0)|Gi = c] ),
+πa
+=
+( E[Yi (1)|Gi = a] − E[Yi (1)|Gi = c] )
+πa + πc pz
+πn
+−
+( E[Yi (0)|Gi = n] − E[Yi (0)|Gi = c] ) .
+πn + πc (1 − pz )
+
+
+τ frd = E[Yi (1)|Gi = c, Xi = T  ] − E[Yi (0)|Gi = c, Xi = T  ],
+so all that remains to be shown is
+lim E[Yi |Wi = 1, T  < Xi < T  +]−E[Yi |Wi = 0, T  − < Xi ≤ T  ]
+
+↓0
+
+= E[Yi (1)|Gi = a, Xi = T  ] − E[Yi (0)|Gi = n, Xi = T  ],
+By definition,
+lim E[Yi |Wi = 1, T  < Xi < T  + ]
+
+↓0
+
+− E[Yi |Wi = 0, T  −  < Xi ≤ T  ]
+= lim E[Yi (1)|Wi = 1, T  < Xi < T  + ]
+↓0
+
+− E[Yi (0)|Wi = 0, T  −  < Xi ≤ T  ].
+
+16
+
+Journal of Business & Economic Statistics, XXXX 2019
+
+Figure 4. Matsudaira (2008)–optimal RD plots. The forcing variable X is the 2001 minimum score between reading and math minus the
+cutoff for passing; the outcome variable Y is the standardized math score in 2002, and W is the participation indicator; the covariate V is the
+math score in 2000. The support of X is restricted to [−70, 70] to make all plots comparable. Optimal data-driven plots split the x-axis into
+equally sized bins on each side of the cutoff and average Yi within each bin (dots on the graph). The optimal number of bins on each side of
+the cutoff was computed using Calonico, Cattaneo, and Titiunik’s (2015) STATA code rdplot. In Panels (e) and (f): the average within each
+bin is the average of Y predicted at the average value of V using a linear regression of Y on a constant, X and V. Conditional mean curves are
+computed as in Figure 2.
+For an arbitrary x ∈ X, by external validity (Assumption 5), it
+follows that :
+
+This is equal to
+lim E[Yi (1)|Wi = 1, Gi = a, T  < Xi < T  + ]
+
+↓0
+
+− E[Yi (0)|Wi = 0, Gi = n, T  −  < Xi ≤ T  ]
+= lim E[Yi (1)|Gi = a, T  < Xi < T  + ]
+
+E[Yi (0)|Gi = g, Xi = x] = E[Yi (0)|Xi = x] ∀g ∈ {a, c, n},
+
+(A1)
+
+E[Yi (1)|Gi = g, Xi = x] = E[Yi (1)|Xi = x] ∀g ∈ {a, c, n}.
+
+(A2)
+
+Case I: x ≤ T 
+
+↓0
+
+Using the definitions of Gi and Wi :
+
+− E[Yi (0)|Gi = n, T  −  < Xi ≤ T  ]
+= E[Yi (1)|Gi = a, Xi = T  ] − E[Yi (0)|Gi = n, Xi = T  ],
+which finishes the proof.
+Proof of Theorem 1: Note that
+
+
+
+τ ate = E [E[Yi (1) − Yi (0)|Xi ]]
+so that it suffices to show that τ (x) = E[Yi (1) − Yi (0)|Xi = x] is
+identified for every x ∈ X because the distribution of Xi is identified.
+
+Gi ∈ {c, a} ⇐⇒ Wi = 1 Xi = x,
+
+(A3)
+
+Gi = n ⇐⇒ Wi = 0 Xi = x.
+
+(A4)
+
+Consider
+E[Yi |Wi = 0, Xi = x]
+= E[Yi (0)|Wi = 0, Xi = x]
+= E[Yi (0)|Gi = n, Xi = x]
+= E[Yi (0)|Xi = x],
+
+Bertanha and Imbens: External Validity in Fuzzy Regression Discontinuity Designs
+
+where we used (A4) in the second equality, and (A1) in the third
+equality.
+Next, consider
+E[Yi |Wi = 1, Xi = x]
+= E[Yi (1)|Wi = 1, Xi = x]
+= E[Yi (1)|Gi ∈ {c, a}, Xi = x]
+= E[Yi (1)|Gi = c, Xi = x] · pr(Gi = c|Gi ∈ {c, a}, Xi = x)
++E[Yi (1)|Gi = a, Xi = x] · pr(Gi = a|Gi ∈ {c, a}, Xi = x)
+= E[Yi (1)|Xi = x],
+where we used (A3) in the second equality, and (A2) in the fourth
+equality.
+Therefore, E[Yi (1) − Yi (0)|Xi = x] is identified in Case I.
+
+17
+
+Proof of Lemma 4: The derivation of the probability limit follows
+Calonico et al. (2018) (denoted CCFT) except for three differences
+due to the fact we use the subsample conditional on Wi = w, and
+that we use (Vi − V) instead of Vi . First, the pdf of Xi conditional on
+Wi = w, that is, fX|W , is not continuous at x = T  . Second, E[Vi |Xi =
+0− , Wi = w] − E[Vi |Xi = 0+ , Wi = w] may not be zero. Third,
+although (Vi − V) is different than Vi , we replace (Vi − V) by Vi =
+(Vi − E[Vi ]) without loss of generality because V converges to E[Vi ]
+faster than the nonparametric rate of convergence of τ (w).
+Using the intuition behind the omitted-variable bias formula,
+τ (w) = τ (w) − γ (w) τV (w) where τ (w) is the estimator for the
+discontinuity in the conditional mean of Y in the long regression (with
+Vi ); τ (w) is defined in the main text except that we replace (Vi − V)
+by Vi ; τ (w) is the estimator for the discontinuity in the conditional
+mean Y in the short regression (without Vi ); γ (w) is the estimator for
+the coefficient on Vi in the long regression; and τV (w) is the estimator
+for the discontinuity in the conditional mean of V at the cutoff.
+Following the proofs of Lemmas A1 to A7 in the supplemental
+appendix of CCFT we arrive at
+p
+
+τ (w) → μY− (w) − μY+ (w)
+
+Case II: x > T 
+
+p
+
+Again, by the definitions of Gi and Wi :
+Gi = a ⇐⇒ Wi = 1 Xi = x
+
+(A5)
+
+Gi ∈ {n, c} ⇐⇒ Wi = 0 Xi = x.
+
+(A6)
+
+Consider
+E[Yi |Wi = 0, Xi = x]
+= E[Yi (0)|Wi = 0, Xi = x]
+= E[Yi (0)|Gi ∈ {n, c}, Xi = x]
+= E[Yi (0)|Gi = n, Xi = x] · pr(Gi = n|Gi ∈ {n, c}, Xi = x)
++E[Yi (0)|Gi = c, Xi = x] · pr(Gi = c|Gi ∈ {n, c}, Xi = x)
+= E[Yi (0)|Xi = x],
+where we used (A6) in the second equality, and (A1) in the fourth
+equality.
+Next, consider
+E[Yi |Wi = 1, Xi = x]
+= E[Yi (1)|Wi = 1, Xi = x]
+= E[Yi (1)|Gi = a, Xi = x]
+= E[Yi (1)|Xi = x],
+
+τV (w) → μV− (w) − μV+ (w) = μV− (w) − μV+ (w)
+−1
+p 
+γ (w) → κ− (w)σ 2 (w) + κ+ (w)σ 2 (w)
+V−
+V+
+
+
+κ− (w)σVY− (w) + κ+ (w)σVY+ (w)
+
+
+2 (w) + κ (w)σ 2 (w) −1
+= κ− (w)σV−
++
+V+
+
+
+κ− (w)σVY− (w) + κ+ (w)σVY+ (w) .
+Next, assume external validity (Assumption 8) and linearity in Vi
+(Assumption 9) hold. We have that
+
+
+
+σVY− (w) = E Vi − μV− (w) Yi | Wi = w, Xi = T−
+
+
+= E Vi − μV− (w)
+
+ , V  | W = w, X = T  
+E Yi | Wi = w, Xi = T−
+i
+i
+i
+−
+
+
+= E Vi − μV− (w)
+
+
+
+ψ(w, T  ) Vi | Wi = w, Xi = T−
+
+
+  ψ(w, T  )
+= E Vi − μV− (w) Vi | Wi = w, Xi = T−
+2 (w)ψ(w, T  ).
+= σV−
+2 (w)ψ(w, T  ). Plugging these last two
+Similarly, σVY+ (w) = σV+
+p
+expressions into the probability limit of γ (w) gives that γ (w) →
+ψ(w, T  ). The probability limit of τ (w) becomes
+
+
+
+
+μY− (w) − μY+ (w) − ψ(w, T  ) μV− (w) − μV+ (w)
+
+which is equal to zero because
+
+
+
+μY− (w) − μY+ (w) = ψ(w, T  ) μV− (w) − μV+ (w) .
+
+where we used (A5) in the second equality, and (A2) in the third
+equality.
+Therefore, E[Yi (1) − Yi (0)|Xi = x] is identified in Case II.
+
+
+Proof of Corollary 1: The claims follow directly from the proof of
+Theorem 1 above. Simply consider Case I with x ∈ (T  − , T  ] and
+Case II with x ∈ (T  , T  + ) for small . Then, take  → 0.
+
+Proof of Corollary 2: It follows directly from the proofs of
+Theorem 1 and Corollary 1 above conditional on Vi = v and using
+Assumptions 6, 7, and 8.
+
+
+
+
+APPENDIX B:
+
+OPTIMAL DATA-DRIVEN PLOTS
+
+In this section, we remake the conditional mean plots in Figures 1
+and 2 following the optimal data-driven plots of Calonico, Cattaneo,
+and Titiunik (2015). These plots divide the range of X into equally
+spaced bins and display the average of Yi inside each bin. The number
+of bins on each side of the cutoff is optimally chosen to minimize
+the integrated mean square error between the bin averages and the
+conditional mean curve. The key advantage of such construction is
+to highlight potential discontinuities in the distribution of the data that
+
+18
+
+Journal of Business & Economic Statistics, XXXX 2019
+
+Table 5. Jacob and and Lefgren (2004)—external validity statistics
+Estimand
+
+Estimate
+
+SE
+
+πc
+πa
+πn
+
+0.884
+0.019
+0.097
+
+(0.009)
+(0.004)
+(0.007)
+
+4.331
+4.036
+4.203
+4.261
+
+(0.013)
+(0.109)
+(0.026)
+(0.069)
+
+Participation
+
+Cond. means of
+potential outcomes
+
+E[Yi (1)|Xi
+E[Yi (1)|Xi
+E[Yi (0)|Xi
+E[Yi (0)|Xi
+
+= T ∗ , Gi
+= T ∗ , Gi
+= T ∗ , Gi
+= T ∗ , Gi
+
+= c]
+= a]
+= c]
+= n]
+
+p-value
+
+LATE
+
+ ] − E[Y |X = T  ]
+E[Yi |Xi = T−
+i i
++
+ ] − E[W |X = T  ]
+E[Wi |Xi = T−
+i i
++
+
+0.127
+
+(0.029)
+
+OLS
+
+ ] − E[Y |W = 0, X = T  ]
+E[Yi |Wi = 1, Xi = T±
+i i
+i
+±
+
+0.105
+
+(0.024)
+
+LATE minus OLS
+
+0.023
+
+(0.016)
+
+0.155
+
+LATE minus
+
+0.352
+
+(0.138)
+
+0.011
+
+0.052
+0.288
+
+(0.074)
+(0.109)
+
+0.481
+0.008
+
+Tests
+Hausman
+Angrist
+
+ ] − E[Y |W = 0, X = T  ]
+E[Yi |Wi = 1, Xi = T+
+i i
+i
+−
+
+Conditional
+jumps
+
+
+
+
+
+ − E Y | W = 0, X = T 
+E  Yi | Wi = 0, Xi = T−
+i
+i
+i
++
+
+
+ − E Y | W = 1, X = T 
+E Yi | Wi = 1, Xi = T−
+i
+i
+i
++
+
+Joint F-test
+
+7.521
+
+0.023
+
+Adj. for covariate
+Conditional
+jumps
+
+
+
+
+
+ − E Y | W = 0, X = T 
+E Yi | Wi = 0, Xi = T−
+i
+i
+i
++
+
+
+
+− E Vi | Wi = 0, Xi = T−
+
+
+
+−E Vi | Wi = 0, Xi = T+
+γ (0)
+
+
+
+
+ − E Y | W = 1, X = T 
+E Yi | Wi = 1, Xi = T−
+i
+i
+i
++
+
+
+
+− E Vi | Wi = 1, Xi = T−
+
+
+
+γ (1)
+−E Vi | Wi = 1, Xi = T+
+
+Joint F-test
+
+−0.016
+
+(0.063)
+
+0.794
+
+0.185
+
+(0.103)
+
+0.074
+
+3.262
+
+0.196
+
+NOTE: The outcome variable Y is the math score (after the summer school); the forcing variable X is the minimum between the reading and math score (before the summer school)
+ (or X = T  ) denote the limit
+minus the cutoff; W is the participation indicator; and the covariate V is the math Rasch score (before the summer school). Means conditional on Xi = T+
+i
+−
+ denote the limit of the mean conditional on X being in a
+of the mean conditional on Xi being in a shrinking neighborhood on the right (or left) of T  . Means conditional on Xi = T±
+i
+
+shrinking neighborhood on both sides of T . The parameters γ (0) and γ (1) are defined in Lemma 4. Nonparametric bias-corrected estimates are obtained by local quadratic regression,
+
+triangular kernel, and CCTF optimal bandwidth for sharp RD using local linear regression. Estimates on this table are based on jump discontinuities at x = T in six conditional mean
+
+
+
+
+
+
+
+
+functions: E Yi | Xi = x (bandwidth 0.25), E Wi | Xi = x (bandwidth 0.21), E Yi | Wi = w, Xi = x for w = 0, 1 (bandwidths 0.20 and 0.10), and E Yi | Wi = w, Xi = x, Vi = E[Vi ]
+for w = 0, 1 (bandwidths 0.20 and 0.13). The bandwidths were computed using CCTF’s code rdbwselect for STATA. Some pilot bandwidths in this code were too small which led
+to matrix invertibility issues. The code was slightly modified to use a Moore-Penrose generalized inverse wherever necessary. The standard errors of all estimates are computed using
+10,000 simulations of the Wild Bootstrap of Bartalotti et al. (2017) which captures the additional variance from the bias correction. The F-test is a χ 2 statistic computed as a quadratic
+form of the 2 × 1 vector of the conditional jumps inversely weighted by the covariance matrix of such vector.
+
+local polynomial regressions fail to capture. We do not find evidence
+of such discontinuities in the optimal data-driven plots.
+
+APPENDIX C:
+
+ROBUSTNESS TO BANDWIDTH
+CHOICE
+
+We re-compute estimates in Tables 2 and 4 using the bandwidth
+selector of Calonico et al. (2018) (denoted CCFT). The conclusions
+
+of the joint test of conditional external validity (Assumption 8) do
+not change when we use the CCFT bandwidths in both applications
+(Tables 5 and 6). For the data of Jacob and and Lefgren (2004), we
+reject the joint test of unconditional external validity (Assumption 5)
+regardless of the bandwidth choice. For the data of Matsudaira (2008),
+we fail to reject the joint test of unconditional external validity using
+the CCFT bandwidth, although we still find that average outcomes
+between treated compliers and always-takers are significantly different
+from zero at the 6% level.
+
+Bertanha and Imbens: External Validity in Fuzzy Regression Discontinuity Designs
+
+19
+
+Table 6. Matsudaira (2008)—external validity statistics
+Estimand
+
+Estimate
+
+SE
+
+πc
+πa
+πn
+
+0.406
+0.126
+0.468
+
+(0.016)
+(0.010)
+(0.012)
+
+−0.220
+−0.317
+−0.356
+−0.362
+
+(0.023)
+(0.036)
+(0.045)
+(0.020)
+
+Participation
+
+Cond. means of
+potential outcomes
+
+E[Yi (1)|Xi
+E[Yi (1)|Xi
+E[Yi (0)|Xi
+E[Yi (0)|Xi
+
+= T ∗ , Gi
+= T ∗ , Gi
+= T ∗ , Gi
+= T ∗ , Gi
+
+= c]
+= a]
+= c]
+= n]
+
+p-value
+
+LATE
+
+ ] − E[Y |X = T  ]
+E[Yi |Xi = T−
+i i
++
+ ] − E[W |X = T  ]
+E[Wi |Xi = T−
+i i
++
+
+0.137
+
+(0.051)
+
+OLS
+
+ ] − E[Y |W = 0, X = T  ]
+E[Yi |Wi = 1, Xi = T±
+i i
+i
+±
+
+0.103
+
+(0.020)
+
+Hausman
+
+LATE minus OLS
+
+0.033
+
+(0.045)
+
+0.460
+
+Angrist
+
+LATE minus
+
+0.092
+
+(0.078)
+
+0.239
+
+−0.003
+0.074
+
+(0.027)
+(0.039)
+
+0.925
+0.059
+
+Tests
+
+ ] − E[Y |W = 0, X = T  ]
+E[Yi |Wi = 1, Xi = T+
+i i
+i
+−
+
+Conditional
+jumps
+
+
+
+
+
+ − E Y | W = 0, X = T 
+E Yi | Wi = 0, Xi = T−
+i
+i
+i
++
+
+
+
+ − E Y | W = 1, X = T 
+E Yi | Wi = 1, Xi = T−
+i
+i
+i
++
+
+Joint F-test
+
+3.583
+
+0.167
+
+Adj. for covariate
+
+Conditional
+jumps
+
+
+
+
+
+ − E Y | W = 0, X = T 
+E Yi | Wi = 0, Xi = T−
+i
+i
+i
++
+
+
+
+− E Vi | Wi = 0, Xi = T−
+
+
+
+γ (0)
+−E Vi | Wi = 0, Xi = T+
+
+
+
+
+ − E Y | W = 1, X = T 
+E Yi | Wi = 1, Xi = T−
+i
+i
+i
++
+
+
+
+− E Vi | Wi = 1, Xi = T−
+
+
+
+γ (1)
+−E Vi | Wi = 1, Xi = T+
+
+Joint F-test
+
+0.004
+
+(0.022)
+
+0.848
+
+0.051
+
+(0.037)
+
+0.162
+
+1.989
+
+0.370
+
+NOTE: The forcing variable X is the 2001 minimum score between reading and math minus the cutoff for passing; the outcome variable Y is the standardized math score in 2002,
+ (or X = T  ) denote the limit of the mean conditional on X being in
+and W is the participation indicator; the covariate V is the math score in 2000. Means conditional on Xi = T+
+i
+i
+−
+ denote the limit of the mean conditional on X being in a shrinking neighborhood on both sides
+a shrinking neighborhood on the right (or left) of T  . Means conditional on Xi = T±
+i
+of T  . The parameters γ (0) and γ (1) are defined in Lemma 4. Nonparametric bias-corrected estimates are obtained by local quadratic regression, triangular kernel, and CCTF optimal
+
+
+bandwidth for sharp RD using local linear regression. Estimates on this table are based on jump discontinuities at x = T  in six conditional mean functions: E Yi | Xi = x (bandwidth
+
+
+
+
+
+
+19), E Wi | Xi = x (bandwidth 20), E Yi | Wi = w, Xi = x for w = 0, 1 (bandwidths 18 and 24), and E Yi | Wi = w, Xi = x, Vi = E[Vi ] for w = 0, 1 (bandwidths 23 and 25). The
+bandwidths were computed using CCTF’s code rdbwselect for STATA. The standard errors of all estimates are computed using 10,000 simulations of the Wild Bootstrap of Bartalotti
+et al. (2017) which captures the additional variance from the bias correction. The F-test is a χ 2 statistic computed as a quadratic form of the 2 × 1 vector of the conditional jumps
+inversely weighted by the covariance matrix of such vector.
+
+ACKNOWLEDGMENTS
+
+FUNDING
+
+We are grateful for comments by Joshua Angrist, Brigham Frandsen, and
+Arthur Lewbel on an earlier version of this paper. We thank two anonymous
+referees for valuable suggestions, Wei Qian for research assistance, Brian
+Jacob, Lars Lefgren, and Jordan Matsudaira for making available the data used
+in this article.
+
+Bertanha: gratefully acknowledges the financial support received from:
+ISLA-Notre Dame, CORE-UcLouvain, and as a B.F. Haley and E.S. Shaw
+Fellow at SIEPR-Stanford.
+[Received June 2017. Revised July 2018.]
+
+20
+
+Journal of Business & Economic Statistics, XXXX 2019
+
+REFERENCES
+Abadie, A. (2002), “Bootstrap Tests for Distributional Treatment Effects in
+Instrumental Variable Models,” Journal of the American Statistical Association, 97, 284–292. [4]
+Angrist, J., Imbens, G.W., and Rubin, D. B. (1996), “Identification of Causal
+Effects Using Instrumental Variables,” Journal of the American Statistical
+Association 91, 444–455. [4]
+Angrist, J., and Lavy, V. (1999), “Using Maimonides’ Rule to Estimate the
+Effect of Class Size on Scholastic Achievement,” Quarterly Journal of
+Economics 114, 533–575. [2]
+Angrist, J. (2004), “Treatment Effect Heterogeneity in Theory and Practice,”
+The Economic Journal, 114(494), C52–C83. [1,5]
+Angrist, J., and Fernandez-Val, I. (2010), “ExtrapoLATE-ing: External Validity
+and Overidentification in the LATE Framework,” NBER Working Paper
+16566. [2,7]
+Angrist, J., and Rokkanen, M. (2015), “Wanna Get Away? Regression Discontinuity Estimation of Exam School Effects Away from the Cutoff,” Journal
+of the American Statistical Association, 110, 1331–1344. [2]
+Angrist, J., S. Cohodes, S. Dynarski, P. Pathak, and C. Walters (2016),
+“Stand and Deliver: Effects of Bostons Charter High Schools on College
+Preparation, Entry, and Choice,” Journal of Labor Economics, 34, 275–318.
+[2,4]
+Arai, Y., Hsu, Y., Kitagawa, T., Mourifie, I., and Wan, Y. (2018), “Testing Identifying Assumptions in Fuzzy Regression Discontinuity Design,” Working
+Paper. [4]
+Armstrong, T., and Kolesar, M. (2018), “Simple and Honest Confidence
+Intervals in Nonparametric Regression,” Cowles Foundation Discussion
+Paper No. 2044R2. [2]
+Bartalotti, O., Calhoun, G., and He, Y. (2017), “Bootstrap Confidence Intervals
+for Sharp Regression Discontinuity Designs,” in Regression Discontinuity
+Designs: Theory and Applications, 421–453. Bingley, Emerald Publishing
+Limited. [6,8,11,14,18,19]
+Battistin, E., and E. Rettore (2008), “Ineligibles and Eligible Non-Participants
+as a Double Comparison Group in Regression-Discontinuity Designs,”
+Journal of Econometrics, 142, 715–730. [1,2,3,6,7]
+Battistin, E., De Nadai, M., and Vuri, D. (2017), “Counting Rotten Apples: Student Achievement and Score Manipulation in Italian Elementary Schools,”
+Journal of Econometrics, 200, 344–362. [2,4]
+Berk, R., and Rauma, D. (1983), “Capitalizing on Nonrandom Assignment
+to Treatments: A Regression-Discontinuity Evaluation of a Crime-Control
+Program,” Journal of the American Statistical Association, 78, 21–27. [2]
+Bertanha, M., (2017), “Regression Discontinuity Design with Many Thresholds,” Working Paper, Department of Economics, University of Notre
+Dame, available at SSRN, http:// dx.doi.org / 10.2139 / ssrn.2712957. [2]
+Black, S. (1999), “Do Better Schools Matter? Parental Valuation of Elementary
+Education,” Quarterly Journal of Economics, 114, 577–599. [2]
+Black, D., Joo, J., LaLonde, R., Smith, J., and Taylor, E. (2017), “Simple
+Tests for Selection: Learning More From Instrumental Variables,” CesIfo
+Working Paper 6392. [2,4]
+Calonico, S., Cattaneo, M., and Titiunik, R. (2014), “Robust Nonparametric
+Confidence Intervals for Regression-Discontinuity Designs,” Econometrica, 82, 2295–2326. [2,3,6]
+Calonico, S., Cattaneo, M., and Titiunik, R. (2015), “Optimal Data-Driven
+Regression Discontinuity Plots,” Journal of the American Statistical Association, 110, 1753–1769. [2,8,15,16,17]
+Calonico, S., Cattaneo, M. D., Farrell, M.H., and Titiunik, R. (2018), “Regression Discontinuity Designs Using Covariates,” Working Paper, University
+of Michigan [7,17,18]
+Cattaneo, M., Titiunik, R., Vazquez-Bare, G., and Keele, L. (2016), “Interpreting Regression Discontinuity Designs with Multiple Cutoffs,” The Journal
+of Politics, 78, 1229–1248. [2,4]
+
+Cook, T. (2008), “Waiting for Life to Arrive: A History of the RegressionDiscontinuity Design in Psychology, Statistics and Economics,” Journal of
+Econometrics, 142, 636–654. [1]
+Dong, Y., and Lewbel, A. (2015),“Identifying the Effect of Changing the Policy
+Threshold in Regression Discontinuity Models,” Review of Economics and
+Statistics, 97, 1081–1092. [2,3]
+Dong, Y. (2018), “Alternative Assumptions to Identify LATE in Fuzzy Regression Discontinuity Designs,” Working Paper, UC Irvine. [2,4]
+Gelman, A., and Imbens, G. (2014), “Why High-Order Polynomials Should
+Not Be Used in Regression Discontinuity Designs,” NBER Working Paper,
+No. 20405. [2]
+Hahn, J., Todd, P., and Van der Klaauw, W. (2001), “Identification and
+Estimation of Treatment Effects with a Regression Discontinuity Design,”
+Econometrica, 69, 201–209. [1,12]
+Hausman, J. (1978), “Specification Tests in Econometrics,” Econometrica, 46,
+1251–1271. [1]
+Huber, M., and G. Mellace (2015), “Testing Instrument Validity for LATE Identification Based on Inequality Moment Constraints,” Review of Economics
+and Statistics, 97, 398–411. [2,4]
+Imbens, G., and Angrist, J. (1994), “Identification and Estimation of Local
+Average Treatment Effects,” Econometrica, 62, 467–475. [1,4]
+Imbens, G., and Lemieux, T. (2008), “Regression Discontinuity Designs: A
+Guide to Practice,” Journal of Econometrics, 142, 615–35. [1,3]
+Imbens, G., and Kalyanaraman, K. (2012), “Optimal Bandwidth Choice for
+the Regression Discontinuity Estimator,” Review of Economic Studies, 79,
+933–959. [2,6]
+Imbens, G. and Wager, S. (2018), “Optimized Regression Discontinuity
+Designs,” Working Paper, arXiv:1705.01677. [2]
+Jacob, B.A., and Lefgren, L. (2004), “Remedial Education and Student
+Achievement: A Regression-Discontinuity Analysis,” Review of Economics
+and Statistics, 86, 226–244. [2,3,8,9,10,11,15,18]
+Lalive, R. (2008), “How do Extended Benefits affect Unemployment Duration?
+A Regression Discontinuity Approach,” Journal of Econometrics, 142,
+785–806 [3]
+Lee, D., Moretti, E., and Butler, M. (2004), “Do Voters Affect or Elect Policies?
+Evidence From the U.S. House,” Quarterly Journal of Economics, 119,
+807–859. [3]
+Lee, D., (2008), “Randomized Experiments From Non-random Selection
+in U.S. House Elections,” Journal of Econometrics, 142, 675–697.
+[3]
+Lee, D., and Lemieux, T. (2010), “Regression Discontinuity Designs in Economics,” Journal of Economic Literature, 48, 281–355. [1,3]
+Matsudaira, J. (2008), “Mandatory Summer School and Student Achievement”,
+Journal of Econometrics, 142, 829–850. [2,3,8,9,12,16,18,19]
+McCrary, J. (2008), “Manipulation of the Running Variable in the Regression
+Discontinuity Design: A Density Test,” Journal of Econometrics, 142, 698–
+714. [2]
+Porter, J. (2003), “Estimation in the Regression Discontinuity Model,” Working
+Pager, Department of Economics, University of Wisconsin. [2,3]
+Rokkanen, M. (2015), “Exam Schools, Ability, and the Effects of Affirmative Action: Latent Factor Extrapolation in the Regression Discontinuity
+Design,” Working Paper. [2]
+Thistlewaite, D., and D. Campbell (1960), “Regression-Discontinuity Analysis:
+An Alternative to the Ex-Post Facto Experiment,” Journal of Educational
+Psychology, 51, 309–317. [1]
+Van Der Klaauw, W. (2002), “Estimating the Effect of Financial Aid Offers on
+College Enrollment: A Regression-Discontinuity Approach,” International
+Economic Review, 43, 1249–1287. [2]
+Van Der Klaauw, W. (2008), “Regression-Discontinuity Analysis: A Survey of Recent Developments in Economics,” Labour, 22, 219–245.
+[1,3]
+
+

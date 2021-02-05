@@ -1,0 +1,1519 @@
+ARTICLE IN PRESS
+
+Journal of Econometrics 142 (2008) 615–635
+www.elsevier.com/locate/jeconom
+
+Regression discontinuity designs: A guide to practice
+Guido W. Imbensa, Thomas Lemieuxb,
+a
+
+b
+
+Department of Economics, Harvard University and NBER, M-24 Littauer Center, Cambridge, MA 02138, USA
+Department of Economics, University of British Columbia and NBER, 997-1873 East Mall, Vancouver, BC, V6T 1Z1, Canada
+Available online 21 May 2007
+
+Abstract
+In regression discontinuity (RD) designs for evaluating causal effects of interventions, assignment to a treatment is
+determined at least partly by the value of an observed covariate lying on either side of a ﬁxed threshold. These designs were
+ﬁrst introduced in the evaluation literature by Thistlewaite and Campbell [1960. Regression-discontinuity analysis: an
+alternative to the ex-post Facto experiment. Journal of Educational Psychology 51, 309–317] With the exception of a few
+unpublished theoretical papers, these methods did not attract much attention in the economics literature until recently.
+Starting in the late 1990s, there has been a large number of studies in economics applying and extending RD methods. In
+this paper we review some of the practical and theoretical issues in implementation of RD methods.
+r 2007 Elsevier B.V. All rights reserved.
+JEL classification: C14; C21
+Keywords: Regression discontinuity; Treatment effects; Nonparametric estimation
+
+1. Introduction
+Since the late 1990s there has been a large number of studies in economics applying and extending
+regression discontinuity (RD) methods, including Van Der Klaauw (2002), Black (1999), Angrist and Lavy
+(1999), Lee (2007), Chay and Greenstone (2005), DiNardo and Lee (2004), Chay et al. (2005), and Card et al.
+(2006). Key theoretical and conceptual contributions include the interpretation of estimates for fuzzy
+regression discontinuity (FRD) designs allowing for general heterogeneity of treatment effects (Hahn et al.,
+2001, HTV from hereon), adaptive estimation methods (Sun, 2005), speciﬁc methods for choosing bandwidths
+(Ludwig and Miller, 2005), and various tests for discontinuities in means and distributions of non-affected
+variables (Lee, 2007; McCrary, 2007).
+In this paper, we review some of the practical issues in implementation of RD methods. There is relatively
+little novel in this discussion. Our general goal is instead to address practical issues in implementing RD
+designs and review some of the new theoretical developments.
+After reviewing some basic concepts in Section 2, the paper focuses on ﬁve speciﬁc issues in the
+implementation of RD designs. In Section 3 we stress graphical analyses as powerful methods for illustrating
+Corresponding author. Tel.: +1 604 822 2092; fax: +1 604 822 5915.
+
+E-mail addresses: imbens@harvard.edu (G.W. Imbens), tlemieux@interchange.ubc.ca (T. Lemieux).
+0304-4076/$ - see front matter r 2007 Elsevier B.V. All rights reserved.
+doi:10.1016/j.jeconom.2007.05.001
+
+ARTICLE IN PRESS
+616
+
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+the design. In Section 4 we discuss estimation and suggest using local linear regression methods using only the
+observations close to the discontinuity point. In Section 5 we propose choosing the bandwidth using crossvalidation. In Section 6 we provide a simple plug-in estimator for the asymptotic variance and a second
+estimator that exploits the link with instrumental variable methods derived by HTV. In Section 7 we discuss a
+number of speciﬁcation tests and sensitivity analyses based on tests for (a) discontinuities in the average values
+for covariates, (b) discontinuities in the conditional density of the forcing variable, as suggested by McCrary,
+and (c) discontinuities in the average outcome at other values of the forcing variable.
+2. Sharp and FRD designs
+2.1. Basics
+Our discussion will frame the RD design in the context of the modern literature on causal effects and
+treatment effects, using the Rubin Causal Model (RCM) set up with potential outcomes (Rubin, 1974;
+Holland, 1986; Imbens and Rubin, 2007), rather than the regression framework that was originally used in this
+literature. For a general discussion of the RCM and its use in the economic literature, see the survey by Imbens
+and Wooldridge (2007).
+In the basic setting for the RCM (and for the RD design), researchers are interested in the causal effect of a
+binary intervention or treatment. Units, which may be individuals, ﬁrms, countries, or other entities, are either
+exposed or not exposed to a treatment. The effect of the treatment is potentially heterogenous across units. Let
+Y i ð0Þ and Y i ð1Þ denote the pair of potential outcomes for unit i: Y i ð0Þ is the outcome without exposure to the
+treatment and Y i ð1Þ is the outcome given exposure to the treatment. Interest is in some comparison of Y i ð0Þ
+and Y i ð1Þ. Typically, including in this discussion, we focus on differences Y i ð1Þ  Y i ð0Þ. The fundamental
+problem of causal inference is that we never observe the pair Y i ð0Þ and Y i ð1Þ together. We therefore typically
+focus on average effects of the treatment, that is, averages of Y i ð1Þ  Y i ð0Þ over (sub)populations, rather than
+on unit-level effects. For unit i we observe the outcome corresponding to the treatment received. Let W i 2
+f0; 1g denote the treatment received, with W i ¼ 0 if unit i was not exposed to the treatment, and W i ¼ 1
+otherwise. The outcome observed can then be written as
+(
+Y i ð0Þ if W i ¼ 0;
+Y i ¼ ð1  W i Þ  Y i ð0Þ þ W i  Y i ð1Þ ¼
+Y i ð1Þ if W i ¼ 1:
+In addition to the assignment W i and the outcome Y i , we may observe a vector of covariates or pretreatment
+variables denoted by ðX i ; Z i Þ, where X i is a scalar and Z i is an M-vector. A key characteristic of X i and Z i is
+that they are known not to have been affected by the treatment. Both X i and Z i are covariates, with a special
+role played by X i in the RD design. For each unit we observe the quadruple ðY i ; W i ; X i ; Zi Þ. We assume that
+we observe this quadruple for a random sample from some well-deﬁned population.
+The basic idea behind the RD design is that assignment to the treatment is determined, either completely or
+partly, by the value of a predictor (the covariate X i ) being on either side of a ﬁxed threshold. This predictor
+may itself be associated with the potential outcomes, but this association is assumed to be smooth, and so any
+discontinuity of the conditional distribution (or of a feature of this conditional distribution such as the
+conditional expectation) of the outcome as a function of this covariate at the cutoff value is interpreted as
+evidence of a causal effect of the treatment.
+The design often arises from administrative decisions, where the incentives for units to participate in a
+program are partly limited for reasons of resource constraints, and clear transparent rules rather than
+discretion by administrators are used for the allocation of these incentives. Examples of such settings abound.
+For example, Hahn et al. (1999) study the effect of an anti-discrimination law that only applies to ﬁrms with at
+least 15 employees. In another example, Matsudaira (2007) studies the effect of a remedial summer school
+program that is mandatory for students who score less than some cutoff level on a test (see also Jacob and
+Lefgren, 2004). Access to public goods such as libraries or museums is often eased by lower prices for
+individuals depending on an age cutoff value (senior citizen discounts and discounts for children under some
+age limit). Similarly, eligibility for medical services through medicare is restricted by age (Card et al., 2004).
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+617
+
+1
+0.8
+0.6
+0.4
+0.2
+0
+0
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+7
+
+8
+
+9
+
+10
+
+8
+
+9
+
+10
+
+Fig. 1. Assignment probabilities (SRD).
+
+5
+4
+3
+2
+1
+0
+
+0
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+7
+
+Fig. 2. Potential and observed outcome regression functions.
+
+2.2. The sharp regression discontinuity design
+It is useful to distinguish between two general settings, the sharp and the fuzzy regression discontinuity
+(SRD and FRD from hereon) designs (e.g., Trochim, 1984, 2001; HTV). In the SRD design the assignment W i
+is a deterministic function of one of the covariates, the forcing (or treatment-determining) variable X 1:
+W i ¼ 1fX i Xcg.
+All units with a covariate value of at least c are assigned to the treatment group (and participation is
+mandatory for these individuals), and all units with a covariate value less than c are assigned to the control
+group (members of this group are not eligible for the treatment). In the SRD design we look at the
+discontinuity in the conditional expectation of the outcome given the covariate to uncover an average causal
+effect of the treatment:
+lim E½Y i jX i ¼ x  lim E½Y i jX i ¼ x,
+x#c
+
+x"c
+
+which is interpreted as the average causal effect of the treatment at the discontinuity point
+tSRD ¼ E½Y i ð1Þ  Y i ð0ÞjX i ¼ c.
+
+(2.1)
+
+Figs. 1 and 2 illustrate the identiﬁcation strategy in the SRD setup. Based on artiﬁcial population values, we
+present in Fig. 1 the conditional probability of receiving the treatment, PrðW ¼ 1jX ¼ xÞ against the covariate
+x. At x ¼ 6 the probability jumps from 0 to 1. In Fig. 2, three conditional expectations are plotted. The two
+continuous lines (partly dashed, partly solid) in the ﬁgure are the conditional expectations of the two potential
+outcomes given the covariate, mw ðxÞ ¼ E½Y ðwÞjX ¼ x, for w ¼ 0; 1. These two conditional expectations are
+continuous functions of the covariate. Note that we can only estimate m0 ðxÞ for xoc and m1 ðxÞ for xXc.
+1
+Here we take X i to be a scalar. More generally, the assignment can be a function of a vector of covariates. Formally, we can write this
+as the treatment indicator being an indicator for the vector X i being an element of a subset of the covariate space, or
+
+W i ¼ 1fX i 2 X1 g,
+where X1  X, and X is the covariate space.
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+618
+
+In addition we plot the conditional expectation of the observed outcome
+E½Y jX ¼ x ¼ E½Y jW ¼ 0; X ¼ x  PrðW ¼ 0jX ¼ xÞ
+þ E½Y jW ¼ 1; X ¼ x  PrðW ¼ 1jX ¼ xÞ
+in Fig. 2, indicated by a solid line. Although the two conditional expectations of the potential outcomes mw ðxÞ
+are continuous, the conditional expectation of the observed outcome jumps at x ¼ c ¼ 6.
+Now let us discuss the interpretation of limx#c E½Y i jX i ¼ x  limx"c E½Y i jX i ¼ x as an average causal effect
+in more detail. In the SRD design, the widely used unconfoundedness assumption (e.g., Rosenbaum and
+Rubin, 1983; Imbens, 2004) underlying most matching-type estimators still holds:
+Y i ð0Þ; Y i ð1Þ@W i jX i .
+This assumption holds in a trivial manner, because conditional on the covariates there is no variation in the
+treatment. However, this assumption cannot be exploited directly. The problem is that the second assumption
+that is typically used for matching-type approaches, the overlap assumption which requires that for all values
+of the covariates there are both treated and control units, or
+0o PrðW i ¼ 1jX i ¼ xÞo1,
+is fundamentally violated. In fact, for all values of x the probability of assignment is either 0 or 1, rather than
+always between 0 and 1 as required by the overlap assumption. As a result, there are no values of x with
+overlap.
+This implies there is an unavoidable need for extrapolation. However, in large samples the amount of
+extrapolation required to make inferences is arbitrarily small, as we only need to infer the conditional
+expectation of Y ðwÞ given the covariates e away from where it can be estimated. To avoid non-trivial
+extrapolation we focus on the average treatment effect at X ¼ c:
+tSRD ¼ E½Y ð1Þ  Y ð0ÞjX ¼ c ¼ E½Y ð1ÞjX ¼ c  E½Y ð0ÞjX ¼ c.
+
+(2.2)
+
+By design, there are no units with X i ¼ c for whom we observe Y i ð0Þ. We therefore will exploit the fact that we
+observe units with covariate values arbitrarily close to c.2 In order to justify this averaging we make a
+smoothness assumption. Typically this assumption is formulated in terms of conditional expectations.
+Assumption 2.1. (Continuity of Conditional Regression Functions)
+E½Y ð0ÞjX ¼ x and
+
+E½Y ð1ÞjX ¼ x,
+
+are continuous in x.
+More generally, one might want to assume that the conditional distribution function is smooth in the
+covariate. Let F Y ðwÞjX ðyjxÞ ¼ PrðY ðwÞpyjX ¼ xÞ denote the conditional distribution function of Y ðwÞ given
+X . Then the general version of the assumption is:
+Assumption 2.2. (Continuity of Conditional Distribution Functions)
+F Y ð0ÞjX ðyjxÞ and
+
+F Y ð1ÞjX ðyjxÞ,
+
+are continuous in x for all y.
+Both these assumptions are stronger than required, as we will only use continuity at x ¼ c, but it is rare that
+it is reasonable to assume continuity for one value of the covariate, but not at other values of the covariate.
+We therefore make the stronger assumption.
+Under either assumption,
+E½Y ð0ÞjX ¼ c ¼ lim E½Y ð0ÞjX ¼ x ¼ lim E½Y ð0ÞjW ¼ 0; X ¼ x ¼ lim E½Y jX ¼ x
+x"c
+
+2
+
+x"c
+
+x"c
+
+Although in principle the ﬁrst term in the difference in (2.2) would be straightforward to estimate if we actually observed individuals
+with X i ¼ x, with continuous covariates we also need to estimate this term by averaging over units with covariate values close to c.
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+619
+
+and similarly,
+E½Y ð1ÞjX ¼ c ¼ lim E½Y jX ¼ x.
+x#c
+
+Thus, the average treatment effect at c, tSRD , satisﬁes
+tSRD ¼ lim E½Y jX ¼ x  lim E½Y jX ¼ x.
+x#c
+
+x"c
+
+The estimand is the difference of two regression functions at a point. Hence, if we try to estimate this
+object without parametric assumptions on the two regression functions, we do not obtain root-N consistent
+estimators. Instead we get consistent estimators that converge to their limits at slower, nonparametric
+rates.
+As an example of an SRD design, consider the study of the effect of party afﬁliation of a congressman on
+congressional voting outcomes by Lee (2007). See also Lee et al. (2004). The key idea is that electoral districts
+where the share of the vote for a Democrat in a particular election was just under 50% are on average similar
+in many relevant respects to districts where the share of the Democratic vote was just over 50%, but the small
+difference in votes leads to an immediate and big difference in the party afﬁliation of the elected representative.
+In this case, the party afﬁliation always jumps at 50%, making this an SRD design. Lee looks at the
+incumbency effect. He is interested in the probability of Democrats winning the subsequent election,
+comparing districts where the Democrats won the previous election with just over 50% of the popular vote
+with districts where the Democrats lost the previous election with just under 50% of the vote.
+2.3. The FRD design
+In the FRD design, the probability of receiving the treatment needs not change from 0 to 1 at the threshold.
+Instead, the design allows for a smaller jump in the probability of assignment to the treatment at the threshold:
+lim PrðW i ¼ 1jX i ¼ xÞa lim PrðW i ¼ 1jX i ¼ xÞ,
+x#c
+
+x"c
+
+without requiring the jump to equal 1. Such a situation can arise if incentives to participate in a program
+change discontinuously at a threshold, without these incentives being powerful enough to move all units from
+nonparticipation to participation. In this design we interpret the ratio of the jump in the regression of the
+outcome on the covariate to the jump in the regression of the treatment indicator on the covariate as an
+average causal effect of the treatment. Formally, the estimand is
+tFRD ¼
+
+limx#c E½Y jX ¼ x  limx"c E½Y jX ¼ x
+.
+limx#c E½W jX ¼ x  limx"c E½W jX ¼ x
+
+Let us ﬁrst consider the interpretation of this ratio. HTV, in arguably the most important theoretical paper
+in the recent RD literature, exploit the instrumental variables connection to interpret the FRD design when
+the effect of the treatment varies by unit, as in Imbens and Angrist (1994).3 Let W i ðxÞ be potential treatment
+status given cutoff point x, for x in some small neighborhood around c. W i ðxÞ is equal to 1 if unit i would take
+or receive the treatment if the cutoff point was equal to x. This requires that the cutoff point is at least in
+principle manipulable. For example, if X is age, one could imagine changing the age that makes an individual
+eligible for the treatment from c to c þ . Then it is useful to assume monotonicity (see HTV).
+Assumption 2.3. W i ðxÞ is non-increasing in x at x ¼ c.
+Next, deﬁne compliance status. This concept is similar to the one used in instrumental variables settings
+(e.g., Angrist et al., 1996). A complier is a unit such that
+lim W i ðxÞ ¼ 0
+
+x#X i
+
+and
+
+lim W i ðxÞ ¼ 1.
+
+x"X i
+
+3
+The close connection between FRD and instrumental variables models led researchers in a number of cases to interpret RD designs as
+instrumental variables settings. See, for example, Angrist and Krueger (1991) and Imbens and Van Der Klaauw (1995). The main
+advantage of thinking of these designs as RD designs is that it suggests the speciﬁcation analyses from Section 7.
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+620
+
+Compliers are units that would get the treatment if the cutoff were at X i or below, but that would not get the
+treatment if the cutoff were higher than X i . To be speciﬁc, consider an example where individuals with a test
+score less than c are encouraged for a remedial teaching program (Matsudaira, 2007). Interest is in the effect of
+the program on subsequent test scores. Compliers are individuals who would participate if encouraged (if the
+test score is below the cutoff for encouragement), but not if not encouraged (if test score is above the cutoff for
+encouragement). Nevertakers are units with
+lim W i ðxÞ ¼ 0 and
+
+lim W i ðxÞ ¼ 0,
+
+x#X i
+
+x"X i
+
+and alwaystakers are units with
+lim W i ðxÞ ¼ 1 and
+
+lim W i ðxÞ ¼ 1.
+
+x#X i
+
+x"X i
+
+Then,
+tFRD ¼
+
+limx#c E½Y jX ¼ x  limx"c E½Y jX ¼ x
+limx#c E½W jX ¼ x  limx"c E½W jX ¼ x
+
+¼ E½Y i ð1Þ  Y i ð0Þjunit i is a complier and X i ¼ c.
+The estimand is an average effect of the treatment, but only averaged for units with X i ¼ c (by RD), and only
+for compliers (people who are affected by the threshold).
+In Fig. 3 we plot the conditional probability of receiving the treatment for an FRD design. As in the SRD
+design, this probability still jumps at x ¼ 6, but now by an amount less than 1. Fig. 4 presents the expectation
+of the potential outcomes given the covariate and the treatment, E½Y ðwÞjW ¼ w; X ¼ x, represented by the
+dashed lines, as well as the conditional expectation of the observed outcome given the covariate (solid line):
+E½Y jX ¼ x ¼ E½Y ð0ÞjW ¼ 0; X ¼ x  PrðW ¼ 0jX ¼ xÞ
+þ E½Y ð1ÞjW ¼ 1; X ¼ x  PrðW ¼ 1jX ¼ xÞ.
+Note that it is no longer necessarily the case here that E½Y ðwÞjW ¼ w; X ¼ x ¼ E½Y ðwÞjX ¼ x. Under some
+assumptions (unconfoundedness) this will be true, but this is not necessary for inference regarding causal
+effects in the FRD setting.
+1
+0.8
+0.6
+0.4
+0.2
+0
+0
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+7
+
+8
+
+9
+
+10
+
+8
+
+9
+
+10
+
+Fig. 3. Assignment probabilities (FRD).
+
+5
+4
+3
+2
+1
+0
+
+0
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+7
+
+Fig. 4. Potential and observed outcome regression (FRD).
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+621
+
+As an example of an FRD design, consider the study of the effect of ﬁnancial aid on college attendance by
+Van Der Klaauw (2002). Van Der Klaauw looks at the effect of ﬁnancial aid on acceptance on college
+admissions. Here X i is a numerical score assigned to college applicants based on the objective part of the
+application information (SAT scores, grades) used to streamline the process of assigning ﬁnancial aid offers.
+During the initial stages of the admission process, the applicants are divided into L groups based on
+discretized values of these scores. Let
+8
+1 if 0pX i oc1 ;
+>
+>
+>
+>
+< 2 if c1 pX i oc2 ;
+Gi ¼ .
+..
+>
+>
+>
+>
+:
+L if cL1 pX i ;
+denote the ﬁnancial aid group. For simplicity, let us focus on the case with L ¼ 2, and a single cutoff point c.
+Having a score of just over c will put an applicant in a higher category and increase the chances of ﬁnancial aid
+discontinuously compared to having a score of just below c. The outcome of interest in the Van Der Klaauw
+study is college attendance. In this case, the simple association between attendance and the ﬁnancial aid offer
+is ambiguous. On the one hand, an aid offer makes the college more attractive to the potential student. This is
+the causal effect of interest. On the other hand, a student who gets a generous ﬁnancial aid offer is likely to
+have better outside opportunities in the form of ﬁnancial aid offers from other colleges. College aid is
+emphatically not a deterministic function of the ﬁnancial aid categories, making this an FRD design. Other
+components of the application that are not incorporated in the numerical score (such as the essay and
+recommendation letters) undoubtedly play an important role. Nevertheless, there is a clear discontinuity in the
+probability of receiving an offer of a larger ﬁnancial aid package.
+2.4. The FRD design and unconfoundedness
+In the FRD setting, it is useful to contrast the RD approach with estimation of average causal effects under
+unconfoundedness. The unconfoundedness assumption (e.g., Rosenbaum and Rubin, 1983; Imbens, 2004)
+requires that
+Y ð0Þ; Y ð1Þ@W jX .
+If this assumption holds, then we can estimate the average effect of the treatment at X ¼ c as
+E½Y ð1Þ  Y ð0ÞjX ¼ x ¼ E½Y jW ¼ 1; X ¼ c  E½Y jW ¼ 0; X ¼ c.
+This approach does not exploit the jump in the probability of assignment at the discontinuity point. Instead it
+assumes that differences between treated and control units with X i ¼ c are interpretable as average causal effects.
+In contrast, the assumptions underlying an FRD analysis implies that comparing treated and control units
+with X i ¼ c is likely to be the wrong approach. Treated units with X i ¼ c include compliers and alwaystakers,
+and control units at X i ¼ c consist of nevertakers. Comparing these different types of units has no causal
+interpretation under the FRD assumptions. Although, in principle, one cannot test the unconfoundedness
+assumption, one aspect of the problem makes this assumption fairly implausible. Unconfoundedness is
+fundamentally based on units being comparable if their covariates are similar. This is not an attractive
+assumption in the current setting where the probability of receiving the treatment is discontinuous in the
+covariate. Thus, units with similar values of the forcing variable (but on different sides of the threshold) must
+be different in some important way related to the receipt of treatment. Unless there is a substantive argument
+that this difference is immaterial for the comparison of the outcomes of interest, an analysis based on
+unconfoundedness is not attractive.
+2.5. External validity
+One important aspect of both the SRD and FRD designs is that they, at best, provide estimates of the
+average effect for a subpopulation, namely the subpopulation with covariate value equal to X i ¼ c. The FRD
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+622
+
+design restricts the relevant subpopulation even further to that of compliers at this value of the covariate.
+Without strong assumptions justifying extrapolation to other subpopulations (e.g., homogeneity of the
+treatment effect), the designs never allow the researcher to estimate the overall average effect of the treatment.
+In that sense the design has fundamentally only a limited degree of external validity, although the speciﬁc
+average effect that is identiﬁed may well be of special interest, for example in cases where the policy question
+concerns changing the location of the threshold. The advantage of RD designs compared to other nonexperimental analyses that may have more external validity, such as those based on unconfoundedness is that
+RD designs may have a relatively high degree of internal validity (in settings where they are applicable).
+3. Graphical analyses
+3.1. Introduction
+Graphical analyses should be an integral part of any RD analysis. The nature of RD designs suggests that
+the effect of the treatment of interest can be measured by the value of the discontinuity in the expected value of
+the outcome at a particular point. Inspecting the estimated version of this conditional expectation is a simple
+yet powerful way to visualize the identiﬁcation strategy. Moreover, to assess the credibility of the RD strategy,
+it is useful to inspect two additional graphs for covariates and the density of the forcing variable. The
+estimators we discuss later use more sophisticated methods for smoothing but these basic plots will convey
+much of the intuition. For strikingly clear examples of such plots, see Lee et al. (2004), Lalive (2007), and Lee
+(2007). Note that, in practice, the visual clarity of the plots is often improved by adding smoothed regression
+lines based on polynomial regressions (or other ﬂexible methods) estimated separately on the two sides of the
+cutoff point.
+3.2. Outcomes by forcing variable
+The ﬁrst plot is a histogram-type estimate of the average value of the outcome for different values of the
+forcing variable, the estimated counterpart to the solid line in Figs. 2 and 4. For some binwidth h, and for
+some number of bins K 0 and K 1 to the left and right of the cutoff value, respectively, construct bins ðbk ; bkþ1 ,
+for k ¼ 1; . . . ; K ¼ K 0 þ K 1 , where
+bk ¼ c  ðK 0  k þ 1Þ  h.
+Then calculate the number of observations in each bin
+Nk ¼
+
+N
+X
+
+1fbk oX i pbkþ1 g
+
+i¼1
+
+and the average outcome in the bin
+Yk ¼
+
+N
+1 X
+
+Y i  1fbk oX i pbkþ1 g.
+N k i¼1
+
+The ﬁrst plot of interest is that of the Y k , for k ¼ 1; . . . ; K against the mid point of the bins,
+b~k ¼ ðbk þ bkþ1 Þ=2. The question is whether around the threshold c there is any evidence of a jump in the
+conditional mean of the outcome. The formal statistical analyses discussed below are essentially just
+sophisticated versions of this, and if the basic plot does not show any evidence of a discontinuity, there is
+relatively little chance that the more sophisticated analyses will lead to robust and credible estimates with
+statistically and substantially signiﬁcant magnitudes. In addition to inspecting whether there is a jump at this
+value of the covariate, one should inspect the graph to see whether there are any other jumps in the conditional
+expectation of Y given X that are comparable to, or larger than, the discontinuity at the cutoff value. If so,
+and if one cannot explain such jumps on substantive grounds, it would call into question the interpretation of
+the jump at the threshold as the causal effect of the treatment. In order to optimize the visual clarity it is
+important to calculate averages that are not smoothed over the cutoff point.
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+623
+
+3.3. Covariates by forcing variable
+The second set of plots compares average values of other covariates in the K bins. Speciﬁcally, let Z i be the
+M-vector of additional covariates, with mth element Z im . Then calculate
+Z km ¼
+
+N
+1 X
+
+Z im  1fbk oX i pbkþ1 g.
+N k i¼1
+
+The second plot of interest is that of the Z km , for k ¼ 1; . . . ; K against the mid point of the bins, b~k , for all
+m ¼ 1; . . . ; M. In the case of FRD designs, it is also particularly useful to plot the mean values of the treatment
+variable W i to make sure there is indeed a jump in the probability of treatment at the cutoff point (as in Fig. 3.
+Plotting other covariates is also useful for detecting possible speciﬁcation problems (see Section 7.1) in the
+case of either SRD or FRD designs.
+3.4. The Density of the forcing variable
+In the third graph, one should plot the number of observations in each bin, N k , against the mid points b~k .
+This plot can be used to inspect whether there is a discontinuity in the distribution of the forcing variable X at
+the threshold. Such discontinuity would raise the question of whether the value of this covariate was
+manipulated by the individual agent, invalidating the design. For example, suppose that the forcing variable is
+a test score. If individuals know the threshold and have the option of retaking the test, individuals with test
+scores just below the threshold may do so, and invalidate the design. Such a situation would lead to a
+discontinuity of the conditional density of the test score at the threshold, and thus be detectable in the kind of
+plots described here. See Section 7.2 for more discussion of tests based on this idea.
+4. Estimation: local linear regression
+4.1. Nonparametric regression at the boundary
+The practical estimation of the treatment effect t in both the SRD and FRD designs is largely a standard
+nonparametric regression problem (e.g., Pagan and Ullah, 1999; Härdle, 1990; Li and Racine, 2007).
+However, there are two unusual features. In this case we are interested in the regression function at a single
+point, and in addition that single point is a boundary point. As a result, standard nonparametric kernel
+regression does not work very well. At boundary points, such estimators have a slower rate of convergence
+than they do at interior points. Here we discuss a more attractive implementation suggested by HTV, among
+others. First deﬁne the conditional means
+ml ðxÞ ¼ lim E½Y ð0ÞjX ¼ z
+z"x
+
+and
+
+mr ðxÞ ¼ lim E½Y ð1ÞjX ¼ z.
+z#x
+
+The estimand in the SRD design is, in terms of these regression functions,
+tSRD ¼ mr ðcÞ  ml ðcÞ.
+A natural approach is to use standard
+R nonparametric regression methods for estimation of ml ðxÞ and mr ðxÞ.
+Suppose we use a kernel KðuÞ, with KðuÞ du ¼ 1. Then the regression functions at x can be estimated as
+P
+P
+i:X i oc Y i  KððX i  xÞ=hÞ
+i:X Xc Y i  KððX i  xÞ=hÞ
+and m^ r ðxÞ ¼ P i
+,
+m^ l ðxÞ ¼ P
+i:X i oc KððX i  xÞ=hÞ
+i:X i Xc KððX i  xÞ=hÞ
+where h is the bandwidth.
+The estimator for the object of interest is then
+P
+P
+i:X i Xc Y i  KððX i  xÞ=hÞ
+i:X oc Y i  KððX i  xÞ=hÞ
+t^ SRD ¼ m^ r ðxÞ  m^ l ðxÞ ¼ P
+ Pi
+.
+i:X i Xc KððX i  xÞ=hÞ
+i:X i oc KððX i  xÞ=hÞ
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+624
+
+In order to see the nature of this estimator for the SRD case, it is useful to focus on a special case. Suppose we
+use a rectangular kernel, e.g., KðuÞ ¼ 12 for 1ouo1, and 0 elsewhere. Then the estimator can be written as
+PN
+PN
+i¼1 Y i  1fcpX i pc þ hg
+i¼1 Y i  1fc  hpX i ocg
+t^ SRD ¼ PN
+ P
+N
+i¼1 1fcpX i pc þ hg
+i¼1 1fc  hpX i ocg
+¼ Y hr  Y hl ,
+the difference between the average outcomes for observations within a distance h of the cutoff point on the
+right and left of the cutoff, respectively. N hr and N hl denote the number of observations with X i 2 ½c; c þ h
+and X i 2 ½c  h; cÞ, respectively. This estimator can be interpreted as ﬁrst discarding all observations with a
+value of X i more than h away from the discontinuity point c, and then simply differencing the average
+outcomes by treatment status in the remaining sample.
+This simple nonparametric estimator is in general not very attractive, as pointed out by HTV and Porter
+(2003). Let us look at the approximate bias of this estimator through the probability limit of the estimator for
+ﬁxed bandwidth. The probability limit of m^ r ðcÞ, using the rectangular kernel, is
+R cþh
+mðxÞf ðxÞ dx
+q
+h
+mðxÞ  þ Oðh2 Þ.
+¼ mr ðcÞ þ lim
+plim½m^ r ðcÞ ¼ c R cþh
+x#c
+qx
+2
+f ðxÞ dx
+c
+
+Combined with the corresponding calculation for the control group, we obtain the bias
+
+
+h
+q
+q
+mðxÞ þ Oðh2 Þ.
+plim½m^ r ðcÞ  m^ l ðcÞ  mr ðcÞ  ml ðcÞ ¼  lim mðxÞ þ lim
+x#c qx
+x"c qx
+2
+Hence the bias is linear in the bandwidth h, whereas when we nonparametrically estimate a regression function
+in the interior of the support we typically get a bias of order h2 .
+Note that we typically do expect the regression function to have a non-zero derivative, even in cases where the
+treatment has no effect. In many applications the eligibility criterion is based on a covariate that does have some
+correlation with the outcome, so that, for example, those with poorest prospects in the absence of the program
+are in the eligible group. Hence it is likely that the bias for the simple kernel estimator is relatively high.
+One practical solution to the high order of the bias is to use a local linear regression (e.g., Fan and Gijbels,
+1996). An alternative is to use series regression or sieve methods. Such methods could be implemented in the
+current setting by adding higher-order terms to the regression function. For example, Lee et al. (2004) include
+fourth-order polynomials in the covariate to the regression function. The formal properties of such methods
+are equally attractive to those of kernel type methods. The main concern is that they are more sensitive to
+outcome values for observations far away from the cutoff point. Kernel methods using kernels with compact
+support rule out any sensitivity to such observations, and given the nature of RD designs this can be an
+attractive feature. Certainly, it would be a concern if results depended in an important way on using
+observations far away from the cutoff value. In addition, global methods put effort into estimating the
+regression functions in areas (far away from the discontinuity point) that are of no interest in the current
+setting.
+4.2. Local linear regression
+Here we discuss local linear regression. See for a general discussion Fan and Gijbels (1996). Instead of
+locally ﬁtting a constant function, we can ﬁt linear regression functions to the observations within a distance h
+on either side of the discontinuity point
+X
+min
+ðY i  al  bl  ðX i  cÞÞ2 ,
+al :bl
+
+and
+min
+ar :br
+
+i:choX i oc
+
+X
+
+ðY i  ar  br  ðX i  cÞÞ2 .
+
+i:cpX i ocþh
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+625
+
+The value of ml ðcÞ is then estimated as
+^ l þ b^ l  ðc  cÞ ¼ a^ l ,
+md
+l ðcÞ ¼ a
+and the value of mr ðcÞ is then estimated as
+^ r þ b^ r  ðc  cÞ ¼ a^ r .
+md
+r ðcÞ ¼ a
+Given these estimates, the average treatment effect is estimated as
+t^ SRD ¼ a^ r  a^ l .
+Alternatively one can estimate the average effect directly in a single regression, by solving
+min
+
+a;b;t;g
+
+N
+X
+
+1fc  hpX i pc þ hg  ðY i  a  b  ðX i  cÞ  t  W i  g  ðX i  cÞ  W i Þ2 ,
+
+i¼1
+
+which will numerically yield the same estimate of tSRD .
+An alternative is to impose the restriction that the slope coefﬁcients are the same on both sides of the
+discontinuity point, or limx#c ðq=qxÞmðxÞ ¼ limx"c ðq=qxÞmðxÞ. This can be imposed by requiring that bl ¼ br .
+Although it may be reasonable to expect the slope coefﬁcients for the covariate to be similar on both sides of
+the discontinuity point, this procedure also has some disadvantages. Speciﬁcally, by imposing this restriction
+one allows for observations on Y ð1Þ from the right of the discontinuity point to affect estimates of E½Y ð0ÞjX ¼
+c and, similarly, for observations on Y ð0Þ from the left of discontinuity point to affect estimates of
+E½Y ð1ÞjX ¼ c. In practice, one might wish to have the estimates of E½Y ð0ÞjX ¼ c based solely on observations
+on Y ð0Þ, and not depend on observations on Y ð1Þ, and vice versa.
+We can make the nonparametric regression more sophisticated by using weights that decrease smoothly as
+the distance to the cutoff point increases, instead of the 0/1 weights based on the rectangular kernel. However,
+even in this simple case the asymptotic bias can be shown to be of order h2 , and the more sophisticated kernels
+rarely make much difference. Furthermore, if using different weights from a more sophisticated kernel does
+make a difference, it likely suggests that the results are highly sensitive to the choice of bandwidth. So the only
+case where more sophisticated kernels may make a difference is when the estimates are not very credible
+anyway because of too much sensitivity to the choice of bandwidth. From a practical point of view, one may
+just focus on the simple rectangular kernel, but verify the robustness of the results to different choices of
+bandwidth.
+For inference we can use standard least squares methods. Under appropriate conditions on the rate at which
+the bandwidth goes to 0 as the sample size increases, the resulting estimates will be asymptotically normally
+distributed, and the (robust) standard errors from least squares theory will be justiﬁed. Using the results from
+HTV, the optimal bandwidth is h / N 1=5 . Under this sequence of bandwidths the asymptotic distribution of
+the estimator t^ will have a non-zero bias. If one does some undersmoothing, by requiring that h / N d with
+1=5odo2=5, then the asymptotic bias disappears and standard least square variance estimators will lead to
+valid conﬁdence intervals. See Section 6 for more details.
+4.3. Covariates
+Often there are additional covariates available in addition to the forcing covariate that is the basis of the
+assignment mechanism. These covariates can be used to eliminate small sample biases present in the basic
+speciﬁcation, and improve the precision. In addition, they can be useful for evaluating the plausibility of the
+identiﬁcation strategy, as discussed in Section 7.1. Let the additional vector of covariates be denoted by Z i .
+We make three observations on the role of these additional covariates.
+The ﬁrst and most important point is that the presence of these covariates rarely changes the identiﬁcation
+strategy. Typically, the conditional distribution of the covariates Z given X is continuous at x ¼ c. In fact, as
+we discuss in Section 7, one may wish to test for discontinuities at that value of x in order to assess the
+plausibility of the identiﬁcation strategy. If such discontinuities in other covariates are found, the justiﬁcation
+of the identiﬁcation strategy may be questionable. If the conditional distribution of Z given X is continuous at
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+626
+
+x ¼ c, then including Z in the regression
+min
+
+a;b;t;d
+
+N
+X
+
+1fc  hpX i pc þ hg  ðY i  a  b  ðX i  cÞ
+
+i¼1
+
+ t  W i  g  ðX i  cÞ  W i  d0 Z i Þ2 ,
+will have little effect on the expected value of the estimator for t, since conditional on X being close to c, the
+additional covariates Z are independent of W .
+The second point is that even though the presence of Z in the regression does not affect any bias when X is
+very close to c, in practice we often include observations with values of X not too close to c. In that case,
+including additional covariates may eliminate some bias that is the result of the inclusion of these additional
+observations.
+Third, the presence of the covariates can improve precision if Z is correlated with the potential outcomes.
+This is the standard argument, which also supports the inclusion of covariates in analyses of randomized
+experiments. In practice the variance reduction will be relatively small unless the contribution to the R2 from
+the additional regressors is substantial.
+4.4. Estimation for the FRD design
+In the FRD design, we need to estimate the ratio of two differences. The estimation issues we discussed
+earlier in the case of the SRD arise now for both differences. In particular, there are substantial biases if
+we do simple kernel regressions. Instead, it is again likely to be better to use local linear regression. We use a
+uniform kernel, with the same bandwidth for estimation of the discontinuity in the outcome and treatment
+regressions.
+First, consider local linear regression for the outcome, on both sides of the discontinuity point. Let
+X
+ð^ayl ; b^ yl Þ ¼ arg min
+ðY i  ayl  byl  ðX i  cÞÞ2 ,
+(4.3)
+ayl ;byl
+
+i:chpX i oc
+
+X
+
+ð^ayr ; b^ yr Þ ¼ arg min
+
+ayr ;byr
+
+ðY i  ayr  byr  ðX i  cÞÞ2 .
+
+(4.4)
+
+i:cpX i pcþh
+
+The magnitude of the discontinuity in the outcome regression is then estimated as
+t^ y ¼ a^ yr  a^ yl .
+Second, consider the two local linear regression for the treatment indicator:
+X
+ð^awl ; b^ wl Þ ¼ arg min
+ðW i  awl  bwl  ðX i  cÞÞ2 ,
+awl ;bwl
+
+(4.5)
+
+i:chpX i oc
+
+X
+
+ð^awr ; b^ wr Þ ¼ arg min
+
+awr ;bwr
+
+ðY i  awr  bwr  ðX i  cÞÞ2 .
+
+(4.6)
+
+i:cpX i pcþh
+
+The magnitude of the discontinuity in the treatment regression is then estimated as
+t^ w ¼ a^ wr  a^ wl .
+Finally, we estimate the effect of interest as the ratio of the two discontinuities:
+t^ FRD ¼
+
+t^ y
+a^ yr  a^ yl
+¼
+.
+t^ w a^ wr  a^ wl
+
+(4.7)
+
+Because of the speciﬁc implementation we use here, with a uniform kernel, and the same bandwidth for
+estimation of the denominator and the numerator, we can characterize the estimator for t as a two-stage least
+squares (TSLS) estimator. HTV were the ﬁrst to note this equality, in the setting with standard kernel
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+627
+
+regression and no additional covariates. It is a simple extension to show that the equality still holds when we
+use local linear regression and include additional regressors. Deﬁne
+0
+1
+0
+1
+ayl
+1
+Bb C
+B yl C
+B 1fX ocg  ðX  cÞ C
+Vi ¼ @
+(4.8)
+i
+i
+C.
+A and d ¼ B
+@ byr A
+1fX i Xcg  ðX i  cÞ
+Then we can write
+Y i ¼ d0 V i þ t  W i þ e i .
+
+(4.9)
+
+Estimating t based on the regression function (4.9) by TSLS methods, with the indicator 1fX i Xcg as the
+excluded instrument and V i as the set of exogenous variables is numerically identical to t^ FRD as given in (4.7).
+5. Bandwidth selection
+An important issue in practice is the selection of the smoothing parameter, the binwidth h. In general there
+are two approaches to choose bandwidths. A ﬁrst approach consists of characterizing the optimal bandwidth
+in terms of the unknown joint distribution of all variables. The relevant components of this distribution can
+then be estimated, and plugged into the optimal bandwidth function. The second approach, on which we focus
+here, is based on a cross-validation procedure. The speciﬁc methods discussed here are similar to those
+developed by Ludwig and Miller (2005, 2007). In particular, their proposals, like ours, are aimed speciﬁcally at
+estimating the regression function at the boundary. Initially we focus on the SRD case, and in Section 5.2 we
+extend the recommendations to the FRD setting.
+To set up the bandwidth choice problem we generalize the notation slightly. In the SRD setting we are
+interested in
+tSRD ¼ lim mðxÞ  lim mðxÞ.
+x#c
+
+x"c
+
+We estimate the two terms as
+limd
+mðxÞ ¼ a^ r ðcÞ
+x#c
+
+and
+limd
+mðxÞ ¼ a^ l ðcÞ,
+x"c
+
+where a^ l ðxÞ and b^ l ðxÞ solve
+ð^al ðxÞ; b^ l ðxÞÞ ¼ arg min
+a;b
+
+X
+
+ðY j  a  b  ðX j  xÞÞ2 .
+
+(5.10)
+
+jjxhoX j ox
+
+and a^ r ðxÞ and b^ r ðxÞ solve
+ð^ar ðxÞ; b^ r ðxÞÞ ¼ arg min
+a;b
+
+X
+
+ðY j  a  b  ðX j  xÞÞ2 .
+
+(5.11)
+
+jjxoX j oxþh
+
+Let us focus ﬁrst on estimating limx#c mðxÞ. For estimation of this limit we are interested in the bandwidth h
+that minimizes
+"
+2 #
+Qr ðx; hÞ ¼ E lim mðzÞ  a^ r ðxÞ
+,
+z#x
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+628
+
+at x ¼ c. In principle this could be different from the bandwidth that minimizes the corresponding criterion on
+the left-hand side,
+"
+ #
+2
+
+lim mðzÞ  a^ l ðxÞ
+
+Ql ðx; hÞ ¼ E
+
+z"x
+
+,
+
+at x ¼ c. However, we will focus on a single bandwidth for both sides of the threshold, and therefore focus on
+minimizing
+1
+ ðQl ðc; hÞ þ Qr ðc; hÞÞ
+2
+"
+"
+2 #
+2 #!
+1
+¼  E lim mðxÞ  a^ l ðcÞ
+þ E lim mðxÞ  a^ r ðcÞ
+.
+x"c
+x#c
+2
+
+Qðc; hÞ ¼
+
+We now discuss two methods for choosing the bandwidth.
+5.1. Bandwidth selection for the SRD design
+For a given binwidth h, let the estimated regression function at x be
+(
+a^ l ðxÞ if xoc;
+^
+mðxÞ
+¼
+a^ r ðxÞ if xXc;
+where a^ l ðxÞ, b^ l ðxÞ, a^ r ðxÞ, and b^ r ðxÞ solve (5.10) and (5.11). Note that in order to mimic the fact that we are
+interested in estimation at the boundary, we only use the observations on one side of x in order to estimate the
+regression function at x, rather than the observations on both sides of x, that is, observations with
+^
+x  hoX j ox þ h. In addition, the strict inequality in the deﬁnition implies that mðxÞ
+evaluated at x ¼ X i does
+not depend on Y i .
+Now deﬁne the cross-validation criterion as
+CVY ðhÞ ¼
+
+N
+1X
+^ i ÞÞ2
+ðY i  mðX
+N i¼1
+
+(5.12)
+
+with the corresponding cross-validation choice for the binwidth
+hopt
+CV ¼ arg min CVY ðhÞ.
+h
+
+The expected value of this cross-validation
+function is, ignoring the term that does not involve h, equal to
+R
+E½CVY ðhÞ ¼ C þ E½QðX ; hÞ ¼ C þ Qðx; hÞf X dx. Although the modiﬁcation to estimate the regression
+using one-sided kernels mimics more closely the estimand of interest, this is still not quite what we are
+interested in. Ultimately, we are solely interested in estimating the regression
+R function in the neighborhood of
+a single point, the threshold c, and thus in minimizing Qðc; hÞ, rather than x Qðx; hÞf X ðxÞ dx. If there are quite
+a few observations in the tails of the distribution, minimizing the criterion in (5.12) may lead to larger bins
+than is optimal for estimating the regression function around x ¼ c, if c is in the center of the distribution. We
+may therefore wish to minimize the cross-validation criterion after ﬁrst discarding observations from the tails.
+Let qX ;d;l be the d quantile of the empirical distribution of X for the subsample with X i oc, and let qX ;1d;r be
+the 1  d quantile of the empirical distribution of X for the subsample with X i Xc. Then, we may wish to use
+the criterion
+X
+1
+^ i ÞÞ2 .
+CVdY ðhÞ ¼
+ðY i  mðX
+(5.13)
+N i:q pX pq
+X ;d;l
+
+i
+
+X ;1d;r
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+629
+
+The modiﬁed cross-validation choice for the bandwidth is
+d
+hd;opt
+CV ¼ arg min CVY ðhÞ.
+
+(5.14)
+
+h
+
+The modiﬁed cross-validation function has expectation, again ignoring terms that do not involve h,
+proportional to E½QðX ; hÞjqX ;d;l oX oqX ;1d;r . Choosing a smaller value of d makes the expected value of the
+criterion closer to what we are ultimately interested in, that is, Qðc; hÞ, but has the disadvantage of leading to a
+noisier estimate of E½CVdY ðhÞ. In practice, one may wish to choose d ¼ 12, and discard 50% of the observations
+on either side of the threshold, and afterwards assess the sensitivity of the bandwidth choice to the choice of d.
+Ludwig and Miller (2005) implement this by using only data within 5% points of the threshold on either side.
+Note that, in principle, we can use a different binwidth on either side of the cutoff value. However, it is likely
+that the density of the forcing variable x is similar on both sides of the cutoff point. If, in addition, the
+curvature is similar on both sides close to the cutoff point, then in large samples the optimal binwidth will be
+similar on both sides. Hence, the beneﬁts of having different binwidths on the two sides may not be sufﬁcient
+to balance the disadvantage of the additional noise in estimating the optimal value from a smaller sample.
+5.2. Bandwidth selection for the FRD design
+In the FRD design, there are four regression functions that need to be estimated: the expected outcome
+given the forcing variable, both on the left and right of the cutoff point, and the expected value of the
+treatment variable, again on the left and right of the cutoff point. In principle, we can use different binwidths
+for each of the four nonparametric regressions.
+In the section on the SRD design, we argued in favor of using identical bandwidths for the regressions on
+both sides of the cutoff point. The argument is not so clear for the pairs of regression functions by outcome we
+have here. In principle, we have two optimal bandwidths, one based on minimizing CVdY ðhÞ, and one based on
+minimizing CVdW ðhÞ, deﬁned correspondingly. It is likely that the conditional expectation of the treatment
+variable is relatively ﬂat compared to the conditional expectation of the outcome variable, suggesting one
+should use a larger binwidth for estimating the former.4 Nevertheless, in practice it is appealing to use the
+same binwidth for numerator and denominator. To avoid asymptotic biases, one may wish to use the smallest
+bandwidth selected by the cross-validation criterion applied separately to the outcome and treatment
+regression
+
+
+opt
+d
+d
+hCV ¼ min arg min CVY ðhÞ; arg min CVW ðhÞ ,
+h
+
+h
+
+where CVdY ðhÞ is as deﬁned in (5.12), and CVdW ðhÞ is deﬁned similarly. Again, a value of d ¼ 12 is likely to lead
+to reasonable estimates in many settings.
+6. Inference
+We now discuss some asymptotic properties for the estimator for the FRD case given in (4.7) or its
+alternative representation in (4.9).5 More general results are given in HTV. We continue to make some
+simplifying assumptions. First, as in the previous sections, we use a uniform kernel. Second, we use the same
+bandwidth for the estimator for the jump in the conditional expectation of the outcome and treatment. Third,
+we undersmooth, so that the square of the bias vanishes faster than the variance, and we can ignore the bias in
+the construction of conﬁdence intervals. Fourth, we continue to use the local linear estimator.
+4
+
+In the extreme case of the SRD design where the conditional expectation of W given X is ﬂat on both sides of the threshold, the optimal
+bandwidth would be inﬁnity. Therefore, in practice it is likely that the optimal bandwidth for estimating the jump in the conditional
+expectation of the treatment would be larger than the bandwidth for estimating the conditional expectation of the outcome.
+5
+The results for the SRD design are a special case of those for the FRD design. In the SRD design, only the ﬁrst term of the asymptotic
+variance in equation (6.18) is left since V tw ¼ C ty ;tw ¼ 0, and the variance can also be estimated using the standard robust variance for
+OLS instead of TSLS.
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+630
+
+Under these assumptions we do two things. First, we give an explicit expression for the asymptotic variance.
+Second, we present two estimators for the asymptotic variance. The ﬁrst estimator follows explicitly the
+analytic form for the asymptotic variance, and substitutes estimates for the unknown quantities. The second
+estimator is the standard robust variance for the TSLS estimator, based on the sample obtained by discarding
+observations when the forcing covariate is more than h away from the cutoff point. The asymptotic variance
+and the corresponding estimators reported here are robust to heteroskedasticity.
+6.1. The asymptotic variance
+To characterize the asymptotic variance we need a couple of additional pieces of notation. Deﬁne the four
+variances
+s2Y l ¼ lim VarðY jX ¼ xÞ;
+x"c
+
+s2W l ¼ lim VarðW jX ¼ xÞ;
+x"c
+
+s2Y r ¼ lim VarðY jX ¼ xÞ,
+x#c
+
+s2W r ¼ lim VarðW jX ¼ xÞ,
+x#c
+
+and the two covariances
+C YW l ¼ lim CovðY ; W jX ¼ xÞ;
+x"c
+
+C YW r ¼ lim CovðY ; W jX ¼ xÞ.
+x#c
+
+Note that, because of the binary nature of W , it follows that s2W l ¼ mW l  ð1  mW l Þ, where
+mW l ¼ limx"c PrðW ¼ 1jX ¼ xÞ, and similarly for s2W r . To p
+discuss
+the asymptotic variance of t^ , it is useful
+ﬃﬃﬃﬃﬃﬃﬃ
+to break it up in three pieces. The asymptotic variance of Nhð^ty  ty Þ is
+V ty ¼
+
+
+
+4
+ s2Y r þ s2Y l .
+f X ðcÞ
+
+The asymptotic variance of
+V tw ¼
+
+pﬃﬃﬃﬃﬃﬃﬃ
+Nhð^tw  tw Þ is
+
+4
+ ðs2W r þ s2W l Þ.
+f X ðcÞ
+
+The asymptotic covariance of
+C ty ;tw ¼
+
+(6.15)
+
+(6.16)
+
+pﬃﬃﬃﬃﬃﬃﬃ
+pﬃﬃﬃﬃﬃﬃﬃ
+Nhð^ty  ty Þ and Nhð^tw  tw Þ is
+
+4
+ ðC YW r þ C YW l Þ.
+f X ðcÞ
+
+(6.17)
+
+Finally, the asymptotic distribution has the form
+!
+pﬃﬃﬃﬃﬃﬃﬃ
+t2y
+ty
+1
+d
+Nh  ð^t  tÞ ! N 0; 2  V ty þ 4  V tw  2  3  C ty ;tw .
+tw
+tw
+tw
+
+(6.18)
+
+This asymptotic distribution is a special case of that in HTV (p. 208), using the rectangular kernel, and with
+h / N d , for 1=5odo2=5 (so that the asymptotic bias can be ignored).
+6.2. A plug-in estimator for the asymptotic variance
+We now discuss two estimators for the asymptotic variance of t^ . First, we can estimate the asymptotic
+variance of t^ by estimating each of the components, tw , ty , V tw , V ty , and C ty ;tw and substituting them into the
+expression for the variance in (6.18). In order to do this we ﬁrst estimate the residuals
+e^i ¼ Y i  m^ y ðX i Þ ¼ Y i  1fX i ocg  a^ yl  1fX i Xcg  a^ yr ,
+Z^ i ¼ W i  m^ w ðX i Þ ¼ W i  1fX i ocg  a^ wl  1fX i Xcg  a^ wr .
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+631
+
+Then we estimate the variances and covariances consistently as
+X
+X
+1
+1
+s^ 2Y l ¼
+e^2i ; s^ 2Y r ¼
+e^2 ,
+N hl i:chpX oc
+N hr i:cpX pcþh i
+i
+
+s^ 2W l ¼
+
+X
+1
+N hl i:chpX
+
+i
+
+Z^ 2i ;
+
+s^ 2W r ¼
+
+i oc
+
+X
+1
+C^ YW l ¼
+e^i  Z^ i ;
+N hl i:chpX oc
+i
+
+X
+1
+Z^ 2 ,
+N hr i:cpX pcþh i
+i
+
+X
+1
+C^ YW r ¼
+e^i  Z^ i .
+N hr i:cpX pcþh
+i
+
+Finally, we estimate the density consistently as
+N hl þ N hr
+f^X ðxÞ ¼
+.
+2N h
+Then we can plug-in the estimated components of V ty , V tW , and C tY ;tW from (6.15)–(6.17), and ﬁnally
+substitute these into the variance expression in (6.18).
+6.3. The TSLS variance estimator
+The second estimator for the asymptotic variance of t^ exploits the interpretation of the t^ as a TSLS
+estimator, given in (4.9). The variance estimator is equal to the robust variance for TSLS based on the
+subsample of observations with c  hpX i pc þ h, using the indicator 1fX i Xcg as the excluded instrument, the
+treatment W i as the endogenous regressor and the V i deﬁned in (4.8) as the exogenous covariates.
+7. Speciﬁcation testing
+There are generally two main conceptual concerns in the application of RD designs, sharp or fuzzy. A ﬁrst
+concern about RD designs is the possibility of other changes at the same cutoff value of the covariate. Such
+changes may affect the outcome, and these effects may be attributed erroneously to the treatment of interest.
+For example, at age 65 individuals become eligible for discounts at many cultural institutions. However, if one
+ﬁnds that there is a discontinuity in the number of hours worked at age 65, this is unlikely to be the result of
+these discounts. The more plausible explanation is that there are other institutional changes that affect
+incentives to work at age 65. The effect of discounts on attendance at these cultural institutions, which may
+well be present, may be difﬁcult to detect due to the many other changes at age 65.
+The second concern is that of manipulation of the forcing variable. Consider the Van Der Klaauw example
+where the value of an aggregate admission score affected the likelihood of receiving ﬁnancial aid. If a single
+admissions ofﬁcer scores the entire application packet of any one individual, and if this person is aware of the
+importance of this cutoff point, they may be more or less likely to score an individual just below the cutoff
+value. Alternatively, if applicants know the scoring rule, they may attempt to change particular parts of their
+application in order to end up on the right side of the threshold, for example by retaking tests. If it is costly to
+do so, the individuals retaking the test may be a selected sample, invalidating the basic RD design.
+We also address the issue of sensitivity to the bandwidth choice, and more generally small sample concerns.
+We end the section by discussing how, in the FRD setting, one can compare the RD estimates to those based
+on unconfoundedness.
+7.1. Tests involving covariates
+One category of tests involves testing the null hypothesis of a zero average effect on pseudo outcomes
+known not to be affected by the treatment. Such variables includes covariates that are, by deﬁnition, not
+affected by the treatment. Such tests are familiar from settings with identiﬁcation based on unconfoundedness
+assumptions (e.g., Heckman and Hotz, 1989; Rosenbaum, 1987; Imbens, 2004). In the RD setting, they have
+
+ARTICLE IN PRESS
+632
+
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+been applied by Lee et al. (2004) and others. In most cases, the reason for the discontinuity in the probability
+of the treatment does not suggest a discontinuity in the average value of covariates. If we ﬁnd such a
+discontinuity, it typically casts doubt on the assumptions underlying the RD design. In principle, it may be
+possible to make the assumptions underlying the RD design conditional on covariates, and so a discontinuity
+in the conditional expectation of the covariates does not necessarily invalidate the approach. In practice,
+however, it is difﬁcult to rationalize such discontinuities with the rationale underlying the RD approach.
+7.2. Tests of continuity of the density
+The second test is conceptually somewhat different, and unique to the RD setting. McCrary (2007) suggests
+testing the null hypothesis of continuity of the density of the covariate that underlies the assignment at the
+discontinuity point, against the alternative of a jump in the density function at that point. Again, in principle,
+one does not need continuity of the density of X at c, but a discontinuity is suggestive of violations of the nomanipulation assumption. If in fact individuals partly manage to manipulate the value of X in order to be on
+one side of the cutoff rather than the other, one might expect to see a discontinuity in this density at the cutoff
+point. For example, if the variable underlying the assignment is age with a publicly known cutoff value c, and
+if age is self-reported, one might see relatively few individuals with a reported age just below c, and relatively
+many individuals with a reported age of just over c. Even if such discontinuities are not conclusive evidence of
+violations of the RD assumptions, at the very least, inspecting this density would be useful to assess whether it
+exhibits unusual features that may shed light on the plausibility of the design.
+7.3. Testing for jumps at non-discontinuity points
+A third set of tests involves estimating jumps at points where there should be no jumps. As in the treatment
+effect literature (e.g., Imbens, 2004), the approach used here consists of testing for a zero effect in settings
+where it is known that the effect should be 0.
+Here we suggest a speciﬁc way of implementing this idea by testing for jumps at the median of the two
+subsamples on either side of the cutoff value. More generally, one may wish to divide the sample up in
+different ways, or do more tests. As before, let qX ;d;l and qX ;d;r be the d quantiles of the empirical distribution of
+X in the subsample with X i oc and X i Xc, respectively. Now take the subsample with X i oc, and test for a
+jump at the median of the forcing variable. Splitting this subsample at its median increases the power of the
+test to ﬁnd jumps. Also, by only using observations on the left of the cutoff value, we avoid estimating the
+regression function at a point where it is known to have a discontinuity. To implement the test, use the same
+method for selecting the binwidth as before, and estimate the jump in the regression function at qX ;1=2;l . Also,
+estimate the standard errors of the jump and use this to test the hypothesis of a zero jump. Repeat this using
+the subsample to the right of the cutoff point with X i Xc. Now estimate the jump in the regression function
+and at qX ;1=2;r , and test whether it is equal to 0.
+7.4. RD designs with misspecification
+Lee and Card (2007) study the case where the forcing variable X is discrete. In practice this is of course
+always the case. This implies that ultimately one relies for identiﬁcation on functional form assumptions for
+the regression function mðxÞ. Lee and Card consider a parametric speciﬁcation for the regression function that
+does not fully saturate the model, that is, it has fewer free parameters than there are support points. They then
+interpret the deviation between the true conditional expectation E½Y jX ¼ x and the estimated regression
+function as random speciﬁcation error that introduces a group structure on the standard errors. Lee and Card
+then show how to incorporate this group structure into the standard errors for the estimated treatment effect.
+This approach will tend to widen the conﬁdence intervals for the estimated treatment effect, sometimes
+considerably, and leads to more conservative and typically more credible inferences. Within the local
+linear regression framework discussed in the current paper, one can calculate the Lee–Card standard errors
+(possibly based on slightly coarsened covariate data if X is close to continuous) and compare them to the
+conventional ones.
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+633
+
+7.5. Sensitivity to the choice of bandwidth
+All these tests are based on estimating jumps in nonparametric regression or density functions. This brings
+us to the third concern, the sensitivity to the bandwidth choice. Irrespective of the manner in which the
+bandwidth is chosen, one should always investigate the sensitivity of the inferences to this choice, for example,
+by including results for bandwidths twice (or four times) and half (or a quarter of) the size of the originally
+chosen bandwidth. Obviously, such bandwidth choices affect both estimates and standard errors, but if the
+results are critically dependent on a particular bandwidth choice, they are clearly less credible than if they are
+robust to such variation in bandwidths. See Lee et al. (2004) and Lemieux and Milligan (2007) for examples of
+papers where the sensitivity of the results to bandwidth choices is explored.
+7.6. Comparisons to estimates based on unconfoundedness in the FRD design
+When we have a FRD design, we can also consider estimates based on unconfoundedness (Battistin and
+Rettore, 2007). In fact, we may be able to estimate the average effect of the treatment conditional on any value
+of the covariate X under that assumption. Inspecting such estimates and especially their variation over the
+range of the covariate can be useful. If we ﬁnd that, for a range of values of X , our estimate of the average
+effect of the treatment is relatively constant and similar to that based on the FRD approach, one would be
+more conﬁdent in both sets of estimates.
+8. Conclusion: a summary guide to practice
+In this paper, we reviewed the literature on RD designs and discussed the implications for applied
+researchers interested in implementing these methods. We end the paper by providing a summary guide of
+steps to be followed when implementing RD designs. We start with the case of SRD, and then add a number
+of details speciﬁc to the case of FRD.
+Case 1: SRD designs
+1. Graph the data (Section 3) by computing the average value of the outcome variable over a set of bins. The
+binwidth has to be large enough to have a sufﬁcient amount of precision so that the plots looks smooth on
+either side of the cutoff value, but at the same time small enough to make the jump around the cutoff value
+clear.
+2. Estimate the treatment effect by running linear regressions on both sides of the cutoff point. Since we
+propose to use a rectangular kernel, these are just standard regression estimated within a bin of width h on
+both sides of the cutoff point. Note that:
+ Standard errors can be computed using standard least square methods (robust standard errors).
+ The optimal bandwidth can be chosen using cross-validation methods (Section 5).
+3. The robustness of the results should be assessed by employing various speciﬁcation tests.
+ Looking at possible jumps in the value of other covariates at the cutoff point (Section 7.1).
+ Testing for possible discontinuities in the conditional density of the forcing variable (Section 7.2).
+ Looking whether the average outcome is discontinuous at other values of the forcing variable (Section 7.3).
+ Using various values of the bandwidth (Section 7.5), with and without other covariates that may be
+available.
+Case 2: FRD designs
+A number of issues arise in the case of FRD designs in addition to those mentioned above.
+1. Graph the average outcomes over a set of bins as in the case of SRD, but also graph the probability of
+treatment.
+2. Estimate the treatment effect using TSLS, which is numerically equivalent to computing the ratio
+in the estimate of the jump (at the cutoff point) in the outcome variable over the jump in the treatment
+variable.
+
+ARTICLE IN PRESS
+634
+
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+ Standard errors can be computed using the usual (robust) TSLS standard errors (Section 6.3), though a
+plug-in approach can also be used instead (Section 6.2).
+ The optimal bandwidth can again be chosen using a modiﬁed cross-validation procedure (Section 5).
+3. The robustness of the results can be assessed using the various speciﬁcation tests mentioned in the case of
+SRD designs. In addition, FRD estimates of the treatment effect can be compared to standard estimates
+based on unconfoundedness.
+Acknowledgments
+We are grateful for discussions with David Card and Wilbert Van Der Klaauw. Financial support for this
+research was generously provided through NSF Grant SES 0452590 and the SSHRC of Canada.
+
+References
+Angrist, J.D., Krueger, A.B., 1991. Does compulsory school attendance affect schooling and earnings? Quarterly Journal of Economics
+106, 979–1014.
+Angrist, J.D., Lavy, V., 1999. Using Maimonides’ rule to estimate the effect of class size on scholastic achievement. Quarterly Journal of
+Economics 114, 533–575.
+Angrist, J.D., Imbens, G.W., Rubin, D.B., 1996. Identiﬁcation of causal effects using instrumental variables. Journal of the American
+Statistical Association 91, 444–472.
+Battistin, E., Rettore, E., 2007. Ineligibles and eligible non-participants as a double comparison group in regression-discontinuity designs.
+Journal of Econometrics, this issue.
+Black, S., 1999. Do better schools matter? Parental valuation of elementary education. Quarterly Journal of Economics 114, 577–599.
+Card, D., Dobkin, C., Maestas, N., 2004. The impact of nearly universal insurance coverage on health care utilization and health: evidence
+from Medicare. NBER Working Paper No. 10365.
+Card, D., Mas, A., Rothstein, J., 2006. Tipping and the dynamics of segregation in neighborhoods and schools. Unpublished Manuscript.
+Department of Economics, Princeton University.
+Chay, K., Greenstone, M., 2005. Does air quality matter? Evidence from the housing market. Journal of Political Economy 113, 376–424.
+Chay, K., McEwan, P., Urquiola, M., 2005. The central role of noise in evaluating interventions that use test scores to rank schools.
+American Economic Review 95, 1237–1258.
+DiNardo, J., Lee, D.S., 2004. Economic impacts of new unionization on private sector employers: 1984–2001. Quarterly Journal of
+Economics 119, 1383–1441.
+Fan, J., Gijbels, I., 1996. Local Polynomial Modelling and its Applications. Chapman & Hall, London.
+Hahn, J., Todd, P., Van Der Klaauw, W., 1999. Evaluating the effect of an anti discrimination law using a regression-discontinuity design.
+NBER Working Paper No. 7131.
+Hahn, J., Todd, P., Van Der Klaauw, W., 2001. Identiﬁcation and estimation of treatment effects with a regression discontinuity design.
+Econometrica 69, 201–209.
+Härdle, W., 1990. Applied Nonparametric Regression. Cambridge University Press, Cambridge.
+Heckman, J.J., Hotz, J., 1989. Alternative methods for evaluating the impact of training programs (with discussion). Journal of the
+American Statistical Association 84, 862–874.
+Holland, P., 1986. Statistics and causal inference (with discussion). Journal of the American Statistical Association 81, 945–970.
+Imbens, G., 2004. Nonparametric estimation of average treatment effects under exogeneity: a review. Review of Economics and Statistics
+86, 4–30.
+Imbens, G., Angrist, J., 1994. Identiﬁcation and estimation of local average treatment effects. Econometrica 61, 467–476.
+Imbens, G., Rubin, D., 2007. Causal Inference: Statistical Methods for Estimating Causal Effects in Biomedical, Social, and Behavioral
+Sciences. Cambridge University Press, Cambridge forthcoming.
+Imbens, G., Van Der Klaauw, W., 1995. Evaluating the cost of conscription in The Netherlands. Journal of Business and Economic
+Statistics 13, 72–80.
+Imbens, G., Wooldridge, J., 2007. Recent developments in the econometrics of program evaluation. Unpublished Manuscript, Department
+of Economics, Harvard University.
+Jacob, B.A., Lefgren, L., 2004. Remedial education and student achievement: a regression-discontinuity analysis. Review of Economics
+and Statistics 68, 226–244.
+Lalive, R., 2007. How do extended beneﬁts affect unemployment duration? A regression discontinuity approach. Journal of Econometrics,
+this issue.
+Lee, D.S., 2007. Randomized experiments from non-random selection in U.S. house elections. Journal of Econometrics, this issue.
+Lee, D.S., Card, D., 2007. Regression discontinuity inference with speciﬁcation error. Journal of Econometrics, this issue.
+Lee, D.S., Moretti, E., Butler, M., 2004. Do voters affect or elect policies? Evidence from the U.S. house. Quarterly Journal of Economics
+119, 807–859.
+
+ARTICLE IN PRESS
+G.W. Imbens, T. Lemieux / Journal of Econometrics 142 (2008) 615–635
+
+635
+
+Lemieux, T., Milligan, K., 2007. Incentive effects of social assistance: a regression discontinuity approach. Journal of Econometrics, this
+issue.
+Li, Q., Racine, J., 2007. Nonparametric Econometrics. Princeton University Press, Princeton, NJ.
+Ludwig, J., Miller, D., 2005. Does head start improve children’s life chances? Evidence from a regression discontinuity design. NBER
+Working Paper No. 11702.
+Ludwig, J., Miller, D., 2007. Does head start improve children’s life chances? Evidence from a regression discontinuity design. Quarterly
+Journal of Economics 122 (1), 159–208.
+Matsudaira, J., 2007. Mandatory summer school and student achievement. Journal of Econometrics, this issue.
+McCrary, J., 2007. Testing for manipulation of the running variable in the regression discontinuity design. Journal of Econometrics, this
+issue.
+Pagan, A., Ullah, A., 1999. Nonparametric Econometrics. Cambridge University Press, Cambridge.
+Porter, J., 2003. Estimation in the Regression Discontinuity Model. Mimeo. Department of Economics, University of Wisconsin. hhttp://
+www.ssc.wisc.edu/jporter/reg_discont_2003.pdfi.
+Rosenbaum, P., 1987. The role of a second control group in an observational study (with discussion). Statistical Science 2, 292–316.
+Rosenbaum, P., Rubin, D., 1983. The central role of the propensity score in observational studies for causal effects. Biometrika 70, 41–55.
+Rubin, D., 1974. Estimating causal effects of treatments in randomized and non-randomized studies. Journal of Educational Psychology
+66, 688–701.
+Sun, Y., 2005. Adaptive estimation of the regression discontinuity model. Unpublished Manuscript, Department of Economics, University
+of California at San Diego.
+Thistlewaite, D., Campbell, D., 1960. Regression-discontinuity analysis: an alternative to the ex-post facto experiment. Journal of
+Educational Psychology 51, 309–317.
+Trochim, W., 1984. Research Design for Program Evaluation: The Regression-Discontinuity Design. Sage Publications, Beverly Hills, CA.
+Trochim, W., 2001. Regression-discontinuity design. In: Smelser, N.J., Baltes, P.B. (Eds.), International Encyclopedia of the Social and
+Behavioral Sciences, vol. 19. North-Holland, Amsterdam, pp. 12940–12945.
+Van Der Klaauw, W., 2002. Estimating the effect of ﬁnancial aid offers on college enrollment: a regression-discontinuity approach.
+International Economic Review 43, 1249–1287.
+
+

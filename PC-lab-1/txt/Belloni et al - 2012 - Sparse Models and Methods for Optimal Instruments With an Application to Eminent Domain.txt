@@ -1,0 +1,4818 @@
+Econometrica, Vol. 80, No. 6 (November, 2012), 2369–2429
+
+SPARSE MODELS AND METHODS FOR OPTIMAL INSTRUMENTS
+WITH AN APPLICATION TO EMINENT DOMAIN
+BY A. BELLONI, D. CHEN, V. CHERNOZHUKOV, AND C. HANSEN1
+We develop results for the use of Lasso and post-Lasso methods to form first-stage
+predictions and estimate optimal instruments in linear instrumental variables (IV)
+models with many instruments, p. Our results apply even when p is much larger than
+the sample size, n. We show that the IV estimator based on using Lasso or post-Lasso
+in the first stage is root-n consistent and asymptotically normal when the first stage
+is approximately sparse, that is, when the conditional expectation of the endogenous
+variables given the instruments can be well-approximated by a relatively small set of
+variables whose identities may be unknown. We also show that the estimator is semiparametrically efficient when the structural error is homoscedastic. Notably, our results
+allow for imperfect model selection, and do not rely upon the unrealistic “beta-min”
+conditions that are widely used to establish validity of inference following model selection (see also Belloni, Chernozhukov, and Hansen (2011b)). In simulation experiments,
+the Lasso-based IV estimator with a data-driven penalty performs well compared to recently advocated many-instrument robust procedures. In an empirical example dealing
+with the effect of judicial eminent domain decisions on economic outcomes, the Lassobased IV estimator outperforms an intuitive benchmark.
+Optimal instruments are conditional expectations. In developing the IV results, we
+establish a series of new results for Lasso and post-Lasso estimators of nonparametric
+conditional expectation functions which are of independent theoretical and practical
+interest. We construct a modification of Lasso designed to deal with non-Gaussian,
+heteroscedastic disturbances that uses a data-weighted 1 -penalty function. By innovatively using moderate deviation theory for self-normalized sums, we provide convergence rates for the resulting Lasso and post-Lasso estimators that are as sharp as
+the corresponding rates in the homoscedastic Gaussian case under the condition that
+log p = o(n1/3 ). We also provide a data-driven method for choosing the penalty level
+that must be specified in obtaining Lasso and post-Lasso estimates and establish its
+asymptotic validity under non-Gaussian, heteroscedastic disturbances.
+KEYWORDS: Inference on a low-dimensional parameter after model selection, imperfect model selection, instrumental variables, Lasso, post-Lasso, data-driven penalty,
+heteroscedasticity, non-Gaussian errors, moderate deviations for self-normalized sums.
+
+1. INTRODUCTION
+INSTRUMENTAL VARIABLES (IV) TECHNIQUES are widely used in applied economic research. While these methods provide a useful tool for identifying
+1
+
+This is a revision of an October 2010 ArXiv/CEMMAP paper with the same title. Preliminary
+results of this paper were first presented at Chernozhukov’s invited Cowles Foundation lecture
+at the Northern American meetings of the Econometric Society in June of 2009. We thank seminar participants at Brown, Columbia, Hebrew University, Tel Aviv University, Harvard–MIT, the
+Dutch Econometric Study Group, Fuqua School of Business, NYU, and New Economic School,
+for helpful comments. We also thank Denis Chetverikov, JB Doyle, and Joonhwan Lee for thorough reading of this paper and very useful comments.
+© 2012 The Econometric Society
+
+DOI: 10.3982/ECTA9626
+
+2370
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+structural effects of interest, their application often results in imprecise inference. One way to improve the precision of instrumental variables estimators is
+to use many instruments or to try to approximate the optimal instruments, as in
+Amemiya (1974), Chamberlain (1987), and Newey (1990). Estimation of optimal instruments is generally done nonparametrically and thus implicitly makes
+use of many constructed instruments such as polynomials. The promised improvement in efficiency is appealing, but IV estimators based on many instruments may have poor properties. See, for example, Bekker (1994), Chao and
+Swanson (2005), Hansen, Hausman, and Newey (2008), and Chao, Swanson,
+Hausman, Newey, and Woutersen (2012), which proposed solutions for this
+problem based on “many-instrument” asymptotics.2
+In this paper, we contribute to the literature on IV estimation with many
+instruments by considering the use of Lasso and post-Lasso for estimating
+the first-stage regression of endogenous variables on the instruments. Lasso
+is a widely used method that acts both as an estimator of regression functions and as a model selection device. Lasso solves for regression coefficients
+by minimizing the sum of the usual least squares objective function and a
+penalty for model size through the sum of the absolute values of the coefficients. The resulting Lasso estimator selects instruments and estimates the
+first-stage regression coefficients via a shrinkage procedure. The post-Lasso
+estimator discards the Lasso coefficient estimates and uses the data-dependent
+set of instruments selected by Lasso to refit the first-stage regression via
+ordinary least squares (OLS) to alleviate Lasso’s shrinkage bias. For theoretical and simulation evidence regarding Lasso’s performance, see Bai and
+Ng (2008, 2009a), Bickel, Ritov, and Tsybakov (2009), Bunea, Tsybakov, and
+Wegkamp (2006, 2007a, 2007b), Candes and Tao (2007), Huang, Horowitz,
+and Wei (2010), Knight (2008), Koltchinskii (2009), Lounici (2008), Lounici
+et al. (2010), Meinshausen and Yu (2009), Rosenbaum and Tsybakov (2008),
+Tibshirani (1996), van de Geer (2008), Wainwright (2009), Zhang and Huang
+(2008), Belloni and Chernozhukov (2012), and Bühlmann and van de Geer
+(2011), among many others. See Belloni and Chernozhukov (2012) for analogous results on post-Lasso.
+Using Lasso-based methods to form first-stage predictions in IV estimation
+provides a practical approach to obtaining the efficiency gains from using optimal instruments while dampening the problems associated with many instruments. We show that Lasso-based procedures produce first-stage predictions
+that provide good approximations to the optimal instruments even when the
+number of available instruments is much larger than the sample size when
+the first stage is approximately sparse—that is, when there exists a relatively
+small set of important instruments whose identities are unknown that wellapproximate the conditional expectation of the endogenous variables given
+2
+It is important to note that the precise definition of “many-instrument” is p ∝ n with p < n,
+where p is the number of instruments and n is the sample size. The current paper allows for this
+case and also for “very-many-instrument” asymptotics where p  n.
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2371
+
+the instruments. Under approximate sparsity, estimating the first-stage relationship using Lasso-based procedures produces IV estimators that are rootn consistent and asymptotically normal. The IV estimator with Lasso-based
+first stage also achieves the semiparametric efficiency bound under the additional condition that structural errors are homoscedastic. Our results allow
+imperfect model selection and do not impose “beta-min” conditions that restrict the minimum allowable magnitude of the coefficients on relevant regressors. We also provide a consistent asymptotic variance estimator. Thus,
+our results generalize the IV procedure of Newey (1990) and Hahn (2002)
+based on conventional series approximation of the optimal instruments. Our
+results also generalize Bickel, Ritov, and Tsybakov (2009) by providing inference and confidence sets for the second-stage IV estimator based on Lasso
+or post-Lasso estimates of the first-stage predictions. To our knowledge, our
+result is the first to verify root-n consistency and asymptotic normality of an
+estimator for a low-dimensional structural parameter in a high-dimensional
+setting without imposing the very restrictive “beta-min” condition.3 (For similar results in the partially linear regression see Belloni, Chernozhukov, and
+Hansen (2011a, 2011b).) Our results also remain valid in the presence of heteroscedasticity and thus provide a useful complement to existing approaches in
+the many-instrument literature, which often rely on homoscedasticity and may
+be inconsistent in the presence of heteroscedasticity; see Chao et al. (2012)
+for a notable exception that allows for heteroscedasticity and gives additional
+discussion.
+Instrument selection procedures complement existing/traditional methods
+that are meant to be robust to many instruments but are not a universal solution to the many-instruments problem. The good performance of instrument selection procedures relies on approximate sparsity. Unlike traditional
+IV methods, instrument selection procedures do not require the identity of
+these “important” variables to be known a priori, as the identity of these instruments will be estimated from the data. This flexibility comes with the cost
+that instrument selection tends not to work well when the first stage is not approximately sparse. When approximate sparsity breaks down, instrument selection procedures may select too few or no instruments or may select too many
+instruments. Two scenarios where this failure is likely to occur are the weakinstrument case (e.g., Staiger and Stock (1997), Andrews, Moreira, and Stock
+(2006), Andrews and Stock (2005), Moreira (2003), Kleibergen (2002, 2005)),
+and the many-weak-instrument case (e.g., Bekker (1994), Chao and Swanson
+3
+The “beta-min” condition requires the relevant coefficients in the regression to be separated
+from zero by a factor that exceeds the potential estimation error. This condition implies that
+the identities of the relevant regressors may be perfectly determined. There is a large body of
+theoretical work that uses such a condition and thus implicitly assumes that the resulting postmodel selection estimator is the same as the oracle estimator that knows the identities of the
+relevant regressors. See Bühlmann and van de Geer (2011) for the discussion of the “beta-min”
+condition and the theoretical role it plays in obtaining “oracle” results.
+
+2372
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+(2005), Hansen, Hausman, and Newey (2008), Chao et al. (2012)). We consider two modifications of our basic procedure aimed at alleviating these concerns. In Section 4, we present a sup-score testing procedure that is related to
+Anderson and Rubin (1949) and Staiger and Stock (1997) but is better suited
+to cases with very many instruments; and we consider a split-sample IV estimator in Section 5 that combines instrument selection via Lasso with the samplesplitting method of Angrist and Krueger (1995). While these two procedures
+are steps toward addressing weak identification concerns with very many instruments, further exploration of the interplay between weak-instrument or
+many-weak-instrument methods and variable selection would be an interesting avenue for additional research.
+Our paper also contributes to the growing literature on Lasso-based methods by providing results for Lasso-based estimators of nonparametric conditional expectations. We consider a modified Lasso estimator with penalty
+weights designed to deal with non-Gaussianity and heteroscedastic errors. This
+new construction allows us to innovatively use the results of moderate deviation theory for self-normalized sums of Jing, Shao, and Wang (2003) to provide convergence rates for Lasso and post-Lasso. The derived convergence
+rates are as sharp as in the homoscedastic Gaussian case under the weak condition that the log of the number of regressors p is small relative to n1/3 ,
+that is, log p = o(n1/3 ). Our construction generalizes the standard Lasso estimator of Tibshirani (1996) and allows us to generalize the Lasso results
+of Bickel, Ritov, and Tsybakov (2009) and post-Lasso results of Belloni and
+Chernozhukov (2012), both of which assume homoscedasticity and Gaussianity. The construction as well as theoretical results are important for applied
+economic analysis where researchers are concerned about heteroscedasticity
+and non-Gaussianity in their data. We also provide a data-driven method for
+choosing the penalty that must be specified to obtain Lasso and post-Lasso
+estimates, and we establish its asymptotic validity allowing for non-Gaussian,
+heteroscedastic disturbances. Ours is the first paper to provide such a datadriven penalty, which was previously not available even in the Gaussian case.4
+These results are of independent interest in a variety of theoretical and applied
+settings.
+We illustrate the performance of Lasso-based IV through simulation experiments. In these experiments, we find that a feasible Lasso-based procedure
+that uses our data-driven penalty performs well across a range of simulation
+designs where sparsity is a reasonable approximation. In terms of estimation
+risk, it outperforms the estimator of Fuller (1977) (FULL),5 which is robust
+4
+One exception is the work of Belloni, Chernozhukov, and Wang (2011b), which considered
+square-root-Lasso estimators and showed that their use allows for pivotal penalty choices. Those
+results strongly rely on homoscedasticity.
+5
+Note that this procedure is only applicable when the number of instruments p is less than the
+sample size n. As mentioned earlier, procedures developed in this paper allow for p to be much
+larger than n.
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2373
+
+to many instruments (e.g., Hansen, Hausman, and Newey (2008)), except in a
+design where sparsity breaks down and the sample size is large relative to the
+number of instruments. In terms of size of 5% level tests, the Lasso-based IV
+estimator performs comparably to or better than FULL in all cases we consider. Overall, the simulation results are in line with the theory and favorable
+to the proposed Lasso-based IV procedures.
+Finally, we demonstrate the potential gains of the Lasso-based procedure
+in an application where there are many available instruments among which
+there is not a clear a priori way to decide which instruments to use. We look
+at the effect of judicial decisions at the federal circuit court level regarding
+the government’s exercise of eminent domain on house prices and state-level
+GDP as in Chen and Yeh (2010). We follow the identification strategy of Chen
+and Yeh (2010), who used the random assignment of judges to three-judge
+panels that are then assigned to eminent domain cases to justify using the demographic characteristics of the judges on the realized panels as instruments
+for their decision. This strategy produces a situation in which there are many
+potential instruments in that all possible sets of characteristics of the threejudge panel are valid instruments. We find that the Lasso-based estimates using
+the data-dependent penalty produce much larger first-stage Wald statistics and
+generally have smaller estimated second-stage standard errors than estimates
+obtained using the baseline instruments of Chen and Yeh (2010).
+1.1. Relationship to Econometric Literature on Variable Selection and Shrinkage
+The idea of instrument selection goes back to Kloek and Mennes (1960) and
+Amemiya (1966), who searched among principal components to approximate
+the optimal instruments. Related ideas appear in dynamic factor models as in
+Bai and Ng (2010), Kapetanios and Marcellino (2010), and Kapetanios, Khalaf, and Marcellino (2011). Factor analysis differs from our approach, though
+principal components, factors, ridge fits, and other functions of the instruments
+could be considered among the set of potential instruments to select from.6
+There are several other papers that explore the use of modern variable selection methods in econometrics, including some papers that apply these procedures to IV estimation. Bai and Ng (2009b) considered an approach to instrument selection that is closely related to ours, based on boosting. The latter method is distinct from Lasso (cf. Bühlmann (2006)), but it also does not
+rely on knowing the identity of the most important instruments. They showed
+through simulation examples that instrument selection via boosting works well
+in the designs they considered, but did not provide formal results. Bai and Ng
+6
+
+Approximate sparsity should be understood to be relative to a given structure defined by the
+set of instruments considered. Allowing for principal components or ridge fits among the potential regressors considerably expands the applicability of the approximately sparse framework.
+
+2374
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+(2009b) also expressly mentioned the idea of using the Lasso method for instrument selection, though they focused their analysis on the boosting method.
+Our paper complements their analysis by providing a formal set of conditions
+under which Lasso variable selection will provide good first-stage predictions,
+and providing theoretical estimation and inference results for the resulting
+IV estimator. One of our theoretical results for the IV estimator is also sufficiently general to cover the use of any other first-stage variable selection
+procedure, including boosting, that satisfies a set of provided rate conditions.
+Caner (2009) considered estimation by penalizing the generalized method of
+moments (GMM) criterion function by the γ -norm of the coefficients for
+0 < γ < 1. The analysis of Caner (2009) assumed that the number of parameters p is fixed in relation to the sample size, and so it is complementary to our
+approach where we allow p → ∞ as n → ∞. Other uses of Lasso in econometrics include Bai and Ng (2008), Belloni, Chernozhukov, and Hansen (2011b),
+Brodie, Daubechies, Mol, Giannone, and Loris (2009), DeMiguel, Garlappi,
+Nogales, and Uppal (2009), Huang, Horowitz, and Wei (2010), Knight (2008),
+and others. An introductory treatment of this topic was given in Belloni and
+Chernozhukov (2011b), and Belloni, Chernozhukov, and Hansen (2011a) provided a review of Lasso targeted at economic applications.
+Our paper is also related to other shrinkage-based approaches to dealing
+with many instruments. Chamberlain and Imbens (2004) considered IV estimation with many instruments using a shrinkage estimator based on putting a
+random coefficients structure over the first-stage coefficients in a homoscedastic setting. In a related approach, Okui (2011) considered the use of ridge regression for estimating the first-stage regression in a homoscedastic framework
+where the instruments may be ordered in terms of relevance. Okui (2011) derived the asymptotic distribution of the resulting IV estimator and provided
+a method for choosing the ridge regression smoothing parameter that minimizes the higher-order asymptotic mean squared error (MSE) of the IV estimator. These two approaches are related to the approach we pursue in this
+paper in that both use shrinkage in estimating the first stage, but differ in the
+shrinkage methods they use. Their results are also only supplied in the context of homoscedastic models. Donald and Newey (2001) considered a variable selection procedure that minimizes higher-order asymptotic MSE which
+relies on a priori knowledge that allows one to order the instruments in terms
+of instrument strength. Our use of Lasso as a variable selection technique
+does not require any a priori knowledge about the identity of the most relevant instruments, and so provides a useful complement to Donald and Newey
+(2001) and Okui (2011). Carrasco (2012) provided an interesting approach
+to IV estimation with many instruments based on directly regularizing the inverse that appears in the definition of the two-stage least squares (2SLS) estimator; see also Carrasco and Tchuente Nguembu (2012). Carrasco (2012)
+considered three regularization schemes, including Tikhonov regularization,
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2375
+
+which corresponds to ridge regression, and showed that the regularized estimators achieve the semiparametric efficiency bound under some conditions.
+Carrasco’s (2012) approach implicitly uses 2 -norm penalization and hence
+differs from and complements our approach. A valuable feature of Carrasco
+(2012) is the provision of a data-dependent method for choosing the regularization parameter based on minimizing higher-order asymptotic MSE, following Donald and Newey (2001) and Okui (2011). Finally, in work that is more
+recent than the present paper, Gautier and Tsybakov (2011) considered the important case where the structural equation in an instrumental variables model
+is itself very high-dimensional, and proposed a new estimation method related
+to the Dantzig selector and the square-root-Lasso. They also provided an interesting inference method that differs from the one we consider.
+1.2. Notation
+In what follows, we work with triangular array data {(zin  i = 1     n) n =
+1 2 3   } defined on some common probability space (Ω A P). Each zin =
+
+
+ xin  din
+) is a vector, with components defined below in what follows, and
+(yin
+these vectors are i.n.i.d.—independent across i, but not necessarily identically
+distributed. The law Pn of {zin  i = 1     n} can change with n, though we do
+not make explicit use of Pn . Thus, all parameters that characterize the distribution of {zin  i = 1     n} are implicitly indexed by the sample size n, but we
+omit the index n in what follows to simplify notation. We use triangular array asymptotics to better capture some finite-sample phenomena and to retain
+the robustness of conclusions to perturbations of the data-generating
+n process.
+We also use theempirical process notation
+E
+[f
+]
+:=
+E
+[f
+(z
+)]
+:=
+n
+n
+i
+i=1 f (zi )/n,
+√
+n
+and Gn (f ) := i=1 (f (zi ) − E[f (zi )])/ n Since we want to deal with i.n.i.d.
+data, we also 
+introduce the average expectation operator: Ē[f ] := EEn [f ] =
+n
+EEn [f (zi )] = i=1 E[f (zi )]/n The 2 -norm is denoted by  · 2 , and the 0 norm,  · 0 , denotes the number of nonzero components of a vector. We
+2
+use  · ∞ to denote the maximal element of a vector. The
+ empirical L (Pn )
+2
+norm of a random variable Wi is defined as Wi 2n := En [Wi ] When the
+empirical L2 (Pn ) norm is applied to regressors f1      fp and a vector δ ∈ Rp ,
+fi δ2n , it is called the prediction norm. Given a vector δ ∈ Rp and a set of
+indices T ⊂ {1     p}, we denote by δT the vector in which δTj = δj if j ∈ T ,
+δTj = 0 if j ∈
+/ T . We also denote T c := {1 2     p} \ T . We use the notation
+(a)+ = max{a 0}, a ∨ b = max{a b}, and a ∧ b = min{a b}. We also use the
+notation a  b to denote a ≤ cb for some constant c > 0 that does not depend on n; and a P b to denote a = OP (b). For an event E, we say that E
+w.p. → 1 when E occurs with probability approaching 1 as n grows. We say
+Xn =d Yn + oP (1) to mean that Xn has the same distribution as Yn up to a term
+oP (1) that vanishes in probability.
+
+2376
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+2. SPARSE MODELS AND METHODS FOR OPTIMAL INSTRUMENTAL VARIABLES
+In this section of the paper, we present the model and provide an overview
+of the main results. Sections 3 and 4 provide a technical presentation that includes a set of sufficient regularity conditions, discusses their plausibility, and
+establishes the main formal results of the paper.
+2.1. The IV Model and Statement of the Problem
+The model is yi = di α0 + i , where α0 denotes the true value of a vectorvalued parameter α. yi is the response variable, and di is a finite kd -vector of
+variables whose first ke elements contain endogenous variables. The disturbance i obeys, for all i (and n),
+E[ i |xi ] = 0
+where xi is a kx -vector of instrumental variables.
+As a motivation, suppose that the structural disturbance is conditionally homoscedastic, namely, for all i, E[ 2i |xi ] = σ 2  Given a kd -vector of instruments
+α = (En [A(xi )di ])−1 ×
+A(xi ), the standard IV estimator of α0 is given by 
+En [A(xi )yi ] where {(xi  di  yi ) i = 1     n} is an i.i.d. sample from the IV
+√
+
+model above. For a given A(xi ), n(
+α − α0 ) =d N(0 Q0−1 Ω0 Q0−1 ) + oP (1),
+where Q0 = Ē[A(xi )di ] and Ω0 = σ 2 Ē[A(xi )A(xi ) ] under standard conditions. Setting A(xi ) = D(xi ) = E[di |xi ] minimizes the asymptotic variance,
+which becomes
+ 
+−1
+Λ∗ = σ 2 Ē D(xi )D(xi )
+
+the semiparametric efficiency bound for estimating α0 ; see Amemiya (1974),
+Chamberlain (1987), and Newey (1990). In practice, the optimal instrument
+D(xi ) is an unknown function and has to be estimated. In what follows, we
+investigate the use of sparse methods—namely Lasso and post-Lasso—in estimating the optimal instruments. The resulting IV estimator is asymptotically
+as efficient as the infeasible optimal IV estimator above.
+Note that if di contains exogenous components wi , then di = (di1     
+dike  wi ) , where the first ke variables are endogenous. Since the rest of the
+components wi are exogenous, they appear in xi = (wi  x̃i ) . It follows that
+Di := D(xi ) := E[di |xi ] = (E[d1 |xi ]     E[dke |xi ] wi ) ; that is, the estimator
+of wi is simply wi . Therefore, we discuss estimation of the conditional expectation functions:
+Dil := Dl (xi ) := E[dl |xi ]
+
+l = 1     ke 
+
+In what follows, we focus on the strong-instruments case, which translates into
+the assumption that Q = Ē[D(xi )D(xi ) ] has eigenvalues bounded away from
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2377
+
+zero and from above. We also present an inference procedure that remains
+valid in the absence of strong instruments which is related to Anderson and
+Rubin (1949) and Staiger and Stock (1997) but allows for p  n.
+2.2. Sparse Models for Optimal Instruments and Other Conditional Expectations
+Suppose there is a very large list of instruments,
+
+
+fi := (fi1      fip ) := f1 (xi )     fp (xi ) 
+to be used in estimation of conditional expectations Dl (xi ) l = 1     ke ,
+where the number of instruments p is possibly much larger than the sample
+size n.
+For example, high-dimensional instruments fi could arise as any combination of the following two cases. First, the list of available instruments may
+simply be large, in which case fi = xi as in, for example, Amemiya (1974)
+and Bekker (1994). Second, the list fi could consist of a large number of series terms with respect to some elementary regressor vector xi ; for example,
+fi could be composed of B-splines, dummies, polynomials, and various interactions as in Newey (1990) or Hahn (2002), among others. We term the first
+example the many-instrument case and the second example the many-seriesinstrument case and note that our formulation does not require us to distinguish between the two cases. We mainly use the term “series instruments” and
+contrast our results with those in the seminal work of Newey (1990) and Hahn
+(2002), though our results are not limited to canonical series regressors as in
+Newey (1990) and Hahn (2002). The most important feature of our approach
+is that by allowing p to be much larger than the sample size, we are able to consider many more series instruments than in Newey (1990) and Hahn (2002) to
+approximate the optimal instruments.
+The key assumption that allows effective use of this large set of instruments
+is sparsity. To fix ideas, consider the case where Dl (xi ) is a function of only
+s  n instruments:
+(2.1)
+
+Dl (xi ) = fi βl0 
+
+l = 1     ke 
+p
+
+max βl0 0 = max
+
+1≤l≤ke
+
+1≤l≤ke
+
+1{βl0j = 0} ≤ s  n
+j=1
+
+This simple sparsity model generalizes the classic parametric model of optimal
+instruments of Amemiya (1974) by letting the identities of the relevant instruments Tl = support(βl0 ) = {j ∈ {1     p} : |βl0j | > 0} be unknown.
+The model given by (2.1) is unrealistic in that it presumes exact sparsity.
+We make no formal use of this model, but instead use a much more general
+approximately sparse or nonparametric model:
+
+2378
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+CONDITION AS—Approximately Sparse Optimal Instrument: Each optimal
+instrument function Dl (xi ) is well-approximated by a function of unknown
+s ≥ 1 instruments:
+(2.2)
+
+Dl (xi ) = fi βl0 + al (xi )
+max βl0 0 ≤ s = o(n)
+
+1≤l≤ke
+
+l = 1     ke  ke fixed
+
+
+1/2
+max En al (xi )2
+≤ cs P s/n
+1≤l≤ke
+
+Condition AS is the key assumption. It requires that there are at most s
+terms for each endogenous variable that are able to approximate the condiapproximation error al (xi ), chosen
+tional expectation function Dl (xi ) up to √
+to be no larger than the conjectured size s/n of the estimation error of the
+infeasible estimator that knows the identity of these important variables, the
+“oracle estimator.” In other words, the number s is defined√
+so that the approximation error is of the same order as the estimation error, s/n, of the oracle
+estimator. Importantly, the assumption allows the identity
+Tl = support(βl0 )
+to be unknown and to differ for l = 1     ke .
+For a detailed motivation and discussion of this assumption, we refer the
+reader to Belloni, Chernozhukov, and Hansen (2011a). Condition AS generalizes the conventional series approximation of optimal instruments in Newey
+(1990, 1997) and Hahn (2002) by letting the
+√ identities of the most important
+s series terms Tl be unknown. The rate s/n generalizes the rate obtained
+with the optimal number s of series terms in Newey (1990) for estimating conditional expectations by not relying on knowledge of what s series terms to
+include. Knowing the identities of the most important series terms is unrealistic in many examples. The most important series terms need not be the
+first s terms, and the optimal number of series terms to consider is also unknown. Moreover, an optimal approximation could come from the combination of completely different bases, for example, by using both polynomials and
+B-splines.
+Lasso and post-Lasso use the data to estimate the set of the most relevant
+series terms in a manner that allows the resulting IV estimator to achieve good
+performance if a key growth condition,
+s2 log2 (p ∨ n)
+→ 0
+n
+holds along with other more technical conditions. The growth condition requires the optimal instruments to be sufficiently smooth so that a small (relative to n) number of series terms can be used to approximate them well. The
+use of a small set of instruments ensures that the impact of first-stage estimation on the IV estimator is asymptotically negligible. We can weaken this
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2379
+
+condition to s log(p ∨ n) = o(n) by using the sample-splitting idea from the
+many-instruments literature.
+2.3. Lasso-Based Estimation Methods for Optimal Instruments and Other
+Conditional Expectation Functions
+Let us write the first-stage regression equations as
+(2.3)
+
+dil = Dl (xi ) + vil 
+
+E[vil |xi ] = 0
+
+l = 1     ke 
+
+Given the sample {(xi  dil  l = 1     ke ) i = 1     n}, we consider estimators
+of the optimal instrument Dil := Dl (xi ) that take the form
+il := D
+l (xi ) = f  β
+
+D
+i l
+
+l = 1     ke 
+
+l is the Lasso or post-Lasso estimator obtained by using dil as the dewhere β
+pendent variable and fi as regressors.
+Consider the usual least squares criterion function:
+
+
+l (β) := En dil − f  β 2 
+Q
+i
+The Lasso estimator is defined as a solution of the optimization program
+(2.4)
+
+l β1 
+l (β) + λ Υ
+lL ∈ arg min Q
+β
+p
+β∈R
+n
+
+l = diag(
+where λ is the penalty level and Υ
+γl1      
+γlp ) is a diagonal matrix
+specifying penalty loadings.
+Our analysis will first employ the following “ideal” penalty loadings:
+0
+0 = diag 
+
+Υ
+γl10      
+γlp
+l
+
+
+γlj0 =
+
+
+
+En fij2 vil2  j = 1     p
+
+The ideal option is not feasible but leads to rather sharp theoretical bounds on
+estimation risk. This option is not feasible since vil is not observed. In practice,
+we estimate the ideal loadings by first using conservative penalty loadings and
+then plugging in the resulting estimated residuals in place of vil to obtain the
+refined loadings. This procedure could be iterated via Algorithm A.1 stated in
+the Appendix.
+The idea behind the ideal penalty loading is to introduce self-normalization
+of the first-order condition of the Lasso problem by using data-dependent
+penalty loadings. This self-normalization allows us to apply moderate deviation theory of Jing, Shao, and Wang (2003) for self-normalized sums to bound
+deviations of the maximal element of the score vector
+ 0 −1
+
+
+fi vil 
+Sl = 2En Υ
+l
+
+2380
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+which provides a representation of the estimation noise in the problem. Specifically, the use of self-normalized moderate deviation theory allows us to establish that
+
+√
+(2.5)
+P n max Sl ∞ ≤ 2−1 1 − γ/(2ke p) ≥ 1 − γ + o(1)
+1≤l≤ke
+
+from which we obtain sharp convergence results for the Lasso estimator under
+non-Gaussianity and heteroscedasticity. Without using these loadings, we may
+not be able to achieve the same sharp rate of convergence. It is important to
+emphasize that our construction of the penalty loadings for Lasso is new and
+differs from the canonical penalty loadings proposed in Tibshirani (1996) and
+Bickel, Ritov, and Tsybakov (2009). Finally, to ensure the good performance of
+the Lasso estimator, one needs to select the penalty level λ/n to dominate the
+noise for all ke regression problems simultaneously; that is, the penalty level
+should satisfy
+
+(2.6)
+P λ/n ≥ c max Sl ∞ → 1
+1≤l≤ke
+
+for some constant c > 1. The bound (2.5) suggests that this can be achieved by
+selecting
+√
+(2.7)
+λ = c2 n−1 1 − γ/(2ke p) 
+with
+
+γ → 0
+
+log(1/γ)  log(p ∨ n)
+
+which implements (2.6). Our current recommendation is to set the confidence
+level γ = 01/ log(p ∨ n) and the constant c = 11.7
+The post-Lasso estimator is defined as the ordinary least squares regression
+l , where T
+l is the model selected by Lasso:
+applied to the model 
+Il ⊇ T
+
+
+l = support(β
+lL ) = j ∈ {1     p} : |β
+lLj | > 0  l = 1     ke 
+T
+The set 
+Il can contain additional variables not selected by Lasso, but we require the number of such variables to be similar to or smaller than the number
+lPL is
+selected by Lasso. The post-Lasso estimator β
+(2.8)
+
+lPL ∈ arg
+β
+
+min
+
+β∈Rp :β
+I c =0
+
+l (β)
+Q
+
+l = 1     ke 
+
+l
+
+7
+
+We note that there is not much room to change c. Theoretically, we require c > 1, and finitesample experiments show that increasing c away from c = 1 worsens the performance. Hence a
+value slightly above unity, namely c = 11, is our current recommendation. The simulation evidence suggests that setting c to any value near 1, including c = 1, does not impact the result
+noticeably.
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2381
+
+In words, this estimator is ordinary least squares (OLS) using only the instruments/regressors whose coefficients were estimated to be nonzero by Lasso
+and any additional variables the researcher feels are important despite having
+Lasso coefficient estimates of zero.
+Lasso and post-Lasso are motivated by the desire to predict the target function well without overfitting. Clearly, the OLS estimator is not consistent
+for estimating the target function when p > n. Some approaches based on
+Bayesian Information Criterion (BIC)-penalization of model size are consistent but computationally infeasible. The Lasso estimator of Tibshirani (1996)
+resolves these difficulties by penalizing model size through the sum of absolute
+parameter values. The Lasso estimator is computationally attractive because
+it minimizes a convex function. Moreover, under suitable conditions, this estimator achieves near-optimal rates in estimating the regression function Dl (xi ).
+The estimator achieves these rates by adapting to the unknown smoothness or
+sparsity of Dl (xi ). Nonetheless, the estimator has an important drawback: The
+regularization by the 1 -norm employed in (2.4) naturally lets the Lasso estimator avoid overfitting the data, but it also shrinks the estimated coefficients
+toward zero, causing a potentially significant bias. The post-Lasso estimator
+is meant to remove some of this shrinkage bias. If model selection by Lasso
+works perfectly, that is, if it selects exactly the “relevant” instruments, then the
+resulting post-Lasso estimator is simply the standard OLS estimator using only
+the relevant variables. In cases where perfect selection does not occur, postLasso estimates of coefficients will still tend to be less biased than Lasso. We
+prove the post-Lasso estimator achieves the same rate of convergence as Lasso,
+which is a near-optimal rate, despite imperfect model selection by Lasso.
+The introduction of self-normalization via the penalty loadings allows us to
+contribute to the broad Lasso literature cited in the Introduction by showing
+that, under possibly heteroscedastic and non-Gaussian errors, the Lasso and
+post-Lasso estimators obey the following near-oracle performance bounds:
+
+il − Dil 2n P s log(p ∨ n) and
+(2.9)
+max D
+1≤l≤ke
+n
+
+2
+l − βl0 1 P s log(p ∨ n) 
+max β
+1≤l≤ke
+n
+The performance
+bounds in (2.9) are called near-oracle because they coincide
+
+up to a log p factor with the bounds achievable when the ideal series terms Tl
+for each of the ke regression equations in (2.2) are known. Our results extend
+those of Bickel, Ritov, and Tsybakov (2009) for Lasso with Gaussian errors
+and those of Belloni and Chernozhukov (2012) for post-Lasso with Gaussian
+errors. Notably, these bounds are as sharp as the results for the Gaussian case
+under the weak condition log p = o(n1/3 ). They are also the first results in the
+literature that allow for data-driven choice of the penalty level.
+
+2382
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+It is also useful to contrast the rates given in (2.9) with the rates available
+for nonparametrically estimating conditional expectations in the series literature; see, for example, Newey (1997). Obtaining rates of convergence for series estimators relies on approximate sparsity just as our results do. Approximate sparsity in the series context is typically motivated by smoothness assumptions, but approximate sparsity is more general than typical smoothness
+assumptions.8 The standard series approach postulates that the first K series
+terms are the most important for approximating the target regression function Dil . The Lasso approach postulates that s terms from a large number p
+of terms are important but does not require knowledge of the identity of these
+terms or the number of terms, s, needed to approximate the target function
+well enough that approximation errors are small relative to estimation error.
+Lasso methods estimate both the optimal number of series terms s as well as
+the identities of these terms, and thus automatically adapt to the unknown
+sparsity (or smoothness) of the true optimal instrument (conditional expectation). This behavior differs sharply from standard series procedures that do
+not adapt to the unknown sparsity of the target function unless the number of
+series terms is chosen by a model selection method. Lasso-based methods may
+also provide enhanced approximation of the optimal instrument by allowing
+selection of the most important terms from among a set of very many series
+terms, with total number of terms p  K that can be much larger than the
+sample size.9 For example, a standard series approach based on K terms will
+perform poorly when the terms m + 1 m + 2     m + j are the most important
+for approximating the optimal instrument for any K < m. On the other hand,
+Lasso-based methods will find the important terms as long as p > m + j, which
+is much less stringent than what is required in usual series approaches since
+p can be very large. This point can also be made using the array asymptotics
+where the model changes with n in such a way that the important series terms
+are always missed by the first K → ∞ terms. Of course, the additional flexibility allowed for by Lasso-based
+methods comes with a price, namely slowing the
+
+rate of convergence by log p relative to the usual series rates.
+2.4. The Instrumental Variable Estimator Based on Lasso and Post-Lasso
+Constructed Optimal Instrument
+Given Condition AS, we take advantage of the approximate sparsity by using
+Lasso and post-Lasso methods to construct estimates of Dl (xi ) of the form
+l (xi ) = f  β
+
+D
+i l
+
+l = 1     ke 
+
+8
+See, for example, Belloni, Chernozhukov, and Hansen (2011a, 2011b) for detailed discussion
+of approximate sparsity.
+9
+We can allow for p  n for series formed with orthonormal bases with bounded components,
+such as trigonometric bases, but further restrictions on the number of terms apply if bounds on
+components of the series are allowed to increase with the sample size. For example, if we work
+with B-spline series terms, we can only consider p = o(n) terms.
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2383
+
+and then set
+1 (xi )     D
+ke (xi ) w  
+i = D
+D
+i
+The resulting IV estimator takes the form
+
+
+i yi ]
+i d  −1 En [D
+
+α = En D
+i
+The main result of this paper is to show that, despite the possibility of p being
+very large, Lasso and post-Lasso can select a set of instruments to produce
+i such that the resulting IV estimator
+estimates of the optimal instruments D
+achieves the efficiency bound asymptotically:
+√
+n(
+α − α0 ) =d N 0 Λ∗ + oP (1)
+The estimator matches the performance of the classical/standard series-based
+IV estimator of Newey (1990) and has additional advantages mentioned in the
+previous subsection. We also show that the IV estimator with Lasso-based optimal instruments continues to be root-n consistent and asymptotically normal
+in the presence of heteroscedasticity:
+√
+(2.10)
+n(
+α − α0 ) =d N 0 Q−1 ΩQ−1 + oP (1)
+where Ω := Ē[ 2i D(xi )D(xi ) ] and Q := Ē[D(xi )D(xi ) ]. A consistent estimator
+for the asymptotic variance is
+
+
+
+
+ := En 2 D(x
+Q
+−1  Ω
+−1 Ω
+ := En D(x
+ i )D(x
+ i )  Q
+ i ) 
+ i )D(x
+(2.11) Q
+i
+α, i = 1     n. Using (2.11), we can perform robust inferwhere i := yi − di
+ence.
+We note that our result (2.10) for the IV estimator does not rely on the
+Lasso and Lasso-based procedure specifically. We provide the properties of
+the IV estimator for any generic sparsity-based procedure that achieves the
+near-oracle performance bounds (2.9).
+We conclude by stressing that our result (2.10) does not rely on perfect
+model selection. Perfect model selection only occurs in extremely limited circumstances that are unlikely to occur in practice. We show that model selection
+mistakes do not affect the asymptotic distribution of the IV estimator 
+α under
+mild regularity conditions. The intuition is that the model selection mistakes
+are sufficiently small to allow the Lasso or post-Lasso to estimate the firststage predictions with a sufficient, near-oracle accuracy, which translates to
+the result above. Using analysis like that given in Belloni, Chernozhukov, and
+Hansen (2011b), the result (2.10) can be shown to hold uniformly over models
+with strong optimal instruments that are uniformly approximately sparse. We
+also offer an inference test procedure in Section 4.2 that remains valid in the
+
+2384
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+absence of a strong optimal instrument, is robust to many weak instruments,
+and can be used even if p  n. This procedure could also be shown to be uniformly valid over a large class of models.
+3. RESULTS ON LASSO AND POST-LASSO ESTIMATION OF CONDITIONAL
+EXPECTATION FUNCTIONS UNDER HETEROSCEDASTIC,
+NON-GAUSSIAN ERRORS
+
+In this section, we present our main results on Lasso and post-Lasso estimators of conditional expectation functions under nonclassical assumptions and
+data-driven penalty choices. The problem we analyze in this section has many
+applications outside the IV framework of the present paper.
+3.1. Regularity Conditions for Estimating Conditional Expectations
+The key condition concerns the behavior of the empirical Gram matrix
+En [fi fi ]. This matrix is necessarily singular when p > n, so in principle it is
+not well-behaved. However, we only need good behavior of certain moduli of
+continuity of the Gram matrix. The first modulus of continuity is called the restricted eigenvalue and is needed for Lasso. The second modulus is called the
+sparse eigenvalue and is needed for post-Lasso.
+To define the restricted eigenvalue, first define the restricted set:
+
+
+ΔCT = δ ∈ Rp : δT c 1 ≤ CδT 1  δ = 0 
+The restricted eigenvalue of a Gram matrix M = En [fi fi ] takes the form
+(3.1)
+
+κ2C (M) :=
+
+min
+
+δ∈ΔCT |T |≤s
+
+s
+
+δ Mδ
+
+δT 21
+
+This restricted eigenvalue can depend on n, but we suppress the dependence
+in our notation.
+In making simplified asymptotic statements involving the Lasso estimator,
+we invoke the following condition:
+CONDITION RE: For any C > 0, there exists a finite constant κ > 0, which
+does not depend on n but may depend on C, such that the restricted eigenvalue
+obeys κC (En [fi fi ]) ≥ κ with probability approaching 1 as n → ∞.
+The restricted eigenvalue (3.1) is a variant of the restricted eigenvalues introduced in Bickel, Ritov, and Tsybakov (2009) to analyze the properties of Lasso
+in the classical Gaussian regression model. Even though the minimal eigenvalue of the empirical Gram matrix En [fi fi ] is zero whenever p ≥ n, Bickel, Ritov, and Tsybakov (2009) showed that its restricted eigenvalues can be bounded
+away from zero. Lemmas 1 and 2 below contain sufficient conditions for this.
+
+2385
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+Many other sufficient conditions are available from the literature; see Bickel,
+Ritov, and Tsybakov (2009). Consequently, we take restricted eigenvalues as
+primitive quantities and Condition RE as a primitive condition.
+COMMENT 3.1—On Restricted Eigenvalues: To gain intuition about restricted eigenvalues, assume the exactly sparse model, in which there is no
+approximation error. In this model, the term δ stands for a generic deviation
+between an estimator and the true parameter vector β0 . Thus, the restricted
+eigenvalue represents a modulus of continuity between a penalty-related term
+and the prediction norm, which allows us to derive the rate of convergence.
+Indeed, the restricted eigenvalue bounds the minimum change in the prediction norm induced by a deviation δ within the restricted set ΔCT relative to
+the norm of δT , the deviation on the true support. Given a specific choice of
+the penalty level, the deviation of the estimator belongs to the restricted set,
+making the restricted eigenvalue relevant for deriving rates of convergence.
+To define the sparse eigenvalues, let us define the m-sparse subset of a unit
+sphere as
+
+
+Δ(m) = δ ∈ Rp : δ0 ≤ m δ2 = 1 
+and also define the minimal and maximal m-sparse eigenvalue of the Gram
+matrix M = En [fi fi ] as
+φmin (m)(M) = min δ Mδ and
+δ∈Δ(m)
+
+φmax (m)(M) = max δ Mδ
+δ∈Δ(m)
+
+To simplify asymptotic statements for post-Lasso, we use the following condition:
+CONDITION SE: For any C > 0, there exist constants 0 < κ < κ < ∞, which
+do not depend on n but may depend on C, such that, with probability approaching 1, as n → ∞, κ ≤ φmin (Cs)(En [fi fi ]) ≤ φmax (Cs)(En [fi fi ]) ≤ κ .
+Condition SE requires only that certain “small” m × m submatrices of the
+large p × p empirical Gram matrix are well-behaved, which is a reasonable assumption and will be sufficient for the results that follow. Condition SE implies
+Condition RE by the argument given in Bickel, Ritov, and Tsybakov (2009).
+The following lemmas show that Conditions RE and SE are plausible for both
+many-instrument and many-series-instrument settings. We refer to Belloni and
+Chernozhukov (2012) for proofs; the first lemma builds upon results in Zhang
+and Huang (2008) and the second builds upon results in Rudelson and Vershynin (2008). The lemmas could also be derived from Rudelson and Zhou
+(2011).
+
+2386
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+LEMMA 1—Plausibility of Conditions RE and SE Under Many Gaussian Instruments: Suppose fi , i = 1     n, are i.i.d. zero-mean Gaussian random vectors. Further suppose that the population Gram matrix E[fi fi ] has s log n-sparse
+eigenvalues bounded from above and away from zero uniformly in n. Then if
+s log n = o(n/ log p), Conditions RE and SE hold.
+LEMMA 2 —Plausibility of Conditions RE and SE Under Many Series Instruments: Suppose fi , i = 1     n, are i.i.d. bounded zero-mean random vectors
+with fi ∞ ≤ KB a.s. Further suppose that the population Gram matrix E[fi fi ] has
+s log n-sparse eigenvalues bounded from above and away from zero uniformly in n.
+Then if KB2 s log2 (n) log2 (s log n) log(p ∨ n) = o(n), Conditions RE and SE hold.
+In the context of i.i.d. sampling, a standard assumption in econometric research is that the population Gram matrix E[fi fi ] has eigenvalues bounded
+from above and below; see, for example, Newey (1997). The lemmas above
+allow for this and more general behavior, requiring only that the sparse eigenvalues of the population Gram matrix E[fi fi ] are bounded from below and
+from above. The latter is important for allowing functions fi to be formed as
+a combination of elements from different bases, for example, a combination
+of B-splines with polynomials. The lemmas above further show that the good
+behavior of the population sparse eigenvalues translates into good behavior of
+empirical sparse eigenvalues under some restrictions on the growth of s in relation to the sample size n. For example, if p grows polynomially with n and the
+components of technical regressors are uniformly bounded, Lemma 2 holds
+provided s = o(n/ log5 n).
+We also impose the following moment conditions on the reduced form errors
+vil and regressors fi , where we let d̃il := dil − Ē[dil ].
+CONDITION RF: (i) maxl≤ke j≤p Ē[d̃il2 ] + Ē[|fij2 d̃il2 |] + 1/Ē[fij2 vil2 ]  1,
+(ii) maxl≤ke j≤p Ē[|fij3 vil3 |]  Kn , (iii) Kn2 log3 (p ∨ n) = o(n) and s log(p ∨ n) =
+o(n), (iv) maxi≤nj≤p fij2 [s log(p ∨ n)]/n →P 0 and maxl≤ke j≤p |(En − Ē)[fij2 vil2 ]| +
+|(En − Ē)[fij2 d̃il2 ]| →P 0
+We emphasize that the conditions given above are only one possible set of
+sufficient conditions, which are presented in a manner that reduces the complexity of the exposition.
+The following lemma shows that the population and empirical moment conditions appearing in Condition RF are plausible for both many-instrument and
+many-series-instrument settings. Note that we say that a random variable gi
+has uniformly bounded conditional moments of order K if, for some positive
+constants 0 < B1 < B2 < ∞,
+
+
+B1 ≤ E |gi |k |xi ≤ B2 with probability 1
+for k = 1     K i = 1     n
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2387
+
+LEMMA 3 —Plausibility of Condition RF: 1. If the moments Ē[d̃il8 ] and
+Ē[vil8 ] are bounded uniformly in 1 ≤ l ≤ ke and in n, the regressors fi obey
+→P 0, Conditions RF(i)–(iii)
+max1≤j≤p En [fij8 ] P 1 and max1≤i≤n1≤j≤p fij2 s log(p∨n)
+n
+imply Condition RF(iv). 2. Suppose that {(fi  d̃i  vi ) i = 1     n} are i.i.d. vectors, and that d̃il and vil have uniformly bounded conditional moments of order
+4 uniformly in l = 1     ke . (a) If the regressors fi are Gaussian as in Lemma 1,
+Condition RF(iii) holds, and s log2 (p ∨ n)/n → 0, then Conditions RF(i), (ii),
+and (iv) hold. (b) If the regressors fi have bounded entries as in Lemma 2, then
+Conditions RF(i), (ii), and (iv) hold under Condition RF(iii).
+3.2. Results on Lasso and Post-Lasso for Estimating Conditional Expectations
+We consider Lasso and post-Lasso estimators defined in equations (2.4) and
+(2.8) in the system of ke nonparametric regression equations (2.3) with nonGaussian and heteroscedastic errors. These results extend the previous results
+of Bickel, Ritov, and Tsybakov (2009) for Lasso and of Belloni and Chernozhukov (2012) for post-Lasso with Gaussian i.i.d. errors. In addition, we account for the fact that we are simultaneously estimating ke regressions, and
+account for the dependence of our results on ke .
+The following theorem presents the properties of Lasso. Let us call asympl that obey a.s.
+totically valid any penalty loadings Υ
+(3.2)
+
+l ≤ uΥ
+0 
+0 ≤ Υ
+Υ
+l
+l
+
+with 0 <  ≤ 1 ≤ u such that  →P 1 and u →P u with u ≥ 1. The penalty
+loadings constructed by Algorithm A.1 satisfy this condition.
+THEOREM 1—Rates for Lasso Under Non-Gaussian and Heteroscedastic
+Errors: Suppose that in the regression model (2.3), Conditions AS and RF hold.
+Suppose the penalty level is specified as in (2.7), and consider any asymptoti, for example, penalty loadings constructed by Alcally valid penalty loadings Υ
+l = β
+lL and the
+gorithm A.1 stated in Appendix A. Then, the Lasso estimator β
+il = f  β
+
+Lasso fit D
+,
+l
+=
+1
+
+
+
+
+k
+,
+satisfy
+e
+i lL
+
+1 s log(ke p/γ)
+
+max Dil − Dil 2n P
+1≤l≤ke
+κC̄
+n
+and
+l − βl 0 1 P
+max β
+
+1≤l≤ke
+
+1
+(κ2C̄ )2
+
+
+
+s2 log(ke p/γ)
+
+n
+
+0 ∞ (Υ
+0 )−1 ∞ }(uc + 1)/(c − 1) and κC̄ =
+where C̄ = max1≤l≤ke {Υ
+l
+l
+
+κC̄ (En [fi fi ]).
+
+2388
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+The theorem provides a rate result for the Lasso estimator constructed
+specifically to deal with non-Gaussian errors and heteroscedasticity. The rate
+result generalizes, and is as sharp as, the rate results of Bickel, Ritov, and
+Tsybakov (2009) obtained for the homoscedastic Gaussian case. This generalization is important for real applications where non-Gaussianity and heteroscedasticity are ubiquitous. Note that the obtained rate is near-optimal in
+the sense that if we happened to know the model T , that is, if we knew the
+identities of the most important variables, we would only improve the rate by
+the log p factor. The theorem also shows that the data-driven penalty loadings
+defined in Algorithm A.1 are asymptotically valid.
+The following theorem presents the properties of post-Lasso, which requires a mild assumption on the number of additional variables in the set 
+Il ,
+l = 1     ke . We assume that the size of these sets is not substantially larger
+than the model selected by Lasso, namely, a.s.
+(3.3)
+
+l |  1 ∨ |T
+l |
+|
+Il \ T
+
+l = 1     ke 
+
+THEOREM 2—Rates for Post-Lasso Under Non-Gaussian and Heteroscedastic Errors: Suppose that in the regression model (2.3), Conditions AS and RF
+hold. Suppose the penalty level for the Lasso estimator is specified as in (2.7),
+ are asymptotically valid, and the sets of additional
+that Lasso’s penalty loadings Υ
+lPL and the post-Lasso
+l = β
+variables obey (3.3). Then, the post-Lasso estimator β
+il = f  β
+
+,
+l
+=
+1
+
+
+
+
+k
+,
+satisfy
+fit D
+e
+i lPL
+il − Dil 2n P μ
+max D
+1≤l≤ke
+κC̄
+
+
+
+s log(ke p/γ)
+n
+
+and
+2
+l − βl 0 1 P μ
+max β
+1≤l≤ke
+(κC̄ )2
+
+
+
+s2 log(ke p/γ)
+
+n
+
+where μ2 = mink {φmax (k)(En [fi fi ])/φmin (k + s)(En [fi fi ]) : k > 18C̄ 2 sφmax (k) ×
+(En [fi fi ])/(κC̄ )2 } for C̄ defined in Theorem 1.
+The theorem provides a rate result for the post-Lasso estimator with nonGaussian errors and heteroscedasticity. The rate result generalizes the results
+of Belloni and Chernozhukov (2012) obtained for the homoscedastic Gaussian
+case. The post-Lasso achieves the same near-optimal rate of convergence as
+Lasso. As stressed in the introductory sections, our analysis allows Lasso to
+make model selection mistakes, which is expected generically. We show that
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2389
+
+these model selection mistakes are small enough to allow the post-Lasso estimator to perform as well as Lasso.10
+Rates of convergence in different norms can also be of interest in other applications. In particular, the 2 -rate of convergence can be derived from the
+rate of convergence in the prediction norm and Condition SE using a sparsity
+result for Lasso established in Appendix D. Below we specialize the previous
+theorems to the important case where Condition SE holds.
+COROLLARY 1—Rates for Lasso and Post-Lasso Under Condition SE: Under the conditions of Theorem 2 and Condition SE, the Lasso and post-Lasso
+estimators satisfy
+
+il − Dil 2n P s log(p ∨ n) 
+max D
+1≤l≤ke
+n
+
+l − βl 0 2 P s log(p ∨ n) 
+max β
+1≤l≤ke
+n
+
+2
+l − βl 0 1 P s log(p ∨ n) 
+max β
+1≤l≤ke
+n
+The rates of convergence in the prediction norm and 2 -norm are faster than
+the rate of convergence in the 1 -norm, which is typical of high-dimensional
+settings.
+4. MAIN RESULTS ON IV ESTIMATION
+In this section, we present our main inferential results on instrumental variable estimators.
+4.1. The IV Estimator With Lasso-Based Instruments
+We impose the following moment conditions on the instruments, the structural errors, and regressors.
+CONDITION SM: (i) The eigenvalues of Q = Ē[D(xi )D(xi ) ] are bounded
+uniformly from above and away from zero, uniformly in n. The conditional
+variance E[ 2i |xi ] is bounded uniformly from above and away from zero, uniformly in i and n. Given this assumption, without loss of generality, we normalize the instruments so that Ē[fij2 2i ] = 1 for each 1 ≤ j ≤ p and for all n.
+10
+Under further conditions stated in proofs, post-Lasso can sometimes achieve a faster rate of
+convergence. In special cases where perfect model selection is possible, post-Lasso becomes the
+so-called oracle estimator and can completely remove the log p factor.
+
+2390
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+(ii) For some q > 2 and q > 2, uniformly in n,
+
+
+
+
+
+q
+q
+max Ē |fij i |3 + Ē Di 2 | i |2q + Ē Di 2
+1≤j≤p
+
+
+
+
+q
++ Ē | i |q + Ē di 2  1
+
+(iii) In addition to log3 p = o(n), the following growth conditions hold:
+(a)
+(b)
+(c)
+
+s log(p ∨ n) 2/q
+n
+→ 0
+n
+s2 log2 (p ∨ n)
+→ 0
+n
+
+
+max En fij2 2i P 1
+
+1≤j≤p
+
+COMMENT 4.1—On Condition SM: Condition SM(i) places restrictions on
+the variation of the structural errors ( ) and the optimal instruments (D(x)).
+The first condition about the variation in the optimal instrument guarantees
+that identification is strong; that is, it ensures that the conditional expectation of the endogenous variables given the instruments is a nontrivial function of the instruments. This assumption rules out non-identification, in which
+case D(x) does not depend on x, and weak-identification, in which case D(x)
+would be local to a constant function. We present an inference procedure that
+remains valid without this condition in Section 4.2. The remaining restriction
+in Condition SM(i) requires that structural errors are boundedly heteroscedastic. Given this, we make a normalization assumption on the instruments. This
+entails no loss of generality since this is equivalent to suitably rescaling the parameter space for coefficients βl0  l = 1     ke , via an isomorphic transformation. We use this normalization to simplify notation in the proofs, but do not
+use it in the construction of the estimators. Condition SM(ii) imposes some
+mild moment assumptions. Condition SM(iii) strengthens the growth requirement s log p/n → 0 needed for estimating conditional expectations. However,
+the restrictiveness of Condition SM(iii)(a) rapidly decreases as the number of
+bounded moments of the structural error increases. Condition SM(iii)(b) indirectly requires the optimal instruments in Condition AS to be smooth enough
+that the number of unknown series terms s needed to approximate them well
+is not too large. This condition ensures that the impact of the instrument estimation on the IV estimator is asymptotically negligible. This condition can be
+relaxed using the sample-splitting method.
+The following lemma shows that the moment assumptions in Condition SM(iii) are plausible for both many-instrument and many-series-instrument settings.
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2391
+
+LEMMA 4—Plausibility of Condition SM(iii): Suppose that the structural disturbance i has uniformly bounded conditional moments of order 4 uniformly in n
+and that s2 log2 (p ∨ n) = o(n). Then Condition SM(iii) holds if (a) the regressors
+fi are Gaussian as in Lemma 1, or (b) the regressors fi are arbitrary i.i.d. vectors
+with bounded entries as in Lemma 2.
+The first result describes the properties of the IV estimator with the optimal
+IV constructed using Lasso or post-Lasso in the setting of the standard model.
+The result also provides a consistent estimator for the asymptotic variance of
+this estimator under heteroscedasticity.
+THEOREM 3—Inference With Optimal IV Estimated by Lasso or Post-Lasso:
+Suppose that data (yi  xi  di ) are i.n.i.d. and obey the linear IV model described
+in Section 2. Suppose also that Conditions AS, RF, SM, (2.7), and (3.2) hold.
+To construct the estimate of the optimal instrument, suppose that Condition RE
+holds in the case of using Lasso or that Condition SE and (3.3) hold in the case
+of using post-Lasso. Then the IV estimator 
+α, based on either Lasso or post-Lasso
+estimates of the optimal instrument, is root-n consistent and asymptotically normal:
+−1/2 √
+n(
+α − α0 ) →d N(0 I)
+Q−1 ΩQ−1
+for Ω := Ē[ 2i D(xi )D(xi ) ] and Q := Ē[D(xi )D(xi ) ]. Moreover, the result above
+ := En [2 D(x
+ i )D(x
+ i ) ] for i = yi − d 
+continues to hold with Ω replaced by Ω
+i
+i α,
+
+
+
+
+and Q replaced by Q := En [D(xi )D(xi ) ]. In the case that the structural error i
+is homoscedastic conditional on xi , that is, E[ 2i |xi ] = σ 2 a.s. for all i = 1     n,
+the IV estimator 
+α based on either Lasso or post-Lasso estimates of the optimal
+instrument is root-n
+and achieves the efficiency
+√ consistent, asymptotically normal,
+α − α0 ) →d N(0 I), where Λ∗ := σ 2 Q−1 . The result above
+bound (Λ∗ )−1/2 n(
+∗ := 
+ := En [D(x
+−1 , where Q
+ i )D(x
+ i ) ]
+σ 2Q
+continues to hold with Λ∗ replaced by Λ
+2
+
+2
+α) ].
+and 
+σ := En [(yi − di
+In the setting with homoscedastic structural errors, the estimator achieves
+the efficiency bound asymptotically. In the case of heteroscedastic structural
+errors, the estimator does not achieve the efficiency bound, but we can expect
+it to be close to achieving the bound if heteroscedasticity is mild.
+The final result of this section extends the previous result to any IV estimator
+with a generic sparse estimator of the optimal instruments.
+THEOREM 4—Inference With IV Constructed by a Generic Sparsity-Based
+Procedure: Suppose that Conditions AS and SM hold, and suppose that the fitted
+il = f  β
+
+values of the optimal instrument, D
+i l , are constructed using any estimator
+
+2392
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+l such that
+β
+
+(4.1)
+
+il − Dil 2n P
+max D
+
+1≤l≤ke
+
+
+
+l − βl0 1 P
+max β
+
+1≤l≤ke
+
+s log(p ∨ n)
+n
+
+and
+
+s2 log(p ∨ n)
+
+n
+
+Then the conclusions reached in Theorem 3 continue to apply.
+This result shows that the previous two theorems apply for any first-stage
+estimator that attains near-oracle performance given in (4.1). Examples of
+other sparse estimators covered by√ this theorem are
+√ Dantzig and Gauss–
+Dantzig (Candes and Tao (2007)), Lasso and post- Lasso (Belloni, Chernozhukov, and Wang (2011a, 2011b)), thresholded Lasso and post-thresholded
+Lasso (Belloni and Chernozhukov (2012)), group Lasso and post-group Lasso
+(Huang, Horowitz, and Wei (2010), Lounici et al. (2010)), adaptive versions
+of the above (Huang, Horowitz, and Wei (2010)), and boosting (Bühlmann
+(2006)). Verification of the near-oracle performance (4.1) can be done on a
+case by case basis using the best conditions in the literature.11 Our results extend to Lasso-type estimators under alternative forms of regularity conditions
+that fall outside the framework of Conditions RE and RF; all that is required
+is the near-oracle performance of the kind (4.1).
+4.2. Inference When Instruments Are Weak
+When instruments are weak individually, Lasso may end up selecting no instruments or may produce unreliable estimates of the optimal instruments. To
+cover this case, we propose a method for inference based on inverting pointwise tests performed using a sup-score statistic defined below. The procedure
+is similar in spirit to Anderson and Rubin (1949) and Staiger and Stock (1997),
+but uses a different statistics that is better suited to cases with very many instruments. To describe the approach, we rewrite the main structural equation
+as
+(4.2)
+
+yi = dei α1 + wi α2 + i 
+
+E[ i |xi ] = 0
+
+where yi is the response variable, dei is a vector of endogenous variables, wi
+is a kw -vector of control variables, xi = (zi  wi ) is a vector of elementary instrumental variables, and i is a disturbance such that 1      n are i.n.i.d.
+√
+Post-1 -penalized procedures have only been analyzed for the case of Lasso and Lasso;
+see Belloni and Chernozhukov (2012) and Belloni, Chernozhukov, and Wang (2011a). We expect
+that similar results carry over to other procedures listed above.
+11
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2393
+
+conditional on X = [x1      xn ]. We partition di = (dei   wi ) . The parameter
+of interest is α1 ∈ A1 ⊂ Rke . We use fi = P(xi ), a vector which includes wi , as
+technical instruments. In this subsection, we treat X as fixed; that is, we condition on X.
+We would like to use a high-dimensional vector fi of technical instruments
+for inference on α1 that is robust to weak identification. To formulate a practical sup-score statistic, it is useful to partial-out the effect of wi on the key variables. For an n-vector {ui  i = 1     n}, define ũi = ui − wi En [wi wi ]−1 En [wi ui ],
+that is, the residuals left after regressing this vector on {wi  i = 1     n}. Hence
+ỹi , d̃ei , and f˜ij are residuals obtained by partialling out controls wi . Also, let
+(4.3)
+
+f˜i = (f˜i1      f˜ip ) 
+
+In this formulation, we omit elements of wi from f˜ij since they are eliminated
+by partialling out. We then normalize these technical instruments so that
+(4.4)
+
+ 
+En f˜ij2 = 1
+
+j = 1     p
+
+The sup-score statistic for testing the hypothesis α1 = a takes the form
+(4.5)
+
+
+
+
+
+
+2
+Λa = max nEn ỹi − d̃ei a f˜ij  En ỹi − d̃ei a f˜ij2 
+1≤j≤p
+
+As before, we apply self-normalized moderate deviation theory for selfnormalized sums to obtain
+√
+P Λα1 ≤ c n−1 (1 − γ/2p) ≥ 1 − γ + o(1)
+√
+Therefore, we can employ Λ(1 − γ) := c n−1 (1 − γ/2p) for c > 1 as a critical
+value for testing α1 = a using Λa as the test statistic. The asymptotic (1 − γ)confidence region for α1 is then given by C := {a ∈ A1 : Λa ≤ Λ(1 − γ)}
+The construction of confidence regions above can be given the following
+Inverse Lasso interpretation. Let
+
+
+a ∈ arg min En ỹi − d̃ei a − f˜ij β 2 + λ
+β
+β∈Rp
+n
+γaj =
+
+p
+
+γaj |βj |
+j=1
+
+
+
+2
+En ỹi − d̃ei a f˜ij2 
+
+a = 0}. In words,
+If λ = 2Λ(1 − γ), then C is equivalent to the region {a ∈ Rke : β
+this confidence region collects all potential values of the structural parameter
+where the Lasso regression of the potential structural disturbance on the instruments yields zero coefficients on the instruments. This idea is akin to the
+
+2394
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+Inverse Quantile Regression and Inverse Least Squares ideas in Chernozhukov
+and Hansen (2008a, 2008b).
+Below, we state the main regularity condition for the validity of inference
+using the sup-score statistic as well as the formal inference result.
+CONDITION SM2: Suppose that, for each n, the linear model (4.2) holds with
+α1 ∈ A1 ⊂ Rke such that 1      n are i.n.i.d., X is fixed, and f˜1      f˜n are pvectors of technical instruments defined in (4.3)√and (4.4).
+√ Suppose that (i) the
+dimension of wi is kw and wi 2 ≤ ζw such that kw ζw / n → 0, (ii) the eigenvalues of En [wi wi ] are bounded away from zero and eigenvalues of Ē[ 2i wi wi ]
+are bounded away from above, uniformly in n, (iii) max1≤j≤p Ē[| i |3 |f˜ij |3 ]1/3 /
+Ē[ 2i f˜ij2 ]1/2 ≤ Kn , and (iv) Kn2 log(p ∨ n) = o(n1/3 ).
+THEOREM 5 —Valid Inference Based on the Sup-Score Statistic: Let γ ∈
+(0 1) be fixed or, more generally, such that log(1/γ)  log(p ∨ n). Under Condition SM2, (i) in large samples, the constructed confidence set C contains the true
+value α1 with at least the prescribed probability, namely P(α1 ∈ C ) ≥ 1 − γ − o(1)
+(ii) Moreover, the confidence set C necessarily excludes a sequence of parameter
+value a, namely P(a ∈ C ) → 0, if
+
+max
+
+1≤j≤p
+
+n/ log(p/γ)|En [(a − α1 ) d̃ei f˜ij ]|
+
+c En [ 2i f˜ij2 ] +
+
+En [{(a − α1 ) d̃ei }2 f˜ij2 ]
+
+→P ∞
+
+The theorem shows that the confidence region C constructed above is valid
+in large samples and that the probability of including a false point a in C tends
+to zero as long as a is sufficiently distant from α1 and instruments are not too
+weak. In particular, if there is a strong instrument,
+ the confidence regions will
+eventually exclude points a that are further than log(p ∨ n)/n away from α1 .
+Moreover, if there are instruments
+ whose correlation with the endogenous
+variable is of greater order than log(p ∨ n)/n, then the confidence regions
+will asymptotically be bounded.
+5. FURTHER INFERENCE AND ESTIMATION RESULTS FOR THE IV MODEL
+In this section, we provide further estimation and inference results. We develop an overidentification test that compares the IV-Lasso based estimates
+to estimates obtained using a baseline set of instruments. We also combine
+the IV selection using Lasso with a sample-splitting technique from the manyinstruments literature which allows us to relax the growth requirement on the
+number of relevant instruments.
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2395
+
+5.1. A Specification Test for Validity of Instrumental Variables
+Here we develop a Hausman-style specification test for the validity of the
+instrumental variables. Let Ai = A(xi ) be a baseline set of instruments, with
+dim(Ai ) ≥ dim(α) = kα bounded. Let α̃ be the baseline instrumental variable
+estimator based on these instruments:
+
+ 
+−1 
+ −1 
+ 
+−1
+En di Ai En Ai Ai En [Ai yi ]
+α̃ = En di Ai En Ai Ai En Ai di
+If the instrumental variable exclusion restriction is valid, then the unscaled
+difference between this estimator and the IV estimator 
+α proposed in the previous sections should be small. If the exclusion restriction is not valid, the difference between α̃ and 
+α should be large. Therefore, we can reject the null
+hypothesis of instrument validity if the difference is large.
+We formalize the test as follows. Suppose we care about R α for some k × kd
+matrix R of rank(R) = k. For instance, we might care only about the first k
+components of α, in which case R = [Ik 0] is a k × kd matrix that selects the
+first k coefficients of α. Define the estimand for α̃ as
+
+ 
+−1 
+ −1 
+ 
+−1
+α = Ē di Ai Ē Ai Ai Ē Ai di
+Ē di Ai Ē Ai Ai Ē[Ai yi ]
+and define the estimand of 
+α as
+−1 
+
+
+αa = Ē D(xi )D(xi ) Ē D(xi )yi 
+The null hypothesis H0 is R(α − αa ) = 0 and the alternative Ha is R(α −
+αa ) = 0. We can form a test statistic
+√
+  −1 √nR(α̃ − 
+J = n(α̃ − 
+α) R RΣR
+α)
+ defined below and reject H0 if J > cγ , where cγ is the (1 −
+for a matrix Σ
+γ)-quantile of chi-squared random variable with k degrees of freedom. The
+justification for this test is provided by the following theorem, which builds
+upon the previous results coupled with conventional results for the baseline
+instrumental variable estimator.12
+THEOREM 6 —Specification Test: (a) Suppose the conditions of Theorem 3
+q
+hold, that Ē[Ai 2 ] is bounded uniformly in n for q > 4, and the eigenvalues of
+
+
+Σ := Ē 2i MAi − Q−1 D(xi ) MAi − Q−1 D(xi )
+are bounded from above and below, uniformly in n, where
+
+ 
+−1 
+ −1 
+ 
+−1
+M = Ē di Ai Ē Ai Ai Ē Ai di
+Ē di Ai Ē Ai Ai 
+12
+The proof of this result is provided in the Supplemental Material (Belloni, Chen, Chernozhukov, and Hansen (2012)).
+
+2396
+Then
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+√ −1/2
+nΣ (α̃ − 
+α) →d N(0 I) and J →d χ2 (k) where
+
+ = En 2 M
+−1 D(x
+−1 D(x
+ −1 Ai − Q
+ i) M
+ i) 
+ −1 Ai − Q
+Σ
+i
+
+ = En [D(x
+ i )D(x
+ i ) ], and
+for i = yi − di
+α, Q
+
+ 
+
+
+
+ = En di A En Ai A −1 En Ai d 
+M
+i
+i
+i
+
+−1
+
+
+ 
+−1
+En di Ai En Ai Ai 
+
+(b) Suppose the conditions of Theorem 3 hold with the exception that
+E[Ai i ] = 0 for all i = 1     n and n, but Ē[D(xi ) i ]2 is bounded away from
+zero. Then J →P ∞.
+5.2. Split-Sample IV Estimator
+The rate condition s2 log2 (p ∨ n) = o(n) can be substantive and cannot be
+substantially weakened for the full-sample IV estimator considered above.
+However, we can replace this condition with the weaker condition that
+s log(p ∨ n) = o(n)
+by employing a sample-splitting method from the many-instruments literature
+(Angrist and Krueger (1995)). Specifically, we consider dividing the sample
+randomly into (approximately) equal parts a and b, with sizes na = n/2
+and nb = n − na . We use superscripts a and b for variables in the first and
+second subsample, respectively. The index i will enumerate observations in
+both samples, with ranges for the index given by 1 ≤ i ≤ na for sample a and
+1 ≤ i ≤ nb for sample b. We can use each of the subsamples to fit the first
+kl  k = a b
+stage via Lasso or post-Lasso to obtain the first-stage estimates β
+
+
+a = f a β
+b = f b β
+bl  1 ≤ i ≤ na , D
+al  1 ≤ i ≤ nb ,
+and l = 1     ke . Then setting D
+il
+il
+i
+i
+k
+k
+k
+k 
+
+
+
+Di = (Di1      Dike  wi )  k = a b, we form the IV estimates in the two subsamples:
+ a a  −1  a a 
+d
+y
+
+αa = Ena D
+Ena D
+i i
+i i
+
+ b b  −1  b b 
+d
+y 
+Enb D
+and 
+αb = Enb D
+i i
+i i
+
+Then we combine the estimates into one:
+ a a
+ b b   −1
+ + nb En D
+
+D
+D
+(5.1)
+
+αab = na Ena D
+i
+i
+i
+i
+b
+ a a
+ b b
+ 
+D
+  αb 
+× na Ena D
+i
+i αa + nb Enb Di Di 
+The following result shows that the split-sample IV estimator 
+αab has the
+same large sample properties as the estimator 
+α of the previous section but
+requires a weaker growth condition.
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2397
+
+THEOREM 7 —Inference With a Split-Sample IV Based on Lasso or PostLasso: Suppose that data (yi  xi  di ) are i.n.i.d. and obey the linear IV model described in Section 2. Suppose also that Conditions AS, RF, SM, (2.7), (3.2), and
+(3.3) hold, except that instead of growth condition s 2 log2 (p ∨ n) = o(n), we now
+have a weaker growth condition s log(p ∨ n) = o(n). Suppose also that Condik = f k  β
+kl c is the
+kl c , where β
+tion SE holds for M k = Enk [fik fik  ] for k = a b. Let D
+il
+i
+c
+c
+Lasso or post-Lasso estimator applied to the subsample {(dlik  fik ) : 1 ≤ i ≤ nkc }
+for k = a b, and√kc = {a b} \ k. Then the split-sample IV estimator based on
+equation (5.1) is n-consistent and asymptotically normal, as n → ∞:
+Q−1 ΩQ−1
+
+−1/2
+
+√
+
+n(
+αab − α0 ) →d N(0 I)
+
+for Ω := Ē[ 2i D(xi )D(xi ) ] and Q := Ē[D(xi )D(xi ) ]. Moreover, the result above
+ := En [2 D(x
+ i )D(x
+ i ) ] for i = yi − d 
+continues to hold with Ω replaced by Ω
+i
+i αab ,
+
+
+
+
+and Q replaced by Q := En [D(xi )D(xi ) ].
+6. SIMULATION EXPERIMENT
+The previous sections’ results suggest that using Lasso for fitting first-stage
+regressions should result in IV estimators with good estimation and inference
+properties. In this section, we provide simulation evidence regarding these
+properties in a situation where there are many possible instruments. We also
+compare the performance of the developed Lasso-based estimators to manyinstrument robust estimators that are available in the literature.
+Our simulations are based on a simple instrumental variables model datagenerating process (DGP):
+yi = βdi + ei 
+di = zi Π + vi 
+  2
+σe
+(ei  vi ) ∼ N 0
+σev
+
+σev
+σv2
+
+
+i.i.d.
+
+where β = 1 is the parameter of interest, and zi = (zi1  zi2      zi100 ) ∼
+2
+N(0 ΣZ ) is a 100 × 1 vector with E[zih
+] = σz2 and Corr(zih  zij ) = 05|j−h| . In
+2
+2
+all simulations, we set σe = 1 and σz = 1. We also set Corr(e v) = 06
+For the other parameters, we consider various settings. We provide results
+for sample sizes, n, of 100 and 250. We set σv2 so that the unconditional variance of the endogenous variable equals 1; that is, σv2 = 1 − Π  ΣZ Π. We use
+three different settings for the pattern of the first-stage coefficients, Π. In the
+ = C(1 07 072      0798  0799 ) ; we term this the “expofirst, we set Π = C Π
+ = C(ιs  0n−s ) ,
+nential” design. In the second and third case, we set Π = C Π
+where ιs is a 1 × s vector of ones and 0n−s is a 1 × n − s vector of zeros. We
+
+2398
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+term this the “cut-off” design and consider two different values of s, s = 5 and
+s = 50. In the exponential design, the model is not literally sparse, although
+the majority of explanatory power is contained in the first few instruments.
+While the model is exactly sparse in the cut-off design, we expect Lasso to per2
+2
+form poorly with s = 50 since treating s logn p as vanishingly small seems like a
+poor approximation given the sample sizes considered. We consider different
+values of the constant C that are chosen to generate target values for the con
+centration parameter, μ2 = nΠσΣ2Z Π , which plays a key role in the behavior of IV
+v
+estimators; see, for example, Stock, Wright, and Yogo (2002) or Hansen, Haus ZΠ
+
+nC 2 ΠΣ
+man, and Newey (2008).13 Specifically, we choose C to solve μ2 = 1−C
+2 ΠΣ
+ ZΠ
+ for
+2
+2
+μ = 30 and for μ = 180. These values of the concentration parameter were
+chosen by using estimated values from the empirical example reported below
+as a benchmark.14
+For each setting of the simulation parameter values, we report results from
+seven different procedures. A simple possibility, when presented with many
+instrumental variables (with p < n), is to just estimate the model using 2SLS
+and all of the available instruments. It is well known that this will result in
+poor finite-sample properties unless there are many more observations than instruments; see, for example, Bekker (1994). The estimator proposed in Fuller
+(1977) (FULL) is robust to many instruments (with p < n) as long as the
+presence of many instruments is accounted for when constructing standard
+errors for the estimators; see Hansen, Hausman, and Newey (2008), for example.15 We report results for these estimators in rows labeled 2SLS(100) and
+FULL(100), respectively.16 For our variable selection procedures, we use Lasso
+to select among the instruments using the refined data-dependent penalty
+loadings given in (A.1), described in Appendix A, and consider two post-model
+selection estimation procedures. The first, post-Lasso, runs 2SLS using the instruments selected by Lasso; and the second, post-Lasso-F, runs FULL using
+13
+The concentration parameter is closely related to the first-stage Wald statistic and firststage F-statistic for testing that the coefficients on the instruments are equal to 0. Under ho σ 2 and the first-stage F-statistic is
+ (Z  Z)Π/
+moscedasticity, the first-stage Wald statistic is W = Π
+v
+W / dim(Z).
+14
+In the empirical example, first-stage Wald statistics based on the selected instruments range
+from between 44 and 243. In the cases with constant coefficients, our concentration parameter
+choices correspond naturally to “infeasible F-statistics” defined as μ2 /s of 6 and 36 with s = 5
+and 0.6 and 3.6 with s = 50. In the Supplemental Material (Belloni et al. 2012), we provide additional simulation results. The results reported in the current section are sufficient to capture the
+key patterns.
+15
+FULL requires a user-specified parameter. We set this parameter equal to 1, which produces
+a higher-order unbiased estimator. See Hahn, Hausman, and Kuersteiner (2004) for additional
+discussion. Limited information maximum likelihood (LIML) is another commonly proposed
+estimator that is robust to many instruments. In our designs, its performance was generally similar
+to that of FULL, and we report only FULL for brevity.
+16
+With n = 100, estimates are based on a randomly selected 99 instruments.
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2399
+
+the instruments selected by Lasso. In cases where no instruments are selected
+by Lasso, we use the point-estimate obtained by running 2SLS with the single
+instrument with the highest within sample correlation to the endogenous variable as the point estimate for post-Lasso and post-Lasso-F. In these cases, we
+use the sup-score test for performing inference.17 We report inference results
+based on the weak-identification robust sup-score testing procedure in rows
+labeled “sup-Score.”
+The other two procedures, “post-Lasso (Ridge)” and “post-Lasso-F
+(Ridge),” use a combination of Ridge regression, Lasso, and sample-splitting.
+For these procedures, we randomly split the sample into two equal-sized parts.
+Call these subsamples “sample A” and “sample B.” We then use leave-one-out
+cross-validation with only the data in sample A to select a ridge penalty parameter, and then estimate a set of ridge coefficients using this penalty and
+the data from sample A. We then use the data from sample B with these coefficients estimated using only data from sample A to form first-stage fitted
+values for sample B. Then, we take the full set of instruments augmented with
+the estimated fitted value just described and perform Lasso variable selection
+using only the data from sample B. We use the selected variables to run either
+2SLS or Fuller in sample B to obtain estimates of β (and associated standard
+BFuller (sBFuller ). We then repeat this exercise
+B2SLS (sB2SLS ) and β
+errors), say β
+switching samples A and B to obtain estimates of β (and associated standard
+A2SLS (sA2SLS ) and β
+AFuller (sAFuller ). Post-Lasso
+errors) from sample A, say β
+2
+B2SLS for wA2SLS = 2 sB2SLS2
+A2SLS + (1 − wA2SLS )β
+(Ridge) is then wA2SLS β
+,
+sA2SLS +sB2SLS
+
+and post-Lasso-F (Ridge) is defined similarly. If instruments are selected in
+one subsample but not in the other, we put weight 1 on the estimator from the
+subsample where instruments were selected. If no instruments are selected in
+either subsample, we use the single instrument with the highest correlation to
+obtain the point-estimate and use the sup-score test for performing inference.
+For each estimator, we report median bias (Med. Bias), median absolute
+deviation (MAD), and rejection frequencies for 5% level tests (rp(0.05)).
+For computing rejection frequencies, we estimate conventional, homoscedastic
+2SLS standard errors for 2SLS(100) and post-Lasso and the many-instrument
+robust standard errors of Hansen, Hausman, and Newey (2008), which rely on
+homoscedasticity for FULL(100) and post-Lasso-F. We report the number of
+cases in which Lasso selected no instruments in the column labeled N(0).
+We summarize the simulation results in Table I. It is apparent that the Lasso
+procedures are dominant when n = 100 In this case, the Lasso-based procedures outperform 2SLS(100) and FULL(100) on all dimensions considered.
+When the concentration parameter is 30 or s = 50, the instruments are relatively weak, and Lasso accordingly selects no instruments in many cases. In
+17
+Inference based on the asymptotic approximation when Lasso selects instruments and based
+on the sup-Score test when Lasso fails to select instruments is our preferred procedure.
+
+2400
+
+TABLE I
+SIMULATION RESULTSa
+
+Median
+Estimator
+
+2SLS(100)
+FULL(100)
+Post-LASSO
+Post-LASSO-F
+Post-LASSO (Ridge)
+Post-LASSO-F (Ridge)
+sup-Score
+2SLS(100)
+FULL(100)
+Post-LASSO
+Post-LASSO-F
+Post-LASSO (Ridge)
+Post-LASSO-F (Ridge)
+sup-Score
+
+S = 50
+
+Median
+N(0)
+
+Bias
+
+Median
+
+N(0)
+
+Bias
+
+MAD
+
+rp(0.05)
+
+MAD
+
+rp(0.05)
+
+483
+483
+500
+500
+
+0.524
+0.373
+0.117
+0.117
+0.229
+0.229
+
+0.524
+0.741
+0.183
+0.184
+0.263
+0.263
+
+1.000
+0.646
+0.012
+0.012
+0.000
+0.000
+0.006
+
+A. Concentration Parameter = 30, n = 100
+0.520
+0.520
+1.000
+0.476
+0.781
+0.690
+485
+0.128
+0.178
+0.008
+485
+0.128
+0.178
+0.008
+500
+0.212
+0.239
+0.000
+500
+0.212
+0.239
+0.000
+0.000
+
+396
+396
+500
+500
+
+0.493
+0.028
+0.106
+0.107
+0.191
+0.191
+
+0.493
+0.286
+0.163
+0.164
+0.223
+0.223
+
+1.000
+0.076
+0.044
+0.048
+0.004
+0.004
+0.002
+
+B. Concentration Parameter = 30, n = 250
+0.485
+0.485
+1.000
+0.023
+0.272
+0.056
+423
+0.105
+0.165
+0.042
+423
+0.105
+0.166
+0.044
+500
+0.196
+0.217
+0.006
+500
+0.196
+0.217
+0.006
+0.010
+
+N(0)
+
+Bias
+
+MAD
+
+rp(0.05)
+
+498
+498
+500
+500
+
+0.528
+0.285
+0.363
+0.363
+0.362
+0.362
+
+0.528
+0.832
+0.368
+0.368
+0.364
+0.364
+
+0.998
+0.580
+0.012
+0.012
+0.002
+0.002
+0.008
+
+499
+499
+500
+500
+
+0.486
+0.046
+0.358
+0.358
+0.353
+0.353
+
+0.486
+0.252
+0.359
+0.359
+0.355
+0.355
+
+1.000
+0.072
+0.008
+0.008
+0.000
+0.000
+0.006
+
+(Continues)
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+S=5
+
+Exponential
+
+TABLE I—Continued
+S=5
+
+Exponential
+Median
+Estimator
+
+2SLS(100)
+FULL(100)
+Post-LASSO
+Post-LASSO-F
+Post-LASSO (Ridge)
+Post-LASSO-F (Ridge)
+sup-Score
+
+Bias
+
+MAD
+
+rp(0.05)
+
+N(0)
+
+Bias
+
+Median
+MAD
+
+rp(0.05)
+
+N(0)
+
+120
+120
+500
+500
+
+0.353
+0.063
+0.037
+0.030
+0.061
+0.061
+
+0.353
+0.563
+0.093
+0.093
+0.132
+0.132
+
+0.952
+0.648
+0.078
+0.070
+0.002
+0.002
+0.002
+
+C. Concentration Parameter = 180, n = 100
+0.354
+0.354
+0.958
+0.096
+0.562
+0.694
+132
+0.035
+0.100
+0.052
+498
+132
+0.025
+0.100
+0.046
+498
+500
+0.063
+0.116
+0.000
+500
+500
+0.063
+0.116
+0.000
+500
+0.002
+
+0
+0
+211
+211
+
+0.289
+0.008
+0.032
+0.024
+0.062
+0.061
+
+0.289
+0.082
+0.073
+0.069
+0.095
+0.096
+
+0.966
+0.058
+0.054
+0.038
+0.098
+0.082
+0.012
+
+D. Concentration Parameter = 180, n = 250
+0.281
+0.281
+0.972
+0.007
+0.081
+0.044
+0
+0.019
+0.067
+0.060
+411
+0
+0.014
+0.068
+0.046
+411
+225
+0.058
+0.084
+0.082
+295
+225
+0.056
+0.081
+0.062
+295
+0.012
+
+Bias
+
+MAD
+
+rp(0.05)
+
+0350
+0148
+0192
+0192
+0004
+0004
+
+0.350
+0.538
+0.211
+0.211
+0.119
+0.119
+
+0.948
+0.656
+0.000
+0.000
+0.000
+0.000
+0.000
+
+0280
+0008
+0233
+0235
+−0008
+−0004
+
+0.280
+0.083
+0.237
+0.236
+0.090
+0.090
+
+0.964
+0.048
+0.044
+0.040
+0.030
+0.032
+0.012
+
+a Results are based on 500 simulation replications and 100 instruments. Column labels indicate the structure of the first-stage coefficients as described in the text. 2SLS(100)
+and FULL(100) are respectively the 2SLS and Fuller(1) estimators using all 100 potential instruments. Post-LASSO and Post-LASSO-F respectively correspond to 2SLS and
+Fuller(1) using the instruments selected from LASSO variable selection among the 100 instruments, with inference based on the asymptotic normal approximation; in cases where
+no instruments are selected, the procedure switches to using the sup-Score test for inference. sup-Score provides the rejection frequency for a weak identification robust procedure
+that is suited to situations with more instruments than observations. Post-LASSO (Ridge) and Post-LASSO-F (Ridge) are defined as Post-LASSO and Post-LASSO-F but augment
+the instrument set with a fitted value obtained via ridge regression as described in the text. We report the number of replications in which LASSO selected no instruments (N(0)),
+median bias (Med. Bias), median absolute deviation (MAD), and rejection frequency for 5% level tests (rp(0.05)). In cases where LASSO selects no instruments, Med. Bias, and
+MAD are based on 2SLS using the single instrument with the largest sample correlation to the endogenous variable and rp(0.05) is based on the sup-Score test.
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2SLS(100)
+FULL(100)
+Post-LASSO
+Post-LASSO-F
+Post-LASSO (Ridge)
+Post-LASSO-F (Ridge)
+sup-Score
+
+N(0)
+
+S = 50
+
+Median
+
+2401
+
+2402
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+FIGURE 1.—Size-adjusted power curves for post-Lasso-F (dot–dash), post-Lasso-F (Ridge)
+(dotted), FULL(100) (dashed), and sup-Score (solid) from the simulation example with concentration parameter of 180 for n = 100 and n = 250.
+
+these cases, inference switches to the robust sup-score procedure, which controls size. With a concentration parameter of 180, the instruments are relatively
+more informative and sparsity provides a good approximation in the exponential design and s = 5 cut-off design. In these cases, Lasso selects instruments
+in the majority of replications and the procedure has good risk and inference
+properties relative to the other procedures considered. In the n = 100 case, the
+simple Lasso procedures also clearly dominate Lasso augmented with Ridge,
+as this procedure often results in no instruments being selected and relatively
+low power; see Figure 1. We also see that the sup-score procedure controls size
+across the designs considered.
+In the n = 250 case, the conventional many-instrument asymptotic sequence,
+which has p proportional to n but p/n < 1, provides a reasonable approximation to the DGP, and one would expect FULL to perform well. In this case,
+2SLS(100) is clearly dominated by the other procedures. However, there is no
+obvious ranking between FULL(100) and the Lasso-based procedures. With
+s = 50, sparsity is a poor approximation in that there is signal in the combination of the 50 relevant instruments, but no small set of instruments has much
+explanatory power. In this setting, FULL(100) has lower estimation risk than
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2403
+
+the Lasso procedure, which is not effectively able to capture the diffuse signal though both inference procedures have size close to the prescribed level.
+Lasso augmented with the Ridge fit also does relatively well in this setting,
+being roughly on par with FULL(100). In the exponential and cut-off with
+s = 5 designs, sparsity is a much better approximation. In these cases, the simple Lasso-based estimators have smaller risk than FULL(100) or Lasso with
+Ridge, and produce tests that have size close to the nominal 5% level. Finally,
+we see that the sup-score procedure continues to control size with n = 250.
+Given that the sup-score procedure uniformly controls size across the designs considered but is actually substantially undersized, it is worth presenting
+additional results regarding power. We plot size-adjusted power curves for the
+sup-score test, post-Lasso-F, post-Lasso-F (Ridge), and FULL(100) across the
+different designs in the μ2 = 180 cases in Figure 1. We focus on μ2 = 180 since
+we expect it is when identification is relatively strong that differences in power
+curves will be most pronounced. From these curves, it is apparent that the robustness of the sup-score test comes with a substantial loss of power in cases
+where identification is strong. Exploring other procedures that are robust to
+weak identification, allow for p  n, and do not suffer from such power losses
+may be interesting for future research.
+6.1. Conclusions From Simulation Experiments
+The evidence from the simulations is supportive of the derived theory and
+favorable to Lasso-based IV methods. The Lasso-IV estimators clearly dominate on all metrics considered when p = n and s  n. The Lasso-based IV
+estimators generally have relatively small median bias and estimator risk and
+do well in terms of testing properties, though they do not dominate FULL in
+these dimensions across all designs with p < n. The simulation results verify
+that FULL becomes more appealing as the sparsity assumption breaks down.
+This breakdown of sparsity is likely in situations with weak instruments, be
+they many or few, where none of the first-stage coefficients are well-separated
+from zero relative to sampling variation. Overall, the simulation results show
+that simple Lasso-based procedures can usefully complement other manyinstrument methods.
+7. THE IMPACT OF EMINENT DOMAIN ON ECONOMIC OUTCOMES
+As an example of the potential application of Lasso to select instruments,
+we consider IV estimation of the effects of federal appellate court decisions
+regarding eminent domain on a variety of economic outcomes.18 To try to un18
+See Chen and Yeh (2010) for a detailed discussion of the economics of takings law (or eminent domain), relevant institutional features of the legal system, and a careful discussion of endogeneity concerns and the instrumental variables strategy in this context.
+
+2404
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+cover the relationship between takings law and economic outcomes, we estimate structural models of the form
+yct = αc + αt + γc t + βTakings Lawct + Wct δ +
+
+ct
+
+
+
+where yct is an economic outcome for circuit c at time t; Takings Lawct represents the number of pro-plaintiff appellate takings decisions in circuit c and
+year t; Wct are judicial pool characteristics,19 a dummy for whether there were
+no cases in that circuit-year, and the number of takings appellate decisions;
+and αc , αt , and γc t are respectively circuit-specific effects, time-specific effects,
+and circuit-specific time trends. An appellate court decision is coded as proplaintiff if the court ruled that a taking was unlawful, thus overturning the government’s seizure of the property in favor of the private owner. We construe
+pro-plaintiff decisions to indicate a regime that is more protective of individual property rights. The parameter of interest, β, thus represents the effect
+of an additional decision upholding individual property rights on an economic
+outcome.
+We provide results using four different economic outcomes: the log of three
+home price indices and log(GDP). The three different home price indices
+we consider are the quarterly, weighted, repeat-sales FHFA/OFHEO house
+price index that tracks single-family house prices at the state level for metro
+(FHFA) and non-metro (Non-Metro) areas and the Case–Shiller home price
+index (Case–Shiller) by month for 20 metropolitan areas based on repeat-sales
+residential housing prices. We also use state-level GDP from the Bureau of
+Economic Analysis to form log(GDP). For simplicity and since all of the controls, instruments, and the endogenous variable vary only at the circuit-year
+level, we use the within-circuit-year average of each of these variables as the
+dependent variables in our models. Due to the different coverage and time series lengths available for each of these series, the sample sizes and sets of available controls differ somewhat across the outcomes. These differences lead to
+different first stages across the outcomes as well. The total sample sizes are
+312 for FHFA and GDP, which have identical first stages. For Non-Metro and
+Case–Shiller, the sample sizes are 110 and 183, respectively.
+The analysis of the effects of takings law is complicated by the possible endogeneity between governmental takings and takings law decisions and economic
+variables. To address the potential endogeneity of takings law, we employ an
+instrumental variables strategy based on the identification argument of Chen
+and Sethi (2010) and Chen and Yeh (2010) that relies on the random assignment of judges to federal appellate panels. Since judges are randomly assigned
+to three-judge panels to decide appellate cases, the exact identity of the judges
+19
+
+The judicial pool characteristics are the probability of a panel being assigned with the characteristics used to construct the instruments. There are 30, 33, 32, and 30 controls available for
+FHFA house prices, non-metro house prices, Case–Shiller house prices, and GDP, respectively.
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2405
+
+and, more importantly, their demographics are randomly assigned conditional
+on the distribution of characteristics of federal circuit court judges in a given
+circuit-year. Thus, once the distribution of characteristics is controlled for, the
+realized characteristics of the randomly assigned three-judge panel should be
+unrelated to other factors besides judicial decisions that may be related to economic outcomes.
+There are many potential characteristics of three-judge panels that may be
+used as instruments. While the basic identification argument suggests any set of
+characteristics of the three-judge panel will be uncorrelated with the structural
+unobservable, there will clearly be some instruments that are more worthwhile
+than others in obtaining precise second-stage estimates. For simplicity, we consider only the following demographics: gender, race, religion, political affiliation, whether the judge’s bachelor’s degree was obtained in-state, whether the
+bachelor’s degree is from a public university, whether the JD was obtained
+from a public university, and whether the judge was elevated from a district
+court, along with various interactions. In total, we have 138, 143, 147, and 138
+potential instruments for FHFA prices, non-metro prices, Case–Shiller, and
+GDP, respectively, that we select among using Lasso.20
+Table II contains estimation results for β. We report OLS estimates and
+results based on three different sets of instruments. The first set of instruments, used in the rows labeled 2SLS, are the instruments adopted in Chen
+and Yeh (2010).21 We consider this the baseline. The second set of instruments
+are those selected through Lasso using the refined data-driven penalty.22 The
+number of instruments selected by Lasso is reported in the row “S.” We use
+the post-Lasso 2SLS estimator and report these results in the rows labeled
+“post-Lasso.” The third set of instruments is simply the union of the first two
+instrument sets. Results for this set of instruments are in the rows labeled
+“post-Lasso+.” In this case, “S” is the total number of instruments used. In all
+cases, we use heteroscedasticity consistent standard error estimators. Finally,
+we report the value of the test statistic discussed in Section 5.1, comparing es20
+Given the sample sizes and numbers of variables, estimators using all the instruments without
+shrinkage are only defined in the GDP and FHFA data. For these outcomes, the Fuller (1977)
+point-estimate (standard error) is −00020 (3.123) for FHFA and 0.0120 (0.1758) for GDP.
+21
+Chen and Yeh (2010) used two variables motivated on intuitive grounds, whether a panel was
+assigned an appointee who did not report a religious affiliation and whether a panel was assigned
+an appointee who earned his or her first law degree from a public university, as instruments.
+22
+Lasso selects the number of panels with at least one appointee whose law degree is from
+a public university (Public) cubed for GDP and FHFA. In the Case–Shiller data, Lasso selects
+Public and Public squared. For non-metro prices, Lasso selects Public interacted with the number
+of panels with at least one member who reports belonging to a mainline protestant religion,
+Public interacted with the number of panels with at least one appointee whose BA was obtained
+in-state (In-State), In-State interacted with the number of panels with at least one non-white
+appointee, and the interaction of the number of panels with at least one Democrat appointee
+with the number of panels with at least one Jewish appointee.
+
+2406
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+TABLE II
+
+EFFECT OF FEDERAL APPELLATE TAKINGS LAW DECISIONS ON ECONOMIC OUTCOMESa
+Home Prices
+
+Sample Size
+
+GDP
+
+log(FHFA)
+
+log(Non-Metro)
+
+log(Case–Shiller)
+
+log(GDP)
+
+312
+
+110
+
+183
+
+312
+
+OLS
+s.e.
+
+00114
+00132
+
+00108
+00066
+
+00152
+00132
+
+00099
+00048
+
+2SLS
+s.e.
+FS-W
+
+00262
+00441
+280859
+
+00480
+00212
+829647
+
+00604
+00296
+677452
+
+00165
+00162
+280859
+
+Post-LASSO
+s.e.
+FS-W
+S
+
+00369
+00465
+445337
+1
+
+00357
+00132
+2431946
+4
+
+00631
+00249
+895950
+2
+
+00133
+00161
+445337
+1
+
+Post-LASSO+
+s.e.
+FS-W
+S
+
+00314
+00366
+733010
+3
+
+00348
+00127
+2609823
+6
+
+00628
+00245
+1053206
+3
+
+00144
+00131
+733010
+3
+
+Spec. Test
+
+−02064
+
+05753
+
+−00985
+
+01754
+
+a This table reports the estimated effect of an additional pro-plaintiff takings decision, a decision that goes against
+the government and leaves the property in the hands of the private owner, on various economic outcomes using twostage least squares (2SLS). The characteristics of randomly assigned judges serving on the panel that decides the case
+are used as instruments for the decision variable. All estimates include circuit effects, circuit-specific time trends, time
+effects, controls for the number of cases in each circuit-year, and controls for the demographics of judges available
+within each circuit-year. Each column corresponds to a different dependent variable. log(FHFA), log(Non-Metro), and
+log(Case–Shiller) are within-circuit averages of log-house-price-indexes, and log(GDP) is the within-circuit average
+of log of state-level GDP. OLS are ordinary least squares estimates. 2SLS is the 2SLS estimator with the original
+instruments in Chen and Yeh (2010). Post-LASSO provides 2SLS estimates obtained using instruments selected by
+LASSO with the refined data-dependent penalty choice. Post-LASSO+ uses the union of the instruments selected
+by Lasso and the instruments of Chen and Yeh (2010). Rows labeled s.e. provide the estimated standard errors of
+the associated estimator. All standard errors are computed with clustering at the circuit-year level. FS-W is the value
+of the first-stage Wald statistic using the selected instrument. S is the number of instruments used in obtaining the
+2SLS estimates. Hausman test is the value of a Hausman test statistic comparing the 2SLS estimate of the effect of
+takings law decisions using the Chen and Yeh (2010) instruments to the estimated effect using the LASSO-selected
+instruments.
+
+timates using the first and second sets of instruments in the row labeled “Spec.
+Test.”
+The most interesting results from the standpoint of the present paper are
+found by comparing first-stage Wald statistics and estimated standard errors
+across the instrument sets. The Lasso instruments are clearly much better firststage predictors as measured by the first-stage Wald statistic compared to the
+Chen and Yeh (2010) benchmark. Given the degrees of freedom, this increase
+obviously corresponds to Lasso-based IV providing a stronger first-stage relationship for FHFA prices, GDP, and the Case–Shiller prices. In the non-metro
+case, the p-value from the Wald test with the baseline instruments of Chen
+and Yeh (2010) is larger than that of the Lasso-selected instruments. This im-
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2407
+
+proved first-stage prediction is associated with the resulting 2SLS estimator
+having smaller estimated standard errors than the benchmark case for nonmetro prices, Case–Shiller prices, and GDP. The reduction in standard errors
+is sizable for both non-metro and Case–Shiller. The standard error estimate is
+somewhat larger in the FHFA case despite the improvement in first-stage prediction. Given that the post-Lasso first-stage produces a larger first-stage Wald
+statistic while choosing fewer instruments than the benchmark suggests that
+we might prefer the post-Lasso results in any case. We also see that the test
+statistics for testing that the difference between the estimate using the Chen
+and Yeh (2010) instruments and the post-Lasso estimate are uniformly small.
+Given the small differences between estimates using the first two sets of instruments, it is unsurprising that the results using the union of the two instrument
+sets are similar to those already discussed.
+The results are also economically interesting. The point-estimates for the
+effect of an additional pro-plaintiff decision, a decision in favor of individual
+property holders, are positive, suggesting that these decisions are associated
+with increases in property prices and GDP. These point-estimates are all small,
+and it is hard to draw any conclusion about the likely effect on GDP or the
+FHFA index given their estimated standard errors. On the other hand, confidence intervals for non-metro and Case–Shiller constructed at usual confidence levels exclude zero. Overall, the results do suggest that the causal effect
+of decisions reinforcing individual property rights is an increase in the value
+of holding property, at least in the short term. The results are also consistent
+with the developed asymptotic theory in that the 2SLS point-estimates based
+on the benchmark instruments are similar to the estimates based on the Lassoselected instruments, while Lasso produces a stronger first-stage relationship
+and the post-Lasso estimates are more precise in three of the four cases. The
+example suggests that there is the potential for Lasso to be fruitfully employed
+to choose instruments in economic applications.
+APPENDIX A: IMPLEMENTATION ALGORITHMS
+It is useful to organize the precise implementation details into the following
+algorithm. Feasible options for setting the penalty level and the loadings for
+j = 1     p, and l = 1     ke are
+(A.1)
+
+initial 
+γlj =
+refined 
+γlj =
+
+
+
+En fij2 (dil − d̄l )2 
+ 2
+vil 
+En fij2
+
+√
+λ = 2c n−1 1 − γ/(2ke p) 
+
+√
+λ = 2c n−1 1 − γ/(2ke p) 
+
+where c > 1 is a constant, γ ∈ (0 1), d̄l := En [dil ], and 
+vil is an estimate
+of vil . Let K ≥ 1 denote a bounded number of iterations. We used c = 11,
+γ = 01/ log(p ∨ n), and K = 15 in the simulations. In what follows, Lasso/postLasso estimator indicates that the practitioner can apply either the Lasso
+
+2408
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+or post-Lasso estimator. Our preferred approach uses post-Lasso at every
+stage.
+ALGORITHM A.1—Lasso/Post-Lasso Estimators: (a) For each l = 1     ke ,
+specify penalty loadings according to the initial option in (A.1). Use these
+l via equations
+penalty loadings in computing the Lasso/post-Lasso estimator β
+
+(2.4) or (2.8). Then compute residuals 
+vil = dli − fi βl , i = 1     n. (b) For
+each l = 1     ke , update the penalty loadings according to the refined option
+l . Then compute a new
+in (A.1) and update the Lasso/post-Lasso estimator β
+l ,
+set of residuals using the updated Lasso/post-Lasso coefficients 
+vil = dli − fi β
+i = 1     n. (c) Repeat the previous step K times.
+If Algorithm A.1 selected no instruments other than intercepts, or, more
+ ] is near-singular, proceed to Algorithm A.3; otherwise,
+il D
+generally, if En [D
+il
+we recommend the following algorithm.
+ALGORITHM A.2 —IV Inference Using Estimates of Optimal Instrument:
+il = f  β
+
+(a) Compute the estimates of the optimal instrument, D
+i l , for i =
+
+1     n and each l = 1     ke , where βl is computed by Algorithm A.1. Comi d  ]−1 En [D
+i yi ]. (b) Compute estimates of the
+pute the IV estimator 
+α = En [D
+i
+−1
+−1
+ := En [2 D
+Q
+ Ω
+ , where Ω
+i D
+ ] for i = yi − d 
+asymptotic variance matrix Q
+i
+i
+i α,
+
+
+
+
+and Q := En [Di Di ]. (c) Proceed to perform conventional inference using the
+normality result (2.10).
+The following algorithm is only invoked if the weak-instruments problem
+has been diagnosed, for example, using the methods of Stock and Yogo (2005).
+In the algorithm below, A1 is the parameter space, and G1 ⊂ A1 is a grid of
+potential values √
+for α1 . Choose the confidence level 1 − γ of the interval, and
+set Λ(1 − γ) = c n−1 (1 − γ/2p).
+ALGORITHM A.3—IV Inference Robust to Weak Identification: (a) Set
+C = ∅. (b) For each a ∈ G1 , compute Λa as in (4.5). If Λa ≤ Λ(1 − γ), add a
+to C . (c) Report C .
+APPENDIX B: TOOLS
+The following useful lemma is a consequence of moderate deviations theorems for self-normalized sums in Jing, Shao, and Wang (2003) and de la Peña,
+Lai, and Shao (2009).
+We use the following result—Theorem 7.4 in de la Peña, Lai, and
+nShao
+(2009). Let X1      Xn be independent, zero-mean variables, and Sn = i=1 Xi ,
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2409
+
+n
+n
+n
+Vn2 = i=1 Xi2  For 0 < μ ≤ 1, set Bn2 = i=1 EXi2  Lnμ = i=1 E|Xi |2+μ  dnμ =
+1/(2+μ)
+ Then uniformly in 0 ≤ x ≤ dnμ ,
+Bn /Lnμ
+2+μ
+
+P(Sn /Vn ≥ x)
+1+x
+
+= 1 + O(1)
+¯
+dnμ
+(x)
+
+2+μ
+1+x
+P(Sn /Vn ≤ −x)
+= 1 + O(1)
+
+(−x)
+dnμ
+where the terms O(1) are bounded in absolute value by a universal constant
+¯ := 1 − , and  is the cumulative distribution function of a standard
+A, 
+Gaussian random variable.
+LEMMA 5—Moderate Deviation Inequality for Maximum of a Vector: Suppose that for each j
+n
+
+Uij
+
+Sj = 
+
+
+
+
+i=1
+
+
+
+n
+
+Uij2
+i=1
+
+where Uij are independent variables across i with mean zero. We have that
+
+A
+P max |Sj | >  (1 − γ/2p) ≤ γ 1 + 3 
+1≤j≤p
+n
+
+
+−1
+
+
+
+where A is an absolute constant, provided that, for n > 0,
+n1/6
+min M[Uj ] − 1
+n 1≤j≤p
+1/2
+
+0 ≤ −1 1 − γ/(2p) ≤
+
+M[Uj ] := 
+
+1
+n
+
+1
+n
+
+n
+
+EUij2
+i=1
+
+1/3 
+
+n
+
+E|U |
+3
+ij
+
+i=1
+
+PROOF: Step 1. We first note the following simple consequence of the result
+of Theorem 7.4 in de la Peña, Lai, and Shao (2009). Let X1n      Xnn be the
+
+2410
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+triangular array of i.n.i.d., zero-mean random variables. Suppose that
+ n
+1/2
+1
+2
+EXin
+n i=1
+1/6
+n Mn /n ≥ 1 Mn := 
+1/3 
+n
+1
+3
+E|Xin |
+n i=1
+Then uniformly
+on 0 ≤ x ≤ n1/6 Mn /n − 1, the quantities Snn =
+n
+2
+2
+= i=1 Xin
+obey
+Vnn
+
+
+ P(|Snn /Vnn | ≥ x)
+ A
+
+− 1 ≤ 3 
+
+¯
+n
+2(x)
+
+n
+i=1
+
+Xin and
+
+This corollary follows by the application of the quoted theorem to the case with
+μ = 1. The calculated error bound follows from the triangular inequalities and
+conditions on n and Mn .
+Step 2. It follows that
+
+P max |Sj | > −1 (1 − γ/2p)
+1≤j≤p
+
+≤(1) p max P |Sj | > −1 (1 − γ/2p)
+1≤j≤p
+
+=(2) pP |Sjn | > −1 (1 − γ/2p)
+
+
+¯ −1 (1 − γ/2p) 1 + A
+≤(3) p2
+3n
+
+
+A
+≤ 2pγ/(2p) 1 + 3
+n
+
+
+A
+≤γ 1+ 3 
+n
+1/6
+
+on the set 0 ≤ −1 (1 − γ/(2p)) ≤ nn Mjn − 1 where inequality (1) follows
+by the union bound, equality (2) is the maximum taken over finite set, so the
+maximum is attained at some jn ∈ {1     p}, and the last inequality follows by
+Q.E.D.
+the application of Step 1, by setting Xin = Uijn .
+APPENDIX C: PROOF OF THEOREM 1
+The proof of Theorem 1 has four steps. The most important steps are
+Steps 1–3. One half of Step 1 for bounding the  · 2n -rate follows the strategy
+of Bickel, Ritov, and Tsybakov (2009), but accommodates data-driven penalty
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2411
+
+loadings. The other half of Step 1 for bounding the  · 1 -rate is new for the
+nonparametric case. Step 2 innovatively uses the moderate deviation theory
+for self-normalized sums, which allows us to obtain sharp results for nonGaussian and heteroscedastic errors as well as handle data-driven penalty loadings. Step 3 relates the ideal penalty loadings and the feasible penalty loadings.
+Step 4 puts the results together to reach the conclusions.
+Step 1. For C > 0 and each l = 1     ke , consider the weighted restricted
+eigenvalue
+√
+sfi δ2n
+κ =
+min
+
+0 δT 1
+0 δ c 1 ≤CΥ
+0 δT 1 δ2 =0 Υ
+δ∈Rp :Υ
+l T
+l
+l
+C
+
+l
+
+l
+
+l
+
+l
+
+This quantity controls the modulus of continuity between the prediction norm
+fi δ2n and the 1 -norm δ1 within a restricted region that depends on
+0 ∞ = b for
+0 ≤ max1≤l≤ke Υ
+l = 1     ke . Note that if a = min1≤l≤ke min1≤j≤p Υ
+lj
+l
+0 δT c 1 ≤ CΥ
+0 δT 1 } ⊆ {δ ∈ Rp : aδT c 1 ≤
+every C > 0, because {δ ∈ Rp : Υ
+l
+l
+l
+l
+l
+0 δT 1 ≤ bδT 1 , we have
+bCδTl 1 } and Υ
+l
+l
+l
+
+
+min κlC ≥ (1/b)κ(bC/a) En fi fi 
+
+1≤l≤ke
+
+where the latter is the restricted eigenvalue defined in (3.1). If C = c0 = (uc +
+1)/(c − 1), we have min1≤l≤ke κlc0 ≥ (1/b)κC̄ (En [fi fi ]). By Condition RF and
+by Step 3 of Appendix C below, we have a bounded away from zero and b
+bounded from above with probability approaching 1 as n increases.
+The main result of this step is the following lemma.
+l satisfies (3.2) with
+LEMMA 6: Under Condition AS, if λ/n ≥ cSl ∞ , and Υ
+u ≥ 1 ≥  > 1/c, then
+ √
+
+ 
+
+λ s
+1
+f (β
+l − βl 0 ) ≤ u +
++ 2cs 
+i
+2n
+c nκlc0
+√
+√ 
+
+
+ 0
+λ s
+s
+3c0 n 2
+
+
+
+Υl (βl − βl 0 ) 1 ≤ 3c0 l
+c
+u + [1/c]
++ 2cs +
+l
+nκc0
+λ s
+κ2c0
+where c0 = (uc + 1)/(c − 1).
+l − βl0 . By optimality of β
+l , we have
+PROOF: Let δl := β
+(C.1)
+
+l (βl0 ) ≤ λ Υ
+l β
+l βl0 1 − Υ
+l (β
+l ) − Q
+l 1 
+Q
+n
+
+2412
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+l , and using that Sl = 2(Υ
+0 )−1 En [vil fi ], we
+Expanding the quadratic function Q
+l
+have
+  
+
+
+
+
+
+
+l (βl 0 ) − f  δl 2  = 2En vil f  δl + 2En ail f  δl 
+Q
+l (β
+l ) − Q
+(C.2)
+i
+i
+i
+2n
+ 0 
+
+
+≤ Sl ∞ 
+Υl δl 1 + 2cs fi δl 2n 
+So combining (C.1) and (C.2) with λ/n ≥ cSl ∞ and the conditions imposed
+l in the statement of the theorem,
+on Υ
+(C.3)
+
+ 0 
+  2
+l δlT c 1 + Sl ∞ 
+f δl  ≤ λ Υ
+l δlT 1 − Υ
+Υl δl 1
+i
+l
+2n
+l
+n
+
+
++ 2cs fi δl 2n
+
+
+
+
+
+
+1 λ
+1 λ
+0
+
+
+
+Υl δlTl 1 −  −
+Υl0 δlTlc 1
+≤ u+
+c n
+c n
+  
+
+
++ 2cs fi δl 2n 
+
+To show the first statement of the lemma, we can assume fi δl 2n ≥ 2cs ; otherwise we are done. This condition together with relation (C.3) implies that, for
+0 δlT c 1 ≤ c0 Υ
+0 δl T 1  Therefore, by definic0 = (uc + 1)/(c − 1), we have Υ
+l
+l
+l
+l
+√
+0 δlT 1 ≤ sf  δl 2n /κl  Thus, relation (C.3) implies
+tion of κlc0 , we have Υ
+l
+i
+c
+l
+0
+√
+λ s
+
+
+fi δl 22n ≤ (u + 1c ) nκ
+l fi δl 2n + 2cs fi δl 2n and the result follows.
+c0
+
+To establish the second statement of the lemma, we consider two cases. First,
+0 δlT 1  In this case, by definition of κl , we have
+0 δlT c 1 ≤ 2c0 Υ
+assume Υ
+2c0
+l
+l
+l
+l
+ 0 
+
+ 0 
+√ 
+
+Υl δl 1 ≤ (1 + 2c0 )
+Υl δlT 1 ≤ (1 + 2c0 ) sfi δl 2n /κl2c0 
+and the result follows by applying the first bound to fi δl 2n . On the other
+hand, consider the case that
+
+ 0 
+ 0
+
+Υl δlTl 1 
+(C.4)
+Υl δl Tlc 1 > 2c0 
+which would already imply fi δl 2n ≤ 2cs by (C.3). Moreover,
+
+
+
+c n
+f  δl  2cs − f  δl 
+i
+i
+2n
+2n
+c − 1 λ
+ 0 
+c n 2
+c
+Υl δlTl 1 +
+≤(2) c0 
+c − 1 λ s
+
+1 0
+c n 2
+Υl δlTlc 1 +
+c
+≤(3) 
+2
+c − 1 λ s
+
+ 0
+
+ 0 
+
+Υl δl Tlc 1 ≤(1) c0 
+Υl δlTl 1 +
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2413
+
+where (1) holds by (C.3), (2) holds since fi δl 2n (2cs − fi δl 2n ) ≤
+maxx≥0 x(2cs − x) ≤ cs2 , and (3) follows from (C.4). Thus,
+
+
+
+
+
+ 0 
+2c n 2
+1 
+1
+0
+
+
+
+
+c
+Υl δlTlc 1 ≤ 1 +
+Υl δl 1 ≤ 1 +
+2c0
+2c0 c − 1 λ s
+and the result follows from noting that c/(c − 1) ≤ c0 /u ≤ c0 and 1 + 1/2c0 ≤
+3/2.
+Q.E.D.
+Step 2. In this step, we prove a lemma about the quantiles of the maximum
+0 )−1 fi vil ] and use it to pin down the level of the
+2En [(Υ
+of the scores Sl = √
+l
+−1
+penalty. For λ = c2 n (1 − γ/(2ke p)) we have that as γ → 0 and n → ∞,
+P(c max1≤l≤ke nSl ∞ > λ) = o(1) provided that, for some bn → ∞,
+2−1 1 − γ/(2ke p) ≤
+
+n1/6
+min Mjl 
+bn 1≤j≤p1≤l≤ke
+
+Mjl :=
+
+Ē[fij2 vil2 ]1/2
+Ē[|fij |3 |vil |3 ]1/3
+
+
+
+Note that the last condition is satisfied under our conditions for large n for
+some bn → ∞, since ke is fixed, log(1/γ)  log(p ∨ n), Kn2 log3 (p ∨ n) = o(n),
+and min1≤j≤p1≤l≤ke Mjl  1/Kn1/3 . This result follows from the bounds on mod¯
+erate deviations of a maximum of a vector provided in Lemma 5, by (t)
+≤
+φ(t)/t, maxj≤pl≤ke 1/Mjl  Kn1/3 , and Kn2/3 log(p ∨ n) = o(n1/3 ) holding by Condition RF.
+Step 3. The main result of this step is the following: Define the expected
+“ideal” penalty loadings Υl0 := diag( Ē[fi12 vil2 ]     Ē[fip2 vil2 ]) where the entries of Υl0 are bounded away from zero and from above uniformly in n by
+Condition RF. Then the empirical “ideal” loadings converge to the expected
+0 −Υ 0 ∞ →P 0 This is assumed in Condition RF.
+“ideal” loadings: max1≤l≤ke Υ
+l
+l
+Step 4. Combining the results
+of all the steps above, given that λ =
+
+√ −1
+2c n (1 − γ/(2pke ))  c n log(pke /γ), ke fixed, and asymptotic valid
+l , and using the bound cs P √s/n from Condition AS, we
+penalty loadings Υ
+obtain the conclusion that
+
+
+
+ 
+1
+s log(ke p/γ)
+s
+
+f (β
+
++
+
+l − βl0 ) 2n P
+i
+κlc0
+n
+n
+√
+which gives, by the triangular inequality and by Dil − fi βl0 2n ≤ cs P s/n
+holding by Condition AS,
+
+1
+s log(ke p/γ)
+il − Dil 2n P
+
+D
+l
+κc 0
+n
+The first result follows since κC̄ P κlc0 by Step 1.
+
+2414
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+To derive the 1 -rate, we apply the second result in Lemma 6 as follows:
+ 0 −1   0
+
+ 
+
+l − βl0 1 ≤  Υ
+l − βl 0 )
+β
+Υ
+(
+β
+l
+l
+∞
+1
+ 
+√  
+ 0 −1 
+s 1 s log(ke p/γ)
+s
+
+
+
++
+ P Υl
+l
+∞
+l
+n
+n
+κ2c0 κc0
+
+s
+1
++
+√
+log(p/γ) n
+
+1
+s2 log(ke p/γ)
+P l 2
+
+n
+(κ2c0 )
+That yields the result since κ2C̄ P κl2c0 by Step 1.
+
+Q.E.D.
+
+APPENDIX D: PROOF OF THEOREM 2
+The proof proceeds in three steps. The general strategy of Step 1 follows
+Belloni and Chernozhukov (2011a, 2012), but a major difference is the use of
+moderate deviation theory for self-normalized sums, which allows us to obtain the results for non-Gaussian and heteroscedastic errors as well as handle
+data-driven penalty loadings. The sparsity proofs are motivated by Belloni and
+Chernozhukov (2012) but adjusted for the data-driven penalty loadings that
+contain self-normalizing factors.
+Step 1. Here we derive a general performance bound for post-Lasso, that
+actually contains more information than the statement of the theorem. This
+lemma will be invoked in Step 3 below.
+Let F = [f1 ;    ; fn ] denote an n by p matrix and, for a set of indices S ⊂
+{1     p}, we define PS = F[S](F[S] F[S])−1 F[S] as the projection matrix on
+the columns associated with the indices in S.
+LEMMA 7—Performance of the Post-Lasso: Under Conditions AS and RF,
+l denote the support selected by β
+l ⊆ 
+l = β
+lL , T
+lPL
+l = |
+let T
+Il , m
+Il \ Tl |, and let β
+
+be the post-Lasso estimator based on Il , l = 1     ke . Then we have
+
+ 
+
+
+l log(pke )
+m
+s ke ∧ log(ske )
+ 
+
++ max 
+max Dil − fi βlPL 2n P
+l≤ke
+l≤ke
+n
+φmin (s)
+nφmin (
+ml )
+
+√ 
++ (Dl − PIl Dl )/ n2 
+√
+0 ∞ + Υ
+l − Υ
+0 ∞ ) m
+
+
+l + s
+(
+Υ
+l
+l
+lPL − βl0 ) ≤ max
+
+max 
+Υl (β
+1
+1≤l≤ke
+1≤l≤ke
+φmin (
+ml + s)
+ 
+
+lPL − βl0 ) 
+× fi (β
+2n
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2415
+
+l satisfies (3.2) with u ≥ 1 ≥  > 1/c in the
+If, in addition, λ/n ≥ cSl ∞ , and Υ
+first stage for Lasso for every l = 1     ke , then we have
+
+ √
+
+√ 
+1
+λ s
++ 3cs 
+max(Dl − PIl Dl )/ n2 ≤ max u +
+l≤ke
+l≤ke
+c nκlc0
+lPL = (I − PI )Dl − PI vl , where I is the identity
+PROOF: We have that Dl −F β
+l
+l
+operator. Therefore, for every l = 1     ke , we have
+
+
+lPL 2 ≤ (I − PI )Dl  + PT vl 2 + PI \T vl 2 
+Dl − F β
+(D.1)
+l
+l
+l l
+2
+
+√
+l = |
+Since F[
+Il \ Tl ]/ n(F[
+Il \ Tl ] F[
+Il \ Tl ]/n)−1  ≤ 1/φmin (
+ml ), m
+Il \ Tl |,
+the last term in (D.1) satisfies
+
+
+√ 
+PIl \Tl vl 2 ≤ 1/φmin (
+ml )F[
+Il \ Tl ] vl / n2
+
+
+√ 
+l /φmin (
+≤ m
+ml )F  vl / n∞ 
+Under Condition RF, by Lemma 5 we have
+
+
+√ 
+max F  vl / n∞ P log(pke ) max
+
+l=1ke
+
+l≤ke j≤p
+
+Note that Condition RF also implies maxl≤ke j≤p
+
+
+
+En fij2 vil2 
+En [fij2 vil2 ] P 1 since
+
+
+
+
+max (En − Ē) fij2 vil2  →P 0
+
+l≤ke j≤p
+
+and
+
+
+
+
+max Ē fij2 vil2 ≤ max Ē fij2 d̃il2  1
+
+l≤ke j≤p
+
+l≤ke j≤p
+
+We bound the second term in (D.1) in two ways. First, proceeding as above,
+we have
+
+
+
+
+max PTl vl 2 P log(ke s) s/φmin (s) max En fij2 vil2 
+l=1ke
+
+l≤ke j≤p
+
+
+n
+ n
+Second, since E[F[Tl ] vl 22 ] = E[ j∈Tl ( i=1 fij vil )2 ] = j∈Tl i=1 E[fij2 vil2 ],
+we have
+
+
+
+max PTl vl 2 P ske /φmin (s) max Ē fij2 vil2 
+l=1ke
+
+These relations yield the first result.
+
+l≤ke j≤p
+
+2416
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+lPL − βl0 , the statement regarding the 1 -norm of the theorem
+Letting δl = β
+follows from
+l δl 1 ≤ Υ
+l ∞ δl 1
+Υ
+
+l ∞ δl 0 δl 2
+≤ Υ
+
+
+
+l ∞ δl 0 f  δl  / φmin δl 0 
+≤ Υ
+i
+2n
+l ∞ ≤ Υ
+0 ∞ + Υ
+l − Υ
+0 ∞ .
+l + s and Υ
+and noting that δl 0 ≤ m
+l
+l
+The last statement follows from noting that the Lasso solution provides an
+l ⊆ 
+upper bound to the approximation of the best model based on 
+Il , since T
+Il ,
+and the application of Lemma 6.
+Q.E.D.
+COMMENT D.1—Comparison Between Lasso and Post-Lasso Performance:
+Under mild conditions on the empirical Gram matrix and on the number of
+additional variables, Lemma 10 below derives sparsity bounds on the model
+selected by Lasso, which establishes that
+l \ Tl | = m
+l P s
+|T
+Under this condition, we have that the rate of post-Lasso is no worse than
+Lasso’s rate. This occurs despite the fact that Lasso may, in general, fail to
+l . However, if the
+correctly select the oracle model Tl as a subset, that is, Tl ⊆ T
+oracle model has well-separated coefficients and the approximation error does
+not dominate the estimation error, then the post-Lasso rate improves upon
+l = oP (s) and
+Lasso’s rate. Specifically, this occurs if Condition AS holds, m
+l w.p. → 1, or if T = T
+ w.p. → 1 as under the conditions of Wainwright
+Tl ⊆ T
+(2009). In such
+ cases, the rates found for Lasso are sharp, and they cannot be
+faster than s log p/n. Thus, the improvement in the rate of convergence of
+post-Lasso over Lasso is strict in these cases. Note that, as shown in the proof
+l but will increase the
+of Lemma 8, a higher penalty level will tend to reduce m
+l . On the other hand, a lower penalty level will decrease the
+likelihood of Tl ⊆ T
+l (bias) but will tend to increase m
+l (variance). The impact
+likelihood of Tl ⊆ T
+in the estimation of this trade-off is captured by the last term of the bound in
+Lemma 7.
+Step 2. In this step, we provide a sparsity bound for Lasso, which is important
+for establishing various rate results and fundamental to the analysis of postLasso. It relies on the following lemmas.
+l denote the support seLEMMA 8—Empirical Pre-Sparsity for Lasso: Let T
+l \ Tl |, and assume that λ/n ≥ cSl ∞ and
+ l = |T
+lected by the Lasso estimator, m
+
+2417
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+u ≥ 1 ≥  > 1/c as in Lemma 6. Then, for c0 = (uc + 1)/(c − 1), we have
+
+ √
+
+
+ 0 −1 
+2 s 6ncs
+
+
+
+l ≤ φmax (
+
+m
+ml ) Υl
+c
++
+∞ 0
+κlc0
+λ
+PROOF: We have from the optimality conditions that the Lasso estimator
+lL satisfies
+l = β
+β
+ −1
+
+ fij yi − f  β
+l \ Tl 
+ = sign(β
+lj )λ/n for each j ∈ T
+2En Υ
+lj
+i l
+−1 Υ
+0 ∞ ≤ 1/, we have, for R = (al1      aln ) and
+Therefore, noting that Υ
+l
+l
+F denoting the n × p matrix with rows fi , i = 1     n,
+
+
+ −1 
+ F (Y − F β
+l )  
+ l λ = 2 Υ
+m
+l
+Tl \Tl 2
+
+
+ −1 
+ −1 
+ F (Y − R − Fβl0 )   + 2 Υ
+ FR  
+≤ 2 Υ
+Tl \Tl
+
+l
+
+l
+
+2
+
+Tl \Tl
+
+
+ −1 
+ F F(βl0 − β
+l )  
++ 2 Υ
+l
+Tl \Tl 2
+
+
+ −1 0 
+ −1 
+  Sl ∞ + 2n φmax (
+l n
+≤ m
+Υl Υ
+ml )
+Υl ∞ cs
+l ∞
+
+ −1   
+
+l − βl0 )
++ 2n φmax (
+ml )
+Υl ∞ fi (β
+2n
+≤
+
+0 )−1 ∞
+
+
+(Υ
+l
+l (1/)nSl ∞ + 2n φmax (
+cs
+m
+ml )
+
+0 )−1 ∞ 
+
+
+(Υ
+l
+f  (β
+l − βl0 ) 
++ 2n φmax (
+ml )
+i
+2n
+
+
+where we used that
+ 
+ F F(βl0 − β
+l )
+
+l \Tl
+T
+
+
+ =
+2
+≤
+≤
+
+sup
+δ0 ≤
+ml δ2 ≤1
+
+sup
+δ0 ≤
+ml δ2 ≤1
+
+sup
+δ0 ≤
+ml δ2 ≤1
+
+  
+
+δ F F(βl0 − β
+l )
+   
+
+δ F  F(βl0 − β
+l )
+2
+2
+
+
+
+δ F  FδF(βl0 − β
+l )
+
+2
+
+
+
+
+l ) 
+≤ n φmax (
+ml )fi (βl0 − β
+2n
+and similarly,
+ 
+ FR
+
+2
+
+l \Tl
+T
+
+
+ =
+2
+=
+
+sup
+δ0 ≤
+ml δ2 ≤1
+
+sup
+δ0 ≤
+ml δ2 ≤1
+
+   
+δ F R ≤
+
+sup
+δ0 ≤
+ml δ2 ≤1
+
+  
+δ F  R2
+2
+
+
+
+
+δ F  FδR2 ≤ n φmax (
+ml )cs 
+
+2418
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+√
+
+l − βl0 )2n ≤ (u + 1 ) λ l s + 2cs , we
+Since λ/c ≥ nSl ∞ , and by Lemma 6, fi (β
+c nκ
+c0
+
+have
+√
+
+0 )−1 ∞ 
+
+1
+s 3ncs
+(Υ
+l
+u+
+2 φmax (
+ml )
++
+
+
+c κlc0
+λ
+
+
+l ≤
+
+m
+1
+1−
+c
+
+The result follows by noting that (u + [1/c])/(1 − 1/[c]) = c0  by definition
+Q.E.D.
+of c0 .
+LEMMA 9 —Sublinearity of Maximal Sparse Eigenvalues: Let M be a
+semidefinite positive matrix. For any integer k ≥ 0 and constant  ≥ 1, we have
+φmax (k)(M) ≤ φmax (k)(M)
+PROOF
+: Denote φM (k) = φ
+max (k)(M), and let ᾱ achieve φM (k). More
+
+
+over let i=1 αi = ᾱ such that i=1 αi 0 = ᾱ0 . We can choose αi ’s such that
+αi 0 ≤ k since k ≥ k. Since M is positive semidefinite, for any i j we have
+αi Mαi + αj Mαj ≥ 2|αi Mαj | Therefore,
+
+
+φM (k) = ᾱ M ᾱ =
+
+
+
+αi Mαi +
+i=1
+
+
+
+≤
+
+
+
+αi Mαj
+i=1 j=i
+
+
+αi Mαi +  − 1 αi Mαi ≤ 
+
+i=1
+
+
+
+αi 2 φM αi 0
+i=1
+
+≤  max φM αi 0 ≤ φM (k)
+i=1
+
+where we used that
+
+
+i=1
+
+αi 22 = 1.
+
+Q.E.D.
+
+LEMMA 10 —Sparsity Bound for Lasso Under Data-Driven Penalty: Conl \ Tl |.
+l = β
+lL with λ/n ≥ cSl ∞ , and let m
+ l = |T
+sider the Lasso estimator β
+Consider the set
+
+
+
+ 0 −1 2 2c0 6c0 ncs 2
+
+
+
+
+M = m ∈ N : m > s2φmax (m) Υl
++ √
+∞
+κlc0
+λ s
+Then,
+
+0
+l ≤ s min φmax (m ∧ n)  Υ
+m
+l
+m∈M
+
+
+
+
+−1 2
+∞
+
+
+
+2c0 6c0 ncs
++ √
+κlc0
+λ s
+
+2
+
+
+2419
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+COMMENT D.2 —Sparsity Bound: Provided that the regularization event
+l inλ/n ≥ cSl ∞ occurs, Lemma 10 bounds the number of components m
+correctly selected by Lasso. Essentially, the bound depends on s and on the
+ratio between the maximum sparse eigenvalues and the restricted eigenvalues.
+Thus, the empirical Gram matrix can impact the sparsity bound substantially.
+However, under Condition SE, the ratio mentioned is bounded from above
+uniformly in n. As expected, the bound improves and the regularization event
+is more likely to occur if a larger value of the penalty parameter λ is used.
+PROOF OF LEMMA 10: Rewriting the conclusion in Lemma 8, we have
+(D.2)
+
+ 0
+
+l ≤ sφmax (
+m
+ml ) Υ
+l
+
+
+
+
+
+
+−1 2
+∞
+
+2c0 6c0 ncs
++ √
+κlc0
+λ s
+
+2
+
+
+l ≤ n by optimality conditions. Consider any M ∈ M, and suppose
+Note that m
+l > M. Therefore, by Lemma 9 on sublinearity of sparse eigenvalues,
+m
+!
+ 0
+l
+m
+
+l ≤ s
+m
+φmax (M) Υ
+l
+M
+
+
+
+
+
+
+−1 2
+∞
+
+2c0 6c0 ncs
++ √
+κlc0
+λ s
+
+2
+
+
+Thus, since k ≤ 2k for any k ≥ 1, we have
+ 0
+
+M ≤ s2φmax (M) Υ
+l
+
+
+
+
+−1 2
+
+
+
+∞
+
+2c0 6c0 ncs
++ √
+κlc0
+λ s
+
+2
+
+
+l ≤ M.
+which violates the condition that M ∈ M. Therefore, we have m
+l ≤ (M ∧ n), we obtain
+In turn, applying (D.2) once more with m
+ 0
+
+l ≤ sφmax (M ∧ n) Υ
+m
+l
+
+
+
+
+−1 2
+∞
+
+
+
+2c0 6c0 ncs
++ √
+κlc0
+λ s
+
+2
+
+
+The result follows by minimizing the bound over M ∈ M.
+
+Q.E.D.
+
+Step 3. Next we combine the previous steps to establish Theorem 2. As in
+0 − Υ 0 ∞ →P 0
+Step 3 of Appendix C, recall that max1≤l≤ke Υ
+l
+l
+Let k̄ be the integer that achieves the minimum in the definition of μ2 . Since
+√
+√
+cs P s/n leads to ncs /[λ s] →P 0, we have that k̄ ∈ M with high probability
+as n → ∞. Moreover, as long as λ/n ≥ c max1≤l≤ke Sl ∞ ,  →P 1, and c > 1, by
+Lemma 10 we have, for every l = 1     ke , that
+(D.3)
+
+l P sμ2 φmin (k̄ + s)/κ2C̄ P sμ2 φmin (
+ml + s)/κ2C̄ 
+m
+
+l .
+since k̄ ∈ M implies k̄ ≥ m
+
+2420
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+√
+By the choice of λ = 2c n−1 (1 − γ/(2pke )) in (2.7), since γ → 0, the event
+λ/n ≥ c max1≤l≤ke Sl ∞ holds with probability approaching 1. Therefore, by
+the first and last results in Lemma 7, we have
+
+√
+
+
+μ s log p
+λ s
+ 
+
++ cs + max
+
+max Dil − fi βlPL 2n P
+1≤l≤ke
+1≤l≤ke nκl
+κC̄
+n
+c0
+Because max1≤l≤ke 1/κlc0 ≤ max1≤l≤ke Γl0 ∞ /κC̄ P 1/κC̄ by Step 1 of Theorem 1, we have
+
+
+
+μ s log(ke p/γ)
+ 
+
+(D.4)
+
+max Dil − fi βlPL 2n P
+1≤l≤ke
+κC̄
+n
+√
+since ke  p and cs P s/n. That establishes the first inequality of Theorem 2.
+lPL − βl0 0 ≤ m
+l + s,
+To establish the second inequality of Theorem 2, since β
+we have
+lPL − βl0 0 β
+lPL − βl0 2
+β
+
+lPL − βl0 1 ≤
+β
+≤
+
+
+
+lPL − βl0 )2n
+fi (β
+l + s 
+m
+
+φmin (
+ml + s)
+
+The sparsity bound (D.3), the prediction norm bound (D.4), and the relation
+lPL − βl0 )2n yield the result with the relation
+lPL 2n ≤ cs + fi (β
+Dil − fi β
+above.
+Q.E.D.
+LEMMA 11—Asymptotic Validity of the Data-Driven Penalty Loadings: Under the conditions of Theorem 1 and Condition RF or the conditions of Theorem 2
+ constructed by the K-step Algorithm A.1
+and Condition SE, the penalty loadings Υ
+are asymptotically valid. In particular, for K ≥ 2, we have u = 1.
+For proof of Lemma 11, see the Supplemental Material (Belloni et al.
+(2012)).
+APPENDIX E: PROOFS OF LEMMAS 1–4
+For proof of Lemma 1, see Belloni and Chernozhukov (2011a, Supplement).
+For proof of Lemma 2, see Belloni and Chernozhukov (2012). For proofs of
+Lemmas 3 and 4, see the Supplemental Material (Belloni et al. (2012)).
+APPENDIX F: PROOFS OF THEOREMS 3–7
+F.1. Proofs of Theorems 3 and 4
+The proofs are original and they rely on the consistency of the sparsitybased estimators with respect to both the L2 (Pn ) norm  · 2n and the 1 -norm
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2421
+
+ · 1 . These proofs also exploit the use of moderate deviation theory for selfnormalized sums.
+Step 0. Using data-driven penalty satisfying (2.7) and (3.2), we have, by Theorem 1 and Condition RE that the Lasso estimator, and by Theorem 2 and
+Condition SE that the post-Lasso estimator, obey
+
+s log(p ∨ n)
+
+(F.1)
+→ 0
+max Dil − Dil 2n P
+1≤l≤ke
+n
+
+2
+2
+
+l − βl0 1 P s log (p ∨ n) → 0
+(F.2)
+log pβ
+n
+To prove Theorem 3, we need also the condition
+il − Dil 2 n2/q P s log(p ∨ n) n2/q → 0
+max D
+2n
+n
+
+1≤l≤ke
+
+with the last statement holding by Condition SM. Note that Theorem 4 assumes (F.1) and (F.2) as high-level conditions.
+Step 1. We have that, by E[ i |Di ] = 0,
+
+ √
+√
+i d  −1 nEn [D
+i i ]
+n(
+α − α0 ) = E n D
+i
+ 
+
+i d  −1 Gn [Di i ] + oP (1)
+= En D
+i
+ 
+−1
+
+= Ē Di di + oP (1)
+Gn [Di i ] + oP (1) 
+where, by Steps 2 and 3 below,
+
+
+
+
+i d  = Ē Di d  + oP (1)
+(F.3)
+En D
+i
+i
+√
+i i ] = Gn [Di i ] + oP (1)
+(F.4)
+nEn [D
+where Ē[Di di ] = Ē[Di Di ] = Q is bounded away from zero and bounded from
+above in the matrix sense, uniformly in n. Moreover, Var(Gn [Di i ]) = Ω,
+where Ω = σ 2 Ē[Di Di ] under homoscedasticity and Ω = Ē[ 2i Di Di ] under heteroscedasticity. In either case, we have that Ω is bounded away from zero and
+from above in the matrix sense, uniformly in n, by the assumptions in the theorems. (Note that matrices Ω and Q are implicitly indexed by n, but we omit
+the index to simplify notations.) Therefore,
+√
+n(
+α − α0 ) = Q−1 Gn [Di i ] + oP (1)
+√
+α − α0 ) = Gn [zin ] + oP (1) where zin =
+and Zn = (Q−1 ΩQ−1 )−1/2 n(
+(Q−1 ΩQ−1 )−1/2 Q−1 Di i are i.n.i.d. with mean zero and variance I. We have
+
+2422
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+2+δ
+that, for some small enough δ > 0, Ēzin 2+δ
+ Ē[Di 2+δ
+]  1 by Con2
+2 | i|
+dition SM. This condition verifies the Lyapunov condition, and the application
+of the Lyapunov CLT for i.n.i.d. triangular arrays and the Cramer–Wold device
+implies that Zn →d N(0 I).
+Step 2. To show (F.3), note that
+ 
+
+
+
+En (D
+i − Di )d   ≤ En D
+i − Di 2 di 2
+i
+
+
+ 
+
+i − Di 22 En di 22
+En D
+ "
+#
+
+ke
+
+
+
+il − Dil |2 En di 22
+|D
+= En
+≤
+
+l=1
+
+≤
+
+
+
+
+
+il − Dil 2n En di 22
+ke max D
+1≤l≤ke
+
+il − Dil 2n = oP (1)
+P max D
+1≤l≤ke
+
+
+where En [di 22 ] P 1 by Ēdi 22  1 and Chebyshev inequality, and the last
+assertion holds by Step 0.
+Moreover, En [Di Di ] − Ē[Di Di ] →P 0 by von Bahr–Essen inequality (von
+q
+Bahr and Esseen (1965)), using that Ē[Di 2 ] for a fixed q > 2 is bounded
+uniformly in n by Condition SM.
+Step 3. To show (F.4), let ail := al (xi ), note that E[fij i ] = 0, E[ i |Dil ] = 0,
+and E[ il |ail ] = 0, and
+√
+
+
+il − Dil ) i 
+max  nEn (D
+1≤l≤ke
+
+√
+
+
+
+l − βl0 ) i − Gn {ail i }
+= max  nEn fi (β
+1≤l≤ke
+
+
+ p
+
+
+
+
+ 
+= max 
+Gn {fij i } (βlj − βl0j ) − Gn {ail i }
+1≤l≤ke 
+
+j=1
+
+
+ Gn [fij i ] 
+
+
+ max En fij2 2i max β
+l − βl0 1
+≤ max 
+
+1≤j≤p
+1≤l≤ke
+En [fij2 2i ] 1≤j≤p
+
+
++ max Gn {ail i }
+1≤l≤ke
+
+2 1/2
+√ Next we note that, for each l 2=1/21     ke , |Gn {ail i }| P [En ail ] P
+s/n → 0 by Condition AS on [En ail ] and by Chebyshev inequality, since in
+the homoscedastic case of Theorem 3, Var[Gn {ail i }|x1      xn ] ≤ σ 2 En a2il  and
+in the bounded heteroscedastic case of Theorem 3, Var[Gn {ail i }|x1      xn ] 
+
+2423
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+En a2il  Next we can bound max1≤j≤p |Gn [fij i ]/ En [fij2 2i ]| P
+
+
+
+log p provided
+
+that p obeys the growth condition log p = o(n ), and
+1/3
+
+(F.5)
+
+min Mj0 :=
+
+1≤j≤p
+
+Ē[fij2 2i ]1/2
+Ē[|fij |3 | i |3 ]1/3
+
+ 1
+
+This result follows by the bound on moderate deviations of a maximum of
+a self-normalized vector stated in Lemma 5, and by (F.5) holding by Condition SM. Finally, max1≤j≤p En [fij2 2i ] P 1 by Condition SM. Thus, combining
+bounds above with bounds in (F.1) and (F.2),
+
+
+√
+
+
+s2 log2 (p ∨ n)
+s
+
+
+
+max nEn (Dil − Dil ) i P
++
+→ 0
+1≤l≤ke
+n
+n
+where the conclusion holds by Condition SM(iii).
+Step 4. This step establishes consistency of the variance estimator in the homoscedastic case of Theorem 3.
+Since σ 2 and Q = Ē[Di Di ] are bounded away from zero and from above
+ ] − Ē[Di D ] →P 0.
+i D
+uniformly in n, it suffices to show 
+σ 2 − σ 2 →P 0 and En [D
+i
+i
+2
+
+2
+2
+
+Indeed, 
+σ = En [( i − di (
+α − α0 )) ] = En [ i ] + 2En [ i di (α0 − 
+α)] + En [(di (α0 −
+
+α))2 ], so that En [ 2i ] − σ 2 →P 0 by Chebyshev inequality since Ē[| i |4 ] is
+bounded uniformly in n, and the remaining terms converge to zero in probability since 
+α − α0 →P 0 by Step 3, En [di i ]2 P 1 by Markov, and since
+
+Ēdi i 2 ≤ Ēdi 22 Ē| i |2 is uniformly bounded in n by Condition SM, and
+En di 22 P 1 by Markov, and Ēdi 22 bounded uniformly in n by Condition SM.
+Next, note that
+ 
+
+
+  
+
+En D
+ − En Di D  = En Di (D
+i − Di ) + (D
+i − Di )D
+i D
+i
+i
+i
+
+
+i − Di ) 
+i − Di )(D
++ En (D
+which is bounded up to a constant by
+
+
+
+il − Dil 2n Di 2  + ke max D
+il − Dil 2 →P 0
+ke max D
+2n
+2n
+1≤l≤ke
+
+1≤l≤ke
+
+by (F.1) and by Di 2 2n P 1 holding by Markov inequality. Moreover,
+En [Di Di ] − Ē[Di Di ] →P 0 by Step 2.
+Step 5. This step establishes consistency of the variance estimator in the
+boundedly heteroscedastic case of Theorem 3.
+ := En [2 D(x
+ i )D(x
+ i ) ] and Ω := Ē[ 2 D(xi )D(xi ) ], where the
+Recall that Ω
+i
+i
+latter is bounded away from zero and from above uniformly in n. Also, Q =
+Ē[Di Di ] is bounded away from zero and from above uniformly in n. Therefore,
+
+2424
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+ − Ω →P 0 and that En [D
+ ] − Ē[Di D ] →P 0. The lati D
+it suffices to show that Ω
+i
+i
+ter has been shown in the previous step, and we only need to show the former.
+In what follows, we shall repeatedly use the following elementary inequality:
+for arbitrary nonnegative random variables W1      Wn and q > 1,
+ q
+max Wi  n1/q if Ē Wi  1
+(F.6)
+i≤n
+
+n
+q
+which follows by Markov inequality from E[maxi≤n Wi ] ≤ n1/q E( n1 i=1 Wi )1/q ≤
+
+n
+q
+n1/q (Ē[Wi ])1/q  which follows from the trivial bound maxi≤n |wi | ≤ i=1 |wi |
+and Jensen’s inequality.
+First, we note
+ 
+  2
+
+
+2
+En  − 2 D
+i D
+  ≤ En d  (
+  
+i
+i
+i
+i α − α0 ) Di Di
+ 
+
+ 
+i D
++ 2En i di (
+α − α0 )D
+i
+ 
+
+ 
+i D
+P max di 2 n−1 En D
+2
+
+i≤n
+
+i
+
+ 
+
+ 
+i D
++ max | i |di 2 n−1/2 En D
+i
+i≤n
+
+→P 0
+i D
+  P 1 by Step 4, and maxi≤n di 2 n−1 →P 0
+since 
+α − α0 22 P 1/n, En D
+i
+2
+q
+(by maxi≤n di 2 P n1/q for q > 2, holding by Ē[di 2 ]  1 and inequality (F.6))
+and maxi≤n [di 2 | i |]n−1/2 →P 0 (by maxi≤n [di 2 | i |] P n1/q for q > 2 holding
+by Ē[(di 2 | i |2 )q ]  1 and inequality (F.6)).
+Next we note that
+  2
+
+
+  
+
+En D
+i D
+ − En 2 Di D  = En 2 Di (D
+i − Di ) + 2 (D
+i − Di )D
+i
+i
+i
+i
+i
+i
+i
+
+
+i − Di )(D
+i − Di ) 
++ En 2i (D
+which is bounded up to a constant by
+
+
+
+il − Dil 2n  2 Di 2 
+ke max D
+i
+2n
+1≤l≤ke
+
+il − Dil 2 max
++ ke max D
+2n
+i≤n
+
+1≤l≤ke
+
+2
+i
+
+→P 0
+
+
+The latter occurs because  2i Di 2 2n = En [ 4i Di 22 ] P 1 by Ē[ 4i Di 22 ] uniformly bounded in n by Condition SM and by Markov inequality, and
+il − Dil 2 max
+max D
+2n
+
+1≤l≤ke
+
+i≤n
+
+2
+i
+
+P
+
+s log(p ∨ n) 2/q
+n
+→ 0
+n
+
+where the latter step holds by Step 0 and by maxi≤n 2i P n2/q holding
+q
+by Ē[ i ]  1 and inequality (F.6). Finally, En [ 2i Di Di ] − Ē[ 2i Di Di ] →P 0
+
+2425
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+by the von Bahr–Essen inequality (von Bahr and Esseen (1965)) and by
+Ē[| i |2+μ Di 2+μ
+] bounded uniformly in n for small enough μ > 0 by Condi2
+tion SM.
+i D
+ ] − Ē[ 2 Di D ] →P 0.
+We conclude that En [2 D
+Q.E.D.
+i
+
+i
+
+i
+
+i
+
+F.2. Proof of Theorem 5
+Step 1. To establish claim (i), using the properties of projection, we note that
+(F.7)
+
+nEn [˜ i f˜ij ] = nEn [ i f˜ij ]
+
+μ 2 ≤ En [wi wi ]−1 En [wi i ]2 ,
+Since for 
+μ = (En [wi wi ])−1 En [wi i ], we have 
+ −1
+where En [wi wi ]  is bounded by Condition SM2(ii) and En [wi i ]2 is of
+stochastic order  kw /n by Chebyshev inequality and Condition SM2(ii).
+Hence 
+μ 2 P kw /n.√Since wi 2 ≤ ζw by Condition SM2(i), we conclude
+√
+that maxi≤n |wi 
+μ | P ζw kw / n → 0. Hence, uniformly in j ∈ {1     p},
+(F.8)
+
+
+
+
+ En ˜ 2i f˜ij2 −
+
+En
+
+
+
+ (a)
+f˜  ≤
+
+2 2
+i ij
+
+
+En wi 
+μ
+
+2
+
+f˜ij2
+
+
+
+  (c)
+= oP (1) En f˜ij2 = oP (1)
+
+(b)
+
+where (a) is by the triangular inequality and the decomposition ˜ i =
+(b) is by the Holder inequality, and (c) is by the normalization
+each j. Hence, for c > 1, by (F.7) and (F.8) w.p. → 1,
+Λα1 ≤ c Λ̄α1 
+
+i
+
+− wi 
+μ,
+
+En [f˜ij2 ] = 1 for
+
+
+
+
+
+Λ̄α1 := max nEn [ i f˜ij ]/ En 2i f˜ij2 
+1≤j≤p
+
+Since Λ̄α1 is a maximum of self-normalized sum of i.n.i.d. terms conditional
+on X, application of Condition SM2(iii)–(iv) and the moderate deviation
+bound from Lemma 5 for the self-normalized sum with Uij = i f˜ij , conditional
+on X, implies that P(c Λ̄α1 ≤ Λ(1 − γ)) ≥ 1 − γ − o(1). This verifies claim (i).
+Step 2. To show claim (ii) we note that, using triangular and other elementary
+inequalities,
+
+
+ nEn [(˜ i − (a − α1 ) d̃ei )f˜ij ] 
+
+Λa = max 
+
+1≤j≤p
+En [(˜ i − (a − α1 ) d̃ei )2 f˜ij2 ]
+
+
+
+
+n|En [(a − α1 ) d̃ei f˜ij ]|
+
+ − Λα 
+≥ max 
+1
+
+1≤j≤p
+2 ˜2
+2
+
+2
+˜
+En [˜ i fij ] + En [{(a − α1 ) d̃ei } fij ]
+
+2426
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+The first term on the right side is bounded below by, w.p. → 1,
+max
+
+1≤j≤p
+
+n|En [(a − α1 ) d̃ei f˜ij ]|
+c En [ 2i f˜ij2 ] +
+
+En [{(a − α1 ) d̃ei }2 f˜ij2 ]
+
+
+
+
+by Step 1 for some c > 1, and Λα1 P n log(p/γ) also by Step 1. Hence for
+any constant C, by the last condition
+ in the statement of the theorem, with
+probability converging to 1, Λa − C n log(p/γ) → +∞ so that claim (ii) immediately follows, since Λ(1 − γ)  n log(p/γ).
+Q.E.D.
+F.3. Proof of Theorems 6 and 7
+See the Supplemental Material (Belloni et al. (2012)).
+REFERENCES
+AMEMIYA, T. (1966): “On the Use of Principal Components of Independent Variables in TwoStage Least-Squares Estimation,” International Economic Review, 7, 283–303. [2373]
+(1974): “The Non-Linear Two-Stage Least Squares Estimator,” Journal of Econometrics,
+2, 105–110. [2370,2376,2377]
+ANDERSON, T. W., AND H. RUBIN (1949): “Estimation of the Parameters of Single Equation in
+a Complete System of Stochastic Equations,” The Annals of Mathematical Statistics, 20, 46–63.
+[2372,2377,2392]
+ANDREWS, D. W. K., AND J. H. STOCK (2005): “Inference With Weak Instruments,” Discussion
+Paper 1530, Cowles Foundation. [2371]
+ANDREWS, D. W. K., M. J. MOREIRA, AND J. H. STOCK (2006): “Optimal Two-Sided Invariant
+Similar Tests for Instrumental Variables Regression,” Econometrica, 74 (3), 715–752. [2371]
+ANGRIST, J. D., AND A. B. KRUEGER (1995): “Split-Sample Instrumental Variables Estimates of
+the Return to Schooling,” Journal of Business & Economic Statistics, 13 (2), 225–235. [2372,
+2396]
+BAI, J., AND S. NG (2008): “Forecasting Economic Time Series Using Targeted Predictors,” Journal of Econometrics, 146, 304–317. [2370,2374]
+(2009a): “Boosting Diffusion Indices,” Journal of Applied Econometrics, 24, 607–629.
+[2370]
+(2009b): “Selecting Instrumental Variables in a Data Rich Environment,” Journal of
+Time Series Econometrics, 1 (1), Article 4. [2373,2374]
+(2010): “Instrumental Variable Estimation in a Data Rich Environment,” Econometric
+Theory, 26, 1577–1606. [2373]
+BEKKER, P. A. (1994): “Alternative Approximations to the Distributions of Instrumental Variables
+Estimators,” Econometrica, 63, 657–681. [2370,2371,2377,2398]
+BELLONI, A., AND V. CHERNOZHUKOV (2011a): “1 -Penalized Quantile Regression for High Dimensional Sparse Models,” The Annals of Statistics, 39 (1), 82–130. [2414,2420]
+(2011b): “High-Dimensional Sparse Econometric Models, an Introduction,” in Inverse Problems and High-Dimensional Estimation. Lecture Notes in Statistics. Berlin: Springer,
+121–156. [2374]
+(2012): “Least Squares After Model Selection in High-Dimensional Sparse Models,”
+Bernoulli (forthcoming). Available at arXiv:1001.0188. [2370,2372,2381,2385,2387,2388,2392,
+2414,2420]
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2427
+
+BELLONI, A., D. CHEN, V. CHERNOZHUKOV, AND C. HANSEN (2012): “Supplement to ‘Sparse
+Models and Methods for Optimal Instruments With an Application to Eminent Domain’,” Econometrica Supplemental Material, 80, http://www.econometricsociety.org/ecta/
+Supmat/9626_Proofs.pdf;
+http://www.econometricsociety.org/ecta/Supmat/9626_data_and_
+programs-1.zip; http://www.econometricsociety.org/ecta/Supmat/9626_data_and_programs-2.
+zip. [2395,2398,2420,2426]
+BELLONI, A., V. CHERNOZHUKOV, AND C. HANSEN (2011a): “Estimation and Inference Methods
+for High-Dimensional Sparse Econometric Models,” in Advances in Economics and Econometrics, 10th World Congress of Econometric Society. Cambridge: Cambridge University Press.
+[2371,2374,2378,2382]
+(2011b): “Inference on Treatment Effects After Selection Amongst HighDimensional Controls With an Application to Abortion on Crime,” available at arXiv:
+1201.0224. [2369,2371,2374,2382,2383]
+BELLONI, A., V. CHERNOZHUKOV, AND L. WANG (2011a): “Pivotal Estimation of Nonparametric
+Functions via Square-Root Lasso,” available at arXiv:1105.1475. [2392]
+(2011b): “Square-Root-LASSO: Pivotal Recovery of Sparse Signals via Conic Programming,” Biometrika, 98, 791–806. [2372,2392]
+BICKEL, P. J., Y. RITOV, AND A. B. TSYBAKOV (2009): “Simultaneous Analysis of Lasso and
+Dantzig Selector,” The Annals of Statistics, 37 (4), 1705–1732. [2370-2372,2380,2381,2384,2385,
+2387,2388,2410]
+BRODIE, J., I. DAUBECHIES, C. D. MOL, D. GIANNONE, AND I. LORIS (2009): “Sparse and Stable
+Markowitz Portfolios,” PNAS, 106 (30), 12267–12272. [2374]
+BÜHLMANN, P. (2006): “Boosting for High-Dimensional Linear Models,” The Annals of Statistics,
+34 (2), 559–583. [2373,2392]
+BÜHLMANN, P., AND S. VAN DE GEER (2011): Statistics for High-Dimensional Data: Methods, Theory and Applications. Berlin: Springer. [2370,2371]
+BUNEA, F., A. B. TSYBAKOV, AND M. H. WEGKAMP (2006): “Aggregation and Sparsity via 1
+Penalized Least Squares,” in Proceedings of 19th Annual Conference on Learning Theory (COLT
+2006), ed. by G. Lugosi and H. U. Simon. Berlin: Springer, 379–391. [2370]
+(2007a): “Sparsity Oracle Inequalities for the Lasso,” Electronic Journal of Statistics, 1,
+169–194. [2370]
+(2007b): “Aggregation for Gaussian Regression,” The Annals of Statistics, 35 (4),
+1674–1697. [2370]
+CANDES, E., AND T. TAO (2007): “The Dantzig Selector: Statistical Estimation When p Is Much
+Larger Than n,” The Annals of Statistics, 35 (6), 2313–2351. [2370,2392]
+CANER, M. (2009): “LASSO-Type GMM Estimator,” Econometric Theory, 25, 270–290. [2374]
+CARRASCO, M. (2012): “A Regularization Approach to the Many Instruments Problem,” Journal
+of Econometrics, 170 (2), 383–398. [2374,2375]
+CARRASCO, M., AND G. TCHUENTE NGUEMBU (2012): “Regularized LIML With Many Instruments,” Discussion Paper, University of Montreal. [2374]
+CHAMBERLAIN, G. (1987): “Asymptotic Efficiency in Estimation With Conditional Moment Restrictions,” Journal of Econometrics, 34, 305–334. [2370,2376]
+CHAMBERLAIN, G., AND G. IMBENS (2004): “Random Effects Estimators With Many Instrumental Variables,” Econometrica, 72, 295–306. [2374]
+CHAO, J., AND N. SWANSON (2005): “Consistent Estimation With a Large Number of Weak Instruments,” Econometrica, 73, 1673–1692. [2370,2372]
+CHAO, J., N. SWANSON, J. HAUSMAN, W. NEWEY, AND T. WOUTERSEN (2012): “Asymptotic Distribution of JIVE in a Heteroskedastic IV Regression With Many Instruments,” Econometric
+Theory, 28 (1), 42–86. [2370-2372]
+CHEN, D. L., AND J. SETHI (2010): “Does Forbidding Sexual Harassment Exacerbate Gender
+Inequality,” Unpublished Manuscript. [2404]
+CHEN, D. L., AND S. YEH (2010): “The Economic Impacts of Eminent Domain,” Unpublished
+Manuscript. [2373,2403-2407]
+
+2428
+
+BELLONI, CHEN, CHERNOZHUKOV, AND HANSEN
+
+CHERNOZHUKOV, V., AND C. HANSEN (2008a): “Instrumental Variable Quantile Regression:
+A Robust Inference Approach,” Journal of Econometrics, 142, 379–398. [2394]
+(2008b): “The Reduced Form: A Simple Approach to Inference With Weak Instruments,” Economics Letters, 100, 68–71. [2394]
+DE LA PEÑA, V. H., T. L. LAI, AND Q.-M. SHAO (2009): Self-Normalized Processes: Limit Theory and Statistical Applications. Probability and Its Applications (New York). Berlin: Springer.
+[2408,2409]
+DEMIGUEL, V., L. GARLAPPI, F. NOGALES, AND R. UPPAL (2009): “A Generalized Approach to
+Portfolio Optimization: Improving Performance by Constraining Portfolio Norms,” Management Science, 55 (5), 798–812. [2374]
+DONALD, S. G., AND W. K. NEWEY (2001): “Choosing the Number of Instruments,” Econometrica, 69 (5), 1161–1191. [2374,2375]
+FULLER, W. A. (1977): “Some Properties of a Modification of the Limited Information Estimator,” Econometrica, 45, 939–953. [2372,2398,2405]
+GAUTIER, E., AND A. B. TSYBAKOV (2011): “High-Dimensional Instrumental Variables Regression and Confidence Sets,” available at arXiv:1105.2454. [2375]
+HAHN, J. (2002): “Optimal Inference With Many Instruments,” Econometric Theory, 18, 140–168.
+[2371,2377,2378]
+HAHN, J., J. A. HAUSMAN, AND G. M. KUERSTEINER (2004): “Estimation With Weak Instruments: Accuracy of Higher-Order Bias and MSE Approximations,” Econometrics Journal, 7
+(1), 272–306. [2398]
+HANSEN, C., J. HAUSMAN, AND W. K. NEWEY (2008): “Estimation With Many Instrumental Variables,” Journal of Business & Economic Statistics, 26, 398–422. [2370,2372,2373,2398,2399]
+HUANG, J., J. L. HOROWITZ, AND F. WEI (2010): “Variable Selection in Nonparametric Additive
+Models,” The Annals of Statistics, 38 (4), 2282–2313. [2370,2374,2392]
+JING, B.-Y., Q.-M. SHAO, AND Q. WANG (2003): “Self-Normalized Cramér-Type Large Deviations for Independent Random Variables,” The Annals of Probability, 31 (4), 2167–2215.
+[2372,2379,2408]
+KAPETANIOS, G., AND M. MARCELLINO (2010): “Factor-GMM Estimation With Large Sets of
+Possibly Weak Instruments,” Computational Statistics & Data Analysis, 54 (11), 2655–2675.
+[2373]
+KAPETANIOS, G., L. KHALAF, AND M. MARCELLINO (2011): “Factor Based Identification-Robust
+Inference in IV Regressions,” Working Paper. [2373]
+KLEIBERGEN, F. (2002): “Pivotal Statistics for Testing Structural Parameters in Instrumental Variables Regression,” Econometrica, 70, 1781–1803. [2371]
+(2005): “Testing Parameters in GMM Without Assuming That They Are Identified,”
+Econometrica, 73, 1103–1123. [2371]
+KLOEK, T., AND L. MENNES (1960): “Simultaneous Equations Estimation Based on Principal
+Components of Predetermined Variables,” Econometrica, 28, 45–61. [2373]
+KNIGHT, K. (2008): “Shrinkage Estimation for Nearly Singular Designs,” Econometric Theory, 24,
+323–337. [2370,2374]
+KOLTCHINSKII, V. (2009): “Sparsity in Penalized Empirical Risk Minimization,” Annales de
+l’Institut Henri Poincaré, Probabilités et Statistiques, 45 (1), 7–57. [2370]
+LOUNICI, K. (2008): “Sup-Norm Convergence Rate and Sign Concentration Property of Lasso
+and Dantzig Estimators,” Electronical Journal of Statistic, 2, 90–102. [2370]
+LOUNICI, K., M. PONTIL, A. B. TSYBAKOV, AND S. VAN DE GEER (2010): “Taking Advantage of
+Sparsity in Multi-Task Learning,” available at arXiv:0903.1468v1. [2370,2392]
+MEINSHAUSEN, N., AND B. YU (2009): “Lasso-Type Recovery of Sparse Representations for
+High-Dimensional Data,” The Annals of Statistics, 37 (1), 246–270. [2370]
+MOREIRA, M. J. (2003): “A Conditional Likelihood Ratio Test for Structural Models,” Econometrica, 71, 1027–1048. [2371]
+NEWEY, W. K. (1990): “Efficient Instrumental Variables Estimation of Nonlinear Models,”
+Econometrica, 58, 809–837. [2370,2371,2376-2378,2383]
+
+METHODS FOR OPTIMAL INSTRUMENTS
+
+2429
+
+(1997): “Convergence Rates and Asymptotic Normality for Series Estimators,” Journal
+of Econometrics, 79, 147–168. [2378,2382,2386]
+OKUI, R. (2011): “Instrumental Variable Estimation in the Presence of Many Moment Conditions,” Journal of Econometrics, 165, 70–86. [2374,2375]
+ROSENBAUM, M., AND A. B. TSYBAKOV (2008): “Sparse Recovery Under Matrix Uncertainty,”
+available at arXiv:0812.2818. [2370]
+RUDELSON, M., AND R. VERSHYNIN (2008): “On Sparse Reconstruction From Fourier and Gaussian Measurements,” Communications on Pure and Applied Mathematics, 61, 1025–1045. [2385]
+RUDELSON, M., AND S. ZHOU (2011): “Reconstruction From Anisotropic Random Measurements,” available at arXiv:1106.1151. [2385]
+STAIGER, D., AND J. H. STOCK (1997): “Instrumental Variables Regression With Weak Instruments,” Econometrica, 65, 557–586. [2371,2372,2377,2392]
+STOCK, J. H., AND M. YOGO (2005): “Testing for Weak Instruments in Linear IV Regression,”
+in Identification and Inference for Econometric Models: Essays in Honor of Thomas Rothenberg,
+ed. by D. W. K. Andrews and J. H. Stock. Cambridge: Cambridge University Press, Chap. 5,
+80–108. [2408]
+STOCK, J. H., J. H. WRIGHT, AND M. YOGO (2002): “A Survey of Weak Instruments and Weak
+Identification in Generalized Method of Moments,” Journal of Business & Economic Statistics,
+20 (4), 518–529. [2398]
+TIBSHIRANI, R. (1996): “Regression Shrinkage and Selection via the Lasso,” Journal of the Royal
+Statistical Society, Ser. B, 58, 267–288. [2370,2372,2380,2381]
+VAN DE GEER, S. A. (2008): “High-Dimensional Generalized Linear Models and the Lasso,” The
+Annals of Statistics, 36 (2), 614–645. [2370]
+VON BAHR, B., AND C.-G. ESSEEN (1965): “Inequalities for the rth Absolute Moment of a Sum of
+Random Variables, 1 ≤ r ≤ 2,” The Annals of Mathematical Statistics, 36, 299–303. [2422,2425]
+WAINWRIGHT, M. (2009): “Sharp Thresholds for Noisy and High-Dimensional Recovery of Sparsity Using 1 -Constrained Quadratic Programming (Lasso),” IEEE Transactions on Information
+Theory, 55, 2183–2202. [2370,2416]
+ZHANG, C.-H., AND J. HUANG (2008): “The Sparsity and Bias of the Lasso Selection in HighDimensional Linear Regression,” The Annals of Statistics, 36 (4), 1567–1594. [2370,2385]
+
+Duke University Fuqua School of Business, Durham, NC 27708, U.S.A.;
+abn5@duke.edu,
+D-GESS, ETH Zurich, IFW E 48.3, Haldeneggsteig 4, CH-8092, Zurich,
+Switzerland; chendan@ethz.ch,
+Dept. of Economics, Massachusetts Institute of Technology, Cambridge, MA
+02139, U.S.A.; vchern@mit.edu,
+and
+University of Chicago Booth School of Business, Chicago, IL 60637, U.S.A.;
+chansen1@chicagobooth.edu.
+Manuscript received October, 2010; final revision received June, 2012.
+
+

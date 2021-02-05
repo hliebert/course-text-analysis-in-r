@@ -1,0 +1,832 @@
+The Propensity Score with Continuous Treatments
+Keisuke Hirano
+University of Miami
+
+∗
+
+Guido W. Imbens
+UC Berkeley and NBER
+
+February 7, 2004
+
+1
+
+Introduction
+
+Much of the work on propensity score analysis has focused on the case where the treatment
+is binary. In this chapter we examine an extension to the propensity score method, in a setting with a continuous treatment. Following Rosenbaum and Rubin (1983) and most of the
+other literature on propensity score analysis, we make an unconfoundedness or ignorability
+assumption, that adjusting for differences in a set of covariates removes all biases in comparisons by treatment status. Then, building on Imbens (2000) we define a generalization
+of the binary treatment propensity score, which we label the generalized propensity score
+(GPS). We demonstrate that the GPS has many of the attractive properties of the binary
+treatment propensity score. Just as in the binary treatment case, adjusting for this scalar
+function of the covariates removes all biases associated with differences in the covariates.
+The GPS also has certain balancing properties that can be used to assess the adequacy of
+particular specifications of the score. We discuss estimation and inference in a parametric
+version of this procedure, although more flexible approaches are also possible.
+We apply this methodology to a data set collected by Imbens, Rubin, and Sacerdote
+(2001). The population consists of individuals winning the Megabucks lottery in Massachusetts in the mid-1980’s. We are interested in effect of the amount of the prize on
+subsequent labor earnings. Although the assignment of the prize is obviously random, substantial item and unit nonresponse led to a selected sample where the amount of the prize
+is no longer independent of background characteristics. We estimate the average effect of
+the prize adjusting for differences in background characteristics using the propensity score
+methodology, and compare the results to conventional regression estimates. The results
+suggest that the propensity score methodology leads to credible estimates, that can be
+more robust than simple regression estimates.
+∗
+
+This is a draft of a chapter for Missing Data and Bayesian Methods in Practice: Contributions
+by Donald Rubin’s Statistical Family, forthcoming from Wiley. Financial support for this research was
+generously provided through NSF grants SES-0226164 (Hirano) and SES-0136789 (Imbens). Electronic
+correspondence: khirano@miami.edu, http://www.bus.miami.edu/˜khirano/, imbens@econ.berkeley.edu,
+http://elsa.berkeley.edu/users/imbens/.
+
+1
+
+2
+
+The basic framework
+
+We have a random sample of units, indexed by i = 1, . . . , N . For each unit i we postulate
+the existence of a set of potential outcomes, Yi (t), for t ∈ T , referred to as the unit-level
+dose-response function. In the binary treatment case T = {0, 1}. Here we allow T to be an
+interval [t0 , t1 ]. We are interested in the average dose-response function, µ(t) = E[Yi (t)].
+For each unit i, there is also a vector of covariates Xi , and the level of the treatment
+received, Ti ∈ [t0 , t1 ]. We observe the vector Xi , the treatment received Ti , and the
+potential outcome corresponding to the level of the treatment received, Yi = Yi (Ti ).
+To simplify the notation, we will drop the i subscript in the sequel. We assume that
+{Y (t)}t∈T , T, X are defined on a common probability space, that T is continuously distributed with respect to Lebesgue measure on T , and that Y = Y (T ) is a well defined
+random variable (this requires that the random function Y (·) be suitably measurable).
+Our key assumption generalizes the unconfoundedness assumption for binary treatments made by Rosenbaum and Rubin (1983), to the multivalued case:
+Assumption 2.1 (Weak Unconfoundedness) Y (t) ⊥ T
+
+X for all t ∈ T .
+
+We refer to this as weak unconfoundedness, as we do not require joint independence of all
+potential outcomes, {Y (t)}t∈[t0 ,t1 ] . Instead, we require conditional independence to hold
+for each value of the treatment.
+Next, we define the generalized propensity score.
+Definition 2.1 (Generalized Propensity Score) Let r(t, x) be the conditional density
+of the treatment given the covariates:
+r(t, x) = fT |X (t|x).
+Then the generalized propensity score is R = r(T, X).
+The function r is defined up to almost everywhere equivalence. By standard results on
+conditional probability distributions, we can choose r such that R = r(T, X) and r(t, X)
+are well-defined random variables for every t.
+The GPS has a balancing property similar to that of the standard propensity score.
+Within strata with the same value of r(t, X) the probability that T = t does not depend
+on the value of X. Loosely speaking, the GPS has the property that
+X ⊥ 1{T = t}
+
+r(t, X).
+
+This is a mechanical implication of the definition of the GPS, and does not require unconfoundedness. In combination with unconfoundedness this implies that assignment to
+treatment is unconfounded given the generalized propensity score.
+
+2
+
+Theorem 2.1 (Weak Unconfoundedness given the Generalized Propensity Score)
+Suppose that assignment to the treatment is weakly unconfounded given pre-treatment variables X. Then, for every t,
+fT (t|r(t, X), Y (t)) = fT (t|r(t, X)).
+Proof: Throughout the proof, equality is taken as a.e. equality. Since r(t, X) is a welldefined random variable, for each t we can define a joint law for (Y (t), T, X, r(t, X)). We
+use FX (x|·) to denote various conditional probability distributions for X, and we use fT (t|·)
+to denote conditional densities of T . Note that r(t, X) is measurable with respect to the
+sigma-algebra generated by X. This implies, for example, that fT (t|X, r(t, X)) = fT (t|X).
+Using standard results on iterated integrals, we can write
+fT (t|r(t, X)) =
+
+Z
+
+fT (t|x, r(t, X))dFX (x|r(t, X))
+
+=
+
+Z
+
+fT (t|x)dFX (x|r(t, X))
+
+=
+
+Z
+
+r(t, x)dFX (x|r(t, X)) = r(t, X).
+
+The left hand side of the equation can be written as:
+fT (t|r(t, X), Y (t)) =
+
+Z
+
+fT (t|x, r(t, X), Y (t))dFX (x|Y (t), r(t, X)).
+
+By weak unconfoundedness, fT (t|x, r(t, X), Y (t)) = fT (t|x), so
+fT (t|r(t, X), Y (t)) =
+
+Z
+
+r(t, x)dFX (x|Y (t), r(t, X))
+
+= r(t, X).
+Therefore, for each t, fT (t|r(t, X), Y (t)) = fT (t|r(t, X)). 
+Note that when we consider the conditional density of the treatment level at t, we evaluate the generalized propensity score at the corresponding level of the treatment. In that
+sense we use as many propensity scores as there are levels of the treatment. Nevertheless,
+we never use more than a single score at one time.
+
+3
+
+Bias removal using the GPS
+
+In this section we show that the GPS can be used to eliminate any biases associated with
+differences in the covariates. The approach consists of two steps. First we estimate the
+conditional expectation of the outcome as a function of two scalar variables, the treatment
+level T and the GPS R, β(t, r) = E[Y |T = t, R = r]. Second, to estimate the dose-response
+
+3
+
+function at a particular level of the treatment we average this conditional expectation over
+the GPS at that particular level of the treatment, µ(t) = E[β(t, r(t, X))]. It is important
+to note that we do not average over the GPS R = r(T, X); rather we average over the score
+evaluated at the treatment level of interest, r(t, X).
+Theorem 3.1 (Bias Removal with Generalized Propensity Score)
+Suppose that assignment to the treatment is weakly unconfounded given pre-treatment variables X. Then
+(i) β(t, r) = E[Y (t)|r(t, X) = r] = E[Y |T = t, R = r].
+(ii) µ(t) = E[β(t, r(t, X)].
+Proof: Let fY (t)|T,r(t,X) (·|t, r) denote the conditional density (with respect to some measure) of Y (t) given T = t and r(t, X) = r. Then, using Bayes rule and Theorem 2.1,
+fT (t|Y (t) = y, r(t, X) = r)fY (t)|r(t,X) (y|r)
+fT (t|r(t, X) = r)
+= fY (t)|r(t,X) (y|r)
+
+fY (t)|T,r(t,X) (y|t, r) =
+
+Hence
+E[Y (t)|T = t, r(t, X) = r] = E[Y (t)|r(t, X) = r].
+But we also have
+E[Y (t)|T = t, R = r] = E[Y (t)|T = t, r(T, X) = r]
+= E[Y (t)|T = t, r(t, X) = r]
+= E[Y (t)|r(t, X) = r] = β(t, r)
+Hence E[Yi (t)|r(t, Xi ) = r] = β(t, r), which proves part (i). For the second part, by iterated
+expectations, E[β(t, r(t, X))] = E[E[Y (t)|r(t, X)]] = E[Y (t)]. 
+It should be stressed that the regression function β(t, r) does not have a causal interpretation. In particular, the derivative with respect to the treatment level t does not represent
+an average effect of changing the level of the treatment for any particular subpopulation.
+Robins (1998, 1999) and Robins, Hernán, and Brumback (2000), use a related approach.
+They parametrize or restrict the form of the Y (t) process (and hence the form of µ(t)), and
+call this a marginal structural model (MSM). The parameters of the MSM are estimated
+using a weighting scheme based on the GPS. When the treatment is continuous these
+weights must be “stabilized” by the marginal probabilities of treatment. In the approach
+we take here, we would typically employ parametric assumptions about the form of β(t, r)
+instead of µ(t), and do not need to reweight the observations.
+
+4
+
+Two artificial examples
+Example 1: Suppose that the conditional distribution of Y (t) given X is
+Y (t)|X ∼ N(t + X · exp(−X · t), 1).
+The conditional mean of Y (t) given X is t+X ·exp(−X ·t). Suppose also that the marginal
+distribution of X is unit exponential. The marginal mean of Y (t) is obtained by integrating
+out the covariate to get
+µ(t) = E[t + X · exp(−X · t)] = t +
+
+1
+.
+(t + 1)2
+
+Now consider estimating the dose-response function using the GPS approach. We
+assume that the assignment to treatment is weakly unconfounded. For illustrative purposes
+we also assume that the conditional distribution of the treatment T given X is exponential
+with hazard rate X. This implies that the conditional density of T given X is
+fT |X (t, x) = x · exp(−t · x).
+Hence the generalized propensity score is R = X · exp(−T · X).
+Next, we consider the conditional expectation of Y given the treatment T and the score
+R. By weak unconfoundedness the conditional expectation of Y given T and X is
+E[Y |T = t, X = x] = E[Y (t)|X = x].
+Then by iterated expectations
+E[Y |T = t, R = r] = E [ E[Y |T = t, X]| T = t, R = r]
+= E[E[Y (t)|X]|T = t, R = r]
+= E[t + X · exp(−t · X)|T = t, R = r] = t + r.
+Note that, as stressed before, this conditional expectation does not have a causal interpretation as a function of t. For the final step we average this conditional expectation over
+the marginal distribution of r(t, X):
+E[Y (t)] = E[t + r(t, X)] = t +
+
+1
+= µ(t).
+(1 + t)2
+
+This gives us the dose-response function at treatment level t.
+Example 2: Suppose that the dose-response function is E[Y (t)] = µ(t). Also suppose that
+X is independent of the level of the treatment so that we do not actually need to adjust
+
+5
+
+for the covariates. Independence of the covariates and the treatment implies that the GPS
+r(t, x) = fT |X (t|x) = fT (t) is a function only of t. This creates a lack of uniqueness in the
+regression of the outcome on the level of the treatment and the GPS. Formally, there is no
+unique function β(t, r) such that E[Y |T = t, R = r] = β(t, r) for all (t, r) in the support
+of (T, r(T )). In practice this means that the GPS will not be a statistically significant
+determinant of the average value of the outcome, and in the limit we will have perfect
+collinearity in the regression of the outcome on the treatment level and the GPS. However,
+this does not create problems for estimating the dose-response function. To see this, note
+that any solution β(t, r) must satisfy
+β(t, r(t)) = E[Y |T = t, r(T ) = r(t)] = E[Y |T = t] = µ(t).
+Hence the implied estimate of the dose-response function is
+Z
+
+β(t, r(t, x))fX (x)dx = β(t, r(t)) = µ(t),
+
+x
+
+equal to the dose-response function.
+
+4
+
+Estimation and inference
+
+In this section we consider the practical implementation of the generalized propensity score
+methodology outlined in the previous section. We use a flexible parametric approach. In
+the first stage we use a normal distribution for the treatment given the covariates:
+Ti |Xi ∼ N(β0 + β10 Xi , σ 2 ).
+We may consider more general models such as mixtures of normals, or heteroskedastic
+normal distributions with the variance a parametric function of the covariates. In the simple
+normal model we can estimate β0 , β1 , and σ 2 by maximum likelihood. The estimated GPS
+is
+
+
+1
+0
+2
+R̂i = √
+exp − 2 (Ti − β̂0 − β̂1 Xi ) .
+2σ̂
+2πσ̂ 2
+1
+
+
+
+In the second stage we model the conditional expectation of Yi given Ti and Ri as a flexible
+function of its two arguments. In the application in the next section we use a quadratic
+approximation:
+E[Yi |Ti , Ri ] = α0 + α1 · Ti + α2 · Ti2 + α3 · Ri + α4 · Ri2 + α5 · Ti · Ri .
+We estimate these parameters by ordinary least squares using the estimated GPS R̂i .
+Given the estimated parameter in the second stage, we estimate the average potential
+
+6
+
+outcome at treatment level t as
+N
+
+1 X
+\
+E[Y
+(t)] =
+α̂0 + α̂1 · t + α̂2 · t2 + α̂3 · r̂(t, Xi ) + α̂4 · r̂(t, Xi )2 + α̂5 · t · r̂(t, Xi ) .
+N
+i=1
+
+We do this for each level of the treatment we are interested in, to obtain an estimate of
+the entire dose-response function.
+Given the parametric model we use for the GPS and the regression function one can
+demonstrate root-N consistency and asymptotic normality for the estimator. Asymptotic
+standard errors can be calculated using expansions based on the estimating equations; these
+should take into account estimation of the GPS as well as the α parameters. In practice,
+however, it is convenient to use bootstrap methods to form standard errors and confidence
+intervals.
+
+5
+
+Application: the Imbens-Rubin-Sacerdote lottery sample
+
+The data
+The data we use to illustrate the methods discussed in the previous section come from the
+survey of Massachusetts lottery winners, which is described in further detail in the chapter
+by Sacerdote in this volume, and in Imbens, Rubin, and Sacerdote (2001). Here we analyze
+the effect of the prize amount on subsequent labor earnings (from social security records),
+without discretizing the prize variable.
+Although the lottery prize is obviously randomly assigned, there is substantial correlation between some of the background variables and the lottery prize in our sample.
+The main source of potential bias is the unit and item nonresponse. In the survey unit
+nonresponse was about 50%. In fact it was possible to directly demonstrate that this nonresponse was nonrandom, since for all units the lottery prize was observed. It was shown
+that the higher the lottery prize, the lower the probability of responding to the survey.
+The missing data imply that the amount of the prize is potentially correlated with background characteristics and potential outcomes. In order to remove such biases we make the
+weak unconfoundedness assumption, that conditional on the covariates the lottery prize is
+independent of the potential outcomes.
+The sample we use in this analysis is the “winners” sample of 237 individuals who
+won a major prize in the lottery. In Table 1 we present means and standard deviations
+for this sample. To demonstrate the effects of nonresponse we also report the correlation
+coefficients between each of the covariates and the prize, with the t-statistic for the test
+that the correlation is equal to zero. We see that many of the covariates have substantial
+and significant correlations with the prize.
+
+7
+
+Variable
+Intercept
+Age
+Years high school
+Years college
+Male
+Tickets bought
+Working then
+Year won
+Earnings year -1
+Earnings year -2
+Earnings year -3
+Earnings year -4
+Earnings year -5
+Earnings year -6
+
+Mean
+
+S.D.
+
+Corr.
+w/Prize
+
+t-stat
+
+GPS Est.
+
+GPS SE
+
+47.0
+3.6
+1.4
+0.6
+4.6
+0.8
+1986.1
+14.5
+13.5
+12.8
+12.0
+12.2
+12.1
+
+13.8
+1.1
+1.6
+0.5
+3.3
+0.4
+1.3
+13.6
+13.0
+12.7
+12.1
+12.4
+12.4
+
+0.2
+-0.1
+0.0
+0.3
+0.1
+0.1
+-0.0
+0.1
+0.1
+0.2
+0.1
+0.1
+0.1
+
+2.4
+-1.4
+0.5
+4.1
+1.6
+1.4
+-0.4
+1.7
+2.1
+2.3
+2.0
+1.1
+1.1
+
+2.32
+0.02
+0.02
+0.04
+0.44
+0.00
+0.13
+-0.00
+0.01
+-0.01
+0.01
+0.02
+-0.02
+-0.01
+
+(0.48)
+(0.01)
+(0.06)
+(0.04)
+(0.14)
+(0.02)
+(0.17)
+(0.05)
+(0.01)
+(0.02)
+(0.02)
+(0.02)
+(0.02)
+(0.01)
+
+Table 1: Summary statistics and parameter estimates of generalized propensity score.
+
+Modelling the conditional distribution of the prize given covariates
+The first step is to estimate the conditional distribution of the prize given the covariates.
+The distribution of the prize is highly skewed, with a skewness of 2.9 and a kurtosis of
+15.0. We therefore first transform the prize by taking logarithms. The logarithm of the
+prize has a skewness of -0.02 and a kurtosis of 3.4. We then use a normal linear model for
+the logarithm of the prize:
+log Ti |Xi ∼ N(β0 + β10 Xi , σ 2 ).
+The estimated coefficients from this model are presented in Table 1.
+To see whether this specification of the propensity score is adequate, we investigate how
+it affects the balance of the covariates. This idea is again borrowed from the analysis of
+binary treatment cases, where Rosenbaum and Rubin (1983) stress the balancing properties
+of the propensity score. We divide the range of prizes into three treatment intervals, [0, 23],
+[23, 80], and [80, 485], with 79 observations in the first group, 106 in the second, and 52 in
+the last treatment group. For each of the thirteen covariates, we investigate the balance by
+testing whether the mean in one of the three treatment groups was different from the mean
+in the other two treatment groups combined. (Alternatively, we could carry out various
+joint tests to assess the covariate balance.) In Table 2, we report the t-tests for each of the
+thirteen covariates and each of the three groups. The results show a clear lack of balance,
+with 14 (17) of 39 t-statistics greater than 1.96 (1.645) in absolute value.
+Next, we report GPS-adjusted versions of these statistics. Take the first covariate (age),
+and the test whether the adjusted mean in the first group (with prizes less than 23K) is
+8
+
+Variable
+Age
+Years high school
+Years college
+Male
+Tickets bought
+Working then
+Year won
+Earnings year -1
+Earnings year -2
+Earnings year -3
+Earnings year -4
+Earnings year -5
+Earnings year -6
+
+[0, 23]
+-1.7
+-0.9
+-1.2
+-3.6
+-1.1
+-1.1
+-0.6
+-1.8
+-2.3
+-2.7
+-2.7
+-2.2
+-2.1
+
+Unadjusted
+[23, 80] [80, 485]
+-0.1
+2.0
+1.7
+-0.7
+0.7
+0.5
+0.5
+4.0
+0.5
+0.6
+-0.3
+2.0
+2.0
+-1.6
+-0.5
+2.3
+-0.4
+2.6
+-0.6
+3.1
+-0.7
+3.1
+-0.3
+2.4
+-0.1
+2.3
+
+Adjusted for the GPS
+[0, 23] [23, 80] [80, 485]
+0.1
+0.3
+1.7
+-0.5
+0.8
+-1.0
+-0.5
+0.7
+-0.7
+-0.4
+0.2
+0.1
+-0.7
+0.7
+-0.2
+-0.0
+-0.2
+0.3
+-0.1
+1.1
+-1.0
+-0.3
+-0.7
+0.5
+-1.0
+-0.4
+0.5
+-1.4
+-0.6
+1.2
+-0.9
+-0.6
+1.7
+-1.1
+-0.0
+2.1
+-1.5
+0.4
+2.2
+
+Table 2: Balance given the generalized propensity score: t-statistics for equality of means.
+different from the mean in the other two groups. Recall that we should have
+Xi ⊥ 1{Ti = t}
+
+r(t, Xi ).
+
+We implement this discretizing both the level of the treatment and the GPS. First we
+check independence of Xi and the indicator that 0 ≤ Ti ≤ 23, conditional on r(t, Xi ). To
+implement this we approximate r(t, Xi ) by evaluating the GPS at the median of the prize
+in this group, which is 14. Thus, we test
+Xi ⊥ 1{0 ≤ Ti ≤ 23}
+
+r(14, Xi ).
+
+We test this by blocking on the score r(14, Xi ). We use five blocks, defined by quintiles
+of r(14, Xi ) in the group with 1{0 ≤ Ti ≤ 23}. The three groups are defined by the GPS
+values for r(14, Xi ) in the intervals [0.06, 0.21], [0.21, 0.28], [0.28, 0.34], [0.34, 0.39], and
+[0.39, 0.45]. (The full range of values for the GPS r(T, X) evaluated at received treatment
+and covariates is [0.00, 0.45], but the range of r(14, X) is [0.06, 0.45].) For example, the
+first of these five groups, with r(14, Xi ) ∈ [0.06, 0.21] has a total of 84 observations (16
+with Ti ∈ [0, 23] and 68 with T ∈
+/ [0, 23]). Testing for equality of the average age in the first
+versus the other two prize groups in this GPS group gives a mean difference of -5.5 with a
+standard error of 2.2. In the second GPS group with r(14, Xi ) ∈ [0.21, 0.28] there are 39
+observations (16 with Ti ∈ [0, 23] and 23 with T ∈
+/ [0, 23]), leading to a mean difference of
+-3.2 (SE 5.3). In the third GPS group with r(14, Xi ) ∈ [0.28, 0.34] there are 53 observations
+(21 with Ti ∈ [0, 23] and 38 with T ∈
+/ [0, 23]), leading to a mean difference of 8.2 (SE 4.4).
+In the fourth GPS group with r(14, Xi ) ∈ [0.34, 0.39] there are 36 observations (16 with
+
+9
+
+Variable
+Intercept
+Prize
+Prize-squared/1000
+Log(score)
+Log(score)-squared
+Log(score)×prize
+
+Est.
+9.68
+-0.03
+0.40
+-3.33
+-0.28
+0.05
+
+SE
+3.34
+0.03
+0.20
+3.41
+0.46
+0.02
+
+Table 3: Parameter estimates of conditional distribution of prize given covariates.
+Ti ∈ [0, 23] and 20 with T ∈
+/ [0, 23]), leading to a mean difference of 4.7 (SE 3.0). In the
+fifth GPS group with r(14, Xi ) ∈ [0.39, 0.45] there are 25 observations (16 with Ti ∈ [0, 23]
+and 9 with T ∈
+/ [0, 23]), leading to a mean difference of 0.4 (SE 4.0). Combining these five
+differences in means, weighted by the number of observations in each GPS group, leads to
+a mean difference of 0.1 (SE 0.9), and thus a t-statistic of 0.1, compared to an unadjusted
+mean of -3.1 (SE 1.8) and t-statistic of -1.7.
+The adjustment for the GPS improves the balance. After the adjustment for the GPS,
+only 2 t-statistics are larger than 1.96 (compared to 16 prior to adjustment) and 4 out of
+39 are larger than 1.645 (compared to 17 prior to adjustment). These lower t-statistics
+are not merely the result of increased variances. For example, for earnings in year −1, the
+mean difference between treatment group [0, 23] and the other two is -3.1 (SE 1.7). After
+adjusting for the GPS this is reduced to -0.3 (SE 0.9).
+
+Estimating the conditional expectation of outcome given prize and generalized propensity score
+Next, we regress the outcome, earnings six years after winning the lottery, on the prize Ti
+and the score Ri . We again use the logarithm of the score function rather than the level.
+We include all second order moments of prize and log score. The estimated coefficients are
+presented in Table 3. Again it should be stressed that there is no direct meaning to the
+estimated coefficients in this model, except that testing whether all coefficients involving
+the GPS are equal to zero can be interpreted as a test whether it the covariates introduce
+any bias.
+
+Estimating the dose-response function
+The last step consists of averaging the estimated regression function over the score function
+evaluated at the desired level of the prize. Rather than report the dose-response function,
+we report the derivative of the dose-response function. In economic terminology, this is the
+marginal propensity to earn out of unearned income. (The yearly prize money is viewed
+as unearned income, and the derivative of average labor income with respect to this is the
+
+10
+
+-0.036
+0.02
+0.01
+0
+-0.038
+-0.02
+-0.04
+00
+-0.01
+-0.04
+-0.042
+-0.02
+-0.06
+-0.1
+-0.044
+-0.03
+-0.08
+-0.046
+-0.04
+-0.1
+-0.2
+-0.05
+-0.12
+-0.048
+10
+10
+10
+
+Unadjusted
+
+20
+20
+20
+
+30
+30
+30
+
+40
+40
+40
+
+50
+50
+50
+
+60
+60
+60
+
+line 1
+line 2
+line 3
+
+70
+70
+70
+
+80
+80
+80
+
+90
+90
+
+100
+
+70
+
+80
+
+90
+
+100
+
+70
+
+80
+
+90
+
+100
+
+LS
+Unadjusted
+Adjusted
+0
+-0.1
+-0.2
+10
+
+20
+
+30
+
+40
+
+50
+
+60
+
+LS Adjusted
+GPS
+0
+-0.1
+-0.2
+10
+
+20
+
+30
+
+40
+
+50
+
+60
+
+Figure 1: Estimated derivatives and 95% confidence bands.
+marginal propensity to earn out of unearned income.) We report the value of the derivative
+at $10,000 increments for all values between $10,000 and $100,000. The results are shown
+in Figure 5, along with pointwise 95% confidence bands. The bands are based on 1,000
+bootstrap replications, taking into account estimation of the GPS.
+The GPS-based estimates are compared to linear regression estimates based on a regression function that is quadratic in the prize, either without additional covariates (“unadjusted”) or with the additional covariates included linearly (“LS adjusted”).
+The GPS estimates imply that the propensity to earn out of unearned income goes
+down sharply with the level of unearned income, from -0.10 at $10,000 to -0.02 at $100,000,
+suggesting that those with lower earnings are much more sensitive to income changes than
+those with higher earnings. The linear regression estimates suggest a much smaller change,
+with the derivative at a prize of $100,000 equal to -0.04, compared to -0.05 at $10,000.
+
+6
+
+Conclusion
+
+Propensity score methods have become one of the most important tools for analyzing causal
+effects in observational studies. Although the original work of Rosenbaum and Rubin
+(1983) considered applications with binary treatments, many of the ideas readily extend
+to multivalued and continuous treatments. We have discussed some of the issues involved
+in handling continuous treatments, and emphasized how the propensity score methodology
+can be extended to this case. We applied these ideas to a data set previously studied by
+Imbens, Rubin, and Sacerdote (2001). We expect that coming years will see further work
+applying the Rubin Causal Model approach to a range of settings.
+11
+
+References
+Hahn, J. (1998). On the role of the propensity score in efficient semiparametric estimation
+of average treatment effects. Econometrica 66, 315–331.
+Heckman, J., Ichimura, H., and Todd, P. (1998). Matching as an econometric evaluations
+estimator. Review of Economic Studies 65, 261–294.
+Hirano, K., Imbens, G. W., and Ridder, G. (2003). Efficient estimation of average treatment effects using the estimated propensity score. Econometrica 71, 1161–1189.
+Holland, P. (1986). Statistics and causal inference (with discussion). Journal of the American Statistical Association 81, 945–960.
+Imbens, G. W. (2000). The role of the propensity score in estimating dose-response functions. Biometrika 83, 706–710.
+Imbens, G. W., Rubin, D. B., and Sacerdote, B. (2001). Estimating the effect of unearned
+income on labor supply, earnings, savings and consumption: evidence from a survey of
+lottery players. American Economic Review 91, 778–794.
+Robins, J. M. (1998). Marginal structural models. 1997 Proceedings of the American
+Statistical Association, Section on Bayesian Statistical Science, 1–10.
+Robins, J. M. (1999). Marginal structural models versus structural nested models as tools
+for causal inference. In Statistical Models in Epidemiology: The Environment and Clinical
+Trials, IMA Volume 116, ed. M.E. Halloran and D. Berry, 95–134. New York: SpringerVerlag.
+Robins, J. M., Hernán, M. A., and Brumback, B. (2000). Marginal structural models and
+causal inference in epidemiology. Epidemiology 11, 550–560.
+Rosenbaum, P. (1987). Model-based direct adjustment. Journal of the American Statistical
+Association 82, 387–394.
+Rosenbaum, P. R., and Rubin, D. B. (1983a). The central role of the propensity score in
+observational studies for causal effects. Biometrika 70, 41–55.
+Rubin, D. B. (1974b). Estimating causal effects of treatments in randomized and nonrandomized studies. Journal of Educational Psychology 66, 688–701.
+Rubin, D. B. (1977). Assignment to treatment group on the basis of a covariate. Journal
+of Educational Statistics 2, 1–26.
+Rubin, D. B. (1978a). Bayesian inference for causal effects: the role of randomization.
+Annals of Statistics 6, 34–58.
+
+12
+
+Rubin, D. B., and Thomas, N. (1992). Affinely invariant matching methods with ellipsoidal
+distributions. Annals of Statistics 20, 1079–93.
+Rubin, D. B., and Thomas, N. (1996). Matching using estimated propensity scores: relating
+theory to practice. Biometrics 52, 249–264.
+Sacerdote, B. (1997). The lottery winner survey, crime and social interactions, and why is
+there more crime in cities. Ph.D. thesis, Department of Economics, Harvard University.
+
+13
+
+

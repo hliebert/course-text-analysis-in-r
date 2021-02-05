@@ -1,0 +1,6149 @@
+arXiv:1712.04912v3 [stat.ML] 4 Feb 2019
+
+Quasi-Oracle Estimation of
+Heterogeneous Treatment Effects
+Xinkun Nie
+xinkun@stanford.edu
+
+Stefan Wager
+swager@stanford.edu
+
+Draft version February 2019
+Abstract
+Flexible estimation of heterogeneous treatment effects lies at the heart of many statistical challenges, such as personalized medicine and optimal resource allocation. In
+this paper, we develop a general class of two-step algorithms for heterogeneous treatment effect estimation in observational studies. We first estimate marginal effects and
+treatment propensities in order to form an objective function that isolates the causal
+component of the signal. Then, we optimize this data-adaptive objective function. Our
+approach has several advantages over existing methods. From a practical perspective,
+our method is flexible and easy to use: In both steps, we can use any loss-minimization
+method, e.g., penalized regression, deep neutral networks, or boosting; moreover, these
+methods can be fine-tuned by cross validation. Meanwhile, in the case of penalized
+kernel regression, we show that our method has a quasi-oracle property: Even if the
+pilot estimates for marginal effects and treatment propensities are not particularly accurate, we achieve the same error bounds as an oracle who has a priori knowledge of
+these two nuisance components. We implement variants of our approach based on both
+penalized regression and boosting in a variety of simulation setups, and find promising
+performance relative to existing baselines.
+
+Keywords: boosting, causal inference, empirical risk minimization, kernel regression, penalized regression
+
+1
+
+Introduction
+
+The problem of heterogeneous treatment effect estimation in observational studies arises in
+a wide variety application areas (Athey, 2017), ranging from personalized medicine (Obermeyer and Emanuel, 2016) to offline evaluation of bandits (Dudı́k, Langford, and Li, 2011),
+and is also a key component of several proposals for learning decision rules (Athey and
+Wager, 2017; Hirano and Porter, 2009). There has been considerable interest in developing flexible and performant methods for heterogeneous treatment effect estimation. Some
+notable recent advances include proposals based on the lasso (Imai and Ratkovic, 2013),
+recursive partitioning (Athey and Imbens, 2016; Su, Tsai, Wang, Nickerson, and Li, 2009),
+BART (Hahn, Murray, and Carvalho, 2017; Hill, 2011), random forests (Athey, Tibshirani,
+Wager, et al., 2019; Wager and Athey, 2018), boosting (Powers et al., 2018), neural networks (Shalit, Johansson, and Sontag, 2017), etc., as well as combinations thereof (Künzel,
+Sekhon, Bickel, and Yu, 2017; Luedtke and van der Laan, 2016); see Dorie, Hill, Shalit,
+Scott, and Cervone (2017) for a recent survey and comparisons.
+1
+
+However, although this line of work has led to many promising methods, the literature
+does not yet provide a comprehensive answer as to how machine learning methods should
+be adapted for treatment effect estimation. First of all, there is no definitive guidance on
+how to turn a good generic predictor into a good treatment effect estimator that is robust
+to confounding. The process of developing “causal” variants of machine learning methods
+is still a fairly labor intensive process, effectively requiring the involvement of specialized
+researchers. Second, with some exceptions, the above methods are mostly justified via
+numerical experiments, and come with no formal convergence guarantees or error bounds
+proving that the methods in fact succeed in isolating causal effects.
+In this paper, we discuss a new approach to estimating heterogeneous treatment effects
+that addresses both of these concerns. Our framework allows for fully automatic specification of heterogeneous treatment effect estimators in terms of arbitrary loss minimization
+procedures. Moreover, we show how the resulting methods can achieve comparable error
+bounds to oracle methods that know everything about the data-generating distribution except the treatment effects.
+
+1.1
+
+A Loss Function for Treatment Effect Estimation
+
+We formalize our problem in terms of the potential outcomes framework (Neyman, 1923;
+Rubin, 1974). The analyst has access to n independent and identically distributed examples
+(Xi , Yi , Wi ), i = 1, ..., n, where Xi ∈ X denotes per-person features, Yi ∈ R is the observed
+outcome, and Wi ∈ {0, 1} is the treatment assignment. We posit the existence of potential
+outcomes {Yi (0), Yi (1)} corresponding to the outcome we would have observed given the
+treatment assignment Wi = 0 or 1 respectively, such that Yi = Yi (Wi ), and seek to estimate
+the conditional average treatment effect (CATE) function
+
+
+τ ∗ (x) = E Y (1) − Y (0) X = x .
+(1)
+In order to identify τ ∗ (x), we assume unconfoundedness, i.e., the treatment assignment is
+as good as random once we control for the features Xi (Rosenbaum and Rubin, 1983).
+Assumption 1. The treatment assignment Wi is unconfounded, {Yi (0), Yi (1)} ⊥
+⊥ Wi Xi .
+
+
+We write the treatment propensity
+as e∗ (x)
+ = P W = 1 X = x and the conditional re
+∗
+sponse surfaces as µ(w) (x) = E Y (w) X = x for w ∈ {0, 1}; throughout this paper, we use
+∗-superscripts to denote unknown population quantities. Then, under unconfoundedness,
+
+
+E [εi (Wi ) | Xi , Wi ] = 0, where εi (w) := Yi (w) − µ∗(0) (Xi ) + wτ ∗ (Xi ) .
+(2)
+Given this setup, it is helpful
+CATE function τ ∗ (x) in terms the conditional
+ to re-write
+ the
+∗
+∗
+mean outcome m (x) = E Y X = x = µ(0) (Xi ) + e∗ (Xi )τ ∗ (Xi ) as follows,
+Yi − m∗ (Xi ) = (Wi − e∗ (Xi )) τ ∗ (Xi ) + εi ,
+
+(3)
+
+with the shorthand εi := εi (Wi ). This decomposition was originally used by Robinson
+(1988) to estimate parametric components in partially linear models, and has regularly
+been discussed in both statistics and econometrics ever since (note that this decomposition
+holds for any outcome distribution, including for binary outcomes).
+The goal of this paper is to study how we can use the Robinson’s transfomation (3)
+for flexible treatment effect estimation that builds on modern machine learning approaches
+2
+
+such as boosting or deep learning. Our main result is that we can use this representation
+to construct a loss function that captures heterogeneous treatment effects, and that we can
+then accurately estimate treatment effects—both in terms of empirical performance and
+asymptotic guarantees—by finding regularized minimizers of this loss function.
+As motivation for our approach, note that (3) can equivalently be expressed as
+ 
+!2 
+
+
+(4)
+τ ∗ (·) = argminτ E  (Yi − m∗ (Xi )) − (Wi − e∗ (Xi )) τ (Xi )  ,
+
+
+and so an oracle who knew both the functions m∗ (x) and e∗ (x) a priori could estimate the
+heterogeneous treatment effect function τ ∗ (·) by empirical loss minimization,
+
+
+!2
+n
+
+1 X
+(5)
+(Yi − m∗ (Xi )) − (Wi − e∗ (Xi )) τ (Xi ) + Λn (τ (·)) ,
+τ̃ (·) = argminτ
+
+n
+i=1
+where the term Λn (τ (·)) is interpreted as a regularizer on the complexity of the τ (·) function.
+In practice, this regularization could be explicit as in penalized regression, or implicit, e.g.,
+as provided by a carefully designed deep neural network. The difficulty, however, is that
+in practice we never know the weighted main effect function m∗ (x) and usually don’t know
+the treatment propensities e∗ (x) either, and so the estimator (5) is not feasible.
+Given these preliminaries, we here study the following class of two-step estimators motivated by the above oracle procedure:
+1. Fit m̂(x) and ê(x) via methods tuned for optimal predictive accuracy, then
+2. Estimate treatment effects via a plug-in version of (5), where ê(−i) (Xi ), etc., denote
+held-out predictions, i.e., predictions made without using the i-th training example,1
+o
+n
+b n (τ (·)) + Λn (τ (·)) ,
+τ̂ (·) = argminτ L
+n
+ 
+
+2
+1 X 
+b
+Ln (τ (·)) =
+Yi − m̂(−i) (Xi ) − Wi − ê(−i) (Xi ) τ (Xi ) .
+n i=1
+
+(6)
+
+In other words, the first step learns an approximation for the oracle objective, and the
+second step optimizes it. We refer to this approach as the R-learner in recognition of the
+work of Robinson (1988), and also to emphasize the role of residualization. We will also
+b n (τ (·)) as the R-loss.
+refer to the squared loss L
+This paper makes the following contributions. First, we implement variants of our
+method based on penalized regression and boosting. In each case, we find that the Rlearner exhibits promising performance relative to existing proposals. Second, we prove
+that—in the case of penalized kernel regression—error bounds for the feasible estimator
+for τ̂ (·) asymptotically match the best available bounds for the oracle method τ̃ (·). The
+main point here is that, heuristically, the rate of convergence of τ̂ (·) depends only on the
+“degrees of freedom” needed to express τ ∗ (·), and not on the degrees of freedom used to
+1 Using hold-out prediction for nuisance components, also known as cross-fitting, is an increasingly popular
+approach for making machine learning methods usable in classical semiparametrics (Athey and Wager, 2017;
+Chernozhukov et al., 2017; Schick, 1986; van der Laan and Rose, 2011; Wager et al., 2016).
+
+3
+
+estimate m∗ (·) and e∗ (·). More formally, provided we estimate m∗ (·) and e∗ (·) at o(n−1/4 )
+rates in root-mean squared error, we show that we can achieve considerably faster rates of
+convergence for τ̂ (·)—and these rates only depend on the complexity of τ ∗ (·).
+The R-learning approach also has several practical advantages over existing, more ad
+hoc proposals. Any good heterogeneous treatment effect estimator needs to achieve two
+goals: First, it needs to eliminate spurious effects by controlling for correlations between
+e∗ (X) and m∗ (X); then, it needs to accurately express τ ∗ (·). Most existing machine learning
+approaches to treatment effect estimation seek to provide an algorithm that accomplishes
+both tasks at once (see, e.g., Powers et al., 2018; Shalit et al., 2017; Wager and Athey,
+2018). In contrast, the R-learner cleanly separates these two tasks: We eliminate spurious
+b n , while we can induce a representation
+correlations via the structure of the loss function L
+for τ̂ (·) by choosing the method by which we optimize (6).
+This separation of tasks allows for considerable algorithmic flexibility: Optimizing (6) is
+an empirical minimization problem, and so can be efficiently solved via off-the-shelf software
+such as glmnet for high-dimensional regression (Friedman, Hastie, and Tibshirani, 2010),
+XGboost for boosting (Chen and Guestrin, 2016), or TensorFlow for deep learning (Abadi
+et al., 2016). Furthermore, we can tune any of these methods by cross validating on the loss
+b n , which avoids the use of more sophisticated model-assisted cross-validation procedures as
+L
+developed in Athey and Imbens (2016) or Powers et al. (2018). Relatedly, the fact that the
+machine learning method used to optimize (6) only needs to find a generalizable minimizer
+b n (rather than also control for spurious correlations) means that we can confidently use
+of L
+black-box methods without auditing their internal state to check that they properly control
+for confounding (instead, we only need to verify that they in fact find good minimizers of
+b n on held-out data).
+L
+
+1.2
+
+Related Work
+
+Under unconfoundedness (Assumption 1), the CATE function can be written as
+
+
+τ ∗ (x) = µ∗(1) (x) − µ∗(0) (x), µ∗(w) (x) = E Y X = x, W = w .
+
+(7)
+
+As a consequence of this representation, it may be tempting to first estimate µ̂(w) (x) on
+the treated and control samples separately, and then set τ̂ (x) = µ̂(1) (x) − µ̂(0) (x). This
+approach, however, is often not robust: Because µ̂(1) (x) and µ̂(0) (x) are not trained together, their difference may be unstable. As an example, consider fitting the lasso (Tibshirani, 1996) to estimate µ̂(1) (x) and µ̂(0) (x) in the following
+high-dimensional
+linear model,
+
+
+∗
+∗
++ εi (w) with Xi , β(w)
+∈ Rd , and E εi (w) Xi = 0. A naive approach
+Yi (w) = Xi> β(w)
+would fit two separate lassos to the treated and control samples,
+
+
+2
+ X 
+
+β̂(w) = argminβ(w)
+Yi − Xi> β(w) + λ(w) β(w) 1 ,
+(8)
+
+
+{i:Wi =w}
+
+and then use it to deduce a treatment effect function, τ̂ (x) = x> (β̂(1) − β̂(0) ). However, the
+fact that both β̂(0) and β̂(1) are regularized towards 0 separately may inadvertently regularize
+the treatment effect estimate β̂(1) − β̂(0) away from 0, even when τ ∗ (x) = 0 everywhere. This
+problem is especially acute when the treated and control samples are of different sizes; see
+Künzel, Sekhon, Bickel, and Yu (2017) for some striking examples.
+
+4
+
+The recent literature on heterogeneous treatment effect estimation has proposed several
+ideas on how to avoid such “regularization bias”. Some recent papers have proposed structural changes to various machine learning methods aimed at focusing on accurate estimation
+of τ (·) (Athey and Imbens, 2016; Hahn et al., 2017; Imai and Ratkovic, 2013; Powers et al.,
+2018; Shalit et al., 2017; Su et al., 2009; Wager and Athey, 2018). For example, with the
+lasso, Imai and Ratkovic (2013) advocate replacing (8) with a single lasso as follows,
+( n 
+)
+2
+
+
+X
+b̂, δ̂ = argminb, δ
+Yi − Xi> b + (Wi − 0.5)Xi> δ + λb kbk1 + λδ kδk1 ,
+(9)
+i=1
+>
+
+where then τ̂ (x) = x δ̂. This approach always correctly regularizes towards a sparse δvector for treatment heterogeneity. The other approaches cited above present variants and
+improvements of similar ideas in the context of more sophisticated machine learning methods; see, for example, Figure 1 of Shalit et al. (2017) for a neural network architecture
+designed to highlight treatment effect heterogeneity without being affected by confounders.
+Another trend in the literature, closer to our paper, has focused on meta-learning approaches that are not closely tied to any specific machine learning method. Künzel, Sekhon,
+Bickel, and Yu (2017) proposed two approaches to heterogeneous treatment effect estimation
+via generic machine learning methods. One, called the X-learner, first estimates µ̂(w) (x) via
+appropriate non-parametric regression methods. Then, on the treated observations, it de(−i)
+fines pseudo-effects Di = Yi − µ̂(0) (Xi ), and uses them to fit τ̂(1) (Xi ) via a non-parametric
+regression. Another estimator τ̂(0) (Xi ) is obtained analogously (see Künzel et al. (2017) for
+details), and the two treatment effect estimators are aggregated as
+τ̂ (x) = (1 − ê(x))τ̂(1) (x) + ê(x)τ̂(0) (x).
+
+(10)
+
+Another method, called the U -learner, starts by noticing that
+
+
+Yi − m∗ (Xi )
+,
+E Ui Xi = x = τ (x), Ui =
+Wi − e∗ (Xi )
+
+(11)
+
+and then fitting Ui on Xi using any off-the-shelf method. Relatedly, Athey and Imbens (2016) and Tian, Alizadeh, Gentles, and Tibshirani (2014) develop methods for heterogeneous treatment effect estimation based on weighting the outcomes or the covariates with the propensity score; for example, we can estimate τ ∗ (·) by regressing Yi (Wi −
+e∗ (Xi ))/(e∗ (Xi )(1 − e∗ (Xi ))) on Xi . In our experiments, we compare our method at length
+to those of Künzel et al. (2017). Relative to this line of work, our main contribution is our
+method, the R-learner, which provides meaningful improvements over baselines in a variety
+of settings, and our analysis, which provides the first “quasi-oracle” error bound we are
+aware of for non-parametric regression, i.e., where the error of τ̂ may decay faster than that
+of ê or m̂.
+The transformation of Robinson (1988) has received considerable attention in recent
+years. Athey, Tibshirani, Wager, et al. (2019) rely on it to grow a causal forest that is robust
+to confounding, Robins (2004) builds on it in developing G-estimation for sequential trials,
+and Chernozhukov et al. (2017) present it as a leading example on how machine learning
+methods can be put to good use in estimating nuisance components for semiparametric
+inference. All these results, however, consider estimating parametric models for τ (·) (or,
+in the case of Athey et al. (2019), local parametric modeling). The closest result to us
+in this line of work is from Zhao, Small, and Ertefaie (2017), who combine Robinson’s
+5
+
+transformation with the lasso to provide valid post-selection inference on effect modification
+in the high-dimensional linear model. To our knowledge, our paper is the first to use
+Robinson’s transformation to motivate a loss function that is used in a general machine
+learning context.
+Our formal results draw from the literature on semiparametric efficiency and constructions of orthogonal moments including Robinson (1988) and, more broadly, Belloni, Chernozhukov, Fernández-Val, and Hansen (2017), Bickel, Klaassen, Ritov, and Wellner (1998),
+Chernozhukov, Chetverikov, Demirer, Duflo, Hansen, Newey, and Robins (2017), Newey
+(1994), Robins (2004), Robins and Rotnitzky (1995), Robins, Li, Mukherjee, Tchetgen Tchetgen, and
+√ van der Vaart (2017), Tsiatis (2007), van der Laan and Rose (2011), etc., that
+target parameter in the presence of nuisance components
+aim at n-rate estimation of a √
+that cannot be estimated at a n rate. Algorithmically, our approach has a close connection to targeted maximum likelihood estimation (Scharfstein, Rotnitzky, and Robins,
+1999; Van Der Laan and Rubin, 2006), which starts by estimating nuisance components
+non-parametrically, and then uses these first stage estimates to define a likelihood function
+that is optimized in a second step.
+The main difference between this literature and our results is that existing results typically focus on estimating a single (or low-dimensional) target parameter, whereas we seek
+to estimate an object τ ∗ (·) that may also be quite complicated itself. Another research
+direction that also use ideas from semiparametrics to estimate complex objects is centered
+on estimating optimal treatment allocation rules (Athey and Wager, 2017; Dudı́k, Langford, and Li, 2011; Laber and Zhao, 2015; Luedtke and van der Laan, 2016; Zhang, Tsiatis,
+Davidian, Zhang, and Laber, 2012; Zhao, Zeng, Rush, and Kosorok, 2012). This problem is closely related to, but subtly different from the problem of estimating τ ∗ (·) under
+squared-error loss; see Kitagawa and Tetenov (2018), Manski (2004) and Murphy (2005) for
+a discussion. We also mention the work of van der Laan, Dudoit, and van der Vaart (2006),
+who consider non-parametric estimation by empirical minimization over a discrete grid.
+Finally, we note that all results presented here assume a sampling model where observations are drawn at random from a population, and we define our target estimand τ (·) in
+terms of moments of that population. Ding, Feller, and Miratrix (2018) consider heterogeneous treatment effect estimation in a strict randomization inference setting, where we
+n
+the features and potential outcomes {Xi , Yi (0), Yi (1)}i=1 are taken as fixed and only the
+treatment Wi is random (Imbens and Rubin, 2015); they then show how to estimate the
+projection of the realized treatment heterogeneity Yi (1) − Yi (0) onto the linear span of the
+Xi . It would be interesting to consider whether it is possible to derive useful results on
+non-parametric (regularized) heterogeneous treatment effect estimation under randomization inference.
+
+2
+
+The R-Learner in Action
+
+Before presenting formal results in the following section, we flesh out a few examples on how
+the R-learner works in practice. We emphasize that our goal is not to introduce a single
+algorithm, but rather a methodological framework for bringing machine learning expertise
+to bear on heterogeneous treatment effect estimation via the R-loss. Below, we walk through
+an application of the R-learner, and discuss how cross-validation can be used to fine tune
+each step of the method. Then, in Section 2.2, we show how we can use the R-loss to combine
+treatment effect estimates obtained via two popular black-box methods for heterogeneous
+
+6
+
+treatment effect estimation such as to improve on the performance of either method on its
+own.
+
+2.1
+
+Application to a Voting Study
+
+To see how the R-learner works in practice, we consider an example motivated by Arceneaux,
+Gerber, and Green (2006), who studied the effect of paid get-out-the-vote calls on voter
+turnout. A common difficulty in comparing the accuracy of heterogeneous treatment effect
+estimators on real data is that we do not have access to the ground truth. From this
+perspective, a major advantage of this application is that Arceneaux et al. (2006) found no
+effect of get-out-the-vote calls on voter turnout, and so we know what the correct answer is.
+We then “spike” the original dataset with a synthetic treatment effect τ ∗ (·) such as to make
+the task of estimating heterogeneous treatment effects non-trivial. In other words, both the
+baseline signal and propensity scores are from real data; however, τ ∗ (·) is chosen by us, and
+so we can check whether different methods in fact succeed in recovering it.
+The dataset of Arceneaux et al. (2006) has many covariates that are highly predictive
+of turnout, and the original study assigned people to the treatment and control condition
+with variable probabilities, resulting in a non-negligible amount of confounding.2 A naive
+analysis (without correcting for variable treatment propensities) estimates the average intent
+to treat effect of a single get-out-the-vote call on turnout as 4%; however, an appropriate
+analysis finds with high confidence that any treatment effect must be smaller than 1% in
+absolute value. The full sample has n = 1, 895, 468 observations, of which n1 = 59, 264 were
+assigned treatment. We focus on d = 11 covariates (including state, county, age, gender,
+etc.). Both the outcome Y and the treatment W are binary.
+As discussed above, we assume that the treatment effect in the original data is 0, and
+spike in a synthetic treatment effect τ ∗ (Xi ) = −VOTE00i /(2+100/AGEi ), where VOTE00i
+indicates whether the i-th unit voted in the year 2000, and AGEi is their age. Because the
+outcomes are binary, we add in the synthetic treatment effect by strategically flipping some
+outcome labels.3 As is typical in causal inference applications, the treatment heterogeneity
+here is quite subtle, with Var [τ ∗ (X)] = 0.016, and so a large sample size is needed in order
+to reject a null hypothesis of no treatment heterogeneity. For our analysis, we focused on
+a subset of 148, 160 samples containing all the treated units and a random subset of the
+controls (thus, 2/5 of our analysis sample was treated). We further divided this sample into
+a training set of size 100,000, a test set of size 25,000, and a holdout set with the rest.
+To use the R-learner, we first estimated ê(·) and m̂(·) to form the R-loss function in (6).
+To do so, we fit models for the nuisance components via both boosting and the lasso (both
+with tuning parameters selected via cross-validation), and chose the model that minimized
+cross-validated error. Perhaps unsurprisingly noting the large sample size, this criterion
+lead us to pick boosting for both ê(·) and m̂(·). Another option would have been to combine
+predictions from the lasso and boosting models, as advocated by Van der Laan, Polley, and
+2 The design of Arceneaux et al. (2006) was randomized separately by state and competitiveness of the
+election. Although the randomization probabilities were known to the experimenters, we here hide them
+from our algorithm, and require it to learn a model ê(·) for the treatment propensities. We also note that,
+in the original data, not all voters assigned to be contacted could in fact answer the phone call, meaning
+that all effects should be interpreted as intent to treat effects.
+3 Denote the original unflipped outcomes as Y ∗ . To add in a treatment effect τ ∗ (·), we first draw Bernoulli
+i
+random variables Ri with probability |τ ∗ (Xi )|. Then, if Ri = 0, we set Yi (0) = Yi (1) = Yi∗ , whereas if
+Ri = 1, we set (Yi (0), Yi (1)) to (0, 1) or (1, 0) depending on whether τ ∗ (Xi ) > 0 or τ ∗ (Xi ) < 0 respectively.
+Finally, we set Yi = Yi (Wi ).
+
+7
+
+0.1
+
+35000
+
+lasso
+boost
+
+−0.1
+
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+
+●
+●
+●●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+
+●
+
+−0.2
+
+prediction
+
+0.0
+
+25000
+15000
+
+Frequency
+
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+
+●
+●
+
+0
+
+−0.4
+
+5000
+
+−0.3
+
+●
+
+−0.35
+
+−0.25
+
+−0.15
+
+−0.05
+
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+
+−0.30
+
+CATE
+
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+
+−0.21
+
+0.00
+CATE
+
+Histogram of CATE
+
+R-learner estimates of CATE
+
+Figure 1: The left panel shows the distribution of the conditional average treatment effect
+(CATE) function τ (Xi ) on the test set. The right panel compares the true τ (Xi ) to estimates
+τ̂ (Xi ) obtained via the R-learner running the lasso and boosting respectively to minimize
+the R-loss, again on the test set. As discussed in Section 2.1, both of them use nuisance
+components estimated via boosting.
+
+Hubbard (2007).
+Next, we optimized the R-loss function. We again tried methods based on both the lasso
+and boosting. This time, the lasso achieved a slightly lower training set cross-validated
+R-loss than boosting, namely 0.1816 versus 0.1818. Because treatment effects are so weak
+(and so there is potential to overfit even in cross-validation), we also examined R-loss on
+the holdout set. The lasso again came out ahead, and the improvement in R-loss is stable,
+0.1781 versus 0.1783.4 We thus chose the lasso-based τ̂ (·) fit as our final model for τ ∗ (·).
+Because we know the true CATE function τ ∗ (·) in our semi-synthetic data
+generative
+P distribution, we can evaluate the oracle test set mean-squared error,
+1/ntest {i∈test} (τ̂ (Xi ) − τ ∗ (Xi ))2 . Here, it is clear that the lasso did substantially better than boosting, achieving a mean-squared error of 0.47 × 10−3 versus 1.23 × 10−3 . The
+right panel of Figure 1 compares τ̂ (·) estimates from minimizing the R-loss using the lasso
+and boosting respectively. We see that the lasso is somewhat biased, but boosting is noisy,
+and the bias-variance trade-off favors the lasso. With a larger sample size, we’d expect
+boosting to prevail.
+We also compared our approach to both the single lasso approach (9), and a popular nonparametric approach to heterogeneous treatment effect estimation via BART (Hill, 2011),
+with the estimated propensity score added in as a feature following the recommendation of
+Hahn, Murray, and Carvalho (2017). The single lasso got an oracle test set error of 0.61 ×
+4 Although the improvement in R-loss is stable, the loss itself is somewhat different between the training
+P
+and holdout samples. This appears to be due to the term n−1 i (Yi − µ∗(W ) (Xi ))2 induced by irreducible
+i
+outcome noise. This term is large and noisy in absolute terms; however, it gets canceled out when comparing
+the accuracy of two models. This phenomenon plays a key role in the literature on model selection via crossvalidation (Yang, 2007).
+
+8
+
+10−3 , whereas BART got 4.05 × 10−3 . It thus appears that, in this example, there is value
+in using a non-parametric method for estimating ê(·) and m̂(·), but then using the simpler
+lasso for τ̂ (·). In contrast, the single lasso approach uses linear modeling everywhere (thus
+leading to inefficiencies and potential confounding), whereas BART uses non-parametric
+modeling everywhere (thus making it difficult to obtain a stable τ (·) fit). Section 4 has
+a more comprehensive simulation evaluation of the R-learner relative to several baselines,
+including the meta-learners of Künzel, Sekhon, Bickel, and Yu (2017).
+
+2.2
+
+Model Averaging with the R-Learner
+
+In the previous section, we considered an example application where we were willing to
+carefully consider the estimation strategies used in each step of the R-learner. In other cases,
+however, a practitioner may prefer to use some off-the-shelf treatment effect estimators as
+the starting point for their analysis. Here, we discuss how to use the R-learning approach
+to build a consensus treatment effect estimate via a variant of stacking (Breiman, 1996;
+Van der Laan, Polley, and Hubbard, 2007; Wolpert, 1992).
+Suppose we start with k = 1, ..., K different treatment effect estimators τ̂k , and that we
+(−i)
+have access to out-of-fold estimates τ̂k (Xi ) on our training set. Suppose, moreover, that
+we have trusted out-of-fold estimates ê(−i) (Xi ) and m̂(−i) (Xi ) for the propensity score and
+main effect respectively. Then, we propose building a consensus estimate τ̂ (·) by taking the
+best positive linear combination of the τ̂k (·) according to the R-loss:
+( n
+K
+n
+o
+
+X
+X 
+τ̂ (x) = ĉ +
+αk τ̂k (x),
+b̂, ĉ, α̂ = argminb, c, α
+Yi − m̂(−i) (Xi ) − b−
+i=1
+
+k=1
+
+c+
+
+K
+X
+
+!
+αk τ̂
+
+(−i)
+
+(Xi )
+
+
+
+Wi − ê
+
+(−i)
+
+(Xi )
+
+
+
+!2
+
+)
+
+(12)
+
+:α≥0 .
+
+k=1
+
+For flexibility, we also allow the stacking step (12) to freely adjust a constant treatment
+effect term c, and we add an intercept b that can be used to absorb any potential bias of m̂.
+We test this approach on the following data-generation distributions. In both cases, we
+drew n = 10, 000 i.i.d. samples from a randomized study design,
+Xi ∼ N (0, Id×d ) , Wi ∼ Bernoulli(0.5),
+
+
+3
+∗
+2
++ (Wi − 0.5) τ (Xi ), σ ,
+Yi Xi , Wi ∼ N
+1 + eXi3 −Xi2
+
+(13)
+
+for different choices of τ ∗ (·) and σ, and with d = 10. We consider both a smooth treatment
+effect function τ ∗ (Xi ) = 1/(1 + eXi1 −Xi2 ), and a discontinuous τ ∗ (Xi ) = 1({Xi1 > 0})/(1 +
+e−Xi2 ). Given this data-generating process, we tried estimating τ (·) via BART (Hahn,
+Murray, and Carvalho, 2017; Hill, 2011), causal forests (Athey, Tibshirani, Wager, et al.,
+2019; Wager and Athey, 2018), and a stacked combination of the two using (12). We assume
+that the experimenter knows that the data was randomized, and used ê(x) = 0.5 in any place
+a propensity score was needed. For stacking, we estimated m̂(·) using a random forest.
+Results are shown in Figure 2. In the example with a smooth τ ∗ (·), BART slightly
+out-performs causal forests, while stacking does better than either on its own until the noise
+level σ gets very large—in which case none of the methods do much better than a constant
+treatment effect estimator. Meanwhile, the setting with the discontinuous τ ∗ (·) appears to
+9
+
+●
+●
+
+0.20
+
+0.20
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+0.10
+
+RMSE
+
+0.10
+
+RMSE
+
+●
+
+●
+●
+
+0.05
+
+0.05
+
+●
+
+●
+
+●
+
+0.5
+
+1.0
+
+●
+
+causal forest
+BART
+R−stack
+
+●
+
+2.0
+
+0.5
+
+noise level σ
+
+1.0
+
+causal forest
+BART
+R−stack
+2.0
+
+noise level σ
+
+smooth τ ∗ (·)
+
+discontinuous τ ∗ (·)
+
+Figure 2: Root-mean squared error (RMSE) on the data-generating design (13), for different
+noise levels σ. For reference, the standard error of τ ∗ (Xi ) (i.e., the RMSE of the optimal
+constant predictor) is shown as a dotted line. All results are aggregated over 50 replications.
+be particularly favorable to causal forests, at least for lower noise levels. Here, stacking is
+able to automatically match the performance of the more accurate base learner.
+
+3
+
+A Quasi-Oracle Error Bound
+
+As discussed in the introduction, the high-level goal of our formal analysis is to establish
+error bounds for R-learning that only depend on the complexity of τ ∗ (·), and that match
+the error bounds we could achieve if we knew m∗ (·) and e∗ (·) a-priori. In order to do so,
+we focus on a variant of the R-learner based on penalized kernel regression. The problem of
+regularized kernel learning covers a broad class of methods that have been thoroughly studied
+in the statistical learning literature (see, e.g., Bartlett and Mendelson, 2006; Caponnetto
+and De Vito, 2007; Cucker and Smale, 2002; Steinwart and Christmann, 2008; Mendelson
+and Neeman, 2010), and thus provides an ideal case study for examining the asymptotic
+behavior of the R-learner.
+We study k·kH -penalized kernel regression, where H is a reproducing kernel Hilbert space
+(RKHS) with a continuous, positive semi-definite kernel function K. Let P be a non-negative
+measure over the compact metric space X ⊂ Rd , and let K be a kernel with respect to P.
+Let TK : L2 (P) → L2 (P) be defined as TK (f )(·) = E [K(·, X)f (X)]. By Mercer’s theorem
+(Cucker and Smale, 2002), there is an orthonormal basis of eigenfunctions (ψj )∞
+j=1 of TK
+with corresponding eigenvalues (σj )∞
+such
+that
+j=1
+K(x, y) =
+
+∞
+X
+
+σj ψj (x)ψj (y).
+
+j=1
+
+√
+Consider the function φ : X → l2 defined by φ(x) = ( σj ψj (x))∞
+j=1 . Following Mendelson
+and Neeman (2010), we define the RKHS H to be the image of l2 : For every t ∈ l2 ,
+10
+
+define the corresponding element in H by ft (x) = hφ(x), ti with the induced inner product
+hfs , ft iH = ht, si.
+Assumption 2. Without loss of generality, we assume K(x, x) ≤ 1 for all x ∈ X . We
+assume that the eigenvalues σj satisfy G = supj≥1 j 1/p σj for some constant G < ∞, and
+that the orthonormal eigenfunctions ψj (·) with kψj kL2 (P) = 1 are uniformly bounded, i.e.,
+supj kψj k∞ ≤ A < ∞. Finally, we assume that the outcomes Yi are almost surely bounded,
+|Yi | ≤ M .
+
+
+Assumption 3. The oracle CATE function τ ∗ (x) = E Yi (1) − Yi (0) Xi = x satisfies
+kTKα (τ ∗ (·))kH < ∞ for some 0 < α < 1/2.5
+Given this setup, we study oracle penalized regression rules of the following form,
+( n 
+2
+1X
+(Yi − m∗ (Xi )) − (Wi − e∗ (Xi )) τ (Xi )
+τ̃ (·) = argminτ ∈H
+n i=1
+(14)
+)
++ Λn (kτ kH ) : kτ k∞ ≤ 2M ,
+as well as feasible analogues obtained by cross-fitting (Chernozhukov et al., 2017; Schick,
+1986):
+( n
+
+1 X
+Yi − m̂(−q(i)) (Xi )
+τ̂ (·) = argminτ ∈H
+n i=1
+(15)
+)
+
+
+2
+(−q(i))
+− Wi − ê
+(Xi ) τ (Xi ) + Λn (kτ kH ) : kτ k∞ ≤ 2M ,
+where q is a mapping from the i = 1, ..., n sample indices to Q evenly sized data folds, such
+that ê(−q(i)) (x) and m̂(−q(i)) (x) are each trained without considering observations in the
+q(i)-th data fold; typically we set Q to 5 or 10. Adding the upper bound kτ k∞ ≤ 2M (or,
+in fact, any finite upper bound on τ ) enables us to rule out some pathological behaviors.
+We seek to characterize the accuracy of our estimator τ̂ (·) by bounding its regret R(τ̂ ),
+"
+ #
+2
+
+R(τ ) = L(τ ) − L(τ ∗ ), L(τ ) = E
+
+(Yi − m∗ (Xi )) − τ (Xi ) (Wi − e∗ (Xi ))
+
+.
+
+(16)
+
+5 We emphasize that we do not assume that τ ∗ (·) has a finite H-norm; rather, we only assume that we can
+α would
+make it have a finite H-norm after a sufficient amount of smoothing. More concretely, with α = 0, TK
+be the identity operator, and so this assumption would be equivalent to the strongest possible assumption
+that kτ ∗ (·)kH < ∞ itself. Then, as α grows, this assumption gets progressively weaker, and at α = 1/2
+it would devolve to P
+simply asking that τ ∗ (·) belong to the space L2 (P) of square-integrable
+functions. To
+P
+√
+2
+see this, let f (x) = ∞
+σj ψj (x)tj for some t ∈ l2 , in which case kf kL2 (P) = ∞
+j=1
+j=1 σj tj . We also note
+that by taking φj (x) = fej (x) = hφ(x), ej i where ej ∈ l2 is 1 at the j-th position and 0 otherwise, we have
+1/2
+kφj kH = hfej , fej iH = hej , ej i1/2 = 1. Then,
+1/2
+
+kTK (f )kH = k
+
+∞
+X
+
+1/2 √
+
+σj
+
+σj ψj (x)tj kH = k
+
+∞
+X
+
+j=1
+
+j=1
+1/2
+
+and so kTK (f )kH = kf kL2 (P) for all f ∈ L2 (P).
+
+11
+
+1/2
+
+σj
+
+φj tj kH =
+
+∞
+X
+j=1
+
+σj t2j ,
+
+Note that R(τ ) = E[(Wi − e∗ (Xi ))2 (τ (Xi ) − τ ∗ (Xi ))2 ] and so if we have overlap, i.e., there
+is an η > 0 such that η < e∗ (x) < 1 − η for all x ∈ X , then
+(1 − η)−2 R(τ ) < E[(τ (Xi ) − τ ∗ (Xi ))2 ] < η −2 R(τ ),
+
+(17)
+
+meaning that regret bounds directly translate into squared-error loss bounds for τ (·), and
+vice-versa.
+The sharpest regret bounds for (14) given Assumptions 2 and 3 are due to Mendelson
+and Neeman (2010) (see also Steinwart, Hush, and Scovel (2009)), and scale as
+
+
+1−2α
+eP n− p+(1−2α) ,
+(18)
+R (τ̃ ) = O
+eP -notation hides logarithmic factors. In the case α = 0 where τ ∗ is within
+where the O
+the RKHS used for penalization, we recover the more familiar n−1/(1+p) rate established by
+Caponnetto and De Vito (2007). Again, our goal is to establish excess loss bounds for our
+feasible estimator τ̂ that match the bound (18) available to the oracle that knows m∗ (·) and
+e∗ (·) a-priori.
+
+3.1
+
+Fast Rates and Isomorphic Coordinate Projections
+
+In order to establish excess loss bounds for τ̂ , we first need to briefly review the proof
+techniques underlying (18). The argument of Mendelson and Neeman (2010) relies on the
+following quasi-isomorphic coordinate projection lemma of Bartlett (2008). To state this
+result, write
+Hc = {τ : kτ kH ≤ c, kτ k∞ ≤ 2M }
+(19)
+for the radius-c ball of H capped by 2M , let τc∗ = argmin {L(τ ) : τ ∈ Hc } denote the best
+approximation to τ ∗ within Hc , and define c-regret R(τ ; c) = L(τ ) − L(τc∗ ) over τ ∈ Hc .
+We also define the estimated and oracle c-regret functions
+bn (τ ; c) = L
+b n (τ ) − L
+b n (τc∗ ),
+R
+where
+
+en (τ ; c) = L
+e n (τ ) − L
+e n (τc∗ ),
+R
+
+(20)
+
+n
+
+X
+2
+e n (τ ) = 1
+L
+(Yi − m∗ (Xi ) − τ (Xi ) (Wi − e∗ (Xi )))
+n i=1
+
+(21)
+
+is the oracle loss function on the n samples used for empirical minimization, and
+n 
+
+2
+X
+b n (τ ) = 1
+L
+Yi − m̂(−q(i)) (Xi ) − τ (Xi ) Wi − ê(−q(i)) (Xi )
+n i=1
+
+(22)
+
+is the feasible cross-fitted loss function. R̂n (τ ; c) is not actually observable in practice as it
+depends on τc∗ ; however, this does not hinder us from establishing high-probability bounds
+for it. The lemma below is adapted from Bartlett (2008).
+Lemma 1. Let Ľn (τ ) be any loss function, and Řn (τ ; c) = Ľn (τ ) − Ľn (τc∗ ) be the associated
+regret. Let ρn (c) be a continuous positive function that is increasing in c. Suppose that, for
+every 1 ≤ c ≤ C and some k > 1, the following inequality holds:
+1
+Řn (τ ; c) − ρn (c) ≤ R(τ ; c) ≤ k Řn (τ ; c) + ρn (c) for all τ ∈ Hc .
+k
+12
+
+(23)
+
+Then, writing κ1 = 2k + k1 and κ2 = 2k 2 + 3, any solution to the empirical minimization
+problem with regularizer Λn (c) ≥ ρn (c),
+
+τ̌ ∈ argminτ ∈HC Ľ(τ ) + κ1 Λn (kτ kH ) ,
+
+(24)
+
+also satisfies the following risk bound:
+L (τ̌ ) ≤ inf {L(τ ) + κ2 Λn (kτ kH )} .
+
+(25)
+
+τ ∈HC
+
+In other words, the above lemma reduces the problem of deriving regret bounds to establishing quasi-isomorphisms as in (23) (and any with-high-probability quasi-isomorphism
+guarantee yields a with-high-probability regret bound). In particular, we can use this approach to prove the regret bound (18) for the oracle learner as follows. We first need a
+with-high-probability quasi-isomorphism of the following form,
+1e
+en (τ ; c) + ρn (c).
+Rn (τ ; c) − ρn (c) ≤ R(τ ; c) ≤ k R
+k
+
+(26)
+
+Mendelson and Neeman (2010) prove such a bound for ρn (c) scaling as
+
+ρn (c) ∼ (1 + log(n) + log log (c + e))
+
+p
+
+(c + 1) log(n)
+√
+n
+
+2
+ 1+p
+
+.
+
+(27)
+
+Lemma 1 then immediately implies that penalized regression over HC with the oracle loss
+e and regularizer κ1 ρn (c) satisfies the bound below with high probability:
+function L(·)
+R(τ̃ ) = L (τ̃ ) − L (τ ∗ ) ≤ inf {L(τ ) + κ2 ρn (kτ kH )} − L (τ ∗ ) .
+τ ∈HC
+
+Furthermore, for any 1 ≤ c ≤ C, we also have
+
+(28)
+
+6
+
+inf {L(τ ) + κ2 ρn (kτ kH )} ≤ L (τ ∗ ) + (L (τc∗ ) − L (τ ∗ )) + κ2 ρn (c).
+
+τ ∈HC
+
+(29)
+
+Noting the scaling of ρn (c) in (27) and the approximation error bound
+2
+
+kτc∗ − τ ∗ kL2 (P) ≤ η −2 c
+
+2α−1
+α
+
+1/α
+
+kTKα (τ ∗ (·))kH
+
+(30)
+
+established by Smale and Zhou (2003) under the setting of Assumption 3, we achieve a
+practical regret bound by choosing c = cn to optimize the right-hand side of (29). The
+specific rate in (18) arises by setting cn = nα/(p+(1−2α)) .
+For our purposes, the upshot is that if we can match the strength of the quasiisomorphism bounds (26) with our feasible loss function, then we can also match the rate of
+any regret bounds proved using the above argument. The proof of the following result relies
+several concentration results, including Talagrand’s inequality and generic chaining (Talagrand, 1996, 2006), and makes heavy use of cross-fitting style arguments (Chernozhukov
+et al., 2017; Schick, 1986; van der Laan and Rose, 2011).
+6 See Corollary 2.7 in Mendelson and Neeman (2010) for details. They consider the case where C = ∞;
+here, instead, we only take C to be large enough for our argument (see the proof for details).
+
+13
+
+Lemma 2. Given the conditions in Lemma 1, suppose that the propensity estimate ê(x) is
+uniformly consistent,
+ξn := sup |ê(x) − e∗ (x)| →p 0,
+(31)
+x∈X
+
+and the L2 errors converge at rate
+h
+i
+h
+i
+
+2
+2
+E (m̂(X) − m∗ (X)) , E (ê(X) − e∗ (X)) = O a2n
+
+(32)
+
+for some sequence an such that
+an = O n−κ
+
+
+
+with κ >
+
+1
+.
+4
+
+(33)
+
+Suppose, moreover, that we have overlap, i.e., η < e∗ (x) < 1 − η for some η > 0, and that
+Assumptions 2 and 3 hold. Then, for any ε > 0, there exists a constant U (ε) such that the
+regret functions induced by the oracle learner (14) and the feasible learner (15) are coupled
+as
+bn (τ ; c) − R
+en (τ ; c)
+R
+!
+1
+cn 1−p
+1
+2p
+1−p 1
+√ log(n) + c R(τ ; c)
+log
++ c R(τ ; c)
+≤ U (ε) c R(τ ; c)
+n
+R(τ ; c)
+n
+v
+v
+!
+!
+u
+u
+1
+1
+1−p
+1 u
+cn 1−p
+1 u
+cn 1−p
+p
+1− p
+p
+t
+t
++ c R(τ ; c) 2 √
++ c R(τ ; c) 2 an √
+log
+log
+R(τ ; c)
+R(τ ; c)
+n
+n
+!
+p
+
+1−p
+2
+
+a2n
+
+2p
+
+1−p
+
++ ξn R(τ ; c) ,
+(34)
+α
+
+simultaneously for all 1 ≤ c ≤ cn log(n) with cn = n p+1−2α and τ ∈ Hc , with probability at
+least 1 − ε.
+This result implies that we can turn any quasi-isomorphism for the oracle learner (26)
+b ) with error inflated by the right
+with error ρn (c) into a quasi-isomoprhism bound for R(τ
+hand side of (34). Thus, given any regret bound for the oracle learner built using Lemma
+1, we can also get an analogous regret bound for the feasible learner provided we regularize
+just a little bit more. The following result makes this formal.
+Theorem 3. Given the conditions of Lemma 2 and that 2α < 1 − p, suppose that we obtain
+τ̂ (·) via a penalized kernel regression variant of the R-learner (15), with a properly chosen
+penalty of the form Λn (kτ̂ kH ) specified in the proof. Then τ̂ (·) satisfies the same regret
+bound (18) as τ̃ (·), i.e.,
+
+
+eP n−(1−2α)/(p+(1−2α)) .
+R (τ̂ ) = O
+(35)
+In other words, we have found that with penalized kernel regression, the R-learner can
+match the best available performance guarantees available for the oracle learner (14) that
+
+14
+
+knows everything about the data generating distribution except the true treatment effect
+function—both the feasible and the oracle learner satisfy
+1−2α
+
+eP (r2 ), with rn = n− 21 p+(1−2α) .
+R(τ̂ ), R(τ̃ ) = O
+n
+
+(36)
+
+As we approach the semiparametric case, i.e., α, p → 0, we recover√the well-known result
+from the semiparametric inference literature that, in order to get 1/ n-consistent inference
+for a single target parameter, we need 4-th root consistent nuisance parameter estimates
+(see Robinson (1988), Chernozhukov et al. (2017), and references therein).
+We emphasize that our quasi-oracle result depends on a local robustness property of
+the R-loss function, and does not hold for general meta-learners; for example, it does not
+hold for the X-learner of Künzel, Sekhon, Bickel, and Yu (2017). To see this, we argue by
+contradiction: We show that it is possible to make o(n−1/4 )-changes to the nuisance components µ̂(w) (x) used by the X-learner that induce changes in the X-learner’s τ̂ (·) estimates
+that dominate the error scale in (36). Thus, there must be some choices o(n−1/4 )-consistent
+µ̂(w) (x) with which the X-learner does not converge at the rate (36). The contradiction arises
+as follows: Pick ξ > 0 such that 0.25+ξ < (1−2α)/(2(p+(1−2α)), and modify the nuisance
+components used to form the X-learner in (10) such that µ̂(0) (x) ← µ̂(0) (x) − c/n0.25+ξ
+and µ̂(1) (x) ← µ̂(1) (x) + c/n0.25+ξ . Recall that the X-learner fits τ̂(1) (·) by minimizing
+P
+(−i)
+2
+n−1
+1
+Wi =1 (Yi − µ̂(0) (Xi ) − τ(1) (Xi )) , and fits τ̂(0) (·) by solving an analogous problem
+on the controlled units. Combining the τ̂(w) estimates from these two loss functions,
+we see by inspection that its final estimate of the treatment effect is also shifted by
+τ̂ (x) ← τ̂ (x) + c/n0.25+ξ . The perturbations c/n0.25+ξ are vanishingly small on the n−1/4
+scale, and so would not affect conditions analogous to those of Theorem 3; yet they have a
+big enough effect on τ̂ (x) to break any convergence results on the scale of (36).7
+
+4
+
+Simulation Experiments
+
+As discussed several times already, our approach to heterogeneous treatment effect estimation via learning objectives can be implemented using any method that is framed as a loss
+minimization problem, such as boosting, decision trees, etc. In this section, we focus on
+simulation experiments using the R-learner, a direct implementation of (6) based on both
+the lasso and boosting.
+We consider the following methods for heterogeneous treatment
+ effect estimation
+
+as baselines. The S-learner fits a single model for f (x, w) = E Y X = x, W = w ,
+and then estimates τ̂ (x) = fˆ(x, 1) − fˆ(x, 0); the T-learner fits the functions
+µ∗(w) (x) = E Y X = x, W = w separately for w ∈ {0, 1}, and then estimates
+τ̂ (x) = µ̂(1) (x) − µ̂(0) (x); the X-learner and U-learner are as described in Section 1.2.8
+In addition, for the boosting-based experiments, we consider the causal boosting algorithm
+(denoted by CB in Section 4.2) proposed by Powers et al. (2018).
+7 Künzel et al. (2017) do have some quasi-oracle type results; however, they only focus on the case where
+the number of control units |{Wi = 0}| grows much faster than the number of treated units |{Wi = 1}|.
+In this case, they show that the X-learner performs
+as well as an oracle who already knew the mean
+
+response function for the controls, µ∗(0) (x) = E Yi (0) Xi = x . Intriguingly, in this special case, we have
+m∗ (x) ≈ µ∗(0) (x) and e∗ (x) ≈ 0, and so the R-learner as in (15) is roughly equivalent to the X-learner
+procedure (10). Thus, at least qualitatively, we can interpret the result of Künzel et al. (2017) as a special
+case of our result in the case where the number of controls dominates the number of treated units (or
+vice-versa).
+8 The S-, T -, X-. and U -learners are named following the nomenclature of Künzel et al. (2017).
+
+15
+
+Finally, for the lasso-based experiments, we consider an additional variant of our method,
+the RS-learner, that combines the spirit of R- and S-learners by adding an additional term
+in the loss function: using τ̂ (x) = x> δ̂ with
+( n
+
+
+1 X
+b̂, δ̂ = argminb, δ
+Yi − m̂(−i) (Xi ) − Xi> b
+n i=1
+(37)
+)
+
+
+2
+(−i)
+>
+− Wi − ê
+(Xi ) Xi δ + λ (kbk1 + kδk1 ) .
+Heuristically, one may hope that the RS-learner may be more robust, as it has a “second
+chance” to eliminate confounders.
+In all simulations, we generate data as follows: for different choices of X-distribution Pd
+indexed by dimension d, noise level σ, propensity function e∗ (·), baseline main effect b∗ (·),
+and treatment effect function τ ∗ (·):
+Xi ∼ Pd , Wi | Xi ∼ Bernoulli(e∗ (Xi )), εi | Xi ∼ N (0, 1),
+Yi = b∗ (Xi ) + (Wi − 0.5)τ ∗ (Xi ) + σεi .
+
+(38)
+
+We consider the following specific setups.
+Setup A Difficult nuisance components and an easy treatment effect function.
+We use the scaled Friedman (1991) function for the baseline main effect b∗ (Xi ) = sin(πXi1 Xi2 ) + 2(Xi3 − 0.5)2 + Xi4 + 0.5Xi5 , along with Xi ∼ Unif(0, 1)d ,
+e∗ (Xi ) = trim0.1 (sin(πXi1 Xi2 )) and τ ∗ (Xi ) = (Xi1 + Xi2 )/2, where trimη (x) =
+max{η, min(x, 1 − η)}.
+Setup B Randomized trial. Here, e∗ (x) = 1/2 for all x ∈ Rd , so it is possible to
+be accurate without explicitly controlling for confounding. We take Xi ∼ N (0, Id×d ),
+τ ∗ (Xi ) = Xi1 + log(1 + eXi2 ), and b∗ (Xi ) = max{Xi1 + Xi2 , Xi3 , 0} + max{Xi4 + Xi5 , 0}.
+Setup C Easy propensity score and a difficult baseline. In this setup, there is
+strong confounding, but the propensity score is much easier to estimate than the baseline: Xi ∼ N (0, Id×d ), e∗ (Xi ) = 1/(1 + eXi2 +Xi3 ), b∗ (Xi ) = 2 log(1 + eXi1 +Xi2 +Xi3 ), and
+the treatment effect is constant, τ ∗ (Xi ) = 1.
+Setup D Unrelated treatment and control arms, with data generated as
+Xi ∼ N (0, Id×d ), e∗ (Xi ) = 1/(1 + e−Xi1 + e−Xi2 ), τ ∗ (Xi ) = max{Xi1 + Xi2 + Xi3 , 0} −
+max{Xi4 + Xi5 , 0},
+and b∗ (Xi ) = (max{Xi1 + Xi2 + Xi3 , 0} + max{Xi4 + Xi5 , 0}) /2.
+∗
+∗
+Here, µ(0) (X) and µ(1) (X) are uncorrelated, and so there is no upside to learning them
+jointly.
+
+4.1
+
+Lasso-based experiments
+
+In this section, we compare S-, T -, X-, U -, and our R- and RS-learners implemented via the
+lasso on simulated designs. For the S-learner, we follow Imai and Ratkovic (2013) using (9),
+while for the T -learner, we use (8). For the X-, R-, and RS-learners, we use L1 -penalized
+logistic regression to estimate propensity ê, and the lasso for all other regression estimates.
+16
+
+For all estimators, we run the lasso on the pairwise interactions of a natural spline basis
+expansion with 7 degrees of freedom on Xi . We generate n data points as the training set
+and generate a separate test set also with n data points, and the reported the mean-squared
+error is on the test set. All lasso regularization penalties are chosen from 10-fold cross
+validation. For the R- and RS-learners, we use 10-fold cross-fitting on ê and m̂ in (6). All
+methods are implemented via glmnet (Friedman, Hastie, and Tibshirani, 2010).9
+In Figure 3, we compare the performance of our 6 considered methods to an oracle that
+runs the lasso on (5), for different values of sample size n, dimension d, and noise level σ. As
+is clear from these illustrations, the considered simulation settings differ vastly in difficulty,
+both in terms of the accuracy of the oracle, and in terms of the ability of feasible methods to
+approach the oracle. A full list of specifications considered along with all numbers depicted
+in Figure 3 is available in Appendix B.
+In Setups A and C, where there is complicated confounding that needs to be overcome
+before we can estimate a simple treatment effect function τ ∗ (·), the R- and RS-learners
+stand out. All methods do reasonably well in the randomized trial (Setup B) where it
+was not necessary to adjust for confounding (the X-, S-, and R-learners do best). Finally,
+having completely disjoint functions for the treated and control arms is unusual in practice.
+However, we consider this possibility in Setup D, where there is no reason to model µ∗(0) (x)
+and µ∗(1) (x) jointly, and find that the T -learner—which in fact models them separately—
+performs well.
+Overall, the R- and RS-learner consistently achieve good performance and, in most
+simulation specifications, essentially match the performance of the oracle (5) in terms of the
+mean-squared error. The U -learner suffers from high loss due to its instability.
+
+4.2
+
+Gradient boosting-based experiments
+
+We move on to compare S-, T -, X-, U -, and R- learners implemented via gradient boosting, as well as the causal boosting (CB) algorithm.
+We use the
+causalLearning R package for CB, while all other methods are implemented via
+XGboost (Chen and Guestrin, 2016).
+For fitting the objective in each subroutine in all methods, we draw a random set of 10 combinations of hyperparmaeters from the following grid: subsample= [0.5, 0.75, 1], colsample bytree=
+[0.6, 0.8, 1], eta= [5e-3, 1e-2, 1.5e-2, 2.5e-2, 5e-2, 8e-2, 1e-1, 2e-1], max depth= [3, · · · , 20],
+gamma=Uniform(0, 0.2), min child weight= [1, · · · , 20], max delta step= [1, · · · , 10], and
+cross validate on the number of boosted trees for each combination with an early stopping of
+10 iterations. We experiment on the same set of setups and parameter variations (including
+variations on sample size n, dimension d, and noise level σ) as in Section 4.1, and include
+all numbers depicted in Figure 4 in Appendix B.
+In Figure 4, we observe again that R-learner stands out in Setup A and C, with all
+methods performing reasonably well in the randomized control setting of Setup B; in Setup
+D, T -learner performs best since the the treated and control arms are generated from
+completely different functions.
+Before we conclude this section, we note that in both sets of the experiments, for simplicity of illustration, we have used lasso and boosting respectively to learn m̂(·) and ê(·). In
+9 The U -learner suffers from high variance and instablity due to dividing by the propensity estimates.
+Therefore, we set a cutoff for the propensity estimate to be at level 0.05. We have also found empirically
+U -learner achieves much lower estimation error if we choose to use the largest regularization parameter that
+achieves 1 standard error away from the minimum in the cross validation step. Therefore, the U -learner
+uses lambda.1se as its cross validation parameter, while all other learners use lambda.min in glmnet.
+
+17
+
+Setup A
+
+Setup B
+
+1
+
+●●
+●●
+●●
+
+0
+
+0
+●
+●
+
+−1
+
+● ●
+● ●
+●
+
+log mean−squared error
+
+−2
+
+●
+
+●
+
+●
+
+●
+
+●●
+
+●●
+
+●
+
+●
+●●
+
+●
+
+● ●
+
+−1
+
+●
+●
+
+●
+●
+
+learner
+−3
+
+S
+
+−2
+●
+
+−3
+
+−2
+
+−1
+
+−2.0
+
+−1.5
+
+Setup C
+
+−1.0
+
+−0.5
+
+0.0
+
+0.5
+
+Setup D
+
+●●
+●
+
+RS
+
+●●
+●
+
+0.5
+
+● ●
+●●
+
+0
+
+X
+U
+
+●
+●
+
+●●
+●●
+
+T
+
+●
+
+R
+
+●
+
+●
+●
+
+●
+
+●
+
+0.0
+
+●
+●●
+
+−2
+
+●
+
+−0.5
+●
+●
+
+●
+
+●
+
+−1.0
+−4
+●
+
+−1.5
+−5
+
+−4
+
+−3
+
+−2
+
+−1
+
+●
+
+−1.0
+
+−0.5
+
+0.0
+
+0.5
+
+oracle log mean−squared error
+
+Figure 3: Performance of lasso-based S-, T -, X-, U -, RS- and R-learners, relative to a
+lasso-based oracle learner (5), across simulation setups described in Section 4. For each
+Setup A–D, we report results for all combinations of n ∈ {500, 1, 000}, d ∈ {6, 12} and
+σ ∈ {0.5, 1, 2, 3}, and each point on the plots represents the average performance of one
+learner for one of these 16 parameter specifications. All mean-squared error numbers are
+aggregated over 500 runs and reported on an independent test set, and are plotted on the
+logarithmic scale. Detailed simulation results are reported in Appendix B.
+
+18
+
+Setup A
+
+Setup B
+●
+●
+
+0
+
+●
+●
+●
+
+0
+
+●
+●
+
+−1
+
+●●
+
+●
+●
+
+●
+●
+
+● ●
+●●
+
+●
+●
+●
+●
+
+−2
+
+−1
+●
+●
+
+●
+●
+
+log mean−squared error
+
+●
+
+●
+
+●
+
+●●
+
+●
+●
+
+−3
+
+−2
+
+learner
+S
+●
+
+−3
+
+−2
+
+−2.5
+
+−2.0
+
+−1.5
+
+Setup C
+
+−1.0
+
+−0.5
+
+0.0
+
+Setup D
+●
+
+1
+
+CB
+● ●
+
+●●
+●
+
+●●
+●●
+
+0
+
+●●
+
+●●
+
+●
+
+●●
+
+●
+
+−1
+●
+
+−1
+
+−2
+
+X
+U
+
+●
+
+●
+●
+
+0
+
+T
+
+●
+●
+
+R
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+−3
+
+●
+
+−3
+
+−2
+
+−1
+
+−1.0
+
+−0.5
+
+0.0
+
+0.5
+
+oracle log mean−squared error
+
+Figure 4: Performance of boosting-based S-, T -, X-, U -, R-learners as well as causal boosting
+(CB), relative to a boosting-based oracle learner (5), across simulation setups described in
+Section 4. For each Setup A–D, we report results for all combinations of n ∈ {500, 1, 000},
+d ∈ {6, 12} and σ ∈ {0.5, 1, 2, 3}, and each point on the plots represents the average
+performance of one learner for one of these 16 parameter specifications. All mean-squared
+error numbers are aggregated over 200 runs and reported on an independent test set, and
+are plotted on the logarithmic scale. Detailed simulation results are reported in Appendix
+B.
+
+19
+
+practice, we recommend cross validating on a variety of black-box learners (lasso, random
+forests, neural networks, etc.) that are tuned for prediction accuracy to learn these two pilot
+quantities. All simulation results above can be replicated using the rlearner R package.10
+
+5
+
+Discussion
+
+We introduced the R-learner, a method for heterogeneous treatment effect estimation in
+observational studies whose performance guarantees are robust to mild inaccuracies in estimated treatment propensities ê(·) and baseline effects m̂(·). The R-learner starts by forming
+a data-adaptive R-loss function based on nuisance parameter estimates, and then optimizes
+this loss function with appropriate regularization. Our approach is motivated by the transformation of Robinson (1988), and draws more broadly from the literature on semiparametric
+inference and constructions of orthogonal moments (Athey and Wager, 2017; Belloni et al.,
+2017; Bickel et al., 1998; Chernozhukov et al., 2017; Luedtke and van der Laan, 2016; Newey,
+1994; Robins, 2004; Robins and Rotnitzky, 1995; Robins et al., 2017; Scharfstein et al., 1999;
+Tsiatis, 2007; van der Laan and Rose, 2011). Our main formal result establishes that, in
+the case of penalized kernel regression, the R-learner achieves the same regret bounds as
+an oracle who knew e∗ (·) m∗ (·) a priori, even if ê(·) and m̂(·) may converge an order of
+magnitude slower than the target rate for τ̂ (·).
+A natural generalization of our setup arises when, in some applications, we need to
+work with multiple treatment options. For example, in medicine, we may want to compare
+a control condition to multiple different experimental treatments. If there are k differk
+ent treatments (along with a control arm), we can encode W ∈ {0, 1} , and note that a
+multivariate version of Robinson’s transformation suggests the following estimator,
+( n
+
+1 X
+Yi − m̂(−i) (Xi )
+τ̂ (·) = argminτ
+n i=1
+(39)
+)
+D
+E 2
+− Wi − ê(−i) (Xi ), τ (Xi )
++ Λn (τ (·)) ,
+
+
+where the angle brackets indicate an inner product, e(x) = E W X = x ∈ Rk is a vector,
+and τl (x) measures the conditional average treatment effect of the l-th treatment arm at
+Xi = x, for l = 1, ..., k. When implementing variants of this approach in practice, different
+choices of Λn (τ (·)) may be needed to reflect relationships between the treatment effects of
+different arms (for example, whether there is a natural ordering of treatment arms, or if
+there are some arms that we believe a priori to have similar effects).
+It would also be interesting to consider extensions of the R-learner to cases where the
+treatment assignment Wi is not unconfounded, and we need to rely on an instrument to
+identify causal effects. Chernozhukov et al. (2017) discusses how Robinson’s approach to
+the partially linear model generalizes naturally to this case, and Athey, Tibshirani, Wager,
+et al. (2019) adapt their causal forest to work with instruments. The underlying estimating
+equations, however, cannot be interpreted as loss functions as easily as (5), especially in the
+case where instruments may be weak, and so we leave this extension of the R-learner to
+future work.
+10 https://github.com/xnie/rlearner
+
+20
+
+Acknowledgment
+We are grateful for enlightening conversations with Susan Athey, Emma Brunskill, John
+Duchi, Tatsunori Hashimoto, Guido Imbens, Sören Künzel, Percy Liang, Whitney Newey,
+Mark van der Laan, Alejandro Schuler, Bin Yu and Yuchen Zhang as well as for helpful
+comments and feedback from seminar participants at several universities and workshops.
+This research was partially supported by a Facebook Faculty Award and the 2018 HumanCentered AI seed grant from the Stanford Artificial Intelligence Laboratory, Stanford Graduate School of Business and Stanford School of Medicine. The first author was awarded
+a Thomas R. Ten Have Award based on this work at the 2018 Atlantic Causal Inference
+Conference.
+
+References
+M. Abadi, P. Barham, J. Chen, Z. Chen, A. Davis, J. Dean, M. Devin, S. Ghemawat, G. Irving, M. Isard, M. Kudlur, J. Levenberg, R. Monga, S. Moore, D. G. Murray, B. Steiner,
+P. Tucker, V. Vasudevan, P. Warden, M. Wicke, Y. Yu, and X. Zheng. TensorFlow: A system for large-scale machine learning. In 12th USENIX Symposium on Operating Systems
+Design and Implementation (OSDI 16), pages 265–283, 2016.
+K. Arceneaux, A. S. Gerber, and D. P. Green. Comparing experimental and matching
+methods using a large-scale voter mobilization experiment. Political Analysis, 14(1):37–
+62, 2006.
+S. Athey. Beyond prediction: Using big data for policy problems. Science, 355(6324):
+483–485, 2017.
+S. Athey and G. Imbens. Recursive partitioning for heterogeneous causal effects. Proceedings
+of the National Academy of Sciences, 113(27):7353–7360, 2016.
+S. Athey and S. Wager. Efficient policy learning. arXiv preprint arXiv:1702.02896, 2017.
+S. Athey, J. Tibshirani, S. Wager, et al. Generalized random forests. The Annals of Statistics,
+47(2):1148–1178, 2019.
+P. L. Bartlett. Fast rates for estimation error and oracle inequalities for model selection.
+Econometric Theory, 24(2):545–552, 2008.
+P. L. Bartlett and S. Mendelson. Empirical minimization. Probability Theory and Related
+Fields, 135(3):311–334, 2006.
+A. Belloni, V. Chernozhukov, I. Fernández-Val, and C. Hansen. Program evaluation and
+causal inference with high-dimensional data. Econometrica, 85(1):233–298, 2017.
+P. Bickel, C. Klaassen, Y. Ritov, and J. Wellner. Efficient and Adaptive Estimation for
+Semiparametric Models. Springer-Verlag, 1998.
+L. Breiman. Stacked regressions. Machine learning, 24(1):49–64, 1996.
+A. Caponnetto and E. De Vito. Optimal rates for the regularized least-squares algorithm.
+Foundations of Computational Mathematics, 7(3):331–368, 2007.
+T. Chen and C. Guestrin. XGBoost: A scalable tree boosting system. In Proceedings of the
+22nd ACM SIGKDD international conference on knowledge discovery and data mining,
+pages 785–794. ACM, 2016.
+V. Chernozhukov, D. Chetverikov, M. Demirer, E. Duflo, C. Hansen, W. Newey, and
+J. Robins. Double/debiased machine learning for treatment and structural parameters.
+The Econometrics Journal, 2017.
+
+21
+
+F. Cucker and S. Smale. On the mathematical foundations of learning. Bulletin of the
+American Mathematical Society, 39(1):1–49, 2002.
+P. Ding, A. Feller, and L. Miratrix. Decomposing treatment effect variation. Journal of the
+American Statistical Association, pages 1–14, 2018.
+V. Dorie, J. Hill, U. Shalit, M. Scott, and D. Cervone. Automated versus do-it-yourself
+methods for causal inference: Lessons learned from a data analysis competition. arXiv
+preprint arXiv:1707.02641, 2017.
+M. Dudı́k, J. Langford, and L. Li. Doubly robust policy evaluation and learning. In Proceedings of the 28th International Conference on International Conference on Machine
+Learning, pages 1097–1104, 2011.
+J. Friedman, T. Hastie, and R. Tibshirani. Regularization paths for generalized linear models
+via coordinate descent. Journal of Statistical Software, 33(1):1, 2010.
+J. H. Friedman. Multivariate adaptive regression splines. The Annals of Statistics, pages
+1–67, 1991.
+P. R. Hahn, J. S. Murray, and C. Carvalho. Bayesian regression tree models for
+causal inference: regularization, confounding, and heterogeneous effects. arXiv preprint
+arXiv:1706.09523, 2017.
+J. L. Hill. Bayesian nonparametric modeling for causal inference. Journal of Computational
+and Graphical Statistics, 20(1), 2011.
+K. Hirano and J. R. Porter. Asymptotics for statistical treatment rules. Econometrica, 77
+(5):1683–1701, 2009.
+K. Imai and M. Ratkovic. Estimating treatment effect heterogeneity in randomized program
+evaluation. The Annals of Applied Statistics, 7(1):443–470, 2013.
+G. W. Imbens and D. B. Rubin. Causal Inference in Statistics, Social, and Biomedical
+Sciences. Cambridge University Press, 2015.
+T. Kitagawa and A. Tetenov. Who should be treated? empirical welfare maximization
+methods for treatment choice. Econometrica, 86(2):591–616, 2018.
+S. Künzel, J. Sekhon, P. Bickel, and B. Yu. Meta-learners for estimating heterogeneous
+treatment effects using machine learning. arXiv preprint arXiv:1706.03461, 2017.
+E. Laber and Y. Zhao. Tree-based methods for individualized treatment regimes.
+Biometrika, 102(3):501–514, 2015.
+A. R. Luedtke and M. J. van der Laan. Super-learning of an optimal dynamic treatment
+rule. The International Journal of Biostatistics, 12(1):305–332, 2016.
+C. F. Manski. Statistical treatment rules for heterogeneous populations. Econometrica, 72
+(4):1221–1246, 2004.
+P. Massart. About the constants in Talagrand’s concentration inequalities for empirical
+processes. Annals of Probability, pages 863–884, 2000.
+S. Mendelson and J. Neeman. Regularization in kernel learning. The Annals of Statistics,
+38(1):526–565, 2010.
+S. A. Murphy. A generalization error for q-learning. Journal of Machine Learning Research,
+6:1073–1097, 2005.
+W. K. Newey. The asymptotic variance of semiparametric estimators. Econometrica: Journal of the Econometric Society, 62(6):1349–1382, 1994.
+J. Neyman. Sur les applications de la théorie des probabilités aux experiences agricoles:
+Essai des principes. Roczniki Nauk Rolniczych, 10:1–51, 1923.
+Z. Obermeyer and E. J. Emanuel. Predicting the futurebig data, machine learning, and
+clinical medicine. The New England journal of medicine, 375(13):1216, 2016.
+
+22
+
+S. Powers, J. Qian, K. Jung, A. Schuler, N. H. Shah, T. Hastie, and R. Tibshirani. Some
+methods for heterogeneous treatment effect estimation in high dimensions. Statistics in
+Medicine, 2018.
+J. M. Robins. Optimal structural nested models for optimal sequential decisions. In Proceedings of the second seattle Symposium in Biostatistics, pages 189–326. Springer, 2004.
+J. M. Robins and A. Rotnitzky. Semiparametric efficiency in multivariate regression models
+with missing data. Journal of the American Statistical Association, 90(1):122–129, 1995.
+J. M. Robins, L. Li, R. Mukherjee, E. Tchetgen Tchetgen, and A. van der Vaart. Minimax estimation of a functional on a structured high-dimensional model. The Annals of
+Statistics, 45(5):1951–1987, 2017.
+P. M. Robinson. Root-n-consistent semiparametric regression. Econometrica: Journal of
+the Econometric Society, pages 931–954, 1988.
+P. R. Rosenbaum and D. B. Rubin. The central role of the propensity score in observational
+studies for causal effects. Biometrika, 70(1):41–55, 1983.
+D. B. Rubin. Estimating causal effects of treatments in randomized and nonrandomized
+studies. Journal of Educational Psychology, 66(5):688, 1974.
+D. O. Scharfstein, A. Rotnitzky, and J. M. Robins. Adjusting for nonignorable drop-out using semiparametric nonresponse models. Journal of the American Statistical Association,
+94(448):1096–1120, 1999.
+A. Schick. On asymptotically efficient estimation in semiparametric models. The Annals of
+Statistics, pages 1139–1151, 1986.
+U. Shalit, F. D. Johansson, and D. Sontag. Estimating individual treatment effect: generalization bounds and algorithms. In Proceedings of the 34th International Conference on
+Machine Learning, pages 3076–3085, 2017.
+S. Smale and D.-X. Zhou. Estimating the approximation error in learning theory. Analysis
+and Applications, 1(01):17–41, 2003.
+I. Steinwart and A. Christmann. Support Vector Machines. Springer Science & Business
+Media, 2008.
+I. Steinwart, D. R. Hush, and C. Scovel. Optimal rates for regularized least squares regression. In Conference on Learning Theory, 2009.
+X. Su, C.-L. Tsai, H. Wang, D. M. Nickerson, and B. Li. Subgroup analysis via recursive
+partitioning. The Journal of Machine Learning Research, 10:141–158, 2009.
+M. Talagrand. Sharper bounds for Gaussian and empirical processes. The Annals of Probability, pages 28–76, 1994.
+M. Talagrand. New concentration inequalities in product spaces. Inventiones Mathematicae,
+126(3):505–563, 1996.
+M. Talagrand. The generic chaining: Upper and lower bounds of stochastic processes.
+Springer Science & Business Media, 2006.
+L. Tian, A. A. Alizadeh, A. J. Gentles, and R. Tibshirani. A simple method for estimating interactions between a treatment and a large number of covariates. Journal of the
+American Statistical Association, 109(508):1517–1532, 2014.
+R. Tibshirani. Regression shrinkage and selection via the lasso. Journal of the Royal Statistical Society: Series B (Statistical Methodology), pages 267–288, 1996.
+A. Tsiatis. Semiparametric theory and missing data. Springer Science & Business Media,
+2007.
+M. J. van der Laan and S. Rose. Targeted Learning: Causal Inference for Observational and
+Experimental Data. Springer Science & Business Media, 2011.
+
+23
+
+M. J. Van Der Laan and D. Rubin. Targeted maximum likelihood learning. The International
+Journal of Biostatistics, 2(1), 2006.
+M. J. van der Laan, S. Dudoit, and A. W. van der Vaart. The cross-validated adaptive
+epsilon-net estimator. Statistics & Decisions, 24(3):373–395, 2006.
+M. J. Van der Laan, E. C. Polley, and A. E. Hubbard. Super learner. Statistical applications
+in genetics and molecular biology, 6(1), 2007.
+S. Wager and S. Athey. Estimation and inference of heterogeneous treatment effects using
+random forests. Journal of the American Statistical Association, 113(523):1228–1242,
+2018.
+S. Wager, W. Du, J. Taylor, and R. J. Tibshirani. High-dimensional regression adjustments
+in randomized experiments. Proceedings of the National Academy of Sciences, 113(45):
+12673–12678, 2016.
+D. H. Wolpert. Stacked generalization. Neural networks, 5(2):241–259, 1992.
+Y. Yang. Consistency of cross validation for comparing regression procedures. The Annals
+of Statistics, 35(6):2450–2473, 2007.
+B. Zhang, A. A. Tsiatis, M. Davidian, M. Zhang, and E. Laber. Estimating optimal treatment regimes from a classification perspective. Stat, 1(1):103–114, 2012.
+Q. Zhao, D. S. Small, and A. Ertefaie. Selective inference for effect modification via the
+lasso. arXiv preprint arXiv:1705.08020, 2017.
+Y. Zhao, D. Zeng, A. J. Rush, and M. R. Kosorok. Estimating individualized treatment
+rules using outcome weighted learning. Journal of the American Statistical Association,
+107(499):1106–1118, 2012.
+
+24
+
+A
+A.1
+A.1.1
+
+Proofs
+Preliminaries
+A useful inequality relating function norms in RKHS
+
+Before beginning our proof, we present an inequality that we will use frequently. Under
+Assumption 2, directly following from Lemma 5.1 of Mendelson and Neeman (2010), there
+is a constant B depending on A, p and G such that for all τ ∈ H,
+p
+
+1−p
+
+kτ k∞ ≤ B kτ kH kτ kL2 (P) .
+
+(40)
+
+If η < e∗ (x) < 1 − η for some η > 0, a consequence of the above inequality is as follows: for
+τ ∈ Hc ,
+p
+
+1−p
+
+kτ − τc∗ k∞ ≤ B kτ − τc∗ kH kτ − τc∗ kL2 (P) ≤ B2p η −(1−p) cp R(τ ; c)
+
+1−p
+2
+
+.
+
+(41)
+
+We note that the second inequality in (41) follows from combining (17) with the fact that
+for τ ∈ Hc , kτ − τc∗ kH ≤ 2c by the triangle inequality.
+A.1.2
+
+Talagrand’s Inequalities
+
+Below we state Talagrand’s Concentration Inequality for an empirical process indexed by a
+class of uniformly bounded functions (Talagrand, 1996). The version of the inequality we
+shall use here is due to Massart (2000).
+Let F be a class of functions defined on (Ω, P) such that for every f ∈ F, kf k∞ ≤ b,
+and E [f ] = 0. Let X1 , · · · , X n be independent random variables distributed according to
+P and set σ 2 = supf ∈F E f 2 . Define
+n
+
+Z = sup
+f ∈F
+
+1X
+f (Xi )
+n i=1
+
+and
+
+Z̄ = sup
+f ∈F
+
+n
+1 X
+f (Xi ) .
+n i=1
+
+Then, there exists an absolute constant C such that for every t > 0, and every ρ > 0,
+
+
+σ √
+C
+−1
+P Z > (1 + ρ)E [Z] + √
+Ct + (1 + ρ )bt ≤ e−t ,
+(42)
+n
+n
+
+
+C
+σ √
+Ct − (1 + ρ−1 )bt ≤ e−t ,
+P Z < (1 − ρ)E [Z] − √
+(43)
+n
+n
+and the same inequalities holds for Z̄.
+We will also make use of the following bound from Corollary 3.4 of Talagrand (1994):
+"
+#
+"
+#
+n
+n
+X
+X
+2
+2
+E sup
+f (Xi ) ≤ nσ + 8bE sup
+εi f (Xi ) ,
+(44)
+f ∈F i=1
+
+f ∈F i=1
+
+where εi are independent Rademacher variables indepedent of the variables Xi .
+
+25
+
+A.2
+
+Technical definitions and lemmas
+
+Before we proceed with the proof of Lemma 2, it is helpful to prove the following results.
+Proof of Lemma 1. First, we note that for 1 ≤ c ≤ C, Hc defined as {τ ∈ H, kτ kH ≤
+c, kτ k∞ ≤ 2M } is an ordered set, i.e. Hc ⊆ Hc0 for c ≤ c0 . Without loss of generality, it
+suffices to consider Λn (·) = ρn (·) because if (23) holds with ρn (c), it also holds with ρn (c)
+replaced by Λn (c) ≥ ρn (c). Define
+τc∗ = argminτ ∈Hc L(τ ),
+τ̌c = argminτ ∈Hc Ľ(τ ),
+m̌ = kτ̌ kH .
+Following the proof of Theorem 4 in Bartlett (2008), first check the following facts:
+• In the event that c ≥ m̌ (see Lemma 5 of Bartlett (2008)),
+L(τ̌ ) ≤ L(τc∗ ) + max{kκ1 + 2, 3}ρn (c).
+• In the event that c ≤ m̌ (see Lemma 6 of Bartlett (2008)),
+
+
+κ1
+κ1 ρn (c)
+1
+∗
+∗
+−
++ 1 ρn (m̌) +
+.
+L(τm̌ ) ≤ L(τc ) +
+k2
+k
+k
+• In the event that c ≤ m̌ (see Lemma 7 of Bartlett (2008)),
+
+
+1
+κ1
+κ1 ρn (c)
+L(τ̌ ) ≤ L(τc∗ ) +
+−
++
+2
+ρn (m̌) +
+.
+k2
+k
+k
+Now, choosing κ1 =
+
+1
+k
+
++ 2k shows that
+L(τ̌ ) ≤ L(τc∗ ) +
+
+κ1 ρn (c)
+.
+k
+
+Let κ2 = 2k 2 + 3, combining the above,
+L(τ̌ ) ≤ inf L(τc∗ ) + κ2 ρn (c).
+1≤c≤C
+
+∗
+Finally, for any τ = argminτ ∈HC {L(τ ) + κ2 Λn (kτ kH )}, τ = τkτ
+Suppose not, then
+kH .
+∗
+L(τ ) + κ2 Λn (kτ kH ) > L(τkτ k ) + κ2 Λn (kτ kH ), which is a contradiction. Thus, the claim
+H
+follows.
+
+Definition 1 (Definition 2.4 from Mendelson and Neeman (2010)). Given a class of functions F , we say that {Fc : c ≥ 1} is an ordered, parameterized hierarchy of F if the following
+conditions are satisfied:
+• {Fc : c ≥ 1} is monotone;
+• for every c ≥ 1, there exists a unique element fc∗ ∈ Fc such that L(fc∗ ) = inf f
+• the map c → L(fc∗ ) is continuous;
+26
+
+inFc
+
+L(f );
+
+• for every c0 ≥ 1, ∩c>c0 Fc = Fc0
+• ∪c≥1 Fc = F
+Lemma 4. Hc := {τ ∈ H, kτ kH ≤ c, kτ k∞ ≤ 2M } is an ordered, parameterized hiercharchy
+of H.
+Proof. First, we show that H1 is compact. Let (τn )n be a sequence in H1 . Following
+from the fact that B1 = {τ ∈ H, kτ kH ≤ 1} is compact with respect to L2 -norm, τn has
+a converging subsequence (τnk )k with a limit τ ∈ B1 . For any ε > 0, there exists K
+such that for all k > K, kτnk − τ kL2 (P) ≤ ε. Suppose kτ k∞ > 2M , then take τ 0 (x) =
+min(max(τ (x), −2M ), 2M ), we see that kτnk (x) − τ 0 (x)kL2 (P) ≤ kτnk (x) − τ (x)kL2 (P) for
+all k ≥ K. So the limit τ (x) = τ 0 (x). Thus the subsequence converges to a limit in H1 , and
+so H1 is compact. The proof now follows exactly the proof of Lemma 3.6 in Mendelson and
+Neeman (2010).
+Lemma 5 (chaining). Let H be an RKHS with kernel K satisfying Assumption 2, let
+X1 , ..., Xn be n independent draws from the measure P, and let Z1 , ..., Zn be independent
+mean-zero sub-Gaussian random variables with variance proxy M 2 , conditionally on the Xi .
+Then, there is a constant B such that, for any (potentially random) weighting function ω(x),
+"
+( n
+)#
+
+ 1 log(n)
+1X
+E sup
+Zi ω(Xi )h(Xi )
+≤ BM cp δ 1−p E ω 2 (X) 2 √ ,
+(45)
+n
+n
+h∈Hc, δ
+i=1
+n
+o
+where Hc, δ := h ∈ H : khkH ≤ c, khkL2 (P) ≤ δ .
+Proof. Our proof proceeds by generic chaining. Defining random variables
+n
+
+Qh =
+
+1X
+Zi ω(Xi )h(Xi ),
+n i=1
+
+the basic generic chaining result of Talagrand (2006) (Theorem 1.2.6) states that if
+{Qh }h∈Hc,δ is a sub-Gaussian process relative to some metric d, i.e., for every h1 , h2 ∈ Hc,δ
+and every u ≥ 1,
+P [|Qh1 − Qh2 | ≥ ud(h1 , h2 )] ≤ 2e−
+
+u2
+2
+
+,
+
+(46)
+
+then for some universal constant B (not the same as in (45)),
+"
+#
+E
+
+sup Qh ≤ Bγ2 (Hc, δ , d) .
+
+(47)
+
+h∈Hc, δ
+
+Here, γ2 is a measure of the complexity of the space Hc, δ in terms of the metric d: writing
+Sj , j = 1, 2, ..., for a sequence of collections of elements form Hc, δ ,
+
+
+
+
+∞
+
+X
+
+
+j
+j
+2 2 d(h, Sj ) : |S0 | = 1, |Sj | = 22 for j > 0 ,
+γ2 (Hc, δ , d) = inf
+sup
+(48)
+
+
+(Sj ) h∈Hc, δ 
+j=0
+
+where the infimum is with respect to all sequences of collections (Sj )∞
+j=0 , and d(h, S) =
+inf g∈S d(h, g).
+27
+
+To establish (45), we start by applying generic chaining conditionally on X1 , ..., Xn :
+given a (possibly random) distance measure d such that (46) holds conditionally on the Xi ,
+then (47) also provides a uniform bound conditionally on the Xi . To this end, we study the
+following metric:
+v
+u n
+uX
+1
+ω 2 (Xi ),
+(49)
+d(h1 , h2 ) = M d∞, n (h1 , h2 )t
+n
+i=1
+d∞, n (h1 , h2 ) = sup {|h1 (Xi ) − h2 (Xi )| : i = 1, ..., n} .
+
+(50)
+
+Conditionally on the Xi , Qh1 − Qh2 is a sum of n independent mean-zero subGaussian random variables, the i-th of which is has its sub-Gaussian variance proxy
+n−2 M 2 d2∞, n (h1 , h2 )ω 2 (Xi ), so (46) holds by elementary properties of sub-Gaussian random variables. Finally, noting that d(·, ·) is a constant multiple of d∞, n (·, ·) conditionally
+on X1 , ..., Xn , the definition of γ2 implies that
+v
+u n
+1 uX 2
+ω (Xi )γ2 (Hc, δ , d∞,n ) .
+γ2 (Hc, δ , d) = M t
+n
+i=1
+Our argument so far implies that
+"
+
+(
+
+E sup
+
+Hc, δ
+
+v
+)
+#
+u n
+n
+X
+1X
+BM u
+t
+ω 2 (Xi )γ2 (Hc, δ , d∞,n ) . (51)
+Zi ω(Xi )h(Xi )
+X1 , ..., Xn ≤
+n i=1
+n
+i=1
+
+It now remains to bound moments of γ2 (Hc, δ , d∞,n ).
+Writing σj for the eigenvalues of K and A for the uniform bound on the eigenfunctions as
+in Assumption 2, Mendelson and Neeman (2010) show that for another universal constant
+B, (Theorem 4.7)
+v
+uX
+u∞
+ 2
+ 12
+E γ2 (Hc, δ , d∞, n ) ≤ AB log(n)t
+min {δ 2 , σj c2 /4},
+(52)
+j=1
+
+and that for yet another universal constant Bp depending only on p, (Lemma 3.4)
+∞
+X
+
+
+min δ 2 , σj c2 /4 ≤ Bp δ 2(1−p) c2p G,
+
+j=1
+1
+
+where G = supj≥1 j p σj as defined in Assumption 2. Thus, by Cauchy-Schwartz,
+v
+
+" n
+# 21
+u n
+X
+u1 X
+ 2
+ 21
+1
+E γ2 (Hc, δ , d∞,n ) t
+ω 2 (Xi ) ≤ E γ2 (Hc, δ , d∞,n ) E
+ω 2 (Xi )
+n i=1
+n i=1
+
+
+
+1
+= Bδ 1−p cp E ω 2 (X) 2 ,
+where B is a (different) constant. The desired result then follows.
+
+28
+
+(53)
+
+Lemma 6. Suppose we have overlap, i.e., η < e∗ (x) < 1 − η for some η > 0, for 1 < c < c0 .
+Then, the following holds:
+kτc∗ (Xi ) − τc∗0 (Xi )kL2 (P) ≤
+
+c
+1
+1 − 0 kτc∗0 kL2 (P) .
+η
+c
+
+(54)
+
+Proof. First, we note that following a similar derivation behind (17), we have for any τ, τ 0 ∈
+H,
+2
+
+2
+
+η 2 kτ (Xi ) − τ 0 (Xi )kL2 (P) ≤ |L(τ ) − L(τ 0 )| ≤ (1 − η)2 kτ (Xi ) − τ 0 (Xi )kL2 (P) .
+
+(55)
+
+Then, we have
+τc∗ (Xi ) −
+
+c ∗
+τ 0 (Xi )
+c0 c
+
+2
+L2 (P)
+
+ c 
+
+≤ η −2 L 0 τc∗0 − L (τc∗ )
+c
+ c 
+
+−2
+≤η
+L 0 τc∗0 − L (τc∗0 )
+c
+
+c 2
+(1 − η)2 ∗ 2
+1
+−
+kτ
+.
+≤
+0k
+c
+L
+(P)
+2
+η2
+c0
+
+(56)
+
+Finally, by triangle inequality,
+c ∗
+τ 0 (Xi )
+c0 c
+
+
+c
+c
+1−η ∗
+≤ 1 − 0 kτc∗0 kL2 (P) +
+kτc0 kL2 (P) 1 − 0
+c
+η
+c
+c ∗
+1
+1 − 0 kτc0 kL2 (P) ,
+=
+η
+c
+
+kτc∗ (Xi ) − τc∗0 (Xi )kL2 (P) ≤ τc∗0 (Xi ) −
+
+c ∗
+τ 0 (Xi )
+c0 c
+
+L2 (P)
+
++ τc∗ (Xi ) −
+
+L2 (P)
+
+where the second inequality follows from (56).
+Lemma 7. Simultaneously for all τ ∈ Hc , c ≥ 1, δ ≤ 4M where kτ − τc∗ kL2 (P) ≤ δ, we have
+n
+
+1X
+2
+(τ (Xi ) − τc∗ (Xi ))
+n i=1
+= OP
+
+v
+u
+u
+log(n)
+1
+2
+2p 2(1−p)
+p 2−p
+√
+√ tlog
+δ +c δ
++c δ
+n
+n
+!
+c2p δ 2(1−p)
++
+n
+
+1
+
+cn 1−p
+δ2
+
+!
+
+1
++ c2p δ 2(1−p) log
+n
+
+1
+
+cn 1−p
+δ2
+
+!
+
+(57)
+
+Proof. We proceed by a localization argument by bounding the quantity of interest over
+sets indexed by c and δ such that kτ − τc∗ kL2 (P) ≤ δ, i.e. we bound
+(
+sup
+τ ∈Hc
+
+n
+
+1X
+2
+(τ (Xi ) − τc∗ (Xi )) : kτ − τc∗ kL2 (P) ≤ δ
+n i=1
+
+29
+
+)
+.
+
+First we bound the expectation. Let εi be i.i.d. Rademacher random variables.
+"
+)#
+( n
+1X
+2
+E sup
+(τ (Xi ) − τc∗ (Xi )) : kτ − τc∗ kL2 (P) ≤ δ
+n i=1
+τ ∈Hc
+n
+o
+(a)
+2
+≤ sup kτ − τc∗ kL2 (P) : kτ − τc∗ kL2 (P) ≤ δ
+τ ∈Hc
+n
+o
++ 8 sup kτ − τc∗ k∞ : kτ − τc∗ kL2 (P) ≤ δ ·
+τ ∈Hc
+"
+)#
+(
+n
+1 X
+∗
+∗
+εi (τ (Xi ) − τc (Xi )) : kτ − τc kL2 (P) ≤ δ
+E sup
+n i=1
+τ ∈Hc
+n
+o
+(b)
+2
+≤ sup kτ − τc∗ kL2 (P) : kτ − τc∗ kL2 (P) ≤ δ
+τ ∈Hc
+n
+o
++ 8 sup kτ − τc∗ k∞ : kτ − τc∗ kL2 (P) ≤ δ ·
+τ ∈Hc
+)#
+"
+( n
+1X
+∗
+∗
+εi (τ (Xi ) − τc (Xi )) : kτ − τc kL2 (P) ≤ δ
+E sup
+n i=1
+τ ∈Hc
+(c)
+
+log(n)
+≤ δ 2 + Bc2p δ 2(1−p) √ ,
+n
+
+(58)
+
+where (a) follows from (44), (b) follows from the fact that εi are symmetrical around 0, (c)
+follows from (45), and B is an absolute constant. h
+i
+2
+2
+Let fτ,c (Xi )
+=
+(τ (Xi ) − τc∗ (Xi )) − E (τ (Xi ) − τc∗ (Xi )) .
+Let G
+=
+o
+n P
+n
+supτ ∈Hc n1 i=1 fτ,c (Xi ) : kτ − τc∗ kL2 (P) ≤ δ .
+Note that for a different constant
+B,
+"
+( n
+)#
+1X
+2
+∗
+∗
+E [G] ≤ E sup
+(τ (Xi ) − τc (Xi )) : kτ − τc kL2 (P) ≤ δ
+n i=1
+τ ∈Hc
+n h
+i
+o
+2
++ sup E (τ (Xi ) − τc∗ (Xi )) : kτ − τc∗ kL2 (P) ≤ δ
+τ ∈Hc
+
+
+log(n)
+≤ B δ 2 + c2p δ 2(1−p) √
+,
+n
+where we note that bounding the first summand on the right-hand side of the first inequality
+above follows immediately from (58).
+We also note that by (40),
+n
+o
+2
+sup kfτ,c k∞ : kτ − τc∗ kL2 (P) ≤ δ ≤ B kτ − τc∗ k∞ ≤ Bc2p δ 2(1−p)
+τ ∈Hc
+
+for another different constant B, and that
+n 
+o
+n h
+i
+o
+
+4
+2
+sup E fτ,c
+: kτ − τc∗ kL2 (P) ≤ δ ≤ sup E (τ (Xi ) − τc∗ (Xi )) : kτ − τc∗ kL2 (P) ≤ δ
+τ ∈Hc
+τ ∈Hc
+n
+o
+2
+2
+≤ sup kτ − τc∗ kL2 (P) kτ − τc∗ k∞ : kτ − τc∗ kL2 (P) ≤ δ
+τ ∈Hc
+
+≤ c2p δ 2(1−p)+2 .
+30
+
+By Talagrand’s concentration inequality (42), for a fixed c and δ, we have that with
+probability 1 − ε,
+s  
+ !
+1
+1 2p 2(1−p)
+1
+log(n)
+1
+2
+2p 2(1−p)
+p 2−p
+√
+√
+. (59)
+log
++ c δ
+log
+G≤B δ +c δ
++c δ
+ε
+n
+ε
+n
+n
+We conclude that for a fixed c and δ, we have that with probability 1 − ε, for a different
+constant B,
+
+
+1
+sup
+(τ (Xi ) − τc∗ (Xi ))2 : kτ − τc∗ kL2 (P) ≤ δ
+n
+τ ∈Hc
+n h
+i
+o
+2
+≤ G + sup E (τ (Xi ) − τc∗ (Xi )) : kτ − τc∗ kL2 (P) ≤ δ
+τ ∈Hc
+
+≤B
+
+2
+
+2p 2(1−p) log(n)
+
+δ +c δ
+
+√
+
+n
+
+p 2−p
+
++c δ
+
+1
+√
+n
+
+s
+
+ 
+ !
+1
+1 2p 2(1−p)
+1
+.
+log
++ c δ
+log
+ε
+n
+ε
+
+We proceed with bounding the above for all values of c and δ simultaneously. For a fixed
+1
+1
+k = 0, 1, 2, · · · , define C k,δ := {2k + jn− 1−p δ2k , j = 0, 1, 2, · · · , d 1δ (n 1−p − 1)e}. For a fixed
+blog cc
+,δ
+δ, and for any c ≥ 1, let u(c, δ) = min{d : d > c, d ∈ C 2
+}. Recall that kτc∗ kL2 (P) ≤ 2M
+by definition, and so by Lemma 6, there is a constant D such that
+∗
+τc∗ − τu(c,δ)
+
+1
+
+≤ Dn− 1−p δ.
+
+(60)
+
+L2 (P)
+
+Thus, for any c ≥ 1,
+( n
+)
+1X
+2
+∗
+∗
+sup
+(τ (Xi ) − τc (Xi )) : kτ − τc kL2 (P) ≤ δ
+n i=1
+τ ∈Hc
+)
+( n
+1
+1X
+2
+− 1−p
+∗
+∗
+(τ (Xi ) − τc (Xi )) : τ − τu(c,δ)
+≤ δ + Dn
+δ
+≤ sup
+n i=1
+L2 (P)
+τ ∈Hu(c,δ)
+( n
+)
+2
+1
+1 X
+− 1−p
+∗
+∗
+≤ sup
+τ (Xi ) − τu(c,δ) (Xi ) : τ − τu(c,δ)
+δ
+≤ δ + Dn
+n i=1
+L2 (P)
+τ ∈Hu(c,δ)
+( n
+n
+2
+1X
+1 X
+2
+∗
+∗
++ sup
+(τ (Xi ) − τc (Xi )) −
+τ (Xi ) − τu(c,δ)
+(Xi ) :
+n i=1
+n i=1
+τ ∈Hu(c,δ)
+)
+∗
+τ − τu(c,δ)
+
+1
+
+≤ δ + Dn− 1−p δ .
+L2 (P)
+
+Let the two summands be Z1,c,δ , Z2,c,δ respectively. Starting with the former, we note that
+for all c, δ > 0,
+Z1,c,δ ≤ Z1,u(c,δ),2dlog2 (δ)e ,
+and so it suffices to bound this quantity on a set with c ∈ C kc ,δ , with δ = 4M · 2−kδ
+for kc , kδ = 0, 1, 2, .... Applying (59) unconditionally with probability threshold ε ∝
+
+31
+
+1
+
+1
+
+2−kc −kδ n− 1−p 2−kδ = 2−kc 2−2kδ n− 1−p in (59), we can use a union bound to check that
+1
+1
+log(n)
+Z1 = OP δ 2 (1 + n− 1−p )2 + c2p δ 2(1−p) (1 + n− 1−p )2(1−p) √
+n
+v
+!
+u
+1
+u
+1
+cn 1−p
+− 1−p
+2−p 1 t
+p 2−p
+√
+)
+log
++c δ
+(1 + n
+δ2
+n
+!!
+1
+1
+1 2p 2(1−p)
+cn 1−p
+− 1−p
+2(1−p)
++ c δ
+(1 + n
+)
+log
+n
+δ2
+v
+!
+u
+1
+u
+1−p
+1
+cn
+1
+log(n)
++ cp δ 2−p √ tlog
++ c2p δ 2(1−p) log
+= OP δ 2 + c2p δ 2(1−p) √
+δ2
+n
+n
+n
+
+(61)
+
+(62)
+
+(63)
+1
+
+cn 1−p
+δ2
+
+!!
+
+(64)
+∗
+simultaneously for all τ ∈ Hu(c,δ) such that τ − τu(c,δ)
+
+≤ δ, for all c > 1 and δ ≤ 4M .
+L2 (P)
+
+Next, to bound Z2 , by Cauchy-Schwartz,
+
+2
+P
+2
+∗
+∗
+{i:q(i)=q} (τ (Xi ) − τc (Xi )) − τ (Xi ) − τu(c,δ) (Xi )
+P
+=
+
+|{i : q(i) = q}|
+
+
+
+∗
+∗
+τc∗ (Xi ) − τu(c,δ)
+{i:q(i)=q} 2 τu(c,δ) (Xi ) − τ (Xi )
+|{i : q(i) = q}|
+P
+
++D
+
+
+
+{i:q(i)=q}
+
+2
+∗
+(Xi )
+τc∗ (Xi ) − τu(c,δ)
+
+|{i : q(i) = q}|
+
+∗
+∗
+≤ τu(c,δ)
+(Xi ) − τ (Xi )
+τc∗ (Xi ) − τu(c,δ)
+∞
+
+
+c2p δ 2−2p
+cp δ 1−p
++
+.
+= O cp δ 1−p
+n
+n2
+ 2p 2(1−p) 
+c δ
+=O
+.
+n
+
+∞
+
+∗
++ τc∗ (Xi ) − τu(c,δ)
+
+2
+∞
+
+where the second to the last equality follows from (60) and (40). Note that this is a deterministic bound, so it holds for all c ≥ 1. The desired result then follows.
+Lemma 8. Suppose that the propensity estimate ê(x) is uniformly consistent,
+ξn := sup |ê(x) − e∗ (x)| →p 0,
+
+(65)
+
+x∈X
+
+and the L2 errors converge at rate
+h
+i
+h
+i
+
+2
+2
+E (m̂(X) − m∗ (X)) , E (ê(X) − e∗ (X)) = O a2n
+
+(66)
+
+for some sequence an → 0. Suppose, moreover, that we have overlap, i.e., η < e∗ (x) < 1 − η
+for some η > 0, and that Assumptions 2 and 3 hold. Then, for any ε > 0, there is a constant
+32
+
+U (ε) such that the regret functions induced by the oracle learner (14) and the feasible learner
+(15) are coupled as
+bn (τ ; c) − R
+en (τ ; c)
+R
+p
+
+≤ U (ε) c R(τ ; c)
+
+1−p
+2
+
+a2n
+
+2p
+
++ c R(τ ;
+
+c)1−p a2n
+
+1−p
+1
++ cp R(τ ; c) 2 log
+n
+
+1
+
+cn 1−p
+δ2
+
+!
+
+1−p
+1−p
+log(n)
+1
+1
+an cp R(τ ; c) 2 + cp R(τ ; c) 2 an √
++ c2p R(τ ; c)1−p
+n
+n
+n
+v
+!
+!
+1
+1
+1−p u
+1−p
+1−p
+an cp R(τ ; c) 2 u
+cn
+1
+cn
+tlog
+√
++
++ c2p R(τ ; c)1−p log
+δ2
+n
+δ2
+n
+v
+!!
+u
+1
+u
+1−p
+p
+log(n)
+1
+cn
++ ξn R(τ ; c) + c2p R(τ ; c)1−p √
+,
++ cp R(τ ; c)1− 2 √ tlog
+δ2
+n
+n
+
++
+
+(67)
+simultaneously for all c ≥ 1 and τ ∈ Hc , with probability at least 1 − ε.
+b ) as follows:
+Proof. We start by decomposing the feasible loss function L(τ
+n
+
+
+
+2
+X 
+b )= 1
+L(τ
+Yi − m̂(−q(i)) (Xi ) − τ (Xi ) Wi − ê(−q(i)) (Xi )
+n i=1
+n
+
+
+1 X
+=
+(Yi − m∗ (Xi )) + m∗ (Xi ) − m̂(−q(i)) (Xi )
+n i=1
+
+− τ (Xi ) (Wi − e∗ (Xi )) − τ (Xi )(e∗ (Xi ) − ê(−q(i)) (Xi ))
+
+2
+
+n
+
+=
+
+1X
+2
+((Yi − m∗ (Xi )) − τ (Xi ) (Wi − e∗ (Xi )))
+n i=1
++
+
+n
+
+2
+1 X  ∗
+m (Xi ) − m̂(−q(i)) (Xi ) − τ (Xi )(e∗ (Xi ) − ê(−q(i)) (Xi ))
+n i=1
+
++
+
+n
+
+
+1X
+2 (Yi − m∗ (Xi )) m∗ (Xi ) − m̂(−q(i)) (Xi )
+n i=1
+
+−
+
+n
+
+
+1X
+2 (Yi − m∗ (Xi )) e∗ (Xi ) − ê(−q(i)) (Xi ) τ (Xi )
+n i=1
+
+−
+
+
+
+1X
+2 (Wi − e∗ (Xi )) m∗ (Xi ) − m̂(−q(i)) (Xi ) τ (Xi )
+n i=1
+
++
+
+
+
+1X
+2 (Wi − e∗ (Xi )) e∗ (Xi ) − ê(−q(i)) (Xi ) τ (Xi )2 .
+n i=1
+
+n
+
+n
+
+Furthermore, we can verify that some terms cancel out when we restrict attention to our
+b ; c) − R(τ
+e ; c) = L(τ
+b ) − L(τ
+b c∗ ) − L(τ
+e ) + L(τ
+e c∗ ); in particular, note
+main object of interest R(τ
+33
+
+e ):
+that the first summand above is exactly L(τ
+b ; c) − R(τ
+e ; c)
+R(τ
+n
+
+
+−2 X  ∗
+=
+m (Xi ) − m̂(−q(i)) (Xi ) e∗ (Xi ) − ê(−q(i)) (Xi ) (τ (Xi ) − τc∗ (Xi ))
+n i=1
++
+
+n
+2
+
+1 X ∗
+e (Xi ) − ê(−q(i)) (Xi )
+τ (Xi )2 − τc∗ (Xi )2
+n i=1
+
+−
+
+n
+
+
+1X
+2 (Yi − m∗ (Xi )) e∗ (Xi ) − ê(−q(i)) (Xi ) (τ (Xi ) − τc∗ (Xi ))
+n i=1
+
+−
+
+
+
+1X
+2 (Wi − e∗ (Xi )) m∗ (Xi ) − m̂(−q(i)) (Xi ) (τ (Xi ) − τc∗ (Xi ))
+n i=1
+
++
+
+
+
+
+1X
+2 (Wi − e∗ (Xi )) e∗ (Xi ) − ê(−q(i)) (Xi ) τ (Xi )2 − τc∗ (Xi )2 .
+n i=1
+
+n
+
+n
+
+Let Ac1 (τ ), Ac2 (τ ), B1c (τ ), B2c (τ ) and B3c (τ ) denote these 5 summands respectively. We now
+proceed to bound them, each on their own.
+Starting with Ac1 (τ ), by Cauchy-Schwarz,
+v
+v
+u n
+u n
+X
+u
+
+2
+1
+1X ∗
+2u
+c
+∗
+(−q(i))
+t
+m (Xi ) − m̂
+(Xi ) t
+e (Xi ) − ê(−q(i)) (Xi ) kτ − τc∗ k∞ .
+|A1 (τ )| ≤ 2
+n i=1
+n i=1
+This inequality is deterministic, and so trivially holds simultaneously across all τ ∈ Hc .
+Now, the two square-root terms denote the mean-squared errors of the m- and e-models
+respectively, and decay at rate OP (an ) by Assumption 3 and a direct application of Markov’s
+inequality. Thus, applying (41) to bound the infinity-norm discrepancy between τ and τc∗ ,
+we find that simultaneously for all c ≥ 1,
+n
+o
+
+1−p
+sup c−p R(τ ; c)− 2 |Ac1 (τ )| : τ ∈ Hc , c ≥ 1 = OP a2n .
+(68)
+To bound Ac2 (τ ), note that
+τ 2 (Xi ) − τc∗ (Xi )2 = 2τc∗ (Xi )[τ (Xi ) − τc∗ (Xi )] + (τ (Xi ) − τc∗ (Xi ))2
+
+(69)
+
+and so,
+n
+
+|Ac2 (τ )| ≤ 2 kτ − τc∗ k∞ kτc∗ k∞
+
+2
+1 X ∗
+e (Xi ) − ê(−q(i)) (Xi )
+n i=1
+2
+
++ kτ − τc∗ k∞
+
+n
+2
+1 X ∗
+e (Xi ) − ê(−q(i)) (Xi )
+n i=1
+
+= Ac2,1 (τ ) + Ac2,3 (τ ).
+To bound the two terms above, we can use a similar argument to the one used to bound
+2
+Pn
+Ac1 (τ ). Specifically, n1 i=1 e∗ (Xi ) − ê(−q(i)) (Xi ) is bounded with high probability and
+34
+
+does not depend on c or τ , whereas terms that depend on c or τ are deterministically
+bounded via (41); also, recall that kτc∗ k∞ ≤ 2M by (19). We thus find that
+n
+o
+
+1−p
+sup c−p R(τ ; c)− 2 Ac2,1 (τ ) : τ ∈ Hc , c ≥ 1 = OP a2n .
+n
+o
+
+sup c−2p R(τ ; c)−(1−p) Ac2,2 (τ ) : τ ∈ Hc , c ≥ 1 = OP a2n ,
+which all in fact decay at the desired rate.
+We now move to bounding B1c (τ ). To do so, first define
+
+P
+∗
+∗
+(−q(i))
+(Xi ) (τ (Xi ) − τc∗ (Xi ))
+{i:q(i)=q} 2 (Yi − m (Xi )) e (Xi ) − ê
+c
+,
+B1,q (τ ) =
+|{i : q(i) = q}|
+PQ
+c
+c
+(τ ). To proceed, we bound
+(τ ) . We first bound sup B1,q
+and note that |B1c (τ )| ≤ q=1 B1,q
+∗
+this quantity over sets indexed by c and δ such that kτ − τc kL2 (P) ≤ δ, i.e., we bound
+n
+o
+c
+(τ ) : kτ − τc∗ kL2 (P) ≤ δ .
+sup B1,q
+τ ∈Hc
+
+Let I (−q) = {Xi , Wi , Yi : q(i) 6= q}. By cross-fitting,
+h
+i
+c
+E B1,q
+(τ ) I (−q)
+"
+#
+
+X
+2 (Yi − m∗ (Xi )) e∗ (Xi ) − ê(−q(i)) (Xi ) (τ (Xi ) − τc∗ (Xi )) (−q)
+=
+E
+I
+|{i : q(i) = q}|
+{i:q(i)=q}
+" "
+#
+#
+
+X
+2 (Yi − m∗ (Xi )) e∗ (Xi ) − ê(−q(i)) (Xi ) (τ (Xi ) − τc∗ (Xi )) (−q)
+(−q)
+=
+E E
+I
+, Xi I
+|{i : q(i) = q}|
+{i:q(i)=q}
+#
+"
+
+X
+
+2 e∗ (Xi ) − ê(−q(i)) (Xi ) (τ (Xi ) − τc∗ (Xi )) 
+E (Yi − m∗ (Xi )) Xi I (−q)
+=
+E
+|{i : q(i) = q}|
+{i:q(i)=q}
+
+=0,
+
+(70)
+
+
+
+where the last equation follows because E (Yi − m∗ (Xi )) Xi = 0 by definition. Moreover,
+c
+by conditioning on I (−q) , the summands in B1,q
+(τ ) become independent, as ê(−q(i)) (Xi )
+is now only random in Xi . By Lemma 5 and (66), we can bound the expectation of the
+supremum of this term as
+h
+n
+o
+i
+
+
+c
+E supτ ∈Hc B1,q
+(τ ) : kτ − τc∗ kL2 (P) ≤ δ
+I (−q)
+p 1−p log(n)
+√
+=O c δ
+,
+h
+2 i 21
+n
+E e∗ (X) − ê(−q) (X)
+and so, in particular,
+
+
+
+
+n
+o
+c
+∗
+(−q)
+p 1−p log(n)
+√
+.
+E sup B1,q (τ ) : kτ − τc kL2 (P) ≤ δ
+I
+= OP an c δ
+n
+τ ∈Hc
+
+(71)
+
+It now remains to bound stochastic fluctuations of this supremum; and we do so using Talagrand’s concentration inequality (42). To proceed, first note that for an absolute constant
+35
+
+B,
+sup
+τ ∈Hc
+
+n
+o
+k2 (Yi − m∗ (·)) (e∗ (·) − ê(·)) (τ (·) − τc∗ (·))k∞ : kτ − τc∗ kL2 (P) ≤ δ ≤ Bcp δ 1−p ,
+
+and for a different constant B,
+ 
+
+
+
+2 
+∗
+∗
+(−q(i))
+∗
+∗
+sup E 2 (Yi − m (Xi )) e (Xi ) − ê
+(Xi ) (τ (Xi ) − τc (Xi ))
+: kτ − τc kL2 (P) ≤ δ
+τ ∈Hc
+
+≤ Bc2p δ 2(1−p) a2n .
+Following from (42) and (71), for any fixed c, δ, ε > 0, there exists an (again, different)
+absolute constant B such that, with probability at least 1 − ε,
+o
+n
+c
+sup B1,q
+(τ ) I (−q) : kτ − τc∗ kL2 (P) ≤ δ
+τ ∈Hc
+
+p 1−p
+
+<B
+
+c δ
+
+log(n) cp δ 1−p an
+√
+an √
++
+n
+n
+
+s
+
+ 
+ !
+1
+1
+1 p 1−p
+log
+log
++ c δ
+ε
+n
+ε
+
+(72)
+
+Because the right-hand side does not depend on I (−q) , this bound also holds unconditionally.
+Our next step is to establish a bound that holds for all values of c and δ simultaneously,
+as opposed to single values only as in (72). For k = 0, 1, 2, · · · , define
+o
+n
+1
+1
+C k,δ := 2k + jn− 1−p δ2k , j = 0, 1, 2, · · · , d(n 1−p − 1)/δe .
+blog2 cc
+
+,δ
+For any c ≥ 1, let u(c, δ) = min{d : d > c, d ∈ C 2
+}. Recall that kτc∗ kL2 (P) ≤ 2M by
+definition (19), and so by Lemma 6, there is a constant D such that
+∗
+τc∗ − τu(c,δ)
+
+1
+
+≤ Dn− 1−p δ.
+
+Thus, for any c ≥ 1,
+n
+o
+c
+sup B1,q
+(τ ) : kτ − τc∗ kL2 (P) ≤ δ
+τ ∈Hc
+
+c
+∗
+≤ sup
+B1,q
+(τ ) : τ − τu(c,δ)
+
+1
+
+≤ δ + Dn− 1−p δ
+
+≤
+
+sup
+τ ∈Hu(c,δ)
+
+u(c,δ)
+B1,q (τ )
+
+
++
+
+sup
+τ ∈Hu(c,δ)
+
+: τ−
+
+∗
+τu(c,δ)
+
+u(c,δ)
+
+c
+B1,q
+(τ ) − B1,q
+
+
+
+L2 (P)
+
+τ ∈Hu(c,δ)
+
+
+
+(73)
+
+L2 (P)
+
+1
+− 1−p
+
+≤ δ + Dn
+
+
+δ
+
+L2 (P)
+
+∗
+(τ ) : τ − τu(c,δ)
+
+
+1
+≤ δ + Dn− 1−p δ .
+L2 (P)
+
+B1
+B1
+Let the two summands be Z1,c,δ
+and Z2,c,δ
+respectively. Starting with the former, we note
+that for all c, δ > 0,
+B1
+B1
+Z1,c,δ
+≤ Z1,u(c,δ),2
+dlog2 (δ)e ,
+
+and so it suffices to bound this quantity on a set with c ∈ C kc ,δ with δ = 4M · 2−kδ ,
+for kc , kδ = 0, 1, 2, .... Applying (72) unconditionally with probability threshold ε ∝
+36
+
+1
+
+1
+
+2−kc −kδ n− 1−p 2−kδ = 2−kc 2−2kδ n− 1−p , we can use a union bound to check that
+v
+
+1
+!
+u
+− 1−p
+1−p
+p
+1
+
+
+δ)
+a
+c
+(δ
++
+Dn
+u
+1−p
+n
+1−p
+1
+cn
+log(n)
+B1
+tlog
+√
+Z1,c,δ
+= OP cp δ + Dn− 1−p δ
++
+an √
+δ2
+n
+n
+!
+!
+1
+1−p
+1
+1 p
+cn 1−p
+− 1−p
++ c δ + Dn
+δ
+log
+(74)
+n
+δ2
+v
+!
+!!
+u
+1
+1
+p 1−p
+cn 1−p
+1 p 1−p
+cn 1−p
+an u
+log(n) c δ
+p 1−p
+t
+√
+log
++ c δ
+log
+= OP c δ
++
+an √
+δ2
+n
+δ2
+n
+n
+B1
+simultaneously for all c > 1 and δ ≤ 4M . Next, to bound Z2,c,δ
+, we use Cauchy-Schwartz
+to check that
+
+ ∗
+P
+∗
+∗
+(−q(i))
+(Xi ) τu(c,δ)
+(Xi ) − τc∗ (Xi )
+{i:q(i)=q} 2 (Yi − m (Xi )) e (Xi ) − ê
+
+|{i : q(i) = q}|
+v
+v
+
+2
+uP
+uP
+
+2
+u
+∗
+∗ (X )
+u
+∗
+(−q(i))
+τ
+(X
+)
+−
+τ
+i
+(Xi ) t {i:q(i)=q} u(c,δ) i
+c
+t {i:q(i)=q} e (Xi ) − ê
+≤D
+|{i : q(i) = q}|
+|{i : q(i) = q}|
+v
+uP
+
+u
+∗
+(−q(i)) (X ) 2
+i
+t {i:q(i)=q} e (Xi ) − ê
+∗
+τu(c,δ)
+− τc∗
+≤D
+|{i : q(i) = q}|
+∞
+
+
+p 1−p
+an c δ
+= Op
+.
+n
+where the last equality follows from (73), (40) and (66) with a direct application of
+Markov’s inequality. Note that the term that depends on c is deterministically bounded,
+so the above bound holds
+for all c ≥ 1. We can
+bound −B1c (τ ). For any T ,
+
+ similarly
+
+P supτ ∈Hc |B1c (τ )| ≥ T ≤ P supτ ∈Hc B1c (τ ) ≥ T + P supτ ∈Hc −B1c (τ ) ≥ T , the desired
+result then follows. Similar arguments apply to bounding B2c (τ ) as well, and the same bound
+(up to constants) suffices.
+Now moving to bounding B3c (τ ), note that by (69),
+n
+
+
+4X
+B3c (τ ) ≤
+(Wi − e∗ (Xi )) e∗ (Xi ) − ê(−q(i)) (Xi ) (τ (Xi ) − τc∗ (Xi )) τc∗ (Xi )
+n i=1
++
+
+n
+
+
+2X
+(Wi − e∗ (Xi )) e∗ (Xi ) − ê(−q(i)) (Xi ) (τ (Xi ) − τc∗ (Xi ))2 .
+n i=1
+
+Denote the two summands by D1B3 ,c (τ ) and D2B3 ,c (τ ) respectively. Note that since kτc∗ k∞ ≤
+2M , we can use a similar argument to the one used to bound sup B1c (τ ), and the same bound
+suffices.
+We now proceed to bound D2B3 ,c . First, we note that
+Pn
+2
+2 kYi − m∗ (·)k∞ e∗ (·) − ê(−q(i)) (·) ∞ (τ (Xi ) − τc∗ (Xi ))
+B3 ,c
+D2
+≤ i=1
+(75)
+n
+Pn
+2
+∗
+i=1 (τ (Xi ) − τc (Xi ))
+≤ B e∗ (·) − ê(−q(i)) (·)
+,
+(76)
+n
+∞
+37
+
+where B is an absolute constant. By Lemma 7, uniformly for all τ ∈ Hc , c ≥ 1, δ ≤ 4M
+where kτ − τc∗ kL2 (P) ≤ δ, we have
+D2B3 ,c = OP
+
+v
+!
+u
+1
+u
+cn 1−p
+p 2−p 1 t
+2
+2p 2(1−p) log(n)
+√
+√
+log
++c δ
+ξn δ + c δ
+δ2
+n
+n
+!
+!
+1
+c2p δ 2−2p
+1 2p 2(1−p)
+cn 1−p
++
+,
++ c δ
+log
+n
+δ2
+n
+
+where ξn = e∗ (·) − ê(−q(i)) (·) ∞ = o(1). Finally, recalling that from (17), R(τ ; c) is within
+2
+a constant factor of kτ − τc∗ kL2 (P) given overlap, we obtain our desired result.
+
+A.3
+
+Proof of Lemma 2
+
+Proof. Comparing (67) with (34), we note that given the conditions, all other terms that
+are omitted in (34) are on lower order to the first leading term in (34).
+
+A.4
+
+Proof of Theorem 3
+
+As discussed earlier, the arguments of Mendelson and Neeman (2010) can be used to get
+regret bounds for the oracle learner.11 In order to extend their results, we first review their
+analysis briefly. Their results imply the following facts (details see Theorem A and the proof
+of Theorem 2.5 in the Appendix section in Mendelson and Neeman (2010)). For any ε > 0,
+there is a constant U (ε) such that
+ρn (c) = U (ε) 1 + log(n) + log log c + e
+
+1
+
+
+
+
+
+p
+
+(c + 1) log(n)
+√
+n
+
+2
+ 1+p
+
+(77)
+
+satisfies, for large enough n with probability at least 1 − ε, simultaneously for all c ≥ 1, the
+condition
+en (τ ; c) − ρn (c) ≤ R(τ ; c) ≤ 2R
+en (τ ; c) + ρn (c).
+0.5R
+(78)
+Thus, thanks to Lemma 1 and (29), we know that
+R(τ̃ ) ≤ OP
+
+
+
+α
+L(τc∗n ) − L(τ ∗ ) + ρn (cn ) with cn = n p+(1−2α) ,
+
+and then pairing (30) with the form of ρn (c) in (77), we conclude that
+
+
+
+1−2α
+e n− p+(1−2α) .
+R(τ̃ ) .P max L(τc∗n ) − L(τ ∗ ), ρn (cn ) = O
+
+(79)
+
+(80)
+
+Our present goal is to extend this argument to get a bound for R(τ̂ ).
+11 We
+
+note that the R−learning objective can be written as a weighted regression problem: τ̂ (x) =
+
+2
+
+Yi −m(−i) (Xi )
+1 Pn
+−(i) (X ) 2
+W
+−
+e
+−
+τ
+(X
+)
+. To adapt the setting in Mendelson and
+argminτ ∈Hc n
+i
+i
+i
+−(i)
+i=1
+Wi −e
+
+(Xi )
+
+Neeman (2010) to our setting, note that we weight the data generating distribution of {Xi , Yi , Wi } by the
+weights (Wi − e(−i) (Xi ))2 . In addition, by Lemma 4, the class of functions we consider Hc with capped
+infinity norm is also an ordered, parameterized hierarchy, thus their results follow.
+
+38
+
+Towards this end, first we copy from Lemma 2 that under the conditions from Lemma
+2,
+bn (τ ; c) − R
+en (τ ; c)
+R
+1
+1
+√ log(n) + c2p R(τ ; c)1−p log
++ c R(τ ; c)
+≤ U (ε) c R(τ ; c)
+n
+n
+v
+v
+!
+u
+u
+1
+1−p
+1 u
+1 u
+cn 1−p
+p
+p
+1− p
+t
+tlog
+2
+2
+√
+√
++ c R(τ ; c)
+an
++ c R(τ ; c)
+log
+R(τ ; c)
+n
+n
+!
+p
+
+1−p
+2
+
+a2n
+
+2p
+
+1−p
+
+1
+
+!
+
+1
+
+!
+
+cn 1−p
+R(τ ; c)
+cn 1−p
+R(τ ; c)
+
++ ξn R(τ ; c) ,
+(81)
+α
+
+with probability at least 1 − ε, for all τ ∈ Hc , 1 ≤ c ≤ cn log(n) with cn = n p+1−2α .
+For any γn , ζn > 0, and 0 ≤ νγ , νζ < 1 − p, by concavity,
+R(τ, c)
+
+1−p−νγ
+2
+
+R(τ, c)1−p−νζ
+
+γ
+1 − p − νγ − 1+p+ν
+γn 2 (R(τ ; c) − γn )
+2
+γ
+γ
+1 + p + νγ 1−p−ν
+1 − p − νγ − 1+p+ν
+=
+γn 2
++
+γn 2 R(τ ; c),
+2
+2
+−p−νζ
+1−p−νζ
+(R(τ ; c) − ζn )
++ (1 − p − νζ )ζn
+≤ ζn
+1−p−νγ
+2
+
+≤ γn
+
++
+
+1−p−νζ
+
+= (p + νζ )ζn
+
+−p−νζ
+
++ (1 − p − νζ )ζn
+
+R(τ ; c).
+
+(82)
+
+(83)
+
+We then apply the above bounds with choices of γn , ζn that make the linear coefficients of
+R(τ ; c) in (81) small, and show that the remaining terms are lower order to ρn (c) for all
+1 ≤ c ≤ cn log(n). More formally, it suffices to show that
+bn (τ ; c) − R
+en (τ ; c) ≤ 0.125R(τ ; c) + o(ρn (c)),
+R
+
+(84)
+α
+
+with probability at least 1 − ε, for all τ ∈ Hc , 1 ≤ c ≤ cn log(n) with cn = n p+1−2α for large
+enough n. The above would imply that
+en (τ ; c) + ρn (c)
+R(τ ; c) ≤ 2R
+bn (τ ; c) + 0.25R(τ ; c) + 2ρn (c),
+≤ 2R
+
+(85)
+
+which implies that
+2 b
+Rn (τ ; c) + 2ρn (c)
+0.75
+bn (τ ; c) + 2ρn (c)
+≤ 3R
+
+R(τ ; c) ≤
+
+(86)
+
+for large n for all 1 ≤ c ≤ cn log(n), with probabilty at least 1 − 2ε. Following a symmetrical
+argument, (84) would imply that
+1b
+bn (τ ; c) + 2ρn (c)
+Rn (τ ; c) − 2ρn (c) ≤ R(τ ; c) ≤ 3R
+3
+39
+
+(87)
+
+for n large enough for all 1 ≤ c ≤ cn log(n) with probability at least 1 − 4ε.
+We now proceed to show (84) holds. First, following from (17), R(τ ; c) < (1 − η)2 4M 2 =
+O(1). Let J be a constant such that R(τ ; c) < J. Now we bound each term in (81) as follows:
+4
+2
+ 1+p
+2p
+2
+1−p
+To bound the terms cp R(τ ; c) 2 a2n , . let γn = (U (ε)) 1+p 1−p
+c 1+p an1+p . Note that
+0.04
+1
+since an = o(n− 4 ), γn = o(ρn (c)) for all c ≥ 1.
+Following from (82),
+cp R(τ ; c)
+
+1−p
+2
+
+a2n ≤
+
+1
+(0.02R(τ ; c) + o(ρn (c))) .
+U (ε)
+1
+
+To bound the term c2p R(τ ; c)1−p √1n log(n), let ζn = U (ε) p
+When c = cn log(n),
+
+1
+1
+1
+1
+1−p p 2
+p
+cn (log(n))2+ p n− 2p
+ζn = U (ε)
+0.02
+
+
+2α
+1
+1
+= O n p+1−2α − 2p (log(n))2+ p
+
+
+2αp
+1
+(a)
+= o n (p+1−2α)(1+p) − 1+p
+ 2p
+
+1
+− 1+p
+1+p
+= o cn n
+= o(ρn (cn log(n))),
+
+1−p
+0.02
+
+(88)
+ p1
+
+1
+
+1
+
+c2 n− 2p log(n) p .
+
+where (a) follows from a few lines of algebra and the assumption that 2α < 1 − p. Since the
+exponent on c in ζn is greater than that in ρn (c), we can verify that for any c ≤ cn log(n),
+ζn (c)
+ζn (cn )
+ρn (c) ≤ ρn (cn ) = o(1). Following from (83),
+1
+1
+c2p R(τ ; c)1−p √ log(n) ≤
+(0.02R(τ ; c) + o(ρn (c))).
+U (ε)
+n
+
+
+1
+cn 1−p
+νζ
+To bound the term c2p R(τ ; c)1−p n1 log R(τ
+; c) , since R(τ ; c) log(1/R(τ ; c)) <
+1
+
+1
+
+2
+log(c) log(n), it
+R(τ ; c)νζ < J νζ = O(1), and log(cn 1−p ) = log(c) + log(n 1−p ) < 1−p
+2p
+1−p−νζ 1
+is sufficient to bound c R(τ ; c)
+log(n)
+log(c)
+for
+some
+0
+<
+ν
+<
+1 − p. Let a
+ζ
+n
+1
+1
+
+ p+ν
+
+ p+ν
+2p
+1
+1
+1
+−
+1−p−νζ
+ζ
+ζ
+2
+different ζn = 1−p
+J νζ U (ε)
+c p+νζ n p+νζ log(n) p+νζ log(c) p+νζ . When
+0.02
+
+c = cn log(n),
+
+
+2αp
+2p
+1
+2
+− p+ν
+(p+1−2α)(p+νζ )
+p+νζ + p+νζ
+ζ
+ζn = O n
+n
+log(n)
+
+
+2αp
+1
+= o n (p+1−2α)(1+p) − 1+p
+ 2p
+
+1
+− 1+p
+1+p
+= o cn n
+= o(ρn (cn log(n))),
+(a)
+
+where (a) follows from 2α < 1. Since the exponent on c in ζn is greater than that in ρn (c),
+ζn (cn )
+we can verify that for any c ≤ cn log(n), ρζnn(c)
+(c) ≤ ρn (cn ) = o(1). Following from (83),
+c2p R(τ ; c)1−p−νζ
+
+1−p
+1
+log(n) log(c) ≤
+(0.02R(τ ; c) + o(ρn (c))).
+n
+2J νζ U (ε)
+40
+
+Thus,
+!
+1
+1
+cn 1−p
+≤
+(0.02R(τ ; c) + o(ρn (c))).
+R(τ ; c)
+U (ε)
+s 
+
+1
+1p
+1
+cn 1−p
+p
+1− p
+2
+log(1/R(τ ; c)) <
+To bound the terms c R(τ ; c) 2 √n log R(τ
+; c) , since R(τ ; c)
+q
+p
+p
+1
+1
+1
+1
+R(τ ; c) 2 < J 2 = O(1), and
+log(cn 1−p ) <
+log(c) + √1−p
+log(n) <
+p
+p
+p
+p
+1−p
+1
+2
+p
+√
+log(n) log(c), it is sufficient to bound c R(τ ; c) 2 √n log(n) log(c). To pro1−p
+2
+
+ 1+p
+ 2
+2p
+1
+1
+1
+1
+1−p 1+p 1+p
+2
+J 2 U (ε)
+ceed, let a different γn = √1−p
+n− 1+p (log(n)) 1+p (log(c)) 1+p .
+c
+0.04
+1
+c2p R(τ ; c)1−p log
+n
+
+1
+
+1
+
+Note that for 1 ≤ c ≤ cn log(n), (log(c)) 1+p ≤ (log(cn log(n))) 1+p . For a different constant
+D and D0 ,
+2p
+
+1
+
+1
+
+1
+
+γn ≤ Dc 1+p n− 1+p (log(n)) 1+p (log(cn log(n))) 1+p
+2p
+
+1
+
+2
+
+≤ D0 c 1+p n− 1+p (log(n)) 1+p
+= o(ρn (c)).
+Following from (82),
+p
+
+c R(τ ; c)
+
+1−p
+2
+
+√
+p
+1 p
+1−p
+√
+(0.02R(τ ; c) + o(ρn (c))) .
+log(n) log(c) ≤
+1
+n
+2J 2 U (ε)
+
+(89)
+
+Thus,
+p
+
+1− p
+2
+
+c R(τ ; c)
+
+v
+u
+1 u
+√ tlog
+n
+
+1
+
+cn 1−p
+R(τ ; c)
+
+!
+≤
+
+s
+p
+
+To bound the term c R(τ ; c)
+R(τ ; c)
+
+1−p
+2
+
+νγ
+2
+
+an √1n
+
+p
+
+
+log
+
+1
+(0.02R(τ ; c) + o(ρn (c))) .
+U (ε)
+1
+
+cn 1−p
+R(τ ; c)
+
+(90)
+
+
+, since
+
+log(1/R(τ ; c)) < R(τ ; c)
+<J
+
+νγ
+2
+
+νγ
+2
+
+= O(1),
+
+and
+q
+
+r
+
+1
+log(n)
+1−p
+p
+1 p
+< log(c) + √
+log(n)
+1−p
+p
+2 p
+<√
+log(c) log(n),
+1−p
+p
+1−p−νγ
+1
+3p
+and an = o(n− 4 ), it is sufficient to bound cp R(τ ; c) 2 n− 4 log(n) log(c) for some νγ
+such that 0 < νγ < 1 − p. Let a different
+2
+
+ 1+p+ν
+
+ 2
+2p
+γ
+νγ
+3
+1
+1 − p − νγ 1+p+νγ 1+p+ν
+2
+−
+γ n 2(1+p+νγ ) (log(n) log(c)) 1+p+νγ .
+J 2 U (ε)
+c
+γn = √
+0.04
+1−p
+log(cn
+
+1
+1−p
+
+)=
+
+log(c) +
+
+41
+
+Let νγ =
+(82),
+
+1−p
+2 ,
+
+it is straightforward to check that γn = o(ρn (c)) for all c ≥ 1. Following from
+√
+
+cp R(τ ; c)
+
+1−p−νγ
+2
+
+3
+
+n− 4
+
+p
+
+p
+log(n) log(c) ≤
+
+2J
+
+1−p
+
+νγ
+2
+
+U (ε)
+
+(0.02R(τ ; c) + o(ρn (c))) .
+
+(91)
+
+Thus,
+v
+u
+1−p
+1 u
+p
+2
+c R(τ ; c)
+an √ tlog
+n
+
+1
+
+cn 1−p
+R(τ ; c)
+
+!
+≤
+
+1
+(0.02R(τ ; c) + o(ρn (c))) .
+U (ε)
+
+(92)
+
+Finally, to bound the term ξn R(τ ; c), note that since ξn → 0, for n large enough,
+ξn R(τ ; c) ≤ U 1(ε) 0.025R(τ ; c).
+Given the above derivations, (84) is now immediate. Thus, with probability 1 − 4ε, (87)
+holds for all 1 ≤ c ≤ cn log(n). Then applying the same argument as above, we use Lemma
+1 to check that the constrained estimator defined as
+n
+o
+b n (τ ) + 2κ1 ρn (kτ k ) : kτ k ≤ log(n)cn , kτ k ≤ 2M
+τ̂¯ ∈ argminτ ∈H L
+H
+H
+∞
+n
+o
+bn (τ ) + 2κ1 ρn (kτ k ) : kτ k ≤ log(n)cn , kτ k ≤ 2M
+⊆ argminτ ∈H R
+(93)
+H
+H
+∞
+has regret bounded on the order of
+L(τ̂¯) − L (τ ∗ ) .P
+
+
+
+L(τc∗n ) − L(τ ∗ ) + ρn (cn ) . ρn (cn ),
+
+(94)
+
+b n (τ ) = R
+bn (τ ) + L
+b n (τ ∗ ). We see that for some constant B and B 0 ,
+where we note that L
+n
+o
+b ) + 2κ1 ρn (kτ k ) : kτ k ≤ log(n)cn , kτ k ≤ 2M
+min R(τ
+(95)
+H
+H
+∞
+τ ∈H
+
+bn (τ ∗ ) + 2κ1 ρn (cn )
+≤R
+cn
+(a)
+
+≤ 3R(τc∗n ) + (2κ1 + 6)ρn (cn ) w.p. 1 − 4ε
+
+(b)
+
+2α−1
+
+≤ Bcn α
+
++ (2κ1 + 6)ρn (cn )
+
+(c)
+
+= B 0 ρn (cn ).
+
+(96)
+
+where (a) follows from (87), (b) follows from (17) and (30), and (c) follows from (79) and
+(80). In addition, we see that
+n
+o
+bn (τ ) + 2κ1 ρn (kτ k ) : kτ̂ k = log(n)cn , kτ k ≤ 2M &P ρn (cn log(n))
+inf R
+H
+H
+∞
+τ ∈H
+
+which, combined with (96), implies that the optimum of the problem (93) occurs in the
+interior of its domain (i.e., the constraint is not active). Thus, the solution τ̂ to the unconstrained problem matches τ̂¯, and so τ̂ also satisfies (94) and hence the regret bound
+(80).
+
+B
+
+Detailed Simulation Results
+
+For completeness, we include the mean-squared error numbers behind Figure 3 for the lassoand boosting-based simulations in Section 4.
+42
+
+n
+500
+500
+500
+500
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+
+d
+6
+6
+6
+6
+12
+12
+12
+12
+6
+6
+6
+6
+12
+12
+12
+12
+
+σ
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+
+S
+0.13
+0.21
+0.27
+0.51
+0.15
+0.22
+0.30
+0.47
+0.09
+0.15
+0.23
+0.34
+0.11
+0.18
+0.25
+0.33
+
+T
+0.19
+0.27
+0.35
+0.66
+0.20
+0.26
+0.35
+0.56
+0.13
+0.21
+0.29
+0.43
+0.14
+0.22
+0.30
+0.40
+
+X
+0.10
+0.16
+0.25
+0.41
+0.12
+0.18
+0.26
+0.43
+0.06
+0.11
+0.20
+0.31
+0.08
+0.14
+0.21
+0.29
+
+U
+0.12
+0.37
+1.25
+1.95
+0.17
+0.46
+1.18
+1.98
+0.06
+0.25
+0.85
+2.40
+0.11
+0.34
+0.94
+1.95
+
+R
+0.06
+0.10
+0.21
+0.55
+0.07
+0.11
+0.23
+0.59
+0.04
+0.07
+0.13
+0.34
+0.05
+0.08
+0.14
+0.35
+
+RS
+0.06
+0.07
+0.12
+0.26
+0.06
+0.09
+0.14
+0.28
+0.05
+0.06
+0.08
+0.16
+0.05
+0.07
+0.09
+0.18
+
+oracle
+0.05
+0.07
+0.19
+0.61
+0.05
+0.08
+0.23
+0.63
+0.04
+0.06
+0.11
+0.32
+0.04
+0.06
+0.12
+0.33
+
+Table
+1:
+Mean-squared error running lasso from Setup A. Results are
+averaged across 500 runs, rounded to two decimal places, and reported on
+an independent test set of size n.
+
+n
+500
+500
+500
+500
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+
+d
+6
+6
+6
+6
+12
+12
+12
+12
+6
+6
+6
+6
+12
+12
+12
+12
+
+σ
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+
+S
+0.26
+0.44
+0.84
+1.52
+0.30
+0.52
+0.93
+1.62
+0.14
+0.27
+0.54
+1.06
+0.17
+0.30
+0.61
+1.15
+
+T
+0.43
+0.66
+1.12
+1.73
+0.46
+0.71
+1.12
+1.77
+0.24
+0.43
+0.73
+1.31
+0.28
+0.45
+0.76
+1.30
+
+X
+0.22
+0.38
+0.71
+1.29
+0.25
+0.43
+0.78
+1.33
+0.13
+0.23
+0.45
+0.92
+0.15
+0.26
+0.50
+1.01
+
+U
+0.46
+0.83
+1.27
+1.40
+0.54
+0.90
+1.28
+1.42
+0.24
+0.46
+1.12
+1.34
+0.29
+0.55
+1.19
+1.33
+
+R
+0.28
+0.43
+0.85
+1.51
+0.33
+0.50
+0.96
+1.55
+0.15
+0.25
+0.52
+1.07
+0.18
+0.30
+0.59
+1.19
+
+RS
+0.29
+0.72
+1.26
+1.41
+0.41
+0.95
+1.31
+1.40
+0.15
+0.36
+0.92
+1.34
+0.18
+0.52
+1.14
+1.34
+
+oracle
+0.16
+0.33
+0.75
+1.46
+0.18
+0.38
+0.84
+1.54
+0.10
+0.20
+0.47
+1.06
+0.11
+0.23
+0.54
+1.13
+
+Table
+2:
+Mean-squared error running lasso from Setup B. Results are
+averaged across 500 runs, rounded to two decimal places, and reported on
+an independent test set of size n.
+
+43
+
+n
+500
+500
+500
+500
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+
+d
+6
+6
+6
+6
+12
+12
+12
+12
+6
+6
+6
+6
+12
+12
+12
+12
+
+σ
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+
+S
+0.18
+0.33
+0.75
+1.68
+0.18
+0.34
+0.81
+1.79
+0.10
+0.19
+0.41
+0.97
+0.09
+0.18
+0.43
+1.10
+
+T
+0.80
+1.18
+1.95
+3.13
+0.88
+1.29
+2.08
+3.28
+0.49
+0.73
+1.29
+2.38
+0.58
+0.82
+1.40
+2.43
+
+X
+0.18
+0.29
+0.58
+1.24
+0.19
+0.31
+0.65
+1.43
+0.10
+0.17
+0.35
+0.82
+0.10
+0.18
+0.37
+0.87
+
+U
+0.53
+0.66
+1.42
+3.56
+0.55
+0.86
+1.82
+4.02
+0.23
+0.34
+0.82
+2.31
+0.41
+0.54
+1.21
+3.20
+
+R
+0.05
+0.10
+0.21
+0.64
+0.08
+0.12
+0.24
+0.62
+0.02
+0.03
+0.08
+0.27
+0.03
+0.04
+0.11
+0.29
+
+RS
+0.02
+0.03
+0.09
+0.26
+0.03
+0.06
+0.13
+0.33
+0.01
+0.01
+0.04
+0.11
+0.01
+0.02
+0.05
+0.14
+
+oracle
+0.01
+0.03
+0.12
+0.51
+0.01
+0.04
+0.14
+0.58
+0.00
+0.01
+0.07
+0.22
+0.00
+0.01
+0.05
+0.21
+
+Table
+3:
+Mean-squared error running lasso from Setup C. Results are
+averaged across 500 runs, rounded to two decimal places, and reported on
+an independent test set of size n.
+
+n
+500
+500
+500
+500
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+
+d
+6
+6
+6
+6
+12
+12
+12
+12
+6
+6
+6
+6
+12
+12
+12
+12
+
+σ
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+
+S
+0.46
+0.77
+1.32
+2.02
+0.59
+0.94
+1.47
+2.06
+0.27
+0.50
+0.93
+1.61
+0.35
+0.61
+1.10
+1.76
+
+T
+0.37
+0.66
+1.23
+2.20
+0.44
+0.77
+1.38
+2.21
+0.21
+0.41
+0.79
+1.58
+0.26
+0.48
+0.93
+1.73
+
+X
+0.45
+0.75
+1.29
+1.97
+0.56
+0.88
+1.45
+1.98
+0.27
+0.48
+0.91
+1.56
+0.34
+0.57
+1.05
+1.68
+
+U
+1.20
+1.68
+1.81
+2.10
+1.19
+1.70
+1.84
+2.12
+0.74
+1.57
+1.76
+1.95
+0.76
+1.54
+1.78
+1.94
+
+R
+0.51
+0.81
+1.43
+2.20
+0.63
+0.96
+1.59
+2.28
+0.30
+0.54
+0.97
+1.73
+0.38
+0.63
+1.11
+1.82
+
+RS
+0.72
+1.57
+1.79
+1.91
+1.08
+1.74
+1.81
+1.94
+0.41
+0.87
+1.74
+1.83
+0.55
+1.28
+1.76
+1.83
+
+oracle
+0.47
+0.80
+1.42
+2.19
+0.57
+0.95
+1.59
+2.17
+0.28
+0.53
+0.99
+1.70
+0.36
+0.64
+1.17
+1.84
+
+Table
+4:
+Mean-squared error running lasso from Setup D. Results are
+averaged across 500 runs, rounded to two decimal places, and reported on
+an independent test set of size n.
+
+44
+
+n
+500
+500
+500
+500
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+
+d
+6
+6
+6
+6
+12
+12
+12
+12
+6
+6
+6
+6
+12
+12
+12
+12
+
+σ
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+
+S
+0.06
+0.12
+0.26
+0.53
+0.07
+0.13
+0.27
+0.48
+0.05
+0.09
+0.20
+0.38
+0.05
+0.09
+0.21
+0.41
+
+T
+0.10
+0.20
+0.44
+0.90
+0.11
+0.23
+0.49
+0.88
+0.07
+0.15
+0.36
+0.68
+0.08
+0.16
+0.36
+0.72
+
+X
+0.04
+0.08
+0.16
+0.32
+0.04
+0.08
+0.17
+0.34
+0.02
+0.05
+0.11
+0.23
+0.03
+0.05
+0.11
+0.24
+
+U
+0.05
+0.11
+0.20
+1.04
+0.05
+0.12
+0.38
+1.21
+0.05
+0.07
+0.20
+0.50
+0.05
+0.10
+0.21
+0.60
+
+CB
+0.04
+0.09
+0.21
+0.33
+0.05
+0.10
+0.21
+0.34
+0.03
+0.06
+0.16
+0.27
+0.03
+0.06
+0.15
+0.29
+
+R
+0.03
+0.06
+0.13
+0.35
+0.04
+0.06
+0.13
+0.33
+0.02
+0.05
+0.09
+0.19
+0.03
+0.05
+0.08
+0.22
+
+oracle
+0.04
+0.06
+0.11
+0.32
+0.04
+0.05
+0.11
+0.32
+0.03
+0.04
+0.08
+0.19
+0.03
+0.05
+0.08
+0.24
+
+Table
+5:
+Mean-squared error running boosting from Setup A. Results are
+averaged across 200 runs, rounded to two decimal places, and reported on
+an independent test set of size n.
+
+n
+500
+500
+500
+500
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+
+d
+6
+6
+6
+6
+12
+12
+12
+12
+6
+6
+6
+6
+12
+12
+12
+12
+
+σ
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+
+S
+0.19
+0.33
+0.67
+1.40
+0.22
+0.37
+0.77
+1.63
+0.13
+0.21
+0.45
+1.01
+0.14
+0.25
+0.50
+1.16
+
+T
+0.28
+0.48
+0.89
+1.76
+0.30
+0.50
+0.95
+1.87
+0.19
+0.33
+0.65
+1.34
+0.21
+0.34
+0.69
+1.33
+
+X
+0.14
+0.27
+0.56
+1.10
+0.15
+0.29
+0.58
+1.10
+0.08
+0.17
+0.39
+0.82
+0.09
+0.18
+0.41
+0.84
+
+U
+0.20
+0.41
+0.84
+1.50
+0.22
+0.43
+0.89
+1.56
+0.13
+0.25
+0.58
+1.20
+0.13
+0.26
+0.63
+1.24
+
+CB
+0.28
+0.37
+0.67
+1.33
+0.35
+0.46
+0.79
+1.41
+0.18
+0.24
+0.43
+0.89
+0.20
+0.28
+0.51
+1.01
+
+R
+0.20
+0.33
+0.68
+1.20
+0.21
+0.37
+0.74
+1.41
+0.11
+0.22
+0.46
+1.01
+0.13
+0.24
+0.52
+1.12
+
+oracle
+0.14
+0.28
+0.62
+1.19
+0.15
+0.31
+0.68
+1.27
+0.09
+0.19
+0.43
+1.00
+0.09
+0.21
+0.49
+1.08
+
+Table
+6:
+Mean-squared error running boosting from Setup B. Results are
+averaged across 200 runs, rounded to two decimal places, and reported on
+an independent test set of size n.
+
+45
+
+n
+500
+500
+500
+500
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+
+d
+6
+6
+6
+6
+12
+12
+12
+12
+6
+6
+6
+6
+12
+12
+12
+12
+
+σ
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+
+S
+0.30
+0.46
+0.90
+1.65
+0.32
+0.53
+0.98
+1.73
+0.20
+0.31
+0.65
+1.28
+0.21
+0.36
+0.74
+1.38
+
+T
+0.65
+0.97
+1.73
+2.91
+0.68
+1.02
+1.83
+3.36
+0.43
+0.67
+1.20
+2.33
+0.46
+0.70
+1.28
+2.45
+
+X
+0.13
+0.23
+0.44
+0.91
+0.15
+0.25
+0.47
+0.91
+0.08
+0.14
+0.29
+0.63
+0.09
+0.15
+0.31
+0.65
+
+U
+0.97
+0.73
+0.86
+1.74
+0.90
+0.93
+0.95
+2.02
+0.90
+0.82
+0.65
+1.09
+1.02
+0.86
+0.84
+1.31
+
+CB
+0.65
+0.70
+0.82
+0.96
+0.69
+0.72
+0.84
+0.97
+0.35
+0.41
+0.54
+0.79
+0.38
+0.42
+0.61
+0.82
+
+R
+0.08
+0.15
+0.26
+0.57
+0.09
+0.17
+0.29
+0.53
+0.05
+0.11
+0.20
+0.42
+0.06
+0.12
+0.23
+0.40
+
+oracle
+0.03
+0.08
+0.26
+0.43
+0.03
+0.10
+0.23
+0.56
+0.02
+0.07
+0.19
+0.38
+0.03
+0.07
+0.20
+0.37
+
+Table
+7:
+Mean-squared error running boosting from Setup C. Results are
+averaged across 200 runs, rounded to two decimal places, and reported on
+an independent test set of size n.
+
+n
+500
+500
+500
+500
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+1000
+
+d
+6
+6
+6
+6
+12
+12
+12
+12
+6
+6
+6
+6
+12
+12
+12
+12
+
+σ
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+0.5
+1
+2
+4
+
+S
+0.36
+0.55
+0.92
+1.48
+0.44
+0.65
+1.05
+1.66
+0.24
+0.39
+0.68
+1.23
+0.29
+0.45
+0.80
+1.38
+
+T
+0.30
+0.53
+0.99
+1.86
+0.34
+0.57
+1.06
+1.88
+0.20
+0.36
+0.71
+1.45
+0.22
+0.38
+0.77
+1.53
+
+X
+0.37
+0.57
+1.02
+1.60
+0.43
+0.64
+1.10
+1.67
+0.25
+0.40
+0.73
+1.34
+0.28
+0.45
+0.83
+1.43
+
+U
+0.57
+0.96
+1.60
+2.36
+0.63
+1.04
+1.66
+2.29
+0.42
+0.73
+1.33
+1.98
+0.47
+0.78
+1.46
+1.99
+
+CB
+0.50
+0.76
+1.21
+1.60
+0.55
+0.84
+1.35
+1.68
+0.41
+0.56
+0.94
+1.41
+0.41
+0.62
+1.08
+1.53
+
+R
+0.43
+0.66
+1.12
+1.81
+0.48
+0.74
+1.24
+1.88
+0.29
+0.46
+0.81
+1.44
+0.32
+0.52
+0.94
+1.65
+
+oracle
+0.39
+0.65
+1.13
+1.71
+0.43
+0.74
+1.26
+1.91
+0.26
+0.45
+0.83
+1.51
+0.30
+0.51
+0.93
+1.62
+
+Table
+8:
+Mean-squared error running boosting from Setup D. Results are
+averaged across 200 runs, rounded to two decimal places, and reported on
+an independent test set of size n.
+
+46
+
+

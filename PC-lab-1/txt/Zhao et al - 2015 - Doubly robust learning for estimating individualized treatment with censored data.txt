@@ -1,0 +1,1444 @@
+Biometrika (2015), 102, 1, pp. 151–168
+Printed in Great Britain
+
+doi: 10.1093/biomet/asu050
+Advance Access publication 24 December 2014
+
+Doubly robust learning for estimating individualized
+treatment with censored data
+Department of Biostatistics and Medical Informatics, University of Wisconsin-Madison,
+Madison, Wisconsin 53792, U.S.A.
+yqzhao@biostat.wisc.edu
+D. ZENG
+Department of Biostatistics, University of North Carolina at Chapel Hill, Chapel Hill, North
+Carolina 27599, U.S.A.
+dzeng@bios.unc.edu
+E. B. LABER, R. SONG
+Department of Statistics, North Carolina State University, Raleigh, North Carolina 27695,
+U.S.A.
+eblaber@ncsu.edu rsong@ncsu.edu
+M. YUAN
+Department of Statistics, University of Wisconsin-Madison, Madison, Wisconsin 53792, U.S.A.
+myuan@stat.wisc.edu
+AND
+
+M. R. KOSOROK
+
+Department of Biostatistics, University of North Carolina at Chapel Hill, Chapel Hill, North
+Carolina 27599, U.S.A.
+kosorok@unc.edu
+SUMMARY
+Individualized treatment rules recommend treatments based on individual patient characteristics in order to maximize clinical benefit. When the clinical outcome of interest is survival time,
+estimation is often complicated by censoring. We develop nonparametric methods for estimating
+an optimal individualized treatment rule in the presence of censored data. To adjust for censoring, we propose a doubly robust estimator which requires correct specification of either the
+censoring model or survival model, but not both; the method is shown to be Fisher consistent
+when either model is correct. Furthermore, we establish the convergence rate of the expected
+survival under the estimated optimal individualized treatment rule to the expected survival under
+the optimal individualized treatment rule. We illustrate the proposed methods using simulation
+study and data from a Phase III clinical trial on non-small cell lung cancer.
+Some key words: Censored data; Doubly robust estimator; Individualized treatment rule; Risk bound; Support vector
+machine.
+
+C 2014 Biometrika Trust
+
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+BY Y. Q. ZHAO
+
+152
+
+Y. Q. ZHAO, D. ZENG, E. B. LABER, R. SONG, M. YUAN
+
+AND
+
+M. R. KOSOROK
+
+1. INTRODUCTION
+
+2. METHODOLOGY
+2·1. Value function and optimal treatment rule
+Let T̃ denote survival time, X = (X 1 , . . . , X d )T ∈ X denote subject covariates, and
+A ∈ {−1, 1} denote the binary treatment assigned. Define τ to be the end of the study; because
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+Clinicians routinely tailor treatment to the individual characteristics of each patient. Individualized treatment rules formalize this practice by mapping patient characteristics to a
+recommended treatment. There is a large body of work on estimation of optimal individualized
+treatment rules, using data from clinical trials or observational studies (Murphy, 2003; Robins,
+2004; Zhao et al., 2009, 2011; Qian & Murphy, 2011; Zhang et al., 2012b). Regression-based
+approaches model the regression of outcome on patient covariates and treatment and infer
+the optimal individualized treatment rule from the modelled regression. The performance of
+regression-based methods depends critically on the predictive performance of the estimated
+regression model. In addition, because regression-based approaches require the modelling of
+treatment-covariate interactions, the number of terms can be large with high-dimensional covariates. An alternative class of procedures, known as classification-based methods, maximizes an
+estimator of the marginal mean outcome over a prespecified class of individualized treatment
+rules. These methods typically rely on fewer modelling assumptions about the conditional
+distribution of the outcome given covariates and treatment and so are potentially more robust
+to model misspecification; furthermore, they avoid inversion of a predictive model, which can
+be computationally expensive in some settings. Zhao et al. (2012) and Zhang et al. (2012a)
+showed that maximization of the estimated marginal mean outcome is equivalent to minimizing
+a weighted misclassification error with weights that are proportional to the observed clinical
+outcomes. Classification-based approaches have been shown to work well in settings without
+censoring (Zhao et al., 2012; Zhang et al., 2012a; Kang et al., 2014; Zhao et al., 2014). However,
+heretofore both regression-based and classification-based methods were restricted to use with
+noncensored data.
+When the primary outcome of interest is survival time, the observations are commonly subject
+to right censoring because of subject dropout or administrative censoring. One approach is to
+fit a parametric or semiparametric survival model, including patient covariates and treatments,
+to infer the optimal decision rule from the fitted survival model. Goldberg & Kosorok (2012)
+model the completely observed survival time and adjust for censoring by inverse probability of
+censoring weighting. These methods are intended to form high-quality predictions but may not
+be consistent for the optimal treatment rule (Qian & Murphy, 2011). Furthermore, parametric or
+semiparametric models can be sensitive to model misspecification and inverse-weighting may
+suffer from numerical instability when the censoring rate is high.
+We extend the outcome-weighted learning approach of Zhao et al. (2012) to accommodate
+censored data. The extension involves maximizing an estimator of the mean survival time under
+right censoring. The method avoids inversion of a predictive model by recasting the estimated
+mean survival time as a weighted misclassification rate where the weights involve both the
+observed outcome and inverse probability of censoring weights. We also introduce a doubly
+robust version of outcome-weighted learning to account for potential bias introduced by a misspecified censoring model. The method is doubly robust in the sense that the obtained individualized treatment rule is consistent for the optimal rule when the model for either survival or
+censoring times is correct, but not necessarily both. We use a convex relaxation idea from support vector machines (Cortes & Vapnik, 1995) to construct a computationally efficient algorithm.
+
+Doubly robust learning
+
+153
+
+
+
+
+T I {A = D(X )}
+V (D) = E (T ) = E{T | X, A = D(X )} = E
+,
+π(A; X )
+D
+
+(1)
+
+where I (·) is an indicator function. A treatment rule, say D∗ , is said to be optimal
+if V (D∗ )  V (D) for all rules D. To characterize D∗ , write the last term in (1) as
+E {[I {D(X ) = 1}E(T | A = 1, X ) + I {D(X ) = −1}E(T | A = −1, X )]}, which implies
+D∗ (x) = sign{E(T | A = 1, X = x) − E(T | A = −1, X = x)}.
+
+Thus, D∗ (x) is the maximizer of E(T | X = x, A = a) with respect to a.
+2·2. Outcome-weighted learning with censored data
+Censoring due to patient dropout is commonly seen in studies of survival time. Let C denote
+the potential censoring time, which could exceed τ , and assume that C and T are independent
+given (A, X ). We observe data comprising n independent identically distributed subjects, {Yi =
+Ti ∧ Ci , i = I (Ti  Ci ), X i , Ai } (i = 1, . . . , n), where  = I (T  C) denotes the censoring
+indicator. Our goal is to estimate the optimal treatment rule D∗ using the censored data.
+| D(X )}/π(A; X )] according to (1).
+Maximizing V (D) is equivalent to minimizing E [T I {A =
+This is a weighted classification problem, where misclassification corresponds to A =
+| D(X ), and
+the weights are T /π(A; X ). This point of view motivated the development of outcome-weighted
+learning for noncensored outcomes (Zhao et al., 2012). We generalize this approach to censored outcomes. Hereafter, we assume that event times and censoring times are continuous. Let
+SC∗ (t | A, X ) = pr(C > t | A = a, X = x) be the conditional treatment specific survival function
+for the censoring time given covariates x. Recall that T = min(T̃ , τ ). Then,
+
+
+E
+
+Y
+| A, X
+∗
+SC (Y |A, X )
+
+
+
+
+
+=E
+
+T̃ I (T̃ < τ )I (C > T̃ )
+SC∗ (T̃ |A, X )
+
+τ I (T̃  τ )I (C > τ )
+| A, X
++
+SC∗ (τ |A, X )
+
+
+
+= E{T̃ I (T̃ < τ ) + τ I (T̃  τ ) | A, X } = E(T | A, X ),
+where we have used the conditional independence of T and C given X, A. Therefore,
+
+
+
+
+
+E(T | A, X )
+Y
+V (D ) = E
+I {A = D(X )} = E ∗
+I {A = D(X )} .
+π(A; X )
+SC (Y |A, X )π(A; X )
+
+(2)
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+there is no information about survival beyond τ we use T = min(τ, T̃ ) as the outcome of interest. When we are interested in survival time on the log scale, we can use log(T ) as the outcome. We assume that data are collected in a randomized trial so that treatment A is randomly
+assigned with a randomization probability that is completely determined by X . Thus, there are
+no unmeasured confounders (Rubin, 1974, 1978; Splawa-Neyman et al., 1990). Furthermore,
+we assume that π(a; X ) = pr(A = a | X ) is strictly bounded away from zero with probability 1
+for each a. A treatment rule, say D, is a function from X into the space of treatments {−1, 1};
+under D, a patient with covariates X = x is assigned treatment D(x). The value of a regime D,
+denoted V (D), is the expected outcome under D. Let E denote expectation with respect to the
+distribution of (T, A, X ) in the observed data, and E D denote expectation under the restriction
+that A = D(X ), then it can be shown (Qian & Murphy, 2011) that
+
+154
+
+Y. Q. ZHAO, D. ZENG, E. B. LABER, R. SONG, M. YUAN
+
+AND
+
+M. R. KOSOROK
+
+D∗
+
+To obtain an estimator of
+one could attempt to maximize an empirical estimate of the
+right-hand side of (2). This is equivalent to minimizing
+n −1
+
+n
+
+i=1
+
+I {Ai =
+| D(X i )}
+,
+ŜC (Yi | Ai , X i ) π(Ai ; X i )
+i Yi
+
+(3)
+
+where NC (t) = (1 − )I (Y  t). In addition to the inverse probability of censoring weighting,
+there is an augmentation term in the weights for I {A = D(X )}. The following lemma shows that
+V m (D) is equivalent to V (D) when either working model is correct; the proof is deferred to the
+Supplementary Material.
+LEMMA 1. If either E m (T | T > t, A, X ) = E(T | T > t, A, X )
+T̃
+SC∗ (t | A, X ), then V m (D) = V (D).
+Define R(Y, , SC , E T̃ ) =
+Y
+−
+SC (Y | A, X )
+
+
+
+E T̃ (T | T > t, A, X )
+
+or
+
+SCm (t | A, X ) =
+
+dNC (t)
+dSC (t | A, X )
++ I (Y  t)
+SC (t | A, X )
+SC (t | A, X )2
+
+
+
+.
+
+Lemma 1 shows that if either working model is correct then V (D) = E[R(Y, , SCm , E m )
+T̃
+I {A = D(X )}/π(A; X )]. Thus, we can apply the weighted classification approach to estimate
+the optimal treatment rule using weights R(Y, , SCm , E m )/π(A; X ).
+T̃
+To distinguish the two learning approaches, we call the first approach inverse censoring
+weighted outcome weighted learning and the second approach doubly robust outcome weighted
+learning. Estimation is implemented as follows:
+Step 1. Fit a model for T̃ given (A, X ) to construct estimate ŜT̃ (T | A, X ) of ST̃ (T |, A, X ).
+Estimate E T̃ (T | T > t, A, X ) for t ∈ [0, τ ) by
+Ê T̃ (T | T > t, A, X ) =
+
+τ ŜT̃ (τ | A, X )
+ŜT̃ (T | A, X )
+
+τ−
+
+−
+t
+
+u d ŜT̃ (u | A, X ).
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+where ŜC is a consistent estimator for SC∗ . However, direct optimization is intractable because of
+the discontinuous indicator functions; instead, we minimize a convex relaxation of (3). Because
+the objective function can be viewed as a weighted misclassification rate, we base our relaxation
+on support vector machines (Cortes & Vapnik, 1995). We replace I {A =
+| D(x)} with a convex
+surrogate φ{A f (x)}, where D(x) = sign{ f (x)} and φ(t) = max(1 − t, 0) denotes the hinge loss.
+Details for estimating D∗ are at the end of this section.
+In the above formulation, a misspecified model for C given (A, X ) can lead to biased estimation. Thus, we also propose a doubly robust estimator that protects against such misspecification.
+Let E m (T | T > t, A, X ) denote a working model for the conditional mean residual lifetime given
+T̃
+(A, X ) derived from a working survival model for ST̃ (t | A, X ), and let SCm (t | A, X ) denote a
+working model for SC (t | A, X ). Then, using the construction given in § 2.3.2 of van der Laan &
+Robins (2003), we define the augmented value function,
+
+Y
+m
+− E T̃m (T | T > t, A, X )
+V (D) = E
+m
+SC (Y | A, X )
+
+
+dSCm (t | A, X )
+dNC (t)
+I {A = D(X )}
++ I (Y  t) m
+,
+SCm (t | A, X )
+SC (t | A, X )2
+π(A; X )
+
+Doubly robust learning
+
+155
+
+Step 2. Fit a model for C given (A, X ) to form estimate ŜC (t | A, X ) of SC (t | A, X ).
+Step 3. Calculate Wi = i Yi / ŜC (Yi | Ai , X i ) for the first approach and Wi =
+R(Yi , i , ŜC , Ê T̃ ) for the second approach. If negative weights occur with the doubly
+robust methods we can subtract mini Wi from all the weights.
+Step 4. Use the algorithm outlined below to obtain fˆ(x) by minimizing
+
+i=1
+
+Wi
+
+φ{Ai f (X i )}
++ λn  f 2 .
+π(Ai ; X i )
+
+(4)
+
+Step 5. The decision rule is D̂(x) = sign{ fˆ(x)}.
+We have added a regularization term λn  f 2 to avoid overfitting in Step 4. Here,  f  is a norm
+defined on the space that f belongs to, and λn is a tuning parameter that controls the severity
+of penalization. We use a linear decision function f (x) = θ0 + θ T x, to illustrate the algorithm
+utilized in this step. In this case,  f  is the Euclidean norm of θ . Let W denote a generic weight
+constructed in Step 3 using one of the proposed methods. The optimization problem in Step 4
+n
+Wi ξi + θ 2 subject to ξ  0 and Ai (θ T X i + θ0 )  (1 − ξi ). By
+can be written as min γ i=1
+introducing Lagrange multipliers, we obtain the Lagrangian
+n
+n
+n
+
+
+
+1
+θ 2 + γ
+Wi ξi −
+αi {Ai (θ T X i + θ0 ) − (1 − ξi )} −
+μi ξi , αi , μi  0.
+2
+i=1
+
+i=1
+
+i=1
+
+By taking derivatives with respect to θ, θ0 and ξi , we have 0 =
+and αi = γ Wi − μi . It follows that the dual problem is
+max
+α
+
+n
+
+i=1
+
+n
+i=1 αi Ai ,
+
+1 
+αi −
+αi α j Ai A j X iT X j
+2
+n
+
+θ=
+
+n
+i=1 αi Ai X i
+
+n
+
+(5)
+
+i=1 j=1
+
+n
+subject to 0  αi  γ Wi and i=1
+αi Ai = 0. The dual problem can be solved using quadratic
+programming. Estimates θ̂ = α̂i >0 α̂i Ai X i and θ̂0 follow from the Karush–Kuhn–Tucker conditions. When a linear decision rule is not sufficient, the procedure can be generalized using
+nonlinear kernel functions. For every positive definite kernel k : X × X → R, there is a unique
+reproducing kernel Hilbert space Hk , which is the completion of the linear span of all functions {k(·, x), x ∈ X }. The norm in Hk , denoted by ·k , is induced by the inner product,
+n
+m
+n
+m
+ f, g k = i=1
+j=1 αi β j k(x i , x j ), for f (·) =
+i=1 αi k(·, x i ) and g(·) =
+j=1 β j k(·, x j ). A
+general nonlinear function f (x) can be used instead of a linear function. By the representer
+theorem (Kimeldorf & Wahba, 1971), the minimizer must admit a representation of the form
+n
+αi k(·, X i ). In addition, to solve the optimization problem, we need to compute only
+f (·) = i=1
+the kernel matrix, where the inner product X iT X j in the dual objective function (5) is replaced by
+k(X i , X j ). Quadratic programming can still be applied to obtain α̂i (i = 1, . . . , n). The resulting
+decision rule is D̂(X ) = sign{ α̂i >0 α̂i k(X i , X ) + θ̂0 }.
+
+2·3. Working models for estimating SC (t | A, X ) and E T̃ (T | T > t, A, X )
+In our simulated experiments we used the Cox proportional hazards model for the requisite
+survival functions (Cox, 1972). Let Z T and Z C denote regressors constructed from X and A used
+in the Cox proportional hazards models for T and C respectively. Let λCi (t) and λT i (t) denote
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+n
+
+
+156
+
+Y. Q. ZHAO, D. ZENG, E. B. LABER, R. SONG, M. YUAN
+
+AND
+
+M. R. KOSOROK
+
+i=1
+
+We use the Breslow estimator
+t
+
+ˆ C0 (t) =
+0
+
+n
+k=1 dNCk (u)
+n
+β̂CT Z C j
+j=1 I (Y j  u)e
+
+for the cumulative baseline hazard function C0 (t). An estimator of C (t | Ai , X i ), the cumulative hazard function of censoring time for subject i, is exp(β̂CT Z Ci ) ˆ C0 (t). An estimaT
+tor for SC (t | Ai , X i ) is ŜC (t | Ai , X i ) = exp{− ˆ C0 (t)}exp(β̂C Z Ci ) . Estimates β̂T and ˆ T̃ 0 (t)
+are obtained similarly. Details for estimating E T̃ (T | T > t, A, X ) are in the Supplementary
+Material.
+3. THEORETICAL
+
+RESULTS
+
+Let f (x) be the decision function with the decision rule given by D(x) = sign{ f (x)}, and
+write V ( f ) to denote the value function V (D). We define the pseudo value as
+V R ( f, SC , E T̃ ) = E
+
+R(Y, , SC , E T̃ )I [A = sign{ f (X )}]
+.
+π(A; X )
+
+Therefore, Lemma 1 can be restated as V ( f ) = V R ( f, SC∗ , E T̃ ) = V R ( f, SC , E ∗ ), where SC∗ (t |
+T̃
+A, X ) is the true conditional survival function of C given (A, X ), and E ∗ (T | T > t, A, X ) is the
+T̃
+true conditional mean residual lifetime given (A, X ). Define the convex surrogate loss function
+L φ ( f, SC , E T̃ ) =
+
+R(Y, , SC , E T̃ )φ{A f (X )}
+,
+π(A; X )
+
+where φ(t) = max(1 − t, 0). Define F to be the set of all measurable functions from X into R.
+Our first result states that the decision function obtained by minimizing the expectation of this
+surrogate loss over F maximizes V R for any SC and E T̃ . Furthermore, we quantify the differences
+using the hinge loss versus zero-one loss. The proofs are essentially the same as Theorems 3.1
+and 3.2 in Zhao et al. (2012) and are thus omitted.
+LEMMA 2. If f˜ minimizes E{L φ ( f, SC , E T̃ )} over F with any models for SC and E T̃ , then
+(a) V R ( f˜, SC , E T̃ ) = max f ∈F V R ( f, SC , E T̃ ), that is, f˜ yields the maximum value of V R ;
+(b) for any f ∈ F ,
+V R ( f˜, SC , E T̃ ) − V R ( f, SC , E T̃ )  E{L φ ( f, SC , E T̃ )} − E{L φ ( f˜, SC , E T̃ )},
+that is, the value lost due to using a suboptimal decision function f is bounded by the
+expected surrogate loss.
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+the hazard functions of censoring and failure times for subject i respectively. Under the Cox
+model, λCi (t) = λC0 (t) exp(βCT Z Ci ) and λT i (t) = λT 0 (t) exp(βTT Z T i ), where λC0 (t) and λT 0 (t)
+are baseline hazard functions for censoring and failure times, respectively. The estimator for βC ,
+say β̂C , maximizes the partial likelihood
+
+1−i
+n
+exp(βCT Z Ci )
+.
+T
+Y j Yi exp(βC Z C j )
+
+Doubly robust learning
+
+157
+
+Our main result establishes the convergence rates for a value of the estimated decision rule fˆ.
+As described in § 2, we use weights that depend on the estimated survival functions, and hinge
+loss as a surrogate loss function. To bound the difference between the true and the empirical
+expectation of the surrogate, which involves random quantities, that is, estimates for survival
+and censoring times, we use the following assumptions:
+
+E{|R(Y, , ŜC , Ê T̃ ) − R(Y, , SCm , E T̃m )|} = O p (n −γ ).
+
+(6)
+
+Assumption 2. For some η > 0, SCm (τ | A, X ) > η with probability 1.
+Assumption 1 implies that Ê T̃ (T | A, X ) and ŜC (t | A, X ) converge to fixed functions, even
+if the imposed working models are wrong. Moreover, it imposes an assumption on the variance
+of the survival function estimators. The constant γ depends on the working models used for estimating SC and E T̃ . If we assume parametric or semiparametric models, including the Cox proportional hazards model and transformation models, then γ = 1/2 in (6). Assumption 2 ensures
+that some subjects do not fail at the end of the study and thus have observation time τ .
+In addition, we restrict the choice of reproducing kernel Hilbert space to the space associated
+with Gaussian radial basis function kernels, k(x, x ) = exp(−σn2 x − x 2 ), x, x ∈ X , where
+σn > 0 is the kernel bandwidth parameter varying with n controlling the spread of the kernel. We
+can determine the complexity of Hk in terms of capacity bounds with respect to the empirical
+n
+| f (X i ) − g(X i )|2 }1/2 , f, g ∈ F for functional
+L 2 -norm, defined as  f − g L 2 (Pn ) = {n −1 i=1
+class F . For any  > 0, the covering number of F with respect to L 2 (Pn ), N {F , , L 2 (Pn )}, is the
+smallest number of L 2 (Pn ) -balls needed to cover F , where an L 2 (Pn ) -ball around a function
+g ∈ F is the set { f ∈ F :  f − g L 2 (Pn ) < }. It has been shown in Theorem 2.1 of Steinwart &
+Scovel (2007) that for any  > 0,
+sup log N {BHk , , L 2 (Pn )}  cn  − p ,
+
+(7)
+
+Pn
+
+(1− p/2)(1+δ)d
+
+, BHk is the closed unit ball of Hk , p and δ are any numbers satwhere cn = c p,δ,d σn
+isfying 0 < p  2 and δ > 0, c p,δ,d is a constant depending only on p, δ and d, and the supremum
+is taken over finitely discrete probability measures Pn .
+Let f m = argmin f ∈F E{L φ ( f, SCm , E Tm )}. According to Lemma 2, f m also maximizes V R ( f, SCm , E Tm ), and |V R ( f m , SCm , E Tm − V R ( f, SCm , E Tm ))|  |E{L φ ( f, SCm , E Tm )} −
+E{L φ ( f m , SCm , E Tm )}| for any function f . Hence, the convergence rate of the value using
+the estimated rule under the hinge loss will dominate the rate under the 0-1 loss. Define the
+approximation error function
+a(λ) = inf [E{L φ ( f, SCm , E T̃m )} + λ f 2k − E{L φ ( f m , SCm , E T̃m )}].
+f ∈Hk
+
+The following theorem bounds the excess value optimal treatment rule relative to the doubly
+robust estimator of the optimal treatment rule. Its proof can be found in the Appendix.
+THEOREM 1. Assume that Assumptions 1 and 2 hold and that λn → 0 and λn n min(2γ ,1) →
+∞ as n → ∞. If we estimate fˆ within a reproducing kernel Hilbert space Hk associated with
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+Assumption 1. Both Ê T̃ (T | A = a, X = x) and ŜC (t | A = a, X = x) converge in probability
+to E m (t | A, X ) and SCm (t | A, X ) uniformly in t ∈ (0, τ ] for every (x, a). Moreover, for some
+T̃
+constant γ > 0,
+
+158
+
+Y. Q. ZHAO, D. ZENG, E. B. LABER, R. SONG, M. YUAN
+
+AND
+
+M. R. KOSOROK
+
+Gaussian radial basis function kernels, then with probability greater than 1 − 2e−b ,
+V ( f ∗ ) − V ( fˆ)  2 sup |V R ( f, SC∗ , E T̃∗ ) − V R ( f, SCm , E T̃m )| + a(λn )
+f ∈F
+
++ M p cn 2/( p+2) (nλn )−2/( p+2) + M p λ−1/2
+cn 2/( p+2) n −2/( p+2)
+n
++ K b(nλn )−1 + 2K bn −1 λ−1/2
++ O p (n −γ λ−1/2
+),
+n
+n
+
+(8)
+
+In this theorem, f ∗ (x) = E(T | A = 1, X = x) − E(T | A = −1, X = x) gives the optimal
+treatment rule. On the right-hand side of (8), the first term reflects the estimation bias from the
+working models for T and C. The second term is the approximation error due to using the Hk
+space. The last term is the stochastic variability of estimating SCm and E m . The rest of the terms
+T̃
+contain the empirical loss function for estimation of the optimal treatment rule. In particular, the
+convergence rate γ depends on the estimating procedure applied to the two working models.
+A corollary is that when either the model for survival time or the model for censoring time is
+correctly specified, with probability greater than 1 − 2e−b , we have
+V ( f ∗ ) − V ( fˆ)  a(λn ) + M p cn 2/( p+2) (nλn )−2/( p+2) + M p λ−1/2
+cn 2/( p+2) n −2/( p+2)
+n
++ K b(nλn )−1 + 2K bn −1 λ−1/2
++ O p (n −γ λ−1/2
+).
+n
+n
+Remark 1. With the hinge loss, it has been shown that if the reproducing kernel Hilbert space
+is rich enough, the optimizer within the reproducing kernel Hilbert space approaches the optimal treatment decision rule as the sample size goes to infinity for appropriately chosen tuning
+parameters. The Gaussian kernel is one such kernel, which can induce a reproducing kernel
+Hilbert space that is flexible enough to approximate the optimal decision rule. While the approximation error term usually goes to zero as λn → 0, the other term controlling the stochastic error
+will increase. The optimal bandwidth λn can be obtained by setting the orders of a(λn ) and
+2/( p+2)
+−1/2
+max{cn
+(nλn )−2/( p+2) , n −γ λn } equal to each other. The approximation error function
+a(λn ) is usually related to the data-generating distribution, especially the behaviour close to the
+decision boundary, which is the true optimal decision rule if either working model is correct.
+Intuitively, we should be able to learn the treatment rule more rapidly for well-separated optimal
+treatment classes, that is, distributions that have low density near the boundary.
+This behaviour can be characterized in terms of the size of the set of points that are
+close to boundary f ∗ (x) = 0 (Tsybakov, 2004; Steinwart & Scovel, 2007). There exist conq/q+1
+, when using a Gaussian kernel with its kernel bandstants c1 such that a(λn )  c1 λn
+−1/{(q+1)d}
+−(1− p/2)(1+δ)/(q+1)
+, and cn = λn
+. Here, q > 0
+width σn varying with λn as σn = λn
+is the noise exponent that characterizes the distribution close to the boundary (Steinwart &
+Scovel, 2007), and a larger q indicates a better separation between two treatment classes.
+More details on q are provided in the Appendix. An optimal choice of λn that balances
+bias and variance is λn = max{n −2(q+1)/{(4+ p)q+2+(2− p)(2+δ)} , n −2(q+1)γ /(2q+1) }. The achieved
+convergence rate of the value due to the estimated rule versus the optimal value is thus
+max[n −2q/{(4+ p)q+2+(2− p)(2+δ)} , n −2qγ /(2q+1) ].
+The rate consists of two parts: the first part reflects the rate of convergence in estimating
+the optimal decision rule, which is consistent with the results without censoring (Zhao et al.,
+2012); the second part is related to survival function estimation. When q is sufficiently large and
+δ and p are close to zero, the convergence rate is close to n −γ , where γ is determined by the
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+where M p is a constant depending on p and K is a sufficiently large positive constant.
+
+Doubly robust learning
+
+159
+
+survival function estimator. A Cox model for the survival function estimates leads to γ = 1/2.
+Other working models can also be applied, such as transformation models (Zeng & Lin, 2007),
+nonparametric methods based on kernel type estimators (Dabrowska, 1989), or machine learning
+techniques (Zhu & Kosorok, 2012). However, the rate n −γ can be slower than O p (n −1/2 ) for
+certain estimators.
+
+4. SIMULATION
+
+STUDIES
+
+4·1. Preliminaries
+We aim to maximize the value function in terms of the survival time on the log scale. We
+compare the inverse censoring weighted and the doubly robust methods for selecting optimal
+individualized treatment with Cox regression and Q-learning adjusted with censoring weights
+(Goldberg & Kosorok, 2012). For Cox regression, we fit a proportional hazards model with
+treatment-by-covariate interactions, and identify the optimal individualized treatment based on
+the predicted outcomes. To apply Q-learning, we fit Q(X, A) = (X, A)θ , where (X, A) =
+(1, X, A, X A), to the log of the failure time. We also apply a regularized version of Q-learning,
+called L 2 Q-learning, where an L 2 penalty is used for regularization. The estimator is obtained as
+argminθ
+
+n
+
+i=1
+
+{log(Yi ) − (X i , Ai )θ }2
+
+i
+ŜC (Yi | Ai , X i )
+
++ λn θ 2 ,
+
+where λn is a tuning parameter to be selected using crossvalidation, and ŜC (Y | A, X ) is the estimated conditional survival function of C given (A, X ) that can be obtained using Cox regression.
+The estimated optimal decision rule is D̂(x) = argmaxa∈{−1,1} (x, a)θ̂ .
+4·2. Simulation study
+Ten independent covariates, X 1 , . . . , X 10 , were generated from the uniform distribution on
+[0, 1]. Treatments were generated from {−1, 1} with equal probabilities. Four different scenarios
+are presented, corresponding to different combinations of correct or incorrect survival time and
+censoring time models. Specifically, we generated T̃ or C from the accelerated failure time or Cox
+models in different scenarios, while we always used a proportional hazards model as a working
+model for both T̃ and C given (A, X ). Regarding the specification of the model basis, we include
+treatment covariate interaction terms in the survival function modelling since we are interested
+in whether certain characteristics moderate treatment effects. Conversely, we do not model the
+censoring time with interaction terms unless we have full knowledge of the data, because it is not
+typical to posit a complex model for the censoring mechanism in practice. Details for calculating
+the doubly robust weights using Cox working models are given in the Supplementary Material.
+For each scenario, a test dataset of size 10 000 is generated to evaluate the estimated rules.
+The decision rules are estimated from training data using the proposed methods as described in
+§ 2 and the competitors. The sample sizes for the training datasets were taken to equal to 100,
+200 and 400, and the simulations were repeated 1000 times for each sample size. A linear basis is
+applied for model fitting in Q-learning. Linear kernels were used for both the implementation of
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+Remark 2. Although the theoretical results are derived only for doubly robust estimators,
+inverse censoring weighted estimators enjoy the property stated in Theorem 1, as it is a special
+case obtained by setting the augmentation term to zero. However, the first term on the right-hand
+side of (8) will change and remains unless the censoring model is correctly specified.
+
+160
+
+Y. Q. ZHAO, D. ZENG, E. B. LABER, R. SONG, M. YUAN
+
+AND
+
+M. R. KOSOROK
+
+Case 1. The true models are Cox models for both T̃ and C. The survival time T is the minimum
+of τ = 1·5 and T̃ , where T̃ is generated with hazard rate function
+λT̃ (t | A, X ) = λT̃ 0 (t) exp{0·6X 1 − 0·8X 2 + (0·6 − 0·4X 1 − 0·2X 2 − 0·4X 3 )A},
+and λT̃ 0 (t) = 2t. The censoring time C is generated with hazard rate function
+λC (t | A, X ) = λC0 (t) exp{0·5X 1 + 0·5X 2 + (−1 + 0·4X 1 − 0·6X 2 )A},
+where λC0 (t) = 2t. The censoring percentage is around 56%. The optimal decision boundary is
+linear with D∗ (X ) = −sign(0·6 − 0·4X 1 − 0·2X 2 − 0·4X 3 ). We use the Cox regression model
+with covariates (X 1 , X 2 , X 3 , A, X 1 A, X 2 A, X 3 A) to model survival and censoring times respectively. Therefore, both models are correctly specified.
+Case 2. The true model for T̃ is a Cox model, and the true model for C is an accelerated failure
+time model. The survival time T is the minimum of τ = 2 and T̃ , where
+λT̃ (t | A, X ) = λT̃ 0 (t) exp{−1·5X 1 + 0·5X 2 + (1 − 0·7X 1 − 1·2X 2 )A}.
+We let censoring time C be generated from an accelerated failure time model with
+log(C) = −0·3 + 0·6X 1 − 0·1X 2 + 0·3X 3 + (0·2 − X 1 − 2X 2 + 0·5X 3 )A + ,
+where  is generated from N (0, 1). The censoring percentage is around 34%. The optimal decision boundary is D∗ (X ) = −sign(0·5 − 0·1X 1 − 0·6X 2 ). We use the Cox model as the working
+model for both T̃ and C given (A, X ). Specifically, we use (X 1 , X 2 , A, X 1 A, X 2 A) as covariates
+to model survival time, and (X 1 , X 2 , X 3 ) to model censoring time. Therefore, the working model
+is correctly specified for T but incorrect for C.
+Case 3. The true model for T̃ is an accelerated failure time model, and the true model for C
+is a Cox model. The survival time T is the minimum of τ = 2 and T̃ , which is generated with
+log(T̃ ) = −0·5 − 0·8X 1 + 0·7X 2 + 0·2X 3 + (0·6 − 0·4X 1 − 0·1X 2 − 0·4X 3 )A + .
+The censoring time C is generated from the Cox proportional hazards model, where
+λC (t | A, X ) = λC0 (t) exp{−0·5X 1 − 0·5X 2 + 0·2X 3 − (1 − 0·5X 1 + 0·3X 2 − 0·5X 3 )A},
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+inverse censoring weighted and doubly robust outcome-weighted learning. We also explored the
+use of Gaussian kernels, and found that the performances were comparable to the linear kernel.
+The learning procedure was implemented using a library for support vector machines developed
+in Chang & Lin (2011). The tuning parameter λn in (4) was chosen using five-fold crossvalidation over a prespecified grid, with the criterion being the empirical pseudo value function.
+Specifically, for each tuning parameter, we partitioned the training data into five parts, each of
+which serves as the validation set once while the other four parts of the data are utilized for
+estimation. We sum up the empirical pseudo values calculated across the validation sets from
+the corresponding trained decision rules, and choose the optimal tuning parameter as the one
+maximizing the summed value.
+In the following, we consider four generative models.
+
+Doubly robust learning
+(a)
+
+(b)
+
+Correct T, correct C, n = 100
+
+161
+Correct T, incorrect C, n = 100
+
+−0·8
+−1·0
+−1·0
+Values
+
+Values
+
+−1·1
+−1·2
+
+−1·2
+−1·4
+−1·6
+
+−1·4
+−1·8
+Cox
+
+(c)
+
+Q
+
+L2Q
+
+ICO DRO
+
+Cox
+
+(d)
+
+Incorrect T, correct C, n = 100
+
+−0·40
+
+Q
+
+L2Q
+
+ICO DRO
+
+Incorrect T, incorrect C, n = 100
+
+0·0
+
+−0·50
+
+Values
+
+Values
+
+−0·45
+
+−0·55
+
+−0·1
+
+−0·2
+
+−0·60
+−0·3
+
+−0·65
+Cox
+
+Q
+
+L2Q
+
+ICO DRO
+
+Cox
+
+Q
+
+L2Q
+
+ICO DRO
+
+Fig. 1. Boxplots of values of estimated rules using different methods, representing the
+logarithm of the survival time with higher values being preferable. Cox, Cox model; Q,
+inverse censoring weighted Q-learning; L2Q, inverse censoring weighted L 2 Q-learning;
+ICO, inverse censoring weighted outcome-weighted learning with linear kernel; DRO,
+doubly robust outcome-weighted learning with linear kernel.
+
+and λC0 (t) = 2t. The censoring percentage is around 45%. The optimal decision boundary is linear with D∗ (X ) = sign(0·6 − 0·4X 1 − 0·1X 2 − 0·4X 3 ). We use the Cox model for
+both T̃ and C given (A, X ). Specifically, we use (X, A, X A) to model survival time, and
+(X 1 , X 2 , X 3 , A, X 1 A, X 2 A, X 3 A) to model censoring time. Therefore, the working model is
+correctly specified for C but incorrect for T .
+Case 4. The true models are accelerated failure time models for both T and C. The survival
+time T is the minimum of τ = 2·5 and T̃ , where
+log(T̃ ) = −0·2 − 0·5X 1 + 0·5X 2 + 0·3X 3 + (0·5 − 0·1X 1 − 0·6X 2 + 0·1X 3 )A + .
+The censoring time C is generated from an accelerated failure time model with
+log(C ∗ ) = 0·5 − 0·8X 1 + 0·4X 2 + 0·4X 3 + (0·5 − 0·1X 1 − 0·6X 2 + 0·3X 3 )A + ,
+and  is generated from N (0, 1). The censoring percentage is around 31%. The optimal decision
+boundary is linear with D∗ (X ) = sign(0·5 − 0·1X 1 − 0·6X 2 + 0·1X 3 ). We use (X, A, X A) to
+model survival time, and X to model censoring time. Therefore, both working models are incorrectly specified.
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+−1·3
+
+162
+
+Y. Q. ZHAO, D. ZENG, E. B. LABER, R. SONG, M. YUAN
+
+AND
+
+M. R. KOSOROK
+
+5. APPLICATION
+We illustrate the proposed methods using advanced non-small-cell lung cancer data
+(Socinski et al., 2002), which are collected in a two-arm randomized trial with survival time as
+the primary endpoint. Non-small-cell lung cancer is the leading cause of cancer-related mortality, and approximately 30% to 40% of all new cases present with stage IV or stage IIIB
+disease. To investigate the optimal duration of therapy that maximizes survival, a prospective
+randomized phase III trial was initiated in 1998. Patients with advanced non-small-cell lung cancer were recruited and randomized to either four cycles of carboplatin/paclitaxel or continuous
+therapy with carboplatin/paclitaxel until disease progression. The study enrolled 230 subjects;
+however, we restrict our analysis to the 224 subjects with complete information. In the analysis sample, 112 subjects were assigned to each treatment. The censoring rate was 32%. The
+baseline covariates include age ranging from 32 to 82 with median 63, sex with 138 male and
+86 female, race with 162 white, 54 black and 8 other, performance status with 117 Karnofsky
+performance status 90% to 100% and 97 70% to 80%, and stage with 30 Stage IIIB and 194
+Stage IV.
+In addition to the proposed methods, we apply Cox regression, inverse censoring weighted
+Q-learning and L 2 Q-learning with a linear basis. We consider two sets of working models: we
+first use Cox regression with basis (X, A, X A) for both survival time and censoring time, and
+then use the Kaplan–Meier estimator for censoring time as an alternative. A treatment decision
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+Since we know the true data generating mechanism under every scenario, for each of the
+1000 replicates, we calculate the values based on the logarithm of the survival time using the
+constructed rule from different methods. Figure 1 shows these values when n = 100, where larger
+values indicate longer survival. Additional results using other sample sizes are provided in the
+Supplementary Material.
+In general, inverse censoring weighted and doubly robust outcome weighted learning have satisfactory performances. Inverse censoring weighted outcome-weighted learning performs better
+when the censoring model is correctly specified, see Figs. 1(a) and (c). Indeed, doubly robust
+outcome-weighted learning requires estimating both censoring and survival probabilities, which
+yield a higher variability compared with that of the inverse censoring weighted outcome-weighted
+learning. The strength of the doubly robust approach can be seen when the censoring model
+is misspecified but the survival model is correct, since it can correct the bias from using only
+inverse censoring weighting, see Fig. 1(b). When the survival data are truly generated from the
+Cox model, Cox regression with correct basis results in the best performances, see Figs. 1(a)
+and (b). However, the strength is lost when the survival time is generated from an accelerated
+failure time model. Although Q-learning is improved by L 2 -regularization, possibly by reducing
+overfitting, Q-learning based methods can have suboptimal performances even when the censoring model is correctly specified but survival time is generated from a Cox model, see Fig. 1(a).
+This is due to model misspecification when inverse censoring weighted Q-learning models the
+logarithm of the survival time.
+We also consider a nonlinear example of possible model misspecification in the
+Supplementary Material. The number of covariates is increased to 30, and T̃ and C are generated
+from Cox models with complex effects. When the censoring or survival model is correctly specified, we use the true sets of covariates for model fitting. If the model is incorrect for survival time
+or censoring time, we use a linear basis. In addition to a linear kernel, we apply both methods
+with a Gaussian kernel. We can see that the gain from using a Gaussian kernel is pronounced,
+since it may better approximate the nonlinear treatment decision rules.
+
+Doubly robust learning
+
+163
+
+Table 1. Mean crossvalidated days on log sale using different working models for C, with the
+working model for T being a Cox regression model with basis (X, A, X A)
+Working model for C
+Cox model, basis (X, A, X A)
+Kaplan–Meier
+
+Cox
+5·061 (0·381)
+5·061 (0·381)
+
+Mean (s.e.) Crossvalidated values
+ICO
+Q
+L 2Q
+5·234 (0·578) 5·258 (0·575) 5·339 (0·404)
+5·002 (0·621) 5·000 (0·632) 5·473 (0·166)
+
+DRO
+5·257 (0·526)
+5·446 (0·273)
+
+rule D is evaluated based on its empirical value adjusted for censoring. The empirical value is
+n
+n
+R̃i I {Ai = D(X i )}/ i=1
+I {Ai = D(X i )}, with R̃ equal to
+calculated by i=1
+ log(Y )
+ŜC (Y | A, X )
+
+
+
+−
+
+Ê T̃ {log(T ) | T > t, A, X }
+
+dNC (t)
+ŜC (t | A, X )
+
++ I (Yi  t)
+
+d ŜC (t | A, X )
+ŜC (t | A, X )2
+
+
+
+,
+
+where ŜC (t | A, X ) and Ê T̃ (T | T > t, A, X ) are the estimated censoring probability and residual life conditional on patients characteristics. To avoid overfitting, we employ a crossvalidated
+analysis. At each run, we partition the whole dataset into 5 pieces, where 4 parts of the data
+are used as training data to estimate the individualized treatment rules, and the remaining part
+is the validation set for implementing the estimated rules, with empirical values stored for each
+method respectively. The crossvalidated values are obtained by averaging the empirical values
+on all five validation subsets. The procedure is repeated 100 times. The averages and standard
+errors of these values are reported in Table 1, where larger values correspond to longer survival
+time.
+Both inverse censoring weighted and doubly robust outcome-weighted learning methods lead
+to higher values more frequently. We see a comparable performance between the two proposed
+approaches, which is reasonable if the censoring distribution is correctly specified, although
+doubly robust outcome-weighted learning may have a larger variance. Since the number of
+covariates is not large, the performances of inverse censoring weighted Q-learning and L 2
+Q-learning are similar. They could have difficulties in identifying the optimal treatment rules
+if the model for survival time does not fit well, even if the censoring weight is correctly specified. Also, when we apply Cox regression to model the censoring time, none of the covariates has a significant effect. Thus, working models with either Kaplan–Meier estimators or
+Cox regression estimators yield similar results. We then apply the proposed methods to the
+whole dataset using Cox regression working models for both T and C. The treatment recommendations from inverse censoring weighted outcome-weighted learning recommend that
+119 patients be assigned to continuous therapy with carboplatin/paclitaxel, while by using
+doubly robust outcome-weighted learning, 122 out of 224 patients should be given the continuous therapy. By checking the empirical value, we find that both strategies yield close values: 5·301 for inverse censoring weighted outcome weighted learning and 5·567 for doubly
+robust outcome-weighted learning. In fact, sometimes we may have equivalent treatment strategies if there are no differential treatment effects on a subset of the patients. The treatment
+decision rule produced by inverse censoring weighted Q-learning and L 2 Q-learning, however, leads only to an empirical value of 4·756, and an empirical value of 4·744 by using Cox
+regression.
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+s.e., standard errors; Cox, Cox model; Q, inverse censoring weighted Q-learning; L 2 Q, inverse censoring weighted
+L 2 Q-learning; ICO, inverse censoring weighted outcome-weighted learning with linear kernel; DRO, doubly robust
+outcome-weighted learning with linear kernel.
+
+164
+
+Y. Q. ZHAO, D. ZENG, E. B. LABER, R. SONG, M. YUAN
+
+AND
+
+M. R. KOSOROK
+
+6. DISCUSSION
+
+ACKNOWLEDGEMENT
+This research was supported by the U.S. National Institutes of Health. We are grateful to the
+editors and the reviewers for their insightful comments, which have led to important improvements in this paper.
+SUPPLEMENTARY
+
+MATERIAL
+
+Supplementary material available at Biometrika online includes extended proofs of technical
+results, calculation of pseudo-outcome using Cox proportional hazards models, and additional
+simulation results.
+APPENDIX
+Proof of Theorem 1
+First, it can be established that
+V ( f ∗ ) − V ( fˆ)  sup VR ( f, SCm , E T̃m ) − VR ( fˆ, SCm , E T̃m ) + 2 sup |VR ( f, SC∗ , E T̃∗ ) − VR ( f, SCm , E T̃m )|.
+f ∈F
+
+f ∈F
+
+According to Lemma 2(a), VR ( f m , SCm , E T̃m ) = sup f ∈F VR ( f, SCm , E T̃m ), where f m = argmin f ∈F
+E{L φ ( f, SCm , E Tm )}. Hence, it suffices to derive the convergence rate of VR ( f m , SCm , E T̃m ) −
+VR ( fˆ, SCm , E m ).
+T̃
+
+Let f λmn = argmin f ∈Hk [E{R(Y, , SCm , E T̃m )φ{A f (X )}/π(A; X )} + λn  f 2k ]. Then,
+
+n 
+
+R(Yi , i , ŜC , Ê T̃ )φ{Ai fˆ(X i )}
+m
+m
+m
+m
+m
+−1
+ˆ
+VR ( f , SC , E T̃ ) − VR ( f , SC , E T̃ )  a(λn ) + n
+λn  fˆ2k +
+π(Ai ; X i )
+i=1
+
+R(Yi , i , ŜC , Ê T̃ )φ{Ai f λmn (X i )}
+m 2
+− λn  f λn k −
+π(Ai ; X i )
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+As one reviewer pointed out, the proposed method is only one possible reduction of optimizing
+treatment rules to a weighted classification problem. Alternative choices have been proposed
+for continuous outcomes (Zhang et al., 2012b; Rubin & van der Lann, 2012), which can be
+generalized to the censoring data set-up.
+There may exist multiple treatments for comparison. One approach for extending the proposed
+framework to handle this case is to incorporate techniques developed in multicategory classification (Lee et al., 2004; Liu & Yuan, 2011). Another important extension is to settings in which
+there are a large number of variables. In this setting, penalized methods in classification by using
+sparse penalties could be adapted (Zhu et al., 2004).
+Effective management of a chronic illness requires individualized treatment recommendations
+that are responsive to a patient’s changing health status. Dynamic treatment regimens formalize
+a dynamic treatment plan as a sequence of treatment rules, one per stage of clinical intervention,
+that map current patient information to a recommended treatment. Longer life expectancy and
+an aging population have created a surge in the rate of chronic illness related death. Thus, there
+is increasing interest in dynamic treatment regimens (Thall et al., 2002; Murphy, 2003; Robins,
+2004; Moodie et al., 2007; Zhao et al., 2011; Goldberg & Kosorok, 2012; Huang et al., 2014).
+Extension of the proposed approach for survival data to the dynamic setting is of great interest.
+
+Doubly robust learning
+
+165
+
+
+
+= a(λn ) + (I ) + (I I ) + (I I I ), say.
+To bound (I I ) and (I I I ), we consider the class of functions
+B = {R{Y, , SC (βC ,
+βT − βTm  < δ0 ,
+sup |
+t
+
+C0 (t)
+
+−
+
+C0 ),
+C0 ,
+
+E T̃ (βT ,
+T0
+
+T 0 )} : βC
+
+∈ Rd , βC − βCm  < δ0 , βT ∈ Rd ,
+
+are bounded monotone functions in [0, τ ],
+
+m
+C0 (t)| < δ0 ,
+
+sup |
+t
+
+T 0 (t)
+
+−
+
+m
+T 0 (t)| < δ0 },
+
+m
+(t), mT0 (t) are the limits of β̂T , β̂C , ˆ C0 and ˆ T 0 based on
+where δ0 is a small constant, and βTm , βCm , C0
+the Cox models. Then |R{Y, , SC (βC , C0 ), E T̃ (βC , C0 )}|/π(A, X ) can be bounded from above by a
+constant, say M.
+and  f λmn k  Mλ−1/2
+. For every
+Trivial bounds for  fˆk and  f λmn k are obtained as  fˆk  Mλ−1/2
+n
+n
+−1/2
++
+−1/2
+f ∈ Mλn BHk , |(1 − A f ) |  1 + Mλn = B. Thus,
+ 
+
+
+R(Y, , SCm , E T̃m )φ{A f (X )}
+R(Y, , ŜC , Ê T̃ )φ{A f (X )} 
+
+−
+).
+E
+ = O p (n −γ λ−1/2
+n
+
+
+π(A; X )
+π(A; X )
+
+We use empirical process theory to bound (I ). Define the functional class
+
+R(Y, , SC , E T̃ )φ{A f λmn (X )}
+R(Y, , SC , E T̃ )φ{A f (X )}
+−
+− λn  f λmn 2k ,
+L = λn  f 2k +
+π(A; X )
+π(A; X )
+
+f ∈ Mλ−1/2
+B
+,
+R(Y,
+,
+S
+,
+E
+)
+∈
+B
+,
+Hk
+C
+n
+T̃
+n
+g(X i ). Since E(g) = 0, g ∈ G, it follows
+and G = {E(l) − l : E(l) = ε, l ∈ L}. Let Z = supg∈G n −1 i=1
+from Lemma S.1 in the Supplementary Material, by setting ρ = 1, that pr{Z  2E(Z ) + σ (K b)1/2 n −1/2 +
+). Furthermore, σ 2  cn ε following the arguments for proving
+2K Bbn −1 }  e−b , where B = O(λ−1/2
+n
+Theorem 3.4 in Zhao et al. (2012), given that E(l 2 )  cn E(l), where cn = O(λ−1
+n ). In addition, for
+B
+,
+f ∈ Mλ−1/2
+Hk
+n
+
+
+n
+n
+
+
+
+
+
+
+
+−1
+−1
+g(X i ) = E
+sup E{l(X )} − n
+l(X i ) .
+E(Z ) = E sup n
+g∈G
+
+i=1
+
+E(l 2 )cn ε
+
+i=1
+
+Since |βC − βCm | and |βT − βTm | are bounded by δ0 , they lie in a hypercube of R2d . Moreover, { C0 :
+m
+(t)| < δ0 } is a class of monotone functions, so is { T 0 : supt | T 0 (t) − mT0 (t)| < δ0 }.
+supt | C0 (t) − C0
+The function in B is Lipschitz continuous with respect to all these parameters and the Lipschitz constant
+is less than a constant W . There exists a constant K , depending on d, such that the bracketing number
+for B satisfies N[ · ] {B, W, L 2 (P)}  K (δ0 /)2d+2 . According to (7), sup Pn log N {G, , L 2 (Pn )}  cn  − p ,
+and therefore
+
+
+−1
+E(Z )  c p Mλn 2 max (M 2 λn cn ε)(2− p)/4 cn 1/2 n −1/2 , cn 2/(2+ p) n −2/(2+ p) ,
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+R(Y, , ŜC , Ê T̃ )φ{A f λmn (X )}
+R(Y, , ŜC , Ê T̃ )φ{A fˆ(X )}
+− λn  f λmn 2k −
+− E λn  fˆ2k +
+π(A; X )
+π(A; X )
+
+
+R(Y, , SCm , E T̃m )φ{A fˆ(X )}
+R(Y, , ŜC , Ê T̃ )φ{A fˆ(X )}
+−
++E
+π(A; X )
+π(A; X )
+
+
+R(Y, , SCm , E T̃m )φ{A f λmn (X )}
+R(Y, , ŜC , Ê T̃ )φ{A f λmn (X )}
++E
+−
+π(A; X )
+π(A; X )
+
+
+
+Y. Q. ZHAO, D. ZENG, E. B. LABER, R. SONG, M. YUAN
+
+166
+
+AND
+
+M. R. KOSOROK
+
+where c p is a constant depending on p. See Proposition 5.5 in Steinwart & Scovel (2007) and references
+therein. Consequently,
+n
+
+
+
+
+
+
+pr n 1/2 n −1
+l(X i ) − E{l(X )}  > (cn εK b)1/2 n −1/2 + 2K Bbn −1
+i=1
+
+
+
++ 2c p Mλ−1/2
+max (M 2 λn cn ε)(2− p)/4 cn 1/2 n −1/2 , cn 2/(2+ p) n −2/(2+ p)
+ e−b .
+n
+
+n −1
+
+n 
+
+R(Yi , i , ŜC , Ê T̃ )φ{Ai fˆ(X i )}
+λn  fˆ2k +
+− λn  f λmn 2k
+π(A
+;
+X
+)
+i
+i
+i=1
+
+−
+
+
+R(Yi , i , ŜC , Ê T̃ )φ{Ai f λmn (X i )}
+ 0 < αε,
+π(Ai ; X i )
+
+with probability at least 1 − e−b ,
+
+
+R(Y, , ŜC , Ê T̃ )φ{A f λmn (X )}
+R(Y, , ŜC , Ê T̃ )φ{A fˆ(X )}
+− λn  f λmn 2k −
+E λn  fˆ2k +
+ ε.
+π(A; X )
+π(A; X )
+It follows that,
+
+
+
+(2− p)/4 1/2 −1/2 4/( p+2)
+(M 2 λn cn )
+cn n
+pr |(I )| > 4c p Mλ−1/2
+n
+
+
++ c p Mλ−1/2
+cn 2/(2+ p) n −2/2+ p + cn K bn −1 + 2K Bbn −1  2e−b ,
+n
+
+−1/2
+). Using M p as a new constant depending on p, we subsequently obtain
+with cn = O(λ−1
+n ) and B = O(λn
+the desired results.
+
+Geometric noise exponent
+The approximation error depends on the noise component q, called the geometric noise exponent
+(Steinwart & Scovel, 2007). Let
+η(x) =
+
+E{R(Y, , SCm , E T̃m )|X = x, A = 1} − E{R(Y, , SCm , E T̃m )|X = x, A = −1}
+E{R(Y, , SCm , E T̃m )|X = x, A = 1} + E{R(Y, , SCm , E T̃m )|X = x, A = −1}
+
++ 1/2.
+
+Hence, 2η(x) − 1 is the decision boundary for the optimal treatment decision rules when we use the
+pseudo-outcomes. We further define X + = {x ∈ X : 2η(x) − 1 > 0}, and X − = {x ∈ X : 2η(x) − 1 < 0}.
+A distance function to the boundary between X + and X − is (x) = d̃(x, X + ) if x ∈ X − , (x) = d̃(x, X − )
+if x ∈ X + and (x) = 0 otherwise, where d̃(x, O) denotes the distance of x to a set O with respect to the
+Euclidean norm. Then the distribution P is said to have geometric noise exponent 0 < q < ∞, if there
+exists a constant C > 0 such that
+
+
+
+
+(X )2
+E exp −
+|2η(X ) − 1|  Ct qd/2 , t > 0.
+t
+
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+n
+l(X i )  αε and E{l(X )}  ε, there exists l ∈ L such
+Given that L is convex, if l ∈ L satisfies n −1 i=1
+n
+−1
+l
+(X
+)
+
+αε
+and
+E{l
+(X
+)}
+=
+ε.
+Thus,
+with probability at least 1 − e−b , every l ∈ L with
+that n
+i
+i=1
+n
+−1
+n
+i=1 l(X i )  αε satisfies El  ε (Bartlett et al., 2006; Steinwart & Scovel, 2007). Since
+
+Doubly robust learning
+
+167
+
+(X ) actually measures the size of the set of points that are close to the opposite class. Indeed, if the data
+are distinctly separable, that is, when |2η(x) − 1| > δ > 0, for some constant δ, and η is continuous, q can
+be very large. If either model for the survival time or the censoring time is correctly specified, 2η(x) − 1
+is the optimal treatment decision rule, where sign{2η(x) − 1} = sign{ f ∗ (X )}.
+
+REFERENCES
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+BARTLETT, P. L., JORDAN, M. I. & MCAULIFFE, J. D. (2006). Convexity, classification, and risk bounds. J. Am. Statist.
+Assoc. 101, 138–56.
+CHANG, C.-C. & LIN, C.-J. (2011). LIBSVM: A library for support vector machines. ACM Trans. Intel. Syst. Technol.
+2, 27:1–27:27. Software available at http://www.csie.ntu.edu.tw/∼cjlin/libsvm.
+CORTES, C. & VAPNIK, V. (1995). Support-vector networks. Mach. Learn. 20, 273–97.
+COX, D. R. (1972). Regression models and life-tables (with discussion). J. R. Statist. Soc. B 34, 187–220.
+DABROWSKA, D. M. (1989). Uniform consistency of the kernel conditional Kaplan–Meier estimate. Ann. Statist. 17,
+1157–67.
+GOLDBERG, Y. & KOSOROK, M. R. (2012). Q-learning with censored data. Ann. Statist. 40, 529–60.
+HUANG, X., NING, J. & WAHED, A. S. (2014). Optimization of individualized dynamic treatment regimes for recurrent
+diseases. Statist. Med. 33, 2363–78
+KANG, C., JANES, H. & HUANG, Y. (2014). Combining biomarkers to optimize patient treatment recommendations.
+Biometrics 70, 695–707.
+KIMELDORF, G. & WAHBA, G. (1971). Some results on Tchebycheffian spline functions. J. Math. Anal. Appl. 33,
+82–95.
+LEE, Y., LIN, Y. & WAHBA, G. (2004). Multicategory support vector machines, theory, and application to the classification of microarray data and satellite radiance data. J. Am. Statist. Assoc. 99, 67–81.
+LIU, Y. & YUAN, M. (2011). Reinforced multicategory support vector machines. J. Comp. Graph. Statist. 20, 909–19.
+MOODIE, E. E. M., RICHARDSON, T. S. & STEPHENS, D. A. (2007). Demystifying optimal dynamic treatment regimes.
+Biometrics 63, 447–55.
+MURPHY, S. A. (2003). Optimal dynamic treatment regimes (with discussion). J. R. Statist. Soc. B 65, 331–66.
+QIAN, M. & MURPHY, S. A. (2011). Performance guarantees for individualized treatment rules. Ann. Statist. 39,
+1180–210.
+ROBINS, J. M. (2004). Optimal structural nested models for optimal sequential decisions. In Proc. 2nd Seattle Symp.
+Biostatist., D. Y. Lin & P. J. Heagerty, eds. New York: Springer.
+RUBIN, D. B. (1974). Estimating causal effects of treatments in randomized and nonrandomized studies. J. Educ.
+Psychol. 66, 688–701.
+RUBIN, D. B. (1978). Bayesian inference for causal effects: The role of randomization. Ann. Statist. 6, 34–58.
+RUBIN, D. B. & VAN DER LANN, M. J. (2012). Statistical issues and limitations in personalized medicine research with
+clinical trials. J. Educ. Psychol. 8. Article 18.
+SOCINSKI, M. A., SCHELL, M. J., PETERMAN, A., BAKRI, K., YATES, S., GITTEN, R., UNGER, P., LEE, J., LEE, J.-H.,
+TYNAN, M., MOORE, M. & KIES, M. S. (2002). Phase III trial comparing a defined duration of therapy versus
+continuous therapy followed by second-line therapy in advanced-stage IIIB/IV non-small-cell lung cancer. J. Clin.
+Oncol. 20, 1335–43.
+SPLAWA-NEYMAN, J., DABROWSKA, D. M. & SPEED, T. P. (1990). On the application of probability theory to agricultural experiments (Engl. transl. by D. M. Dabrowska and T. P. Speed). Statist. Sci. 5, 465–72.
+STEINWART, I. & SCOVEL, C. (2007). Fast rates for support vector machines using Gaussian kernels. Ann. Statist. 35,
+575–607.
+THALL, P. F., SUNG, H.-G. & ESTEY, E. H. (2002). Selecting therapeutic strategies based on efficacy and death in
+multicourse clinical trials. J. Am. Statist. Assoc. 97, 29–39.
+TSYBAKOV, A. B. (2004). Optimal aggregation of classifiers in statistical learning. Ann. Statist. 32, 135–66.
+VAN DER L AAN , M. J. & R OBINS , J. M. (2003). Unified Methods for Censored Longitudinal Data and Causality. New
+York: Springer-Verlag.
+ZENG, D. & LIN, D. (2007). Maximum likelihood estimation in semiparametric regression models with censored data
+(with discussion). J. R. Statist. Soc. B 69, 507–64.
+ZHANG, B., TSIATIS, A. A., DAVIDIAN, M., ZHANG, M. & LABER, E. (2012a). Estimating optimal treatment regimes
+from a classification perspective. Stat 1, 103–14.
+ZHANG, B., TSIATIS, A. A., LABER, E. B. & DAVIDIAN, M. (2012b). A robust method for estimating optimal treatment
+regimes. Biometrics 68, 1010–8.
+ZHAO, Y., KOSOROK, M. R. & ZENG, D. (2009). Reinforcement learning design for cancer clinical trials. Statist. Med.
+28, 3294–315.
+ZHAO, Y., ZENG, D., SOCINSKI, M. A. & KOSOROK, M. R. (2011). Reinforcement learning strategies for clinical trials
+in nonsmall cell lung cancer. Biometrics 67, 1422–33.
+
+168
+
+Y. Q. ZHAO, D. ZENG, E. B. LABER, R. SONG, M. YUAN
+
+AND
+
+M. R. KOSOROK
+
+ZHAO, Y. Q., ZENG, D., LABER, E. B. & KOSOROK, M. R. (2014). New statistical learning methods for estimating
+optimal dynamic treatment regimes. J. Am. Statist. Assoc. doi: 10.1080/01621459.2014.937488.
+ZHAO, Y. Q., ZENG, D., RUSH, A. J. & KOSOROK, M. R. (2012). Estimating individualized treatment rules using
+outcome weighted learning. J. Am. Statist. Assoc. 107, 1106–18.
+ZHU, J., ROSSET, S., HASTIE, T. J. & TIBSHIRANI, R. J. (2004). 1-norm support vector machines. Adv. Neural. Info.
+Proces. Syst. 16, 49–56.
+ZHU, R. & KOSOROK, M. R. (2012). Recursively imputed survival trees. J. Am. Statist. Assoc. 107, 331–40.
+Downloaded from https://academic.oup.com/biomet/article-abstract/102/1/151/228900 by Harvard Library user on 25 October 2019
+
+[Received May 2013. Revised August 2014]
+
+

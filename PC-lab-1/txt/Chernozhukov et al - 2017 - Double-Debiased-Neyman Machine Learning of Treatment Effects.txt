@@ -1,0 +1,545 @@
+American Economic Review: Papers & Proceedings 2017, 107(5): 261–265
+https://doi.org/10.1257/aer.p20171038
+
+Machine Learning in Econometrics ‡
+
+Double/Debiased/Neyman Machine Learning
+of Treatment Effects†
+By Victor Chernozhukov, Denis Chetverikov, Mert Demirer, Esther Duflo,
+Christian Hansen, and Whitney Newey*
+Chernozhukov et al. (2016) provide a generic
+double/debiased machine learning (ML)
+approach for obtaining valid inferential statements about focal parameters, using Neymanorthogonal scores and cross-fitting, in settings
+where nuisance parameters are estimated using
+ML methods. In this note, we illustrate the application of this method in the context of estimating average treatment effects (ATE) and average
+treatment effects on the treated (ATTE) using
+observational data. Empirical illustrations and
+code are available as supplementary material to
+this paper, and more general discussion and references to the existing literature are available in
+Chernozhukov et al. (2016).
+
+I. Scores for Average Treatment Effects
+
+We consider estimation of ATE and ATTE
+under the unconfoundedness assumption of
+Rosenbaum and Rubin (1983). We consider
+the case where treatment effects are fully heterogeneous and the treatment variable, D
+​ ​, is
+binary, ​D ∈ {0, 1}​. We let ​Y​denote the outcome
+variable of interest and ​Z​denote a set of control variables. We then model random vector
+​(Y, D, Z)​ as
+(1)
+(2)
+
+​Y = ​g​0​​  (D, Z ) + ζ,
+D = ​m0​ ​​  (Z ) + ν,
+
+E [ζ | Z, D ] = 0,
+
+E [ ν | Z ] = 0.​
+
+Since ​D​is not additively separable, this model
+allows for very general heterogeneity in treatment effects. Common target parameters θ​
+​​ 0​​​ in
+this model are the ATE,
+	​​θ​0​​  = E[ ​g0​ ​​  (1, Z ) − ​g​0​​  (0, Z )  ] ,​
+
+‡
+Discussants: Panagiotis Toulis, University of Chicago;
+Matthew Harding, Duke University; Hai Wang, Singapore
+Management University.
+
+and the ATTE,
+
+* Chernozhukov: Massachusetts Institute of Technology,
+50 Memorial Drive, Cambridge, MA 02142 (e-mail:
+vchern@mit.edu); Chetverikov: University of California
+Los Angeles, 315 Portola Plaza, Los Angeles, CA
+90095 (e-mail: chetverikov@econ.ucla.edu); Demirer:
+Massachusetts Institute of Technology, 50 Memorial Drive,
+Cambridge, MA 02142 (e-mail: mdemirer@mit.edu);
+Duflo: Massachusetts Institute of Technology, 50 Memorial
+Drive, Cambridge, MA 02142 (e-mail: duflo@mit.edu);
+Hansen: University of Chicago, 5807 S. Woodlawn Avenue,
+Chicago, IL 60637 (e-mail: chansen1@chicagobooth.edu);
+Newey: Massachusetts Institute of Technology, 50 Memorial
+Drive, Cambridge, MA 02142 (e-mail: wnewey@mit.edu).
+This material is based upon work supported by the National
+Science Foundation under Grant No. 1558636.
+†
+Go to https://doi.org/10.1257/aer.p20171038 to visit the
+article page for additional materials and author disclosure
+statement(s).
+
+	​​θ​0​​  = E[ ​g0​ ​​  (1, Z ) − ​g​0​​  (0, Z ) | D = 1 ] .​
+The confounding factors Z
+​ ​affect the treatment variable ​
+D​via the propensity score,​​
+m​0​​  (Z ) : = E [ D | Z ] ,​and the outcome variable via
+the function ​​g​0​​  (D, Z)​. Both of these functions
+are unknown and potentially complicated, and
+we consider estimating these functions via the
+use of ML methods.
+We proceed to set up moment conditions with
+scores that obey a type of orthogonality with
+respect to nuisance functions. Specifically, we
+make use of scores ψ
+​ (W, θ, η)​that satisfy the
+identification condition
+261
+
+262
+
+MAY 2017
+
+AEA PAPERS AND PROCEEDINGS
+
+(3)	​
+Eψ(W, ​θ0​ ​​  , ​η0​ ​​  ) = 0,​
+and the Neyman orthogonality condition
+
+in Assumption 1, mapping the support of ​Z​ to​
+ℝ × ℝ × (ε, 1 − ε)​where ε​ > 0​is a constant.
+For estimation of ATTE, we use the score
+
+(4)	​​​​∂​η​​  Eψ(W, ​θ0​ ​​  , η) |​​η=​η0​ ​​ ​​ = 0​,
+
+(6)
+
+where ​
+W = (Y, D, Z)​, ​​θ0​ ​​​is the parameter of
+interest, ​η​denotes nuisance functions with population value ​​η​0​​​ and ​​∂η​​​​  f ​​|η=​
+​ η0​ ​​​​​ denotes the derivative of f with respect to η (the Gateaux derivative
+operator).
+Using moment conditions that satisfy (4) to
+construct estimators and inference procedures
+that are robust to small mistakes in nuisance
+parameters has a long history in statistics, e.g.,
+Neyman (1959). Using moment conditions that
+satisfy (4) is also crucial to developing valid
+inference procedures for ​​
+θ​0​​​ after using ML
+methods to produce estimators ​​η̂ ​​ as discussed,
+e.g., in Chernozhukov, Hansen, and Spindler
+(2015). In practice, estimation of ​​
+θ​0​​​ will be
+based on the empirical analog of (3) with η​
+​​ 0​​​
+replaced by ​​​ηˆ 0​​ ​​​, and the Neyman orthogonality
+condition (4) ensures sufficient insensitivity to
+this replacement that high-quality inference for​​
+θ​0​​​may be obtained. The second critical ingredient, that enables the use of a wide array of modern ML estimators is data splitting, as discussed
+in the next section.
+Neyman-orthogonal scores are readily available for both the ATE and ATTE one can use the
+doubly robust/efficient scores of Robins and
+Rotnitzky (1995) and Hahn (1998) which are
+automatically Neyman orthogonal. For estimating the ATE, we employ
+
+D(Y − g(0, Z ))
+​​ψ(W, θ, η ) := ​ _____________
+  
+m ​
+
+m(Z )(1 − D)(Y − g(0, Z ))
+D ​ ,​
+   
+  
+−   ​ ______________________
+ ​
+− θ ​ __
+m
+(1 − m(Z ))m
+
+with
+	​
+η(Z )  := (g(0, Z ), g(1, Z ) , m(Z ) , m​)′ ​,
+​η0​ ​​  (Z )  := ( ​g0​ ​​  (0, Z ), ​g0​ ​​  (1, Z ), ​m0​ ​​  (Z ), E [ D]​)′ ​,​
+
+where again η​(Z)​is the nuisance parameter
+with true value denoted by ​​
+η​0​​  (Z)​ consisting
+of three ​
+P​
+-square integrable functions, for P
+​​
+defined in Assumption 1, mapping the support of ​Z​to ​ℝ × ℝ × (ε, 1 − ε)​and a constant​
+m ∈ (ε, 1 − ε)​. The respective scores for ATE
+and ATTE obey the identification condition
+(3) and the Neyman orthogonality property
+(4). Note that all semi-parametrically efficient
+scores share the orthogonality property (4), but
+not all orthogonal scores are efficient. In some
+problems, we may use inefficient orthogonal
+scores to have more robustness. Moreover, the
+use of efficient scores could be considerably
+refined using the targeted maximum likelihood
+approach of Scharfstein et al. (1999) and van der
+Laan and Rubin (2006) in many contexts.
+II. Algorithm and Result
+
+We describe the estimator of ​​θ​0​​​ using random sample (​
+​​Wi​​​  )​  Ni=1
+ ​​.​ The algorithm makes
+use of a form of sample splitting, which we
+D(Y − g(1, Z ) )
+call ­
+cross-fitting. It builds on the ideas in,
+​+  ​  _____________
+  
+ ​
+e.g., Angrist and Krueger (1995). The use of
+m(Z)
+sample-splitting is a crucial ingredient to the
+(1 − D)(Y − g(0, Z ))
+approach that helps avoid overfitting which can
+__________________
+  
+− ​   
+ ​
+− θ,​​
+1 − m(Z)
+easily result from the application of complex,
+flexible methods such as boosted linear and tree
+models, random forests, and various ensemble
+with
+and hybrid ML methods.
+	​
+η(Z ) := (g(0, Z ), g(1, Z ), m(Z)​)′ ​,
+A. Algorithm: Estimation by ​K​-fold
+Cross-Fitting
+	​
+η0​ ​​  (Z ) := ( ​g0​ ​​  (0, Z ), ​g0​ ​​  (1, Z ), ​m0​ ​​  (Z)​)′ ​,​
+
+(5)
+
+​ψ(W, θ, η) := g(1, Z ) − g(0, Z)
+
+where ​
+η(Z)​is the nuisance parameter with
+true value denoted by η​
+​​0​​  (Z)​consisting of
+​P​
+-square integrable functions, for P
+​​ defined
+
+Step 1: Let ​
+K​be a fixed integer. Form a
+​ -​fold random partition of ​
+K
+{1,  .  .  . , N }​ by
+dividing it into equal parts ​​( ​Ik​ ​​  )​  Kk=1
+ ​​​ each of size​
+
+VOL. 107 NO. 5
+
+Double Machine Learning
+
+n := N / K​, assuming that N
+​ ​is a multiple of K
+​ ​.
+For each set ​​I​k​​​, let ​​Ik​  c​  ​​denote all observation indices that are not in ​​I​k​​​.
+Step 2: Construct ​K​ estimators
+
+	​​​θˇ0​​ ​​  ( ​I​k​​  , ​Ik​  c​  ​  ),
+
+k = 1,  .  .  . , K,​
+
+that employ the machine learning estimators
+(
+
+ ​​​ηˆ 0​​ ​​  (​Ik​  c​  ​  ) = ​​  ​​gˆ 0​ ​​  (0, Z; ​Ik​  c​  ​  ), ​​ĝ ​​0​​  (1, Z; ​Ik​  c​  ​  ),
+1  ​ ​  ∑ ​​​ ​D​​​  ​ ′​  ,​
+ˆ 0​ ​​  (Z; ​Ik​  c​  ​  ), ​ ____
+	​​m
+N − n i∈​Ik​  c​  ​ i )
+of the nuisance parameters
+​​η0​ ​​  (Z ) = ( ​g​0​​  (0, Z ), ​g0​ ​​  (1, Z ), ​m0​ ​​  (Z ), E [ D]​)′ ​,​
+
+and where each estimator θ​​​ˇ0​​ ​​  (​Ik​ ​​  , ​Ik​  c​  ​  )​is defined as
+the root ​θ​ of
+1
+c
+	​​ __
+n ​ ​ ∑​​​  ψ(W, θ, ​​ηˆ 0​​ ​​  ( ​Ik​  ​  ​  )) = 0,​
+i∈​Ik​ ​​
+
+for the score ψ
+​ ​defined in (5) for the ATE and in
+(6) for the ATTE.
+Step 3: Average the ​K​estimators to obtain the
+final estimator:
+K
+
+1  ​ ​  ∑ ​​ ​​​θˇ​​ ​​  ( ​I​ ​​  , ​I​  c​  ​  ).​
+(7)	​​​θ̃ ​​0​​  = ​ __
+K k=1 0 k k
+An approximate
+standard error for this estimator
+__
+is ​​σˆ ​/ ​√N ​​, where
+N
+
+1  ​ ​ ∑​​ ​​​ψˆ ​​  2​  ​  ,​
+	​​​σˆ ​​​  2​  = ​ __
+N i=1 i
+
+263
+
+Assumption 1: Let  be the set of probability distributions P
+​ ​for ​
+(Y, D, Z)​such that
+(i) equations (1)–(2) hold, with D
+​ ∈ {0, 1}​;
+(ii) the following conditions on moments hold
+for all N
+​​and d​ ∈ {0, 1}​: ​
+|| g(d, Z) ​||​P, q​​  ≤ C​,
+​|| Y ​||​P, q​​  ≤ C​,
+​P(ε ≤ ​m​0​​  (Z ) ≤ 1 − ε) = 1​,
+P(​​E​P​​​  [​​ζ​​  2​​  | Z ] ≤ C) = 1, ||ζ​​||​P,2​​​  ≥c and ||ν​​||​P,2​​​ 
+≥ c; and (iii) the ML estimators of the nuisance parameters based upon a random subset​​
+I​ kc​  ​​ of ​{1,  .  .  . , N}​of size N
+​ − n​, obey the following conditions for all ​N ≥ 2K​ and ​d ∈ {0, 1}​:
+​|| ​​gˆ ​​0​​  (d, Z; ​I​ kc​  ​  ) − ​g​0​​  (d, Z) ​||​P, 2​​  ⋅ || ​​m̂ ​​0​​  (Z; ​I​ kc​  ​  )  −
+m
+​ 0​ ​​(Z)​||​P, 2​​  ≤ ​δn​ ​​ ​n​​  −1/2​​, |​ | ​​gˆ 0​​ ​​(d, Z; ​Ik​  c​  )​ − ​g​0​​(d, Z) ​||​P, 2​​ 
+ˆ ​​0​​  (Z; ​Ik​  c​  ​  ) − ​m​0​​  (Z) ​||​P, 2​​  ≤ ​δn​ ​​​, and P
++ || ​​m
+​(ε ≤
+ˆ ​​0​​  (Z; ​Ik​  c​  ​  ) ≤ 1 − ε ) = 1​, with ​​P​P​​​-probability no
+​​m
+less than ​1 − ​Δn​ ​​​.
+The assumption on the rate of estimating the
+nuisance parameters is a non-primitive condition. These rates of convergence are available for most often used ML methods and are
+case-specific, so we do not restate conditions
+that are needed to reach these rates. The conditions are not the tightest possible but are chosen
+for simplicity.
+Theorem 1: Suppose that the ATE,
+​​θ0​ ​​  = ​E​P​​  [ ​g0​ ​​  (1, Z ) − ​g​0​​  (0, Z ) ]​, is the target
+parameter and we use the estimator θ​​​̃ ​​0​​​ and
+other notations defined above. Alternatively,
+suppose that the ATTE, ​​θ​0​​  = ​E​P​​  [ ​g0​ ​​  (1, Z )  − ​
+g​0​​  (0, Z ) | D = 1]​, is the target parameter and
+we use the estimator θ​​​̃ ​​0​​​ and other notations
+above. Consider the set  of probability distributions ​P​defined in Assumption 1. Then, unĩ
+formly in ​P ∈ ​, the estimator
+__ ​​​θ ​​0​​​ concentrates
+√
+around ​​θ​0​​​with the rate ​1 / ​ N ​​and is approximately unbiased and normally distributed:
+__
+
+​​​ ˆ ​​i​​  := ψ(​Wi​​​, ​​θ̃ ​​0​​, ​​ηˆ ​​0​​  (​Ik(i)
+ψ
+​  c ​
+​))​
+,
+and
+k​
+(i) := {k ∈
+{1, … , K} : i ∈ ​I​k​​  }​
+. An approximate (​
+1 − α)
+× 100 percent​confidence interval is
+__
+
+	​​CI​n​​  := [ ​​θ̃ ​​0​​  ± ​Φ​​  −1​  (1 − α / 2)​σˆ ​/ ​√N ​  ] .​
+
+We now state a formal result that provides
+the asymptotic properties of ​​​θ̃ ​​0​​​. Let ​​( ​δn​ ​​  )​  ∞
+ ​​​ and
+n=1
+​​(​Δn​ ​​)​  ∞
+ ​​
+​ be sequences of positive constants
+n=1
+approaching 0. Let ​
+c, ε, C​
+, and q​> 4​ be
+fixed positive constants, and let ​K​be a fixed
+integer.
+
+	​​σ​​  −1​ ​√N ​  (​​θ̃ ​​0​​  − ​θ​0​​  )  ⇝ N(0, 1),
+	​
+σ​​  2​  = ​EP​ ​​ [ ​ψ​​  2​  (W, ​θ0​ ​​  , ​η0​ ​​  (Z )) ] ,​
+and the result continues to hold if ​​σ​​  2​​ is replaced
+by ​​​σˆ ​​​  2​​. Moreover, confidence regions based
+upon θ​​​ ̃ ​​0​​​ have uniform asymptotic validity:
+	​​sup​​ ​​​​|P(​θ0​ ​​  ∈ ​CI​n​​) − (1 − α)|​​  → 0.
+P∈
+
+The scores ψ
+​ ​ are the efficient scores, so both
+estimators are asymptotically efficient, in the
+
+264
+
+MAY 2017
+
+AEA PAPERS AND PROCEEDINGS
+
+sense of reaching the semi-parametric efficiency
+bound of Hahn (1998).
+The proof, given in the online Appendix,
+relies on the application of Chebyshev inequality and the central limit theorem.
+III. Accounting for Uncertainty Due to
+Sample-Splitting
+
+The method outlined in this note relies on
+subsampling to form auxiliary samples for
+estimating nuisance functions and main samples for estimating the parameter of interest.
+The specific sample partition has no impact
+on estimation results asymptotically but may
+be important in finite samples. Specifically,
+the dependence of the estimator on the particular split creates an additional source of variation. Incorporating a measure of this additional
+source of variation into estimated standard errors
+of parameters of interest may be important for
+quantifying the true uncertainty of the parameter
+estimates.
+Hence we suggest making a slight modification to the asymptotically valid estimation procedure detailed in Section II. Specifically, we
+propose repeating the main estimation procedure ​S​times, for a large number ​S​, repartitioning
+the data in each replication ​s = 1,  .  .  . , S​. Within
+each partition, we then obtain an estimate of
+the parameter of interest, ​​​θ̃ ​​ 0s ​​.​  Rather than report
+point estimates and interval estimates based on a
+single replication, we may then report estimates
+that incorporate information from the distribution of the individual estimates obtained from
+the ​S​different data partitions.
+For point estimation, two natural quantities
+that could be reported are the sample average
+and the sample median of the estimates obtained
+across the ​
+S​ replications, ​​​θ̃ ​​ 0Mean
+​  ​​ and ​​​θ̃ ​​ 0Median
+​ 
+​​.
+Both of these reduce the sensitivity of the estimate for ​​θ​0​​​ to particular splits. ​​​θ̃ ​​ 0Mean
+​  ​​ could be
+strongly affected by any extreme point estimates obtained in the different random partitions of the data, and ​​​
+θ̃ ​​ 0Median
+​ 
+​​ is obviously
+much more robust. We note that asymptotically the specific random partition is irrelevant,
+and ​​​θ̃ ​​ 0Mean
+​  ​​ and ​​​θ̃ ​​ 0Median
+​ 
+​​should be close to each
+other.
+To quantify and incorporate the variation
+introduced by sample splitting, one might also
+compute standard errors that add an element
+
+to capture the spread of the estimates obtained
+across the ​S​different sets of partitions. For ​​​θ̃ ​​ 0Mean
+​  ​​,
+we propose adding an element that captures
+the spread of the estimated ​​​
+θ̃ ​​ 0s ​​​  around ​​​θ̃ ​​ 0Mean
+​  ​​.
+Specifically, we suggest
+
+√
+
+___________________
+
+	​​​σ̂ ​​​ 
+
+S s=1(
+S
+
+S
+
+)
+
+2
+
+1 ​ ​  ∑ ​​​​ ​​σ̂ ​​  2​  ​  + ​( ​​θ̃ ​​   ​ ​  − ​ __
+1 ​ ​ ∑​ ​​ ​​θ̃ ​ ​  j ​)​  ​​  ​ ​ ​  ,​
+​  = ​ __
+​    
+s
+0
+0
+
+Mean
+
+s
+
+S j=1
+
+where ​​​σ̂ ​​s​​​is defined as in Section II. The second
+term in this formula takes into account the variation due to sample splitting which is added to
+a usual estimate of sampling uncertainty. Using
+this estimated standard error obviously results
+in more conservative inference than relying on
+the ​​​σ̂ ​​s​​​alone. We adopt a similar formulation
+for ​​​θ̃ ​​ 0Median
+​ 
+​​. Specifically, we propose a median
+deviation defined as
+______________
+
+2
+​​​σ̂ ​​​  Median​  = ​median​
+​ ​ ​​{​√​​σ
+  
+ ​
+.​​
+̂ ​​  2i​  ​  + ​(​​θˆ ​​i​​  − ​​θˆ ​​​  Median​)​​  ​ ​}​​  i=1
+S
+
+​
+
+This standard error is more robust to outliers
+than ​​​σ̂ ​​​  Mean​​.
+References
+Angrist, Joshua D., and Alan B. Krueger. 1995.
+
+“Split-Sample Instrumental Variables Estimates of the Return to Schooling.” Journal of
+Business and Economic Statistics 13 (2): 225–
+35.
+
+Chernozhukov, Victor, Christian Hansen, and
+Martin Spindler. 2015. “Valid Post-Selection
+
+and Post-Regularization Inference: An Elementary, General Approach.” Annual Review
+of Economics 7: 649–88.
+
+Chernozhukov, Victor, Denis Chetverikov, Mert
+Demirer, and anad Whitney Newey. 2016.
+
+“Double Machine Learning for Treatment
+and Causal Parameters.” https://arxiv.org/
+abs/1608.00060 (accessed March 21, 2017).
+Hahn, Jinyong. 1998. “On the Role of the Propensity Score in Efficient Semiparametric
+Estimation of Average Treatment Effects.”
+Econometrica 66 (2): 315–31.
+Neyman, J. 1959. “Optimal Asymptotic Tests of
+Composite Statistical Hypotheses.” In Probability and Statistics: The Harald Cramer
+Volume, edited by Ulf Grenander, 213–34.
+Stockholm: Almqvist and Wiksell.
+
+VOL. 107 NO. 5
+
+Double Machine Learning
+
+Robins, James M., and Andrea Rotnitzky. 1995.
+
+“Semiparametric Efficiency in Multivariate
+Regression Models with Missing Data.” Journal of the American Statistical Association 90
+(429): 122–29.
+Rosenbaum, Paul R., and Donald Rubin. 1983.
+“The Central Role of the Propensity Score
+in Observational Studies for Causal Effects.”
+­Biometrika 70 (1): 41–55.
+
+265
+
+Scharfstein, Daniel O., Andrea Rotnitzky, and
+James M. Robins. 1999. “Adjusting for
+
+Nonignorable Drop-Out Using Semiparametric Nonresponse Models: Rejoiner.” Journal of
+the American Statistical Association 94 (448):
+1135–146.
+Van der Laan, M. J., and D. Rubin. 2006. “Targeted Maximum Likelihood Learning.” International Journal of Biostatistics 2 (1).
+
+

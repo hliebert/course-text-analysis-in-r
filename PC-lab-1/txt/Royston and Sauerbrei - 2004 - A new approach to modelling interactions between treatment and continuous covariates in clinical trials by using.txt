@@ -1,0 +1,957 @@
+STATISTICS IN MEDICINE
+Statist. Med. 2004; 23:2509–2525 (DOI: 10.1002/sim.1815)
+
+A new approach to modelling interactions between
+treatment and continuous covariates in clinical trials by using
+fractional polynomials
+Patrick Royston1; ∗; † and Willi Sauerbrei2; ‡
+1 MRC
+2 Institute
+
+Clinical Trials Unit; 222 Euston Road; London NW1 2DA; U.K.
+of Medical Biometry and Medical Informatics; University Hospital of Freiburg;
+Stefan-Meier-Strasse 26; Freiburg 79104; Germany
+
+SUMMARY
+We consider modelling interaction between a categoric covariate T and a continuous covariate Z in
+a regression model. Here T represents the two treatment arms in a parallel-group clinical trial and
+Z is a prognostic factor which may inuence response to treatment (known as a predictive factor).
+Generalization to more than two treatments is straightforward. The usual approach to analysis is to
+categorize Z into groups according to cutpoint(s) and to analyse the interaction in a model with main
+eects and multiplicative terms. The cutpoint approach raises several well-known and dicult issues
+for the analyst. We propose an alternative approach based on fractional polynomial (FP) modelling of
+Z in all patients and at each level of T . Other prognostic variables can also be incorporated by rst
+constructing a multivariable adjustment model which may contain binary covariates and FP transformations of continuous covariates other than Z. The main step involves FP modelling of Z and testing
+equality of regression coecients between treatment groups in an interaction model adjusted for other
+covariates. Extensive experience suggests that a two-term fractional polynomial (FP2) function may
+describe the eect of a prognostic factor on a survival outcome quite well. In a controlled trial, this
+FP2 function describes the prognostic eect averaged over the treatment groups. We ret this function
+in each treatment group to see if there are substantial dierences between groups. Allowing dierent
+parameter values for the chosen FP2 function is exible enough to detect such dierences. Within the
+same algorithm we can also deal with the conceptually dierent cases of a predened hypothesis of interaction or searching for interactions. We demonstrate the ability of the approach to detect and display
+treatment=covariate interactions in two examples from controlled trials in cancer. Copyright ? 2004
+John Wiley & Sons, Ltd.
+KEY WORDS:
+
+covariate transformation; interactions; subgroup analysis; clinical trials; continuous
+covariates; eect modication
+
+∗ Correspondence
+
+to: Patrick Royston, Cancer Trials Division, MRC Clinical Trials Unit, 222 Euston Road, London
+NW1 2DA, U.K.
+† E-mail: patrick.royston@ctu.mrc.ac.uk
+‡ E-mail: wfs@imbi.uni-freiburg.de
+Contract=grant sponsor: Volkswagen–Stiftung (RiP-program)
+
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Received June 2002
+Accepted January 2004
+
+2510
+
+P. ROYSTON AND W. SAUERBREI
+
+1. INTRODUCTION
+Approaches to modelling interaction between a continuous covariate Z and a categoric covariate T in a regression(i.e. analysis of covariance) model have received a fair amount of
+attention during the last 20 years [1–4]. The usual approach is to categorize Z into a number
+of groups according to one or more cutpoints and to analyse the interaction in a model with
+main eects and multiplicative interaction terms. A trend test of the eect of T over the
+ordered categories from Z may be performed and is likely to have more power than the more
+general unordered test. All of this raises several issues for the analyst, including dependence
+of the statistical signicance of the interaction on the number and position of the cutpoints,
+the interpretation of the results when an unstable model with too many cutpoints is tted,
+and in the case of a trend test, possible loss of power and faulty interpretation if a non-linear
+relationship is incorrectly assumed to be linear. Another approach is not to apply categorization
+but to assume linearity in Z at all levels of T —an assumption which may be incorrect.
+When Z is not categorized, the null hypothesis for a test of interaction is that the functions
+representing the relationship between Z and the response are parallel across the factor levels
+of T . The number of degrees of freedom required in assessing the statistical signicance of the
+test statistic depends on the complexity of the function of Z. To preserve reasonable power to
+detect interactions, one should attempt to employ models for the function(s) of Z that are as
+simple (i.e. low-dimensional) as possible, provided that they t the data adequately. Another
+argument favouring simple functions is that interactions are by denition second-order eects.
+Furthermore, we would argue strongly that when nal models contain interactions, they should
+be interpretable and broadly in accordance with medical knowledge where available (see for
+example discussion of this issue in Reference [5]). When continuous predictors are considered
+as such, few papers in the literature contain analyses which demonstrate statistically signicant,
+credible and interpretable interactions. Alternative approaches, e.g. the subpopulation treatment
+eect pattern plot (STEPP) [3], may help to provide a general impression but require decisions
+about cutpoints for grouping and=or the amount of smoothing, and may be dicult to interpret.
+The context we have particularly in mind is that of treatment–covariate interactions in
+randomized controlled trials. Clinicians are rightly concerned that although a new treatment
+regimen may show a worthwhile overall benet, there may be subsets of patients who will
+not benet or who may even be harmed by the new treatment. In cancer, for example,
+treatments are often highly toxic and may have more serious side-eects (e.g. cardiotoxicity
+or neutropenia) in vulnerable subgroups such as the elderly, the immunologically compromised
+or those with poor physical performance status. A search for subgroups with dierent results
+may be even more common in trials with a ‘disappointing’ result of no overall treatment
+eect. Clinical trials are almost invariably designed to achieve acceptable power for the main
+treatment eect, and the power to detect treatment–covariate interactions will be low. This
+situation has led some researchers to test the treatment eect in a variety of patient subgroups
+dened by all covariates of known prognostic ability and, for continuous covariates, by creating
+subgroups using a variety of cutpoints. Such multiple testing may lead to ‘signicant’ but
+artefactual subgroup eects and has a bad reputation among statisticians [6]. Interpretation and
+testing of P values from tests of treatment=covariate interaction depend strongly on whether
+the eect was pre-specied or is the result of a search for heterogeneous treatment eects
+in subgroups (hypothesis generation) [6]. However, the concern for nding real treatment–
+covariate interactions is clinically valid.
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+A NEW APPROACH TO MODELLING INTERACTIONS
+
+2511
+
+While the investigation of treatment–covariate interactions should be in terms of models
+which are as parsimonious as possible, clearly models can be too simple—there is a danger in
+modelling what is really a non-linear relationship between the response and Z as linear. Not
+only may power be lost, but also interpretation of the results could be seriously in error. In this
+paper, we take as our starting point the multivariable fractional polynomial (MFP) approach
+to modelling possibly non-linear relationships involving a continuous predictor [5, 7, 8]. Firstand second-degree FPs comprise a class of parametric functions which is mathematically
+fairly simple but with enough exibility to approximate adequately many of the relationships
+found in medicine. Here we will propose an extension of the MFP algorithm to investigate
+interactions.
+In Section 2, we propose our approach to modelling treatment–covariate interactions. The
+rst step is to use MFP to determine a prognostic model from other covariates to be an
+adjustment model. In the second step, the main eect of Z is modelled as a two-term FP
+(FP2) function, adjusted for the model from step 1. In a further step we re-estimate the
+regression coecients of the FP2 function in each treatment group, and test equality between
+groups. Section 3 describes investigations of treatment by continuous interactions in publicly
+available data from two controlled trials in cancer. We describe checks on the robustness
+of the estimated functions by using Kaplan–Meier plots and estimated treatment eects in
+subgroups dened by the covariate. In one data set we show some serious drawbacks of the
+popular approach of using cutpoints to divide the range of Z into subgroups. Section 4 is a
+discussion.
+
+2. METHODS
+In investigating treatment–covariate interactions, we will distinguish two cases which are relevant to clinical research. For case 1 (prespecied hypothesis), previous data or biomedical
+theory has generated a hypothesis that a particular factor may be associated with a dierential
+response to treatment, whereas in case 2 (hypothesis generation), many factors are considered
+for interaction with treatment, with no prespecied hypothesis. In our approach, the heart of
+the algorithm is the same in these two cases. The main dierence is consideration of multiple
+testing and interpretation of the results.
+We will assume that data on several potentially prognostic and ‘predictive’ factors are
+available, at least one factor being measured on a continuous scale. ‘Predictive’ is a term
+for a treatment–covariate interaction sometimes used in clinical research. Survival data is the
+context of interest and analyses will be carried out using the Cox regression model, assuming
+the absence of serious violations of proportional hazards. We will restrict the description to
+two treatments, so that the treatment covariate T has only two levels. However, generalization
+to ¿2 levels is obvious by considering global tests and pairwise comparisons. Furthermore,
+transfer of the approach to other types of outcome variable analysed in the framework of
+regression models (e.g. normal error model, logistic regression model) is immediate.
+2.1. Fractional polynomials: an approach to exible regression modelling
+Suppose that we have an outcome variable, a single continuous covariate, Z, and a suitable
+regression model relating them. Our starting point is the straight line model, 1 Z (suppressing
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+2512
+
+P. ROYSTON AND W. SAUERBREI
+
+the constant term, 0 ). Often this will be an adequate description of the relationship, but
+other models must be investigated for possible improvements in t. A simple extension of the
+straight line is a power transformation model, 1 Z p . This model has often been used by practitioners in an ad hoc way, utilizing dierent choices of p. We formalize the model slightly by
+calling it a rst-degree FP or FP1 function [8]. The powers p are chosen from a restricted set,
+S. For pragmatic reasons, Royston and Altman [8] suggested S = {−2; −1; −0:5; 0; 0:5; 1; 2; 3},
+where Z 0 denotes log Z. No subsequent changes to S have been proposed. The set includes no
+transformation (p = 1) and the reciprocal, logarithmic, square root and square transformations.
+To t the model each of the 8 values of p is tried, the best-tting model being the one whose
+p maximizes the likelihood. A signicance test of p = 1 against the alternative p = 1 is a
+test of non-linearity. The test is performed by comparing the deviance dierence (i.e. minus
+twice the log likelihood ratio) with a 2 distribution on 1 degree of freedom (d.f.). If the test
+statistic is not signicant the linear model is accepted, otherwise the fractional polynomial is
+preferred.
+Extension from one-term FP1 functions to the more complex and exible FP2 functions
+follows immediately. FP2 functions with powers (p1 ; p2 ) include the formulations 1 Z p1 +
+2 Z p2 and 1 Z p1 + 2 Z p1 ln Z, the latter being a so-called repeated-powers model. The best
+t among the 36 combinations of powers from S is dened as that which maximizes the
+likelihood.
+For choosing among FP models at a given signicance level of , Sauerbrei and Royston [5]
+proposed a procedure which approximately controls the familywise type I error rate. First, the
+best FP2 model is compared with a null model using a 2 test on 4 d.f. If this test is not
+signicant at the  level then the null hypothesis that Z is uninuential is accepted. Otherwise,
+the best FP2 is compared with a straight line on 3 d.f. If this test is not signicant then a
+straight line model is accepted, otherwise the best FP2 is compared with the best FP1 on 2 d.f.
+If this test is not signicant then the FP1 model is accepted, otherwise the nal model is the
+FP2. As anticipated by Royston and Altman [8] and conrmed by Ambler and Royston [9],
+these tests are slightly conservative since the available powers are restricted to a small set.
+2.2. MFPs: the MFP algorithm
+Univariate FP models have been extended to allow FP functions of several continuous covariates to be estimated simultaneously [5]. The MFP algorithm allows the user to specify the
+maximum complexity (degree) of FP for each continuous predictor, and if desired permits
+dropping uninuential predictors by backward elimination at a predened signicance level.
+The algorithm proceeds cyclically. The signicance and functional form of each continuous
+predictor in turn are determined univariately, adjusting for all continuous, binary and categoric
+predictors currently in the model. Convergence occurs when no further changes to selected
+variables and their FP transformations take place.
+2.3. MFPI algorithm for investigating treatment=covariate interactions
+Here we slightly extend the MFP algorithm to an ‘MFPI’ algorithm to investigate interactions.
+Let Z be a continuous covariate and T be a binary treatment variable, coded {0; 1}. Let X be
+a vector of potentially prognostic factors. In case 1 (prespecied hypothesis), Z is the only
+covariate to be investigated for interaction with T . In case 2 (hypothesis generation), Z is
+one of several candidate predictive factors; often Z is part of X. The relationship between the
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+A NEW APPROACH TO MODELLING INTERACTIONS
+
+2513
+
+outcome and Z is modelled by an FP with the same powers but dierent regression coecients
+at each level of T . A standard test of interaction is performed on regression coecients at the
+nal step. To reduce possible confounding, adjustment for X may be made. The procedure
+for continuous Z is as follows:
+1. Apply the MFP algorithm to X with a P-value threshold of ∗ for selecting variables
+and FP transformations. Let X∗ be the resulting covariate vector which we will call the
+adjustment model. X∗ may include (transformed) variables in X selected by the MFP
+algorithm. If all variables in X are uninuential, X∗ may even be null. In some cases,
+X∗ may be formulated from subject-matter knowledge, avoiding data-driven searching.
+2. Find by maximum likelihood the best-tting FP2 powers (p1 ; p2 ) for Z with p1 ; p2 ∈ S,
+adjusting for X∗ in each model. We denote the transformations Z p1 , Z p2 .
+3. For groups j = 0; 1 and powers i = 1; 2, dene new predictors Zji = Z pi if T = j; Zji = 0
+otherwise.
+4. The test of T ×Z interaction is a likelihood ratio test between the nested models T , Z01 ,
+Z02 , Z11 , Z12 , X∗ and T , Z p1 , Z p2 , X∗ . The dierence in deviance is compared with 2
+on 2 d.f.
+5. If an interaction is not found, Z is regarded as a potential prognostic factor only. To
+investigate if an FP2 function is still needed for Z, the nal model is chosen by repeating
+step 1, but including Z as a potential prognostic factor.
+A description of the relationship between our interaction model and Hastie and Tibshirani’s
+[10] varying coecient models is given in the Appendix.
+The reason to t FP2 functions to Z, rather than simpler functions, is to nd the best-tting
+specication from a exible class. In terms of bias=variance trade-o, we tolerate increased
+variance as the price for low bias because we allow FP2 powers for Z. To avoid the most
+unstable situation of exible modelling leading to serious artefacts in the tted functions, we
+do not propose to estimate dierent powers in each treatment group. An FP2 function with
+the same powers in each treatment group is still a exible specication.
+2.4. Treatment–eect plot
+A simple approach to describing how the treatment eect changes continuously with Z is to
+plot the treatment eect t(Z) = f̂1 (Z) − f̂0 (Z) = ˆ10 + ˆ11 Z p1 + ˆ12 Z p2 (see Appendix, equation
+(3)) and its estimated 95 per cent pointwise condence band against Z. Here, the ’s
+ˆ are
+dierences in the regression coecients between treatment groups and f̂j (Z) is the estimated
+FP function in group j. A signicant interaction may be qualitative if t(Z) crosses zero. It
+should be noted that the condence band is model-dependent and therefore that such a plot
+serves only to give a visual impression.
+2.5. Modication for case 2: hypothesis generation
+In case 2 (hypothesis generation), we use our algorithm to search in a systematic way for
+possible heterogeneity of treatment eects according to the level of a covariate. Each member
+of X can be considered in turn as the variable Z of interest. One obvious implication is the
+interpretation of P values because of multiple testing, another is consideration of the adjustment model. The adjustment model may be determined for every Z, or a single determination
+may be made. The latter case is preferable. Subject-matter reasoning or high correlations
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+2514
+
+P. ROYSTON AND W. SAUERBREI
+
+between variables may be arguments for having separate adjustment models, but this issue
+has no specic impact on the MFPI algorithm.
+The multiplicity issue with our approach is no dierent from the usual problem of multiple
+testing. Researchers must interpret P values carefully, and some may prefer to adjust them
+using procedures such as Bonferroni–Holm [11].
+For Z binary or categorical, our approach reduces to the usual procedure to estimate and
+to test for an interaction, adjusted for X∗ . The only inuence on our procedure is the issue
+of multiple testing.
+2.6. Check of the results and sensitivity analysis
+Provided our exible algorithm indicates a treatment–covariate interaction, we propose to
+check such a result by graphs of Kaplan–Meier survival curves and by estimates of treatment eects in subgroups. Plotting the log hazard ratio function from the nal model by
+treatment group gives an indication of the dierences. For strong interactions this plot should
+indicate treatment dierences in subgroups. By categorizing the covariate into several groups,
+dierences in treatment eects should be visible in the subgroups, otherwise the proposed
+treatment–covariate interaction may be an artefact caused by the exible modelling. This check
+helps one to identify obvious type I errors and is also a simple and hopefully convincing way
+of presenting the main results from the FP modelling to clinicians. Kaplan–Meier estimates
+in subgroups do not incorporate the information from the adjustment part of the model; however, in randomized trials, this issue is less important. When estimating the treatment eect in
+subgroups the adjustment model can also be incorporated. The estimates should give a rough
+step-function approximation if our estimated continuous treatment eect is genuine. However,
+small sample size in subgroups may result in some dierences.
+It may be worth in addition performing a sensitivity analysis of interactions to the choice
+of adjustment model. The simplest way to do this is to vary the nominal P-value for selecting
+a variable. Reasonable choices are P = 1 (full model, perhaps with some additional transformations of continuous covariates), P = 0:157 (approximately equivalent to selection by the
+Akaike Information Criterion), P = 0:05 (conventional level) and P small, according to the
+Bayes Information Criterion which depends on the sample size.
+
+3. EXAMPLES
+In this section, we will illustrate the algorithm and the proposed checking of results in the
+two example data sets.
+3.1. Advanced prostate cancer
+This example, a well-known trial in patients with advanced prostate cancer, has been analysed
+by Byar and Green [12] and others; the data may be found in Reference [13]. Of 506 patients
+randomized to the four treatments under study, only the 475 patients with complete data on all
+covariates will be considered for our re-analysis. The treatments consisted of a placebo and 3
+dose levels of the synthetic oestrogen drug diethyl stilboestrol. For reasons given by Byar and
+Green [12], the placebo and the lowest dose level of diethyl stilboestrol have been combined
+to give a placebo arm, and the higher doses to give treatment E. This combined treatment
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+2515
+
+A NEW APPROACH TO MODELLING INTERACTIONS
+
+Table I. Prognostic factors in the prostate cancer data set.
+∗ (signicance level for adjustment model)
+1.0
+
+0.157
+
+0.05
+
+Prognostic factor
+
+Code
+
+main
+
+Int.
+
+main
+
+Int.
+
+main
+
+Int.
+
+Continuous
+Age at diagnosis
+Standardized weight
+Systolic blood pressure
+Diastolic blood pressure
+Size of primary tumour
+Serum acid phosphatase
+Haemoglobin (g=100 ml)
+Gleason stage-grade category
+
+AGE
+WT
+SBP
+DBP
+SZ
+AP
+HG
+SG
+
++
++
++
++
++
++
++
++
+
+0.018
+
++
++
+
+0.022
+
++
++
+
+0.027
+
+0.069
+0.044
+
++
+
++
+
+0.088
+0.064
+
+Binary
+Performance status
+History of cardiovasc. disease
+Presence of bone metastases
+Stage 4 vs stage 3
+Abnormal electrocardiogram
+
+PF
+HX
+BM
+STAGE
+EKG
+
++
++
++
++
++
+
+0.030
++
+
+0.013
+
++
++
++
++
+
++
++
+0.008
+
+0.003
++
++
+
+The eight factors in the upper portion of the table are continuous, the remainder are binary. Entries under
+main marked ‘+’ denote prognostic variables selected in the adjustment model by the MFP algorithm using
+a nominal P-value of ∗ . Entries under int. are P values for treatment–covariate interactions with P¡0:1 by
+the new proposal.
+
+variable is called RX. Prior to the main analyses, the implausible value of 6 observed in a
+single patient for the variable STAGE was recoded to 4, making STAGE binary (3=4), no other
+stages being represented; and EKG, a categorical covariate with seven levels, was recoded as
+0 (normal), 1 (abnormal). The prognostic factors are listed in the rst column of Table I.
+In our analysis, we will concentrate on the identication of treatment–covariate interactions.
+Byar and Green [12] modelled the seven prognostic factors AGE, HG, HX, PF, SG, WT and
+SZ (see Table I), treatment and all seven treatment–covariate interactions. All continuous or
+multicategory factors were categorized into two or three groups. By contrast, in our analysis we
+kept all continuous factors continuous. We would therefore expect some dierences between
+our results and theirs.
+This analysis is an example of case 2 (hypothesis generation). The MFPI algorithm (see
+Section 2.3) was applied to all binary and continuous factors using ∗ = 1:0, 0.157 and 0.05,
+and interactions were tested at the 0.05 signicance level. The results are given in Table I.
+The adjustment model selected at ∗ = 0:05 comprises the binary factors PF, HX, STAGE
+and EKG, and the continuous factors AGE, WT and SZ (all except AGE modelled as linear
+functions). RX×AGE and RX×BM interactions are found to be signicant at the 0.05 level
+irrespective of the adjustment model. A signicant RX × AP interaction is seen for ∗ = 1:0,
+0:157, but not quite with ∗ = 0:05.
+For ∗ = 0:05 the eect of AGE was modelled by FP2 functions with powers (3; 3) in each
+treatment group (results for other ∗ were very similar). Figure 1 (left panel) shows that
+for patients older than 75 the hazard increases in a similar fashion in both groups, whereas
+younger patients on treatment E appear to have a lower risk. Figure 1 (right panel) is a
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+2516
+
+P. ROYSTON AND W. SAUERBREI
+
+Figure 1. Prostate cancer data: treatment × age interaction. Functions were estimated within multivariable adjustment models (see text) and tted using FP2 functions with powers (3; 3). Left panel: solid
+line, estimated eect of age in patients on placebo; dashed line, estimated eect of age in patients on
+treatment E; dotted line and right-hand axis, CDF of age. Right panel: eect of treatment by age, with
+95 per cent pointwise condence interval.
+
+treatment–eect plot by age. The benet of treatment E seems to be substantial for young
+patients but may be lost or even reversed for old ones. Note the very wide condence intervals
+outside the interval of (60; 80) years.
+Figure 2 compares the survival distributions by treatment and age group using age cutpoints
+of 60, 70 and 75 years. This supports the results of the analysis by FP functions. The log
+hazard ratios for the eects of treatment in these subgroups, unadjusted and using the ∗ = 0:05
+adjustment model, are shown in Table II. They conrm the strong risk gradient seen in
+Figures 1 and 2.
+3.1.1. Hypothesis generation: analysis and interpretation. The RX×AGE interaction was also
+reported as signicant at P = 0:05 by Byar and Green [12]. We believe that Figure 1 is more
+informative than analyses based on cutpoints. Byar and Green [12] dened three age classes
+674, 75–79 and ¿80 years and performed conventional tests of interaction. According to
+the tted FP2 functions, there is a substantial benecial eect of treatment E (RX = 1) for
+younger patients. The estimated treatment eect is −0:72 (SE 0.24) at age 60 and decreases
+to −0:03 (SE 0.13) at age 75 (see Figure 1).
+Byar and Green [12] reported no results for the continuous covariate AP (serum acid
+phosphatase), even though this variable was available in the public-domain data set. According
+to our analysis there may be a weak RX×AP interaction. A treatment–eect plot (not shown)
+suggests that treatment E may be eective only in patients with higher AP levels.
+Results for the variable BM (presence=absence of bone metastases) were also not reported
+by Byar and Green [12]. We nd it to be a fairly strong predictor of response to treatment
+(P¡0:01). The log hazard ratios for treatment E vs placebo (unadjusted for other predictors)
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+2517
+
+A NEW APPROACH TO MODELLING INTERACTIONS
+
+Figure 2. Prostate cancer data: Kaplan–Meier survival curves illustrating treatment × age interaction
+with patients divided into four groups by using cutpoints of 60, 70 and 75 years. Solid lines; placebo;
+dashed lines, treatment E.
+Table II. Prostate cancer data: treatment eect (log hazard ratio) in age subgroups.
+Unadjusted
+Subgroup
+1
+2
+3
+4
+
+Adjusted
+
+Age (years)
+
+Percentage of patients
+
+ˆ
+
+s.e.
+
+ˆ
+
+s.e.
+
+660
+61–70
+71–75
+¿75
+
+10
+20
+43
+27
+
+−1.29
+−0.15
+−0.25
+0.27
+
+0.39
+0:26
+0.17
+0.19
+
+−1.53
+−0.34
+−0.16
+0.16
+
+0.49
+0.27
+0.18
+0.21
+
+‘Adjusted’ means adjusting for factors signicant at the 0.05 level given in Table I.
+
+are −0:06 (SE 0.12) for BM = 0 and −1:01 (SE 0.24) for BM = 1 (P = 0:003 for interaction).
+However, the subgroup with bone metastases (BM = 1) comprises only 16 per cent of the
+patients.
+None of these apparently predictive factors would be signicant following P-value adjustment by the Bonferroni–Holm method.
+3.2. Node-positive breast cancer
+From July 1984 to December 1989, the German Breast Cancer Study Group recruited 720
+patients with primary node-positive breast cancer into a ‘comprehensive cohort study’ in
+which eligible patients are either randomized or treated according to one of the therapies under
+investigation [14]. Hormonal treatment with tamoxifen and the duration of CMF-chemotherapy
+(three vs six cycles) were evaluated in a 2×2 trial. The recurrence-free survival time (RFS)
+of 686 patients with complete data for the standard prognostic factors age, menopausal status,
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+2518
+
+P. ROYSTON AND W. SAUERBREI
+
+tumour size, tumour grade, number of positive lymph nodes, and progesterone (PgR) and
+oestrogen receptor status (ER) is analysed in this paper. Strong relationships exist between
+age and menopausal status (Spearman rank correlation coecient rS = 0:80) and between
+PgR and ER (rS = 0:60). 299 events accrued during the follow-up period (median nearly 5
+years). Hormonal treatment with tamoxifen resulted in a decreased risk, whereas duration of
+chemotherapy had no eect [15].
+Recently, we proposed three prognostic models for RFS dened within the Cox proportional
+hazards model framework [5]. As in our preferred model III, we will constrain the functional
+form of the strongest predictor, the number of positive lymph nodes (nodes), to be monotonic
+with an asymptote by the preliminary transformation exp(−0:12×nodes). The data are available
+on the web at www.blackwellpublishing.com=rss=volumes=A162p1.htm.
+It is well established that ER status is a predictive factor for response to hormonal adjuvant therapy with tamoxifen (TAM). The risk of disease recurrence is reduced to a much
+greater extent by TAM in ER-positive patients [16]. The TAM×ER interaction is therefore an
+evidence-based hypothesis and can be seen as an example of case 1. However, the choice of
+cutpoint which denes ER-positivity is controversial.
+We will rst use the data as an example of applying our algorithm in case 1 to investigate a predened TAM×ER interaction. Then in the hypothesis generating mode (case 2),
+we will investigate whether other prognostic factors aect response to TAM or to duration
+of chemotherapy. Finally, we will demonstrate diculties that may arise with a subgroup
+approach. In particular, the use of dierent cutpoints to dene low and high ER subgroups
+may have a major impact on assessing whether the eect of TAM depends on ER.
+3.2.1. Tamoxifen=oestrogen interaction as a predened hypothesis. We will illustrate our
+approach for the analysis of the TAM×ER interaction with ER as a continuous factor by
+applying the MFPI algorithm (see Section 2.3). First we determine the best FP2 function for
+ER, adjusting for the model selected by MFP. X was taken as all the available prognostic
+factors excepting progesterone receptor status, because of its large correlation with ER. MFP
+selected an adjustment model comprising age (FP2 with powers −2; −1), exp(−0:12×nodes)
+and grade (1 vs 2 or 3) at both -levels of 0.157 and 0.05. An FP2 function with powers
+(−2; −1) was selected for ER. This FP2 function is shown for the two TAM groups in
+Figure 3 (left panel). For clarity, the range of ER values in the plot has been restricted to
+[0; 100]. The treatment–eect plot (Figure 3, right panel) illustrates the dierence clearly. The
+test for interaction has a P value of 0.034.
+For large ER values (say, ¿20 fmol= l) the estimated treatment eect is nearly constant,
+but it changes sharply for very small values. To check the result from our MFPI analysis,
+we considered the TAM eect in ve subgroups with cutpoints partly determined by the
+treatment–eect function and partly by the cumulative distribution function of ER. Table III
+shows the estimated treatment eect in subgroups of ER, unadjusted and adjusted for other
+factors. The unadjusted estimates summarize the comparison between Kaplan–Meier curves
+presented in Figure 4. For these plots groups 4 and 5 were amalgamated. Although some of
+the groups are small, analysis in subgroups conrms the proposed treatment–eect function.
+In the small subgroup with ER = 0 (n = 82) patients treated with TAM have a higher hazard,
+whereas TAM reduces the hazard in all other subgroups. These checks clearly indicate that
+the dependence of the estimated treatment eect on ER seen in Figure 3 is not the result of
+an artefact arising from our MFPI algorithm.
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+2519
+
+A NEW APPROACH TO MODELLING INTERACTIONS
+
+Figure 3. Breast cancer data: analysis of TAM × ER interaction keeping ER continuous, tted by FP2
+functions with powers (−2; −1). Functions were estimated within multivariable models; for details of
+the adjustment model, see the text. Left panel: solid line, estimated eect of ER in patients not treated
+with TAM; dashed line, estimated eect of ER in patients treated with TAM; dotted line and right-hand
+axis, cumulative distribution function (CDF) of ER. Right panel: eect of TAM by ER status, with 95
+per cent pointwise condence interval.
+
+Table III. Breast cancer data: eect of TAM (log hazard ratio) in ER subgroups.
+Unadjusted
+Subgroup
+1
+2
+3
+4
+5
+
+Adjusted
+
+ER (fmol=l)
+
+Percentage of patients
+
+ˆ
+
+s.e.
+
+ˆ
+
+s.e.
+
+0
+1–10
+11–36
+37–115
+¿115
+
+12
+17
+21
+25
+25
+
+0.67
+−0.61
+−0.58
+−0.34
+−0.31
+
+0.31
+0.30
+0.30
+0.25
+0.26
+
+0.47
+−0.41
+−0.68
+−0.40
+−0.42
+
+0.32
+0.31
+0.32
+0.26
+0.27
+
+‘Adjusted’ means adjusting for factors signicant at the 5 per cent level.
+
+3.2.2. Hypothesis generation. We will illustrate what happens if a more exploratory approach
+is taken to the investigation of interactions in this data set. The algorithm described in
+Section 2.3 was applied to all binary and continuous factors. The adjustment model was
+selected at the ∗ = 0:05 level. Interactions were tested at the 0.05 signicance level. Since
+the trial has a 2×2 design, we investigated interactions for hormonal treatment and for three
+vs six cycles of chemotherapy separately. As stated in Section 3.2.1, ER was signicantly
+associated with response to hormonal treatment (P = 0:034); PgR had a P value of 0.054. For
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+2520
+
+P. ROYSTON AND W. SAUERBREI
+
+Figure 4. Breast cancer data: Kaplan–Meier survival curves illustrating TAM×ER interaction
+with patients divided into four groups by using ER cutpoints of 0, 10 and 36 fmol= l.
+Solid lines, no TAM; dashed lines, TAM.
+
+the investigation of a heterogeneous eect of TAM, all other P values were larger than 0.1.
+Even the ER P-value is not small enough to be convincing evidence for a treatment=covariate
+interaction if it is the smallest among several tests. Here we considered seven prognostic
+factors. This result would be seen only as hypothesis generation and would need checking
+with data from other clinical trials. For three vs six cycles of chemotherapy, grade had the
+smallest interaction P-value (0:096), suggesting that the eect of duration of treatment was
+uninuenced by the prognostic factors available in the study.
+If the TAM×ER interaction was not prespecied, it would be necessary to adjust P-values
+for multiple testing and the interaction with ER would be missed. The sample size is clearly
+too small to give convincing evidence of a treatment=covariate interaction.
+3.2.3. Illustration of problems of subgroup analysis based on cutpoints. In the following
+we will use the issue of the TAM×ER interaction to illustrate severe problems caused by
+the popular approach of categorizing a continuous variable. Often, only one cutpoint is used
+and it is not specied in advance. It is tempting to search for a suitable cutpoint to answer
+the two questions ‘does the study show that the eect of TAM depends on ER status?’,
+and ‘which cutpoint on ER best separates non-responders from responders to TAM?’. The
+rst question might be answered by investigating P-values for the TAM×ER interaction with
+dierent cutpoints on ER, and the second by exploring possibly dierent treatment eects
+associated with each cutpoint.
+Since the 60 per cent of patients with ER ¿20 fmol= l are always regarded as having high
+ER, clinically relevant cutpoints lie below 20. For each integer cutpoint K on ER in the
+range [0; 20], we dened binary dummy variables ER K as 0 if ER6K and 1 if ER ¿K. We
+tted Cox regression models, adjusting as in Section 3.2.1, and for each K calculated the
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+A NEW APPROACH TO MODELLING INTERACTIONS
+
+2521
+
+Figure 5. Breast cancer data: cutpoint analysis of interactions in 21 subgroups, adjusting for other
+prognostic factors. Cutpoints K in the range [0; 20] are used to dene low and high ER subgroups.
+Left panel: P-values for tests of TAM×ER interaction. Right panel: regression coecients (log hazard
+ratios) from Cox models for eects of TAM in subgroups with ER low (circles) and high (triangles).
+
+P-value for the interaction TAM×ER K . We also tted adjusted Cox models separately in each
+subgroup dened by ERK (i.e. low ER and high ER), and computed the regression coecients
+and associated P-values for the eect of TAM in each subgroup.
+As shown in Figure 5 (left panel), the TAM×ER K interaction is signicant at P¡0:05 only
+for two cutpoints: K = 0 and K = 8. In the high ER group, the regression coecient for TAM
+is signicantly dierent from zero for all K, usually at P¡0:01 (Figure 5, right panel). In
+the low ER group, the regression coecient is not signicantly dierent from zero for any
+K¿0. Exceptionally, at K = 0 the regression coecient is signicantly positive (P¡0:05),
+suggesting at face value that TAM might actually harm patients in this subgroup (see also
+Figure 4).
+The predominant impression from Figure 5 is of the instability of P-values from a cutpoint analysis, especially in the important range [0; 10]. Consequently, it is hard to assess
+how strongly the study supports an inuence of ER on the eect of TAM. The regression
+coecients in the ER subgroups show no eect of TAM in the low ER group (except possibly at K = 0, as just noted), whereas in the high ER group there is a reduction in the log
+hazard ratio of about 0.5. Although the interaction is of questionable statistical signicance,
+the treatment eect in the high ER group does appear to be real. For higher values of K, a
+substantial proportion of patients enters the low ER group, causing a small trend towards a
+TAM eect in this subgroup. No allowance has been made in this analysis for the multiple
+testing implicit in the use of 21 cutpoints, nor for the fact that for extreme cutpoints, the
+subgroups may be small and the estimated regression coecients imprecise.
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+2522
+
+P. ROYSTON AND W. SAUERBREI
+
+4. DISCUSSION
+Methods used to investigate dierences in treatment ecacy in subgroups of randomized trials
+are frequently criticized by statisticians, whereas clinicians and their patients have a strong
+interest in ‘individualized’ treatments. The latter requires detailed investigation of possible
+treatment=covariate interactions. With the current trend towards measuring more and more
+markers in clinical trials, it is clearly necessary to evaluate systematically their usefulness
+in predicting response to treatment. In a recent review of current practice in clinical trials,
+Assmann et al. [6] report that most researchers performed subgroup analyses, but criticized
+that fewer than half of them used statistical tests of interaction. It was often dicult to
+determine whether subgroup analyses were planned in advance or post hoc.
+Since trials are almost invariably powered to detect main eects of interest, power is usually low to detect even moderately large subgroup eects. For a simple special case in the
+epidemiological context, Greenland [17] concluded from considerations of asymptotic power
+functions and from simulation studies that the power of such tests is low in common situations. Results from eciency theory [18, 19] show that the power of tests of interaction
+is much improved if a factor is continuous rather than binary. This obvious fact is usually
+ignored in investigations of treatment=covariate interaction in which the covariate is categorized. We believe that uncertainty about the form of the function to use is one of the main
+reasons for this inadequate use of data. Another reason may be the desire to extract all information from a trial by creating several partitions of a continuous variable and searching
+for the partition which shows the greatest dierence in the treatment eect. Multiple testing
+leads to a substantial number of such eects being ‘identied’. In the context of prognostic
+factor studies, Altman et al. [20] have shown the dangers of the so-called ‘optimal’ cutpoint
+approach, which is closely related.
+Concerning the issue of an interaction between the oestrogen receptor (ER) concentration
+and hormonal treatment of breast cancer patients, we showed the dependence of the P-value
+for interaction on the cutpoint chosen for ER. A comparison of patients without ER with those
+with ER¿1 fmol= l gives P¡0:01, indicating an interaction. Increasing the cutpoint results in
+most P-values being larger than 0.05, a result which might even not be reported in a paper. For
+cutpoint ER = 8 the P-value is again less than the magical 0.05, but is clearly non-signicant
+(P¿0:1) for larger cutpoints. The instability of this type of approach is clearly demonstrated
+in Figure 5.
+To use most of the information from a continuous covariate and preclude the diculties
+of categorization, we propose a strategy to determine the functional form of the relationship
+and compare the regression coecients in each treatment group. For this step we use a
+minor extension of the MFP algorithm [5, 8], followed by a test of equality of the regression
+coecients for the FP2 functions. Since no new FP powers are being estimated in subgroups,
+the test of interaction is a standard nested hypothesis test with 2 d.f. Other covariates necessary
+for adjustment can be easily incorporated. We think the class of FP2 functions is well suited
+to this problem since exible functions are possible despite the limited number of functions
+considered. On a related issue of determining the functional form of a time-varying regression
+coecient in a Cox model, Berger et al. [21] obtained encouraging results from a simulation
+study which used FP methodology.
+An issue may be instability in the functions chosen, resulting in artefactual treatment–eect
+functions. We showed by bootstrap resampling of use of the MFP algorithm to build prognostic
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+A NEW APPROACH TO MODELLING INTERACTIONS
+
+2523
+
+models that instability may not be as serious as might be imagined [22]. Nevertheless, we
+strongly recommend a nal check of the signicant interactions uncovered by our algorithm.
+This may be done by comparing the treatment eects in subgroups. This check introduces
+an element of subjectivity after the last step of the procedure. However, in the examples we
+showed the value of using Kaplan–Meier plots and estimates of treatment eect in a few
+subgroups. To demonstrate a trend, more than two subgroups must be used. We suggest using
+four, with cutpoints indicated by the treatment–eect plot and the distribution of the covariate.
+If the interaction was artefactual it is unlikely that the results in the independent subgroups
+would show a similar pattern. By using the subgroups in this way, the principal results of
+complex investigations of treatment=covariate interactions may also be presented to a clinical
+audience. So far we have not come across an example in which the nal graphical check
+showed that an interaction indicated by FP modelling was clearly an artefact.
+We are proposing a single modelling strategy, but we stress that interpretation of the results
+depends strongly on whether a pre-specied factor is under investigation, or whether interactions are to be seen in a hypothesis-generating context. The two cases may be distinguished
+by choosing dierent P-values for the interaction tests or by correction for multiple testing,
+e.g. by the Bonferroni–Holm method [11]. Clearly the need for such correction or the specication of a signicance level is a general issue in many statistical investigations in which
+there is a choice between incurring a large type I error or a large type II error.
+In the hypothesis-generating situation, several potential interactions may be identied. If
+interest is in one nal model we propose to use an algorithm in the spirit of a usual stepup procedure for selection of variables. The main dierence would be to start with a xed
+adjustment model and add signicant interactions instead of signicant main eects. In the
+prostate cancer example, this gives a model with interactions between treatment and AGE and
+BM. With several dierences in the approach, Byar and Green [12] identied interactions with
+AGE and SG; with another approach, Sauerbrei and Schumacher [23] concluded that these
+interactions might be present in the data, both exhibiting only weak eects. In both papers,
+the interaction with bone metastases (BM) was not investigated because this variable was not
+signicant in their prognostic model. Also, BM did not enter our adjustment model at the 5
+per cent level. This example illustrates the danger of investigating the predictive value only
+of variables with a prognostic inuence, a strategy which seems quite popular.
+In conclusion, we have presented a systematic approach to the investigation of interactions
+between a binary and a continuous covariate, adjusting for other binary and=or continuous
+covariates. Modications for more than two treatment groups are straightforward. We have
+shown in two examples from controlled trials how such an approach may reveal more about
+the nature of possible interactions than an approach based on multiple cutpoints. Our approach
+may be useful more widely than in analysis of clinical trials data, for example for investigating
+continuous eect-modiers in case=control or cohort studies. Greater attention must be paid to
+the development of the adjustment model and further modications may be needed because
+such studies are not randomized.
+
+APPENDIX: FURTHER DETAILS OF THE INTERACTION MODEL
+We start with a linear interaction model between the binary treatment indicator, T , and a
+continuous covariate, Z. Using the notation of Section 2.3, we will write a typical value of
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+2524
+
+P. ROYSTON AND W. SAUERBREI
+
+the linear predictor  for this model as
+ = ÿ X∗ + (00 + 01 Z)1 + (10 + 11 Z)T
+
+(A1)
+
+The coecient (00 + 01 Z) of the grand mean (‘1’) is a linear function of Z, and similarly
+the coecient (10 + 11 Z) of T is another linear function of Z. Model (A1) is an example of
+a varying coecient model as discussed by Hastie and Tibshirani [10]. Hastie and Tibshirani
+[10] generalized such models beyond linearity to allow the coecients of 1 and T to be smooth
+functions of Z. In our approach, the smooth functions of Z are fractional polynomials.
+The hypothesis test of interaction between T and Z in (A1) is of 11 = 0. This test is of
+central interest.
+Let Tj (j = 0; 1) equal 1 if T = j and 0 otherwise (dummy variable for level j of T ). We
+may rewrite (A1) as follows:
+ = ÿ X∗ + (00 + 01 Z)T0 + (00 + 01 Z + 10 + 11 Z)T1
+= ÿ X∗ + (00 + 01 Z)T0 + ([00 + 10 ] + [01 + 11 ]Z)T1
+
+(A2)
+
+The test of interaction, 11 = 0, may be expressed as [01 + 11 ] − 01 = 0 and is also a test of
+equality of the regression coecient 01 of ZT0 and [01 + 11 ] of ZT1 .
+When the inuence of Z on the coecients for ‘1’ and T is modelled by using an FP2
+function with powers (p1 ; p2 ), (A1) and (A2) are generalized to
+ = ÿ X∗ + (00 + 01 Z p1 + 02 Z p2 )1 + (10 + 11 Z p1 + 12 Z p2 )T
+
+(A3)
+
+and
+ = ÿ X∗ + (00 + 01 Z p1 + 02 Z p2 )T0 + ([00 + 10 ] + [01 + 11 ]Z p1 + [02 + 12 ]Z p2 )T1
+respectively. The 2 d.f. test of the null hypothesis of no interaction between T and Z is a
+joint test of [01 + 11 ] − 01 = 0 and [02 + 12 ] − 02 = 0.
+Equation (A2) extends as follows to a treatment covariate T with more than 2 levels. Let
+Tj be the dummy variable for level j, dened as above. Terms of the type ([00 + j0 ] + [01 +
+j1 ]Z)Tj are included in (A2). The global test of interaction is of the null hypothesis that
+[01 + j1 ] − 01 = 0 for all j.
+ACKNOWLEDGEMENTS
+
+We are grateful for the support provided by the Volkswagen–Stiftung (RiP-program) at the Mathematisches Forschungsinstitut, Oberwolfach, Germany. A substantial portion of the work was carried out
+during visits to Oberwolfach in 2002=2003.
+REFERENCES
+1. Gail MH, Simon R. Tests for qualitative interactions between treatment eects and patient subsets. Biometrics
+1985; 41:361–372.
+2. Hunsberger S, Follmann DA. Testing for treatment and interaction eects in semiparametric analysis of
+covariance. Statistics in Medicine 2001; 20:1–19.
+3. Bonetti M, Gelber RD. A graphical method to assess treatment–covariate interactions using the Cox model on
+subsets of the data. Statistics in Medicine 2000; 19:2595–2609.
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+A NEW APPROACH TO MODELLING INTERACTIONS
+
+2525
+
+4. Kauermann G, Tutz G. Testing generalized linear and semiparametric models against smooth alternatives. Journal
+of the Royal Statistical Society Series B 2001; 63:147–166.
+5. Sauerbrei W, Royston P. Building multivariable prognostic and diagnostic models: transformation of the
+predictors by using fractional polynomials. Journal of the Royal Statistical Society Series A 1999; 162:71–94;
+(Corrigendum: Journal of the Royal Statistical Society Series A 2002; 165:399– 400).
+6. Assmann SF, Pocock SJ, Enos LE, Kasten LE. Subgroup analysis and other (mis)uses of baseline data in clinical
+trials. Lancet 2000; 355:1064–1069.
+7. Armitage P, Berry G, Matthews JNS. Statistical Methods in Medical Research (4th edn). Blackwell: Oxford,
+2002.
+8. Royston P, Altman DG. Regression using fractional polynomials of continuous covariates: parsimonious
+parametric modelling (with discussion). Applied Statistics 1994; 43:429– 467.
+9. Ambler G, Royston P. Fractional polynomial model selection procedures: investigation of Type I error rate.
+Journal of Statistical Simulation and Computation 2001; 69:89–108.
+10. Hastie TJ, Tibshirani RJ. Varying coecient models (with discussion). Journal of the Royal Statistical Society
+Series B 1993; 55:757–796.
+11. Holm S. A simple sequentially rejective multiple test procedure. Scandinavian Journal of Statistics 1979;
+6:65–70.
+12. Byar DP, Green SB. The choice of treatment for cancer patients based on covariate information: application to
+prostate cancer. Bulletin du Cancer 1980; 67:477–490.
+13. Andrews DF, Herzberg AM. Data. Springer: Berlin, 1985.
+14. Schmoor C, Olschewski M, Schumacher M. Randomized and non-randomized patients in clinical trials:
+experiences with comprehensive cohort studies. Statistics in Medicine 1996; 15:263–271.
+15. Schumacher M, Bastert G, Bojar H, Hubner, Olschweski M, Sauerbrei W, Schmoor C, Beyerle C, Neumann
+RLA, Rauschecker HF. Randomized 2×2 trial evaluating hormonal treatment and the duration of chemotherapy
+in node-positive breast cancer patients. Journal of Clinical Oncology 1994; 12:2086 –2093.
+16. Early Breast Cancer Trialists’ Collaborative Group. Tamoxifen for early breast cancer: an overview of the
+randomised trials. Lancet 1998; 351:1451–1467.
+17. Greenland S. Tests for interaction in epidemiologic studies: a review and a study of power. Statistics in Medicine
+1983; 2:243–251.
+18. Lagakos SW. Eects of mismodelling and mismeasuring explanatory variables on tests of their association with
+a response variable. Statistics in Medicine 1988; 7:257–274.
+19. Farewell V, Tom BDM, Royston P. The impact of dichotomization on the eciency of testing for an interaction
+eect in exponential family models. Journal of the American Statistical Association, 2004; in press.
+20. Altman DG, Lausen B, Sauerbrei W, Schumacher M. The dangers of using ‘optimal’ cutpoints in the evaluation
+of prognostic factors. Journal of the National Cancer Institute 1994; 86:829–835.
+21. Berger U, Schafer J, Ulm K. Dynamic Cox modelling based on fractional polynomials: time-variations in gastric
+cancer prognosis. Statistics in Medicine 2003; 22:1163–1180.
+22. Royston P, Sauerbrei W. Stability of multivariable fractional polynomial models with selection of variables and
+transformations: a bootstrap investigation. Statistics in Medicine 2003; 22:639–659.
+23. Sauerbrei W, Schumacher M. A bootstrap resampling procedure for model building: application to the Cox
+regression model. Statistics in Medicine 1992; 11:2093–2109.
+
+Copyright ? 2004 John Wiley & Sons, Ltd.
+
+Statist. Med. 2004; 23:2509–2525
+
+

@@ -1,0 +1,6131 @@
+Submitted to the Annals of Applied Statistics
+
+DOUBLY ROBUST TREATMENT EFFECT ESTIMATION
+WITH MISSING ATTRIBUTES
+
+arXiv:1910.10624v1 [stat.ME] 23 Oct 2019
+
+By Imke Mayer¶ , Stefan Wager†† Tobias Gauss‡‡ Jean-Denis
+Moyer‡‡ and Julie Josse∗∗
+École des Hautes Études en Sciences Sociales¶ , École Polytechnique¶∗∗ ,
+INRIA Saclay∗∗ , Stanford University†† and Beaujon Hospital‡‡
+Missing attributes are ubiquitous in causal inference, as they are
+in most applied statistical work. In this paper, we consider various
+sets of assumptions under which causal inference is possible despite
+missing attributes and discuss corresponding approaches to average
+treatment effect estimation, including generalized propensity score
+methods and multiple imputation. Across an extensive simulation
+study, we show that no single method systematically out-performs
+others. We find, however, that doubly robust modifications of standard methods for average treatment effect estimation with missing
+data repeatedly perform better than their non-doubly robust baselines; for example, doubly robust generalized propensity score methods beat inverse-weighting with the generalized propensity score. This
+finding is reinforced in an analysis of an observations study on the
+effect on mortality of tranexamic acid administration among patients
+with traumatic brain injury in the context of critical care management. Here, doubly robust estimators recover confidence intervals
+that are consistent with evidence from randomized trials, whereas
+non-doubly robust estimators do not.
+
+1. Introduction.
+1.1. Hemorrhagic shock and traumatic brain injury in critical care management. Our work is motivated by a prospective observational study of
+the causal effect of tranexamic acid (TA), an antifibrinolytic agent that limits excessive bleeding, on mortality among traumatic brain injury patients
+during their stay at the hospital (from admission to ICU and regular care
+units). The beneficial effect of TA on mortality has been shown in a large
+randomized placebo-controlled study (Shakur et al., 2010). Our interest in
+¶
+
+E-mail: imke.mayer@ehess.fr
+E-mail: swager@stanford.edu
+∗∗
+E-mail: julie.josse@polytechnique.edu
+MSC 2010 subject classifications: Primary 93C41, 62G35, 62F35; secondary 62P10
+Keywords and phrases: causal inference, potential outcomes, observational data,
+propensity score estimation, incomplete confounders, major trauma, public health
+††
+
+1
+
+2
+
+I. MAYER ET AL.
+
+deceased
+no
+yes
+TA not administered 2,167 (68%) 399 (13%)
+TA administered
+374 (12%)
+228 (7%)
+Table 1
+Occurrence and frequency table for traumatic brain injury patients (total number: 3,168).
+
+developing observational study methods for assessing the effect of TA is
+twofold: In the long run, observational studies will be able to incorporate
+data on a larger and more diverse set of patients, thus allowing us to get a
+better understanding of when and for whom TA works; and treatment effect
+estimation on such observational studies can serve as a precursor for future
+randomized placebo-controlled studies, namely by helping defining the most
+interesting or promising target population beforehand and the associated
+inclusion rules.
+Our study is built on top of the Traumabase® database, which currently
+indexes around 20,000 major trauma patients.1 For each patient, 244 measurements are collected both before and during the hospital stay, including
+both quantitative and categorical variables. As shown in Table 1, TA was
+administered to roughly 19% of traumatic brain injury patients, and 20%
+died before the end of their hospital stay. We also see that mortality was
+much higher among patients who received TA than those who did not (38%
+vs. 16%). This apparent reversal of the expected causal effect is a standard
+example of confounding bias (also known as Simpson’s paradox): The effect
+arises because patients who appeared to be in more severe state were more
+likely to be administered TA and were also more likely to die with or without
+the treatment.
+The goal of our observational study design is to use a subset of 37 auxiliary covariates collected by the Traumabase group to control for confounding
+and identify the causal effect of TA on mortality. This “unconfoundedness”
+or “selection on observables” strategy is justified if the treatment of interest
+(i.e., administration of TA) is as good as random after conditioning on covariates (Imbens and Rubin, 2015; Rosenbaum and Rubin, 1983). In general,
+such an unconfoundedness assumption cannot be validated from data, and
+needs to be built into the observational study design.
+In order to make unconfoundedness as plausible as possible, the Traumabase group chose which covariates among the total of 244 collected covariates to incorporate in our study by soliciting feedback from a number ex1
+
+Major trauma is defined as any injury that potentially causes prolonged disability or
+death and it is a public health challenge and a major source of mortality and handicap
+around the world (Hay et al., 2017).
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+
+3
+
+Percentage of missing values
+
+100
+
+Percentage
+
+75
+
+NA
+Not Informed
+Not made
+Not Applicable
+Impossible
+
+50
+
+25
+
+AIS
+.ex
+te
+AIS rnal
+AIS .face
+.he
+ad
+ISS
+Tra
+um
+T
+Pu a.ce BI
+pil.
+ano nter
+m
+Pu
+pil. OTI.M aly
+ano
+I
+ma CU
+ly.p
+h
+Ca
+rdia GSC HR
+De c.arr .init
+lta. est
+hem .ph
+Vas
+oC
+opr
+ue
+ess
+or.t IGS.II
+He hera
+mo py
+glo
+bin
+SB
+P
+De
+ath DBP
+An
+.in.
+tico
+ICU
+a
+An gulan SpO
+tipla t.t
+tele hera 2
+t.th py
+era
+py
+F
+SB iO2
+P.m
+HR in
+.
+DB max
+Sp P.min
+Ne GSC. O2.m
+uro
+mo
+s
+t in
+Me urger or.init
+dc
+y.
+Tra are.timday0
+nex
+e.p
+a
+h
+H m
+Cris emo ic.acid
+tall Cue
+oid
+Co
+. .init
+lloid volum
+.vo e
+lum
+e
+De
+Os
+com
+mo ICP
+the
+pre
+rap
+ssiv
+y
+e.c
+ran EVD
+TC iectom
+D.P
+y
+SB I.ma
+P.M x
+HR ICU
+.
+M
+DB
+I
+P.M CU
+Gla
+ICU
+sgo
+Os w.dis IICP
+mo cha
+Imp Ca thera rge
+rov use py.p
+.an .of.
+h
+Tem omaly death
+per .osm
+atu
+re.m o
+in
+
+0
+
+Variable
+
+Fig 1: Percentage of missing values for a subset of variables relevant for traumatic brain injury. Different encodings of missing values: NA (not available),
+not informed, not made, not applicable, impossible.
+
+perts using the Delphi method (Dalkey and Helmer, 1963; Jones and Hunter,
+1995). The focus of the Delphi survey was in understanding which factors
+were important for understanding health trajectories of major trauma patients. Because the decision whether or not to administer TA was performed
+by health professionals, it is likely that this same set of variables is also
+relevant to understanding which patients were more likely than others to be
+selected for treatment. A detailed list of the confounders and predictors of
+the outcome, in-ICU mortality, that were chosen via the Delphi method is
+given in the Supplementary material.
+As discussed further in the following section, the statistics of treatment
+effect estimation under unconfoundedness is by now well understood, with
+literature covering a range of topics from identification (Imbens and Rubin,
+2015; Rosenbaum and Rubin, 1983) and simple weighted estimators (Abadie
+and Imbens, 2016; Rosenbaum and Rubin, 1984; Zubizarreta, 2012) to semiparametrically efficient estimation in potentially high-dimensional settings
+(Athey, Imbens and Wager, 2018; Chernozhukov et al., 2018; Robins, Rotnitzky and Zhao, 1994; Van der Laan and Rose, 2011) and optimal treatment personalization (Athey and Wager, 2017; Kitagawa and Tetenov, 2018;
+Luedtke and Van Der Laan, 2016; Zhao et al., 2012).
+In the case of the Traumabase dataset, however, we have an additional
+
+4
+
+I. MAYER ET AL.
+
+complication whereby, in Figure 1, many of the variables have missing entries. Some of the missingness is presumably due to non-informative missingness, e.g., medical staff simply forgetting to log some numbers, but in
+other cases the missingness is clearly informative; and in fact the analysts
+compiling the dataset used many different phrases to describe missing measurements, ranging from “not made” and “not applicable” to “impossible”.
+The last denomination arises, for example, in the case of blood pressure
+measurements for patients in cardiac arrest or with dismemberment, as first
+responders simply cannot measure blood pressure for patients suffering from
+one of these two conditions. Meanwhile, variables indicating the response to
+a certain drug, such as the pupil contraction after the administration of
+a saline solution, systematically take on the value “not applicable” if the
+treatment has not been administered (the latter is informed in a separate
+variable).
+There are a handful of popular strategies for working with missing values in the context of treatment effect estimation under unconfoundedness,
+ranging from generalized propensity score methods (D’Agostino and Rubin, 2000; Rosenbaum and Rubin, 1984) to multiple imputation (Little and
+Rubin, 2002; Rubin, 1976, 1987). However, the methodology for treatment
+effect estimation with missingness is not as thoroughly fleshed out as corresponding methods without missing data. In particular, although doubly
+robust and semiparametrically efficient methods have shown considerable
+promise in cases without missingness (Athey, Imbens and Wager, 2018; Chernozhukov et al., 2018; Robins, Rotnitzky and Zhao, 1994; Van der Laan and
+Rose, 2011), we are not aware of a study of doubly robust treatment effect
+methods with missing covariates.
+In this paper, we discuss natural doubly robust generalizations of several
+popular methods for treatment effect estimation with missing covariates, and
+conduct an extensive simulation comparison. There is considerable variability in which methods perform best in our experiments: Sometimes methods
+that start from generalized propensity scores do better while other times
+multiple imputation wins; sometimes parametric methods fit via the EM algorithm (Dempster, Laird and Rubin, 1977) are better whereas other times
+non-parametric estimators do better. However, we systematically find our
+doubly robust modifications of standard methods to outperform their baselines.
+Finally, in the case of the Traumabase study, all doubly robust estimators
+give confidence intervals that cover 0, indicating that we need to collect more
+data before we can use the observational study to guide clinical choices
+around administration of TA in the context of traumatic brain injury. In
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+
+5
+
+contrast, all baseline methods result in confidence intervals that do not cover
+0, and find significantly harmful effects of TA on mortality. It thus appears
+that using doubly robust estimators is needed to eliminate the selection bias
+seen in Table 1.
+2. Methods for Complete Data. As a preliminary to our discussion
+on how to estimate causal effects with missing attributes, we first briefly
+review methods that are widely used in the easier case without missingness. Suppose we observe n independent and identically distributed samples
+(Xi , Yi , Wi ) ∈ Rp ×R×{0, 1} where Xi is a vector of attributes, Yi is an outcome of interest, and Wi denotes treatment assignment. We define causal
+effects via the Neyman-Rubin potential outcomes model under the stable
+unit treatment value assumption (Imbens and Rubin, 2015). We posit potential outcomes {Yi (0), Yi (1)} corresponding to the outcome the i-th sample would have experienced had they been assigned treatment Wi = 0 or
+1 respectively, such that Yi = Yi (Wi ). The average treatment effect is then
+defined as
+τ , E[Yi (1) − Yi (0)].
+
+In order to identify τ , we further assume unconfoundedness, i.e., that treatment assignment is as good as random conditionally on the attributes Xi
+(Rosenbaum and Rubin, 1983),
+(1)
+
+{Yi (0), Yi (1)} ⊥
+⊥ Wi Xi ,
+
+and overlap, i.e., that the propensity score e(·) is bounded away from 0 and
+1,
+(2)
+
+
+
+
+
+e(x) , P Wi = 1 Xi = x ,
+
+η < e(x) < 1 − η,
+
+for all x ∈ Rp and some η > 0.
+In the case without any missingness in the attributes Xi , the problem of
+average treatment effect estimation in the above setting is well understood.
+Several popular and consistent approaches to estimating τ are built around
+the propensity score. The analyst first estimates the propensity score e(x)
+in (2), and then estimates τ either via inverse-propensity weighting (IPW)
+(3)
+
+τ̂IP W ,
+
+
+
+
+
+n
+1X
+Wi Yi
+(1 − Wi )Yi
+−
+,
+n i=1 ê(Xi )
+1 − ê(Xi )
+
+or by matching treated and control observations with similar values of the
+propensity score (Abadie and Imbens, 2016; Rosenbaum and Rubin, 1984;
+Zubizarreta, 2012).
+
+6
+
+I. MAYER ET AL.
+
+However, when the propensity score is somewhat difficult to estimate,
+methods that only rely on the propensity score are in general dominated by
+bias due to estimation error in e(·), and methods that also model the outcomes Yi can attain a better sample complexity; see Athey, Imbens and Wager (2018), Chernozhukov et al. (2018) and Van der Laan and Rose (2011) for
+references and recent results. One particularly successful approach to combining these two approaches to modeling is via augmented inverse-propensity
+weighting (AIPW) (Robins, Rotnitzky and Zhao, 1994),
+
+(4)
+
+τ̂AIP W
+
+
+
+n
+1X
+,
+µ̂ (Xi ) − µ̂(0) (Xi )
+n i=1 (1)
+
+
+
+
+
+(1 − Wi ) 
+Wi 
+Yi − µ̂(1) (Xi ) −
+Yi − µ̂(0) (Xi ) ,
++
+ê(Xi )
+1 − ê(Xi )
+
+
+
+
+where µ(w) (x) , E Y Xi = x, Wi = w and µ̂(w) (x) is an estimate thereof.
+A key fact about doubly robust estimators as in (4) is that τ̂AIP W can be
+√
+n-consistent for τ and asymptotically Gaussian even in a non-parametric
+setting where µ̂(w) (·) and ê(·) are estimated, for instance using generic machine learning methods, at slower non-parametric rates (Farrell, 2015). We
+use “cross-fitting”, whereby we do not use the i-th datapoint itself for making the predictions µ̂(w) (Xi ) and ê(Xi ) (Chernozhukov et al., 2018; Van der
+Laan and Rose, 2011). Methods based on inverse-weighting as in (3) can also
+sometimes have good asymptotic performance, but these results are generally more fragile and require considerably stronger regularity conditions than
+corresponding AIPW results (Hirano, Imbens and Ridder, 2003).
+3. Treatment Effect Estimation with Missing Attributes. In this
+paper, we are interested in a more difficult variant of the above setting
+where the analyst cannot always observe the full attribute vector. Rather,
+we assume that there is a “mask” Ri ∈ {1, NA}p such that the analyst
+observes Xi∗ , Ri Xi ∈ {R ∪ NA}p . Here,
+denotes an element-wise
+product, such that Xij∗ = Xij if Rij = 1 and Xij∗ = NA if Rij = NA.
+In current empirical practice, there are several approaches to treatment
+effect estimation with missing attributes; but the literature studying this
+problem is rather scarce and most such approaches focus on IPW-form estimators as in (3) (Rosenbaum and Rubin, 1984; D’Agostino and Rubin, 2000;
+Seaman and White, 2014; Mattei, 2009; Leyrat et al., 2019).
+The main contributions of this paper consist in (1) a dyadic classification
+of possible approaches to treatment effect estimation with missing attributes
+—the first class relying on a variant of the unconfoundedness assumption
+while the second uses the classical missing values mechanism taxonomy—(2)
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+
+7
+
+in the proposal of two new estimators in the first class—a parametric and
+nonparametric estimator, both in an IPW and an AIPW form—(3) the extension of previously introduced IPW estimators to the AIPW form in the
+second class and (4) an extensive comparison of these estimators. As preliminaries, below we review some paradigms for treatment effect estimation
+with missing attributes.
+3.1. Unconfoundedness despite missingness. Perhaps the simplest way
+to work with missing attributes is to assume that the missingness mechanism
+does not break unconfoundedness (1), i.e., that (Rosenbaum and Rubin,
+1984)
+(5)
+
+{Yi (0), Yi (1)} ⊥
+⊥ Wi Xi∗ .
+
+In this setting, D’Agostino and Rubin (2000) show that matching on the
+generalized propensity score
+
+
+(6)
+
+e∗ (x∗ ) , P Wi = 1 Xi∗ = x∗
+
+
+
+is consistent for τ . In general, the simplest way to verify (5) is to pair (1)
+together with one of the two assumptions below (Blake et al., 2019; Mattei,
+2009)
+(7)
+
+
+
+ CIT:
+
+or
+
+
+ CIO:
+
+Wi ⊥
+⊥ Xi | Xi∗ , Ri
+Yi (w) ⊥
+⊥ Xi | Xi∗ , Ri
+
+for w ∈ {0, 1},
+
+where CIT and CIO stand for conditional independence of treatment and
+conditional independence of outcome respectively. Given these assumptions,
+(5) can be directly derived from the causal graphs shown in Figure 2 (Pearl,
+1995; Richardson and Robins, 2013).
+We note that fitting (6) may appear difficult from the perspective of classical parametric statistics; e.g., in order to run logistic regression, one needs
+to fit a separate parameter vector for each mask r. However, many modern
+machine learning methods, including tree ensembles and neural networks,
+can readily handle missing data and enable (6) to be fit directly.
+3.2. Missing values mechanisms. Another choice is to make assumptions
+about the missingness mechanism Ri . The most popular approach is to take
+the missingness mechanism to be random (MAR) (Little and Rubin, 2002;
+Rubin, 1976), i.e., for each possible mask r ∈ {1, NA}p ,
+(8)
+
+pr(Ri = r Xi = x, Wi , Yi ) = pr(Ri = r (Xi )r = xr , Wi , Yi ),
+
+8
+
+I. MAYER ET AL.
+
+Fig 2: Causal graph depicting the assumptions (7).
+(a) CIT
+
+X∗
+
+X
+
+W
+
+w
+
+(b) CIO
+
+R
+
+X∗
+
+X
+
+Y (w)
+
+W
+
+w
+
+R
+
+Y (w)
+
+where Xr is the subset of entries of X indexed by {j : rj = 1}. Under
+these assumptions, multiple imputation (Rubin, 1987; van Buuren, 2018) is
+a popular approach to treatment effect estimation (Qu and Lipkovich, 2009;
+Robins and Wang, 2000; Rubin, 1978, 2004; Seaman and White, 2014). Under the condition that this imputation is “proper”, i.e., that the missing
+attributes are simulated from the correct conditional distribution, and a
+linear-logistic model for the outcome and treatment this method is consistent for IPW estimators (Seaman and White, 2014). Note that multiple
+imputation does not rely on the assumption (5) or the generalized propensity
+score, but it only requires the data to be MAR as in (8).
+A stronger variant of the missing-at-random assumption (8) is to assume
+missingness to be completely at random (MCAR),
+pr(Ri = r Xi , Wi , Yi ) = pr(Ri = r),
+or equivalently
+Ri ⊥
+⊥ {Xi , Yi , Wi } .
+
+Under this assumption, further methods become available. First, we can
+consistently estimate τ using only the subset of the data with no missingness,
+i.e., Xi = Xi∗ . Of course, using only a subset of the data results in a loss
+of efficiency; however, this approach is simple and consistent. We emphasize
+that complete case analysis is not valid under the weaker assumption (8); in
+that case, ignoring observations with missingness will result in bias (Little
+and Rubin, 2002).
+Another algorithm that has been studied under the MCAR assumption
+is based on matrix completion (Kallus, Mao and Udell, 2018). Write X and
+X ∗ for the matrices with rows Xi and Xi∗ respectively. Then, assuming
+that X is a potentially noisy realization of a low rank matrix U and that
+unconfoundedness (1) holds with Xi replaced by Ui , we can approximate
+U from X ∗ using methods for low-rank matrix factorization (e.g., Candes
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+
+9
+
+and Plan, 2010), and then apply complete-data methods on the recovered
+Ûi . In cases where both MCAR and the low-rank assumption hold, matrix
+factorization may be more efficient than complete case analysis and simpler
+than multiple imputation.
+3.3. Discussion: The Traumabase study. In light of the previous discussion on the underlying (additional) assumptions required in the case of missing attributes, we argue that the Traumabase data is more likely to fall under
+the unconfoundedness despite missingness assumption from Section 3.1 than
+the MAR assumption from Section 3.2. Indeed, the administration of TA in
+the context of major trauma generally takes place under time pressure—the
+more blood a patient looses, the more complications can occur—and the
+medical staff cannot wait too long to collect a lot of information before deciding on the treatment. Therefore, if a value such as the evolution of the
+shock index level between arrival of the MICU2 and arrival at the ICU, is not
+available because at least one measurement is missing—for instance, due to
+transmission problems –, the decision on the treatment will not depend on
+this feature. Another example could be information about the pre-hospital
+hemoglobin level: if the patient is in a severe state and immediate measures
+(such as resuscitation) are prioritized, then this measurement might not be
+made, however the consequently missing value is informative in the sense
+that it is due to the severe state of the patient, which might not necessarily
+be recorded explicitly in other observed features. These examples point in favor of the unconfoundedness despite missingness assumption as they suggest
+that the missing values are not only missing for the analyst but have already
+been missing for the physician at the time of treatment administration.
+On the contrary, the MAR assumption seems plausible only for a subset
+of covariates. For instance, if the binary variable Cardiac.arrest.ph indicates
+that the patient needed to be resuscitated, then this can explain the missing
+values for the blood pressure and heart rate during pre-hospital phase. And
+there are other incomplete variables such as the total quantity of volume
+expanders used in pre-hospital phase for which the missing values depend
+on several other recorded variables describing the need for volume expansion.
+4. IPW and augmented IPW with Missing Attributes. The previously discussed assumptions lead to two families of methods for treatment
+effect estimation with missing attributes. We now propose two IPW and
+AIPW estimators in the family derived from the unconfoundedness despite
+2
+
+Mobile intensive care unit, enhanced medical care team that takes care of the patient
+at the scene of the accident.
+
+10
+
+I. MAYER ET AL.
+
+missingness assumption (Section 3.1). In the other family that relies on classical assumptions on the missingness mechanism (Section 3.2), we extend
+the existing multiple imputation IPW estimator to a doubly robust AIPW
+version. For the former family, we only present details for the AIPW estimators, their IPW counterparts can almost directly be read off the AIPW
+formulation below.
+4.1. Unconfoundedness despite missingness. Under assumption (5), the
+generalization to incomplete attributes is direct. First, estimate the generalized propensity score e∗ (x∗ ) from (6) and similarly the generalized outcome
+model µ∗(w) (x∗ ), and then form the AIPW estimator
+(9)
+τ̂AIP W ∗ ,
+
+
+
+n
+1X
+µ̂∗ (X ∗ ) − µ̂∗(0) (Xi∗ )
+n i=1 (1) i
+
+
+
+
+
+(1 − Wi ) 
+Wi 
+∗
+∗
+Y
+−
+µ̂
+(X
+)
+.
++ ∗ ∗ Yi − µ̂∗(1) (Xi∗ ) −
+i
+i
+(0)
+ê (Xi )
+1 − ê∗ (Xi∗ )
+
+There are general results about AIPW that immediately guarantee that the
+√
+above estimator τ̂AIP W ∗ is n-consistent and asymptotically normal around
+τ provided ê∗ (·) and µ̂∗(w) (·) converge at o(n−1/4 ) rate in root-mean squared
+error given only weak regularity conditions (Chernozhukov et al., 2018).
+Below, we consider both a parametric approach based on logistic regression,
+and a non-parametric approach using random forests.
+4.1.1. Nonparametric approach. The non-parametric task of learning e∗ (x∗ )
+and µ∗(w) (x∗ ) is somewhat unusual, since the x∗ take values in the augmented
+space {R ∪ NA}p . However, this problem has received attention in the machine learning literature. For example, random forests (Breiman, 2001) can
+handle semi-continuous variables therefore allowing for missing values in the
+data. One solution that takes into account the missingness in tree models
+is missing incorporated in attributes (MIA) (Twala, Jones and Hand, 2008;
+Josse et al., 2019). It allows optimal splits along the observed variables.
+Therefore, it selects patterns that are important for predicting the treatment assignment (and also the outcome) instead of adjusting one model per
+pattern as would be a naive approach to estimate (6). More formally, this
+procedure estimates the following quantity (Bayes estimate):
+E[V |X ∗ ] =
+
+X
+
+r∈{0,1}p
+
+E[V |X ∗ , R = r]1R=r ,
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+
+11
+
+where V stands either for the treatment assignment W or for the outcome Y .
+In the following we will denote by τ̂M IA the resulting treatment effect estimator, either its IPW or its AIPW formulation. Another, conceptually even
+simpler approach for prediction with incomplete data is mean imputation
+which is consistent, provided that one uses a learning algorithm with infinite
+learning capacity (Josse et al., 2019). Both the MIA and mean imputation
+strategy are valid for arbitrary missingness mechanisms, provided that (5)
+holds, i.e., this method does not require the missing data to be MAR; and
+in many applications it is likely that MAR does not hold, therefore this approach can be a suited alternative if (5) is more likely to hold than MAR.
+The details of this approach are outlined in Procedure 13 .4
+Procedure 1: nonparametric AIPW with generalized propensity
+score and generalized response surfaces.
+This algorithm provides an estimation for the average treatment effect τ via random forests with MIA splitting rule, given incomplete
+covariates X ∗ , observed treatment assignment W and outcome Y .
+We assume unconfoundedness despite missingness (5).
+g∗ :
+1. Transform the given X ∗ to X
+
+Option 1 Duplicate each variable Xj∗ with at least one missing observation. Replace the missing values with −∞ and
+∞.
+Option 2 For each variable Xj∗ with at least one missing observation, impute each missing value with the mean of
+Xj∗ .
+
+g∗ , W ) to get an estimate for e∗ .
+2. Train a random forest on (X
+g∗ i:W =1 , Yi:W =1 ) and on
+3. Train two random forest on (X
+i
+i
+g
+∗
+(X i:Wi = , Yi:Wi = ) to get estimates for µ∗(1) and µ∗(0) .
+4. Combine the predictions following (9) to obtain a doubly robust estimation τ̂ for τ .
+
+4.1.2. Parametric approach. For the parametric approach, we build on
+work by Jiang, Josse and Lavielle (2018) and Schafer (1997), assuming a
+logistic and linear model for the generalized propensity score and outcome
+respectively. These two models are estimated by maximum likelihood esti3
+
+Alternatively, steps 2-4 from Procedure 1 can be replaced with a causal forest approach
+(Athey, Tibshirani and Wager, 2019).
+4
+In this section, all procedures focus on AIPW estimation, the details for the IPW
+estimators are given in the Supplementary material.
+
+12
+
+I. MAYER ET AL.
+
+mation, using the EM algorithm that allows to do valid inference on the
+observed values (Dempster, Laird and Rubin, 1977). The exact description
+of this parametric procedure for the AIPW estimator is outlined in Procedure 2. A limitation of this approach, as opposed to the previous one, is
+that additionally to the unconfoundedness despite missingness assumption
+it makes an assumption on the missingness mechanism, namely (8). The
+latter is required only for valid estimation of e∗ (x∗ ) and µ∗(w) (x∗ ) through
+the EM algorithm, while it is not necessary for identification of the causal
+effect τ , as explained above. The resulting IPW and AIPW estimators will
+be denoted as τ̂EM in the remainder of this article.
+Procedure 2: parametric AIPW with generalized propensity score
+and generalized response surfaces.
+This algorithm provides an estimation for the average treatment effect τ via logistic and linear regressions, given incomplete covariates
+X ∗ , observed treatment assignment W and outcome Y . We assume
+unconfoundedness despite missingness (5) and MAR (8).
+1. Fit a logistic model on (W, X ∗ ) using the stochastic approximation EM algorithm to obtain predictions for the generalized
+propensity score e∗ (Xi∗ ).
+2. Fit two separate linear models on (Yi: Wi =1 , Xi:∗ Wi =1 ) and on
+(Yi: Wi =1 , Xi:∗ Wi =1 ) respectively via an EM algorithm to obtain
+predictions for µ∗(1) (Xi∗ ) and µ∗(0) (Xi∗ ) respectively.
+3. Combine the predictions following (9) to obtain a doubly robust estimation of τ .
+4.2. Standard unconfoundedness and missingness mechanisms. As discussed in Section 3.2, multiple imputation is a solution if the missingness
+mechanism is MAR as defined by (8). We propose to augment the multiple
+imputation approach to obtain an AIPW estimator: we proceed similarly to
+Mattei (2009), i.e., we do multiple imputation using fully conditional equation (FCE) where we draw missing values from a joint distribution which
+is implicitly defined by the set of conditional distributions, proper imputation is ensured using a Bootstrap approach to reflect the sampling variability of the imputation models parameters. Then, on each imputed data
+(m)
+set m ∈ {1, . . . , M }, we compute an AIPW estimate τ̂AIP W given in (4)
+(m)
+instead of the IPW estimate τ̂IP W given in (3). This approach is outlined in
+Procedure 3.
+Another recent solution is based on matrix factorization (Kallus, Mao and
+Udell, 2018) as outlined in Procedure ??. Note that, unlike with multiple
+
+13
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+
+imputation, we only impute each datapoint once and consistency guarantees
+are only given under MCAR.
+Procedure 3: AIPW with multiple imputation.
+This algorithm provides an estimation for the average treatment effect τ using multiple imputation, given incomplete covariates X ∗ ,
+observed treatment assignment W and outcome Y . We assume unconfoundedness (1) and MAR (8).
+1. Choose number of imputations M , for instance M = 20.
+Choose an imputation method, for instance mice. Impute the
+initial data X ∗ using an M times with the chosen imputation
+method to obtain M complete data matrices (X (1) , . . . , X (M ) ).
+2. For every imputed data matrix X (m) , m ∈ {1, . . . , M }:
+Option 1 Nonparametric regression.
+
+(a) Train a random forest on (X (m) , W ) to get an estimate for e.
+(m)
+(b) Train two random forest on (Xi:Wi =1 , Yi:Wi =1 ) and on
+(m)
+
+(Xi:Wi = , Yi:Wi = ) to get estimates for µ(1) and µ(0) .
+(c) Combine the predictions following (4) to obtain a
+doubly robust estimation τ̂ for τ .
+
+Option 2 Parametric regression (we additionally assume
+logistic-linear model specification for (e, µ(0) , µ(1) )).
+(a) Fit a logistic model to obtain predictions for the
+(m)
+propensity score e(Xi )
+(m)
+
+(b) Fit two separate linear models on (Yi: Wi =1 , Xi: Wi =1 )
+(m)
+
+and on (Yi: Wi =1 , Xi: Wi =1 ) respectively to obtain pre(m)
+
+(m)
+
+dictions for µ(1) (Xi ) and µ(0) (Xi ) respectively.
+(c) Combine the predictions following (4) to obtain a
+doubly robust estimation τ̂ (m) for τ .
+3. Aggregate the
+1 PM
+(m) .
+m=1 τ̂
+M
+
+M
+
+estimations
+
+(τ̂ (1) , . . . , τ̂ (M ) ):
+
+τ̂
+
+=
+
+5. Simulation study. We assess the performance of the previously introduced treatment effect estimators in different scenarios, modifying the
+data generating process, the confounders’ relationship structure, the unconfoundedness hypothesis, the missingness mechanism, the percentage of missing values, the sample size. The comparisons are twofold: (1) comparisons
+
+14
+
+I. MAYER ET AL.
+
+between IPW-baseline and AIPW-type estimators, (2) comparisons w.r.t.
+the assumptions on the underlying unconfoundedness and the missingness
+mechanism. Note that in all simulations, we only consider the well-specified
+case, i.e., we do not study the (parametric) estimators’ performances in case
+of model mis-specification. More specifically, e(x) = σ(α0 + αT x + e ) and
+µ(w) (x) = β0 + β T x + wτ + µ , where e and µ are zero mean and independent noise terms. All simulations are implemented in R (R Core Team,
+2018).5
+5.1. Methods overview. We compare our approaches τ̂EM and τ̂M IA , denoted saem and mia.grf in the experiments, to the following methods, where
+we summarize their assumptions in Table 2:
+• mice: Procedure 3 (and its IPW analogue detailed in the Supplementary material) with Option 2; we use the R package mice (van Buuren
+and Groothuis-Oudshoorn, 2011) and default options.
+• mf : Procedure ?? (and its IPW analogue detailed in the Supplementary material) with Option 2; we adapt the implementation6 of Kallus,
+Mao and Udell (2018) based on the R package softImpute (Hastie and
+Mazumder, 2015).
+• mean.loglin: Imputation by the mean for the missing values and estimate e with logistic regression on the mean imputed covariates and
+the two µ(w) with two separate linear regressions.
+• mean.grf : Procedure 1 with Option 2.
+For the parametric τ̂EM we use the R package misaem (Jiang, 2019); for
+the nonparametric τ̂M IA we implemented our approach in the R package
+GRF (Athey, Tibshirani and Wager, 2019). We grow forests with missingness
+via the the MIA method; then, the estimator (9) is implemented in the
+command average treatment effect. Note that it is common to add the
+binary mask R to the initial or imputed data matrix X for estimation or
+prediction and it is admitted that this addition can sometimes improve the
+analysis and generally does not deteriorate the result. Hence, in this work we
+only report results obtained by adding R. In all cases, we consider inference
+using the bootstrap (i.e., we bootstrap the original data and repeat the
+whole process).
+5
+
+The code for reproducing the experiments presented in this work is available online
+at https://github.com/imkemayer/causal-inference-missing.
+6
+For details on the implementation of this last method, see https://github.com/
+udellgroup/causal_mf_code.
+
+15
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+Confounders &
+Covariates
+
+Missingness
+
+Unconfoundedness
+
+Models for
+(W, Y )
+
+multivariate
+normal
+
+general
+
+M(C)AR
+
+general
+
+(1)
+
+(5)
+
+logisticlinear
+
+nonparam.
+
+saem
+mia.grf
+mice
+
+3
+3
+3
+
+7
+3
+3
+
+3
+3
+3
+
+7
+3
+7
+
+3
+3
+3
+
+3
+3
+3
+
+7
+3
+(7)
+
+mf
+
+3
+
+7
+
+3
+
+7
+
+7
+7
+3
+3
+
+7
+
+3
+
+(7)
+
+mean.loglin
+mean.grf
+
+7
+3
+
+7
+3
+
+7
+3
+
+(on U )
+
+7
+7
+7
+7
+7
+3
+7
+3
+3
+3
+Table 2
+Methods and their assumptions on the underlying data generating process. (3indicates
+cases that can be handled by a method, whereas 7 marks cases where a method is not
+applicable in theory; (7) indicates cases without theoretical guarantees but with heuristic
+solutions.)
+
+5.2. Data generation. We define different models for the generation of
+the confounders, covariates, missing values, treatment assignment and outcome.
+5.2.1. Confounders and covariates.
+Model 1: Multivariate normally distributed confounders. We generate normally distributed confounders Xi· = [Xi1 . . . Xip ]T ∼ N (1, Σ), i ∈
+{1, . . . , n}, for p = 10, where Σ = I−0.6×(I−1), X = [X1· . . . Xp· ]T ∈ Rn×p .
+
+Model 2: Latent classes model. We consider a Gaussian mixture model, i.e.,
+we first generate class labels C from a multinomial distribution with three
+categories. Then the confounders of observation i, Xi· , are sampled from the
+corresponding class distribution, i.e., Xi· ∼ N (µ(ci ), Σ(ci )) | Ci = ci .
+Treatment and outcome are defined using the logistic-linear model in the
+following way: we define logit(e∗ (Xi·∗ )) = (α(Ci ))T Xi·∗ . This allows to add an
+additional interaction between treatment and the latent class. Analogously,
+the outcome is defined as Yi ∼ N ((β(Ci ))T Xi·∗ + τ Wi , σ 2 ).
+Model 3: Hierarchical data-generating model. An alternative to defining a
+Gaussian mixture model, is to use a simplified shallow version of a deep
+latent variable model (DLVM, Kingma and Welling (2014)): the codes C
+are sampled from a normal distribution Nd (0, 1). Covariates Xi are then
+sampled from Np (µ(c), Σ(c)) | Ci = c, where
+(µ(c), Σ(c)) = (V tanh(W c + a) + b, exp(γ T (W c + a) + δ)Ip ),
+
+16
+
+I. MAYER ET AL.
+
+and the weights in V ∈ Rp×5 and W ∈ R5×d are respectively sampled from
+a standard normal and a uniform distribution (and similarly for the offsets
+a and b). We fix d = 3.
+Model 4: Low rank matrix factorization. We adapt the simulation framework from Kallus, Mao and Udell (2018) by generating Ui· = [Ui1 . . . Uid ]T ∼
+N (0, Id ) and defining X = U V T for some fixed matrix V ∈ Rp×d , with d = 3.
+5.2.2. Missing values. We generate missing values either under MCAR
+(i.e., P(Rij = 1) = 1 − B(η) such that on average we have ηnp missing values) or as informative missing values (missing values in X·,1:5 are generated
+depending on the quantiles of X·,1:5 such that there are about ηnp/2 missing
+values). In the results presented here we fix η = 0.3.
+5.2.3. Treatment assignment and outcome. For models 1,3 and 4, treatment assignment and outcome are defined under either of the unconfoundedness assumptions.
+Unconfoundedness despite missingness. Let X ∗ = R X + (1 − R) 0. We
+define logit(e∗ (Xi·∗ )) = α0 + αT Xi·∗ . Analogously, the outcome is defined as
+Yi ∼ N (β0 + β T Xi·∗ + τ Wi , σ 2 ).
+
+Standard unconfoundedness. We define logit(e(Xi· )) = α0 + αT Xi· . Analogously, the outcome is defined as Yi ∼ N (β0 + β T Xi· + τ Wi , σ 2 ).
+For model 2, treatment assignment and outcome are defined under unconfoundedness on the latent factors U as follows: logit(e(Ui· )) = α0 + αT Ui· .
+Analogously, the outcome is defined as Yi ∼ N (β0 + β T Ui· + τ Wi , σ 2 )
+We refer to the Supplementary material for details on how to simulate
+treatment and outcome under assumption (5) (or rather (1) and (7)).
+
+5.3. Results. We report the estimations for a fixed average treatment
+effect using the previously described estimation methods. All figures in this
+study are generated from 100 simulations for sample sizes n ∈ {100, 500, 1000, 5000},
+we fix the proportion of missing values at 30% throughout all experiments;
+and the true treatment effect τ is reported as black solid line. The standard
+unconfoundedness setting corresponds to assumption (1), while unconfoundedness despite missingness corresponds to (5).
+5.4. Take-home message from the simulation study. The results from
+this first simulation study can be summarized in several general observations:
+• Augmented IPW outperform their IPW equivalents throughout all scenarios (both in terms of variability and of bias), this behavior is analogous to the behavior in the well understood complete data setting.
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+
+17
+
+• All methods perform well if their assumptions on the underlying data
+generating process are met (see Table 2).
+• For multiple imputation (mice) there is a small remaining bias, even
+for large sample sizes. In some cases, when the assumptions for this
+method are met, based on the theorem from Seaman and White (2014)
+on multiple imputation with M = ∞ imputations, it is expected that
+an increase of the number of imputations should decrease this remaining bias in these cases.
+• The tree-based estimation, using the MIA criterion (mia.grf ) or mean
+imputation (mean.grf ), generally performs at least as good as multiple
+imputation but yields unbiased results if “unconfoundedness despite
+missingness” (5) holds.
+• Mean imputation and concatenation of the imputed data with the
+mask, followed by logistic regression for W and linear regression for Y
+(mean.loglin) leads to unbiased estimates, provided that (5) holds, in
+many scenario even when the models are misspecified, however this is
+true only when adding the mask R to the regression models. Otherwise
+this approach is biased as soon as (5) is violated, and in this case it is
+outperformed by competing methods.
+• The EM-based estimator (saem) performs well under correct specification (multivariate Gaussian confounders, logistic treatment assignment, linear outcome, M(C)AR missing data mechanism, (5) satisfied)
+and adding the mask to the initial data matrix yields unbiased estimates even if the missing data mechanism is not ignorable. It fails
+however in the cases where the data is not i.i.d. Gaussian.
+For a more detailed discussion of the simulation results, we refer to the
+Supplementary material.
+6. Application on observational critical care management data.
+As announced in the introduction we apply our methods to clinical data from
+a French observational database on major trauma patients. The medical
+question we aim to answer is whether administrating the drug TA has an
+effect on in-ICU mortality for patients with traumatic brain injury.
+6.1. Data and causal DAG. Out of the 20,000 currently available patient
+records we consider a subset of 7,240 observations that have been validated
+by the medical expert team after a first pre-treatment of a subset of 7,495
+observations available at the beginning of this study. The pre-treatment
+consisted in identifying outliers clearly due to erroneous inputs and recoding
+missing values that are not really missing (for instance the variable informing
+
+18
+
+I. MAYER ET AL.
+
+previous pregnancies is evidently consistently missing, or ideally set to false,
+for male patients, etc.)7 . Out of these 7,240 patients, 3,168 are identified
+as having a traumatic brain injury (defined by the medical expert team as
+either the presence of a brain lesion visible on the first computed tomography
+(CT) scan—which is generally taken within the first three hours after the
+accident—or as a head AIS score8 greater or equal 2).
+The treatment of interest, TA, is an antifibrinolytic agent limiting excessive bleeding and it is currently used in patients suspected of developing an
+hemorrhagic shock, a state in which the body is no longer able to provide
+vital organs with sufficient quantities of dioxygen to sustain them. The average cost of a dose of TA lies below 10€ and the drug is generally available
+immediately after the arrival of the medical first responders team at the
+place of the accident. It is now recommended to administer this drug to
+patients at risk of developing an hemorrhagic shock.
+In order to clarify the previously raised causal question given the data, we
+first establish a causal graph in order to summarize the a priori on existing
+confounding and to highlight the causal question, as suggested, for instance,
+by Lederer et al. (2019); Blake et al. (2019). The causal graph in Figure 7
+is the result of a two-step Delphi procedure in which six anesthetists and
+resuscitators specialized in critical care first selected covariates related to
+either treatment or outcome or both and second classified these covariates
+into confounders and predictors of only treatment or outcome. The absence
+of an exact timestamp for the drug administration is compensated by the
+fact that it is always given within the first three hours from the accident and
+that the treatment does not have an immediate effect on variables such as
+blood pressure, hemoglobin level or the Glasgow Coma Scale (GCS) which
+are measured at various moments within the first three hours.
+From this graph it becomes clear as well that a method that incorporates
+a model of the outcome as a function of the identified potential predictors
+(red and blue vertices in the graph) might achieve more precise results than
+a method that uses the observed outcome directly. The large number of
+predictors of the outcome is due both to the medical complexity of traumatic
+brain injury and to the ambiguous treatment target: the assignment is made
+in the context of hemorrhagic shock but recently there is some evidence that
+7
+
+The code for pre-treatment and for estimating the treatment effect on this data are
+available at https://github.com/imkemayer/causal-inference-missing.
+8
+The head Abbreviated Injury Score indicates, on a scale from one to six, the severity of
+the most severe observed brain lesion. This score is defined in the context of the Abbreviated Injury Scale proposed by the American Association for Automotive Medicine. See the
+Supplementary material or https://www.aaam.org/abbreviated-injury-scale-ais/ for
+more information.
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+
+19
+
+there might also be a beneficial effect in the context of traumatic brain injury
+(Hijazi et al., 2015).
+6.2. Results. First, we recall the estimand we aim at estimating in this
+context: we are interested in the effect of the treatment on mortality among
+traumatic brain injury patients (indicated by the binary variable XT BI ),
+more formally:
+(10)
+
+τT BI = E[Y (1) − Y (0)|XT BI = 1]
+
+When adjusting for confounding using the identified confounders (pink
+nodes on the graph in Figure 7), using additional predictors for the outcome
+model (blue nodes on the graph in Figure 7), we obtain the following estimations in Figure 8 of the direct causal effect of TA on in-ICU mortality
+among traumatic brain injury patients.
+Unlike the simulations of the previous paragraph, the real-world medical
+data is more complicated and some concessions have to be made to apply
+the previously discussed method. For instance, due to an important number
+of outliers in the variable Medcare.time.ph that are related with inconsistent
+units of the recorded values and with patient transfers from one hospital to
+another, we chose to drop this variable in our analyses since, according to
+the practitioners, its predictive power does not outweigh the potential issues
+related to inconsistent recording of this variable.
+Note that apart from the issue with the variable Medcare.time.ph, the
+estimation via random forest and MIA does not require substantial preprocessing of the data and is therefore straightforward, once the MIA recoding and the random forest are implemented. A remaining issue might
+consist in the overlap assumption which is generally difficult to assess in
+most medical applications and which might be slightly violated due in part
+to the heterogeneity of patient profiles. A solution to handle such weak overlap is the use of overlap weights (Li, Morgan and Zaslavsky, 2018) and we
+give the results using this alternative to inverse propensity weights in the
+Supplementary material.
+Here, we only consider three pairs of methods: mia.grf and mice. We drop
+mean.grf since it performed similarly to mia.grf in the simulations. We also
+do not test saem and mf since currently both these methods have not been
+derived for heterogeneous data. A first observation on the results reported in
+9
+
+Values on the x-axis are multiplied by 100 for better readability. The results can be
+read as the difference in percentage points between mortality rate in the treated and
+control groups.
+
+20
+
+I. MAYER ET AL.
+
+Figure 8 is the concordance of the different estimators: none of the AIPWtype estimation strategies allows to reject the null hypothesis of no treatment
+effect. As discussed in Section 3.3, it can be argued which family of methods
+has more plausible underlying assumptions on the Traumabase data, but in
+our opinion the unconfoundedness despite missingness—and therefore the
+mia.grf estimations—are most suited for our specific application.
+We notice a large difference between the IPW and the AIPW estimations.
+The AIPW estimations seem more reasonable for two reasons: first, the
+medical experts have noticed positive effects of TA for their TBI patients in
+practice and a previous clinical trial, focussing on a slightly different patient
+group, has also exhibited a certain benefit from the drug for patients with
+TBI; second, for the AIPW estimators, we incorporate much more available
+information, namely all identified features that are strongly related to the
+outcome Y according to the expert panel (blue nodes on Figure 7). Finally,
+all compared methods have similar empirical variances as can be observed on
+the reported bootstrap confidence intervals in Figure 8. Finally, adding the
+mask to the data matrix does not lead to major changes in the estimations,
+therefore we only report results obtained when including the mask.
+7. Discussion and perspectives.
+7.1. Two families of treatment effect estimators handling missing attributes.
+We have stressed the dyadic classification of previously exposed methods
+that allow treatment effect estimation with missing attributes, both in theory and in practice. The class of methods that relies on assumptions about
+the missingness mechanisms for treatment effect identifiability is currently
+often used, in combination with IPW-type estimators. We have also proposed an AIPW formulation for the most popular method from the first
+class, namely multiple imputation. However, methods of this first class have
+limited applicability in practice, most importantly they exclude informative
+missing data; this is a drawback of all developed methods in this class. The
+second class, relying on the generalized propensity score and a different unconfoundedness assumption, can handle arbitrary missingness mechanisms,
+in particular the case where MAR does not hold, but to the best of our
+knowledge, implementable and versatile methods in this class have not been
+proposed so far.
+In practice, if one can exclude smooth regression functions for the treatment assignment and the outcome model, such as logistic and linear models,
+and if the “unconfoundedness despite missingness” assumption is likely to
+hold—for more details on this, we refer to Blake et al. (2019)—we advocate
+our tree-based estimator τ̂M IA in its AIPW-form and its mean-imputation
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+
+21
+
+variant. If one is willing to make stronger (parametric) assumptions about
+the structure of X and its relationship with W and Y , then our second
+estimator τ̂EM can also be considered as an alternative.
+7.2. Heterogeneous treatment effects and policy learning. Instead of estimating the average treatment effect τ , one could be interested in the
+conditional average treatment effect function, defined as τ (x) = E[Y (1) −
+Y (0) X = x], for several reasons. For instance one might be interested in
+estimating how treatment effects vary across sub-populations, or assessing
+whether there is heterogeneity in the population w.r.t. a given treatment.
+Such questions anticipate problems of learning decision rules that exploit
+treatment effect heterogeneity (Wager and Athey, 2018).
+In light of our medical application, heterogeneous treatment effect estimation is of particular interest because of the known existing heterogeneity among traumatic brain injury patients in terms of clinical presentation,
+pathophysiology and outcome. It is even more relevant since to this date
+there is no general classification of patients with traumatic brain injury.
+Hence a causal inference approach allowing classification w.r.t. treatment
+heterogeneity for any given treatment is of interest for practitioners in critical care management.
+7.3. Further identification strategies. Although the two lines of approaches
+studied here for identification of average treatment effects with missing attributes are the most prevalent in applied work, they are far from exhaustive. For example, Yang, Wang and Ding (2017) consider a setting with
+outcome-independent missingness, Yi ⊥
+⊥ Ri {Xi , Wi }, and find that τ can
+be identified via a set of integral equations. We expect the area of methods development for causal inference with missing attributes to be a fruitful
+research area for years to come.
+Acknowledgement. We thank Jean-Pierre Nadal for fruitful discussion, Helen Blake and Julie Tibshirani for their suggestions for the for the simulation
+study, and the Delphi expert committee for the medical insight and advice
+on traumatic brain injury and hemorrhagic shock. We acknowledge funding
+from the EHESS PhD fellowship.
+SUPPLEMENTARY MATERIAL
+Supplementary material: Further simulation results and details
+on the Traumabase
+(https://imkemayer.com/papers/2019-10-23 DR-TreatmentEffect-WithMissingAttributes supp.pdf).
+In this material we show additional simulation results, including different
+
+22
+
+I. MAYER ET AL.
+
+simulation scenarios and estimators. Furthermore we provide a glossary for
+the Traumabase variables and an additional analysis on this data set.
+References.
+Abadie, A. and Imbens, G. W. (2016). Matching on the estimated propensity score.
+Econometrica 84 781–807.
+Athey, S., Imbens, G. W. and Wager, S. (2018). Approximate residual balancing:
+debiased inference of average treatment effects in high dimensions. Journal of the Royal
+Statistical Society: Series B (Statistical Methodology) 80 597–623.
+Athey, S., Tibshirani, J. and Wager, S. (2019). Generalized random forests. The Annals
+of Statistics 47 1148–1178.
+Athey, S. and Wager, S. (2017). Efficient policy learning. arXiv preprint
+arXiv:1702.02896.
+Blake, H. A., Leyrat, C., Mansfield, K., Seaman, S., Tomlinson, L., Carpenter, J. and Williamson, E. (2019). Propensity scores using missingness pattern information: a practical guide. arXiv preprint.
+Breiman, L. (2001). Random forests. Machine learning 45 5–32.
+Candes, E. J. and Plan, Y. (2010). Matrix completion with noise. Proceedings of the
+IEEE 98 925–936.
+Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C.,
+Newey, W. and Robins, J. (2018). Double/debiased machine learning for treatment
+and structural parameters. The Econometrics Journal 21 C1–C68.
+D’Agostino, R. B. Jr and Rubin, D. B. (2000). Estimating and using propensity scores
+with partially missing data. Journal of the American Statistical Association 95 749–
+759.
+Dalkey, N. and Helmer, O. (1963). An experimental application of the Delphi method
+to the use of experts. Management science 9 458–467.
+Dempster, A. P., Laird, N. M. and Rubin, D. B. (1977). Maximum likelihood from
+incomplete data via the EM algorithm. Journal of the Royal Statistical Society: Series
+B (Methodological) 39 1–22.
+Farrell, M. H. (2015). Robust inference on average treatment effects with possibly more
+covariates than observations. Journal of Econometrics 189 1–23.
+Hastie, T. and Mazumder, R. (2015). softImpute: Matrix Completion via Iterative SoftThresholded SVD R package version 1.4.
+Hay, S. I., Abajobir, A. A., Abate, K. H., Abbafati, C., Abbas, K. M., AbdAllah, F., Abdulkader, R. S., Abdulle, A. M., Abebo, T. A., Abera, S. F.
+et al. (2017). Global, regional, and national disability-adjusted life-years (DALYs) for
+333 diseases and injuries and healthy life expectancy (HALE) for 195 countries and
+territories, 1990–2016: a systematic analysis for the Global Burden of Disease Study
+2016. The Lancet 390 1260–1344.
+Hijazi, N., Fanne, R. A., Abramovitch, R., Yarovoi, S., Higazi, M., Abdeen, S.,
+Basheer, M., Maraga, E., Cines, D. B. and Higazi, A. A.-R. (2015). Endogenous
+plasminogen activators mediate progressive intracerebral hemorrhage after traumatic
+brain injury in mice. Blood 125 2558–2567.
+Hirano, K., Imbens, G. W. and Ridder, G. (2003). Efficient estimation of average
+treatment effects using the estimated propensity score. Econometrica 71 1161–1189.
+Imbens, G. W. and Rubin, D. B. (2015). Causal inference in statistics, social, and
+biomedical sciences. Cambridge University Press.
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+
+23
+
+Jiang, W. (2019). misaem: Logistic Regression with Missing Covariates R package version
+0.9.1.
+Jiang, W., Josse, J. and Lavielle, M. (2018). Logistic Regression with Missing
+Covariates–Parameter Estimation, Model Selection and Prediction. arXiv preprint.
+Jones, J. and Hunter, D. (1995). Consensus methods for medical and health services
+research. BMJ: British Medical Journal 311 376.
+Josse, J., Prost, N., Scornet, E. and Varoquaux, G. (2019). On the consistency of
+supervised learning with missing values. arXiv preprint.
+Kallus, N., Mao, X. and Udell, M. (2018). Causal Inference with Noisy and Missing
+Covariates via Matrix Factorization. In Advances in Neural Information Processing
+Systems 6921–6932.
+Kingma, D. P. and Welling, M. (2014). Stochastic gradient VB and the variational
+auto-encoder. In Second International Conference on Learning Representations, ICLR.
+Kitagawa, T. and Tetenov, A. (2018). Who should be treated? empirical welfare maximization methods for treatment choice. Econometrica 86 591–616.
+Lederer, D. J., Bell, S. C., Branson, R. D., Chalmers, J. D., Marshall, R.,
+Maslove, D. M., Ost, D. E., Punjabi, N. M., Schatz, M., Smyth, A. R. et al.
+(2019). Control of confounding and reporting of results in causal inference studies.
+Guidance for authors from editors of respiratory, sleep, and critical care journals. Annals
+of the American Thoracic Society 16 22–28.
+Leyrat, C., Seaman, S. R., White, I. R., Douglas, I., Smeeth, L., Kim, J., RescheRigon, M., Carpenter, J. R. and Williamson, E. J. (2019). Propensity score analysis with partially observed covariates: How should multiple imputation be used? Statistical methods in medical research 28 3–19.
+Li, F., Morgan, K. L. and Zaslavsky, A. M. (2018). Balancing Covariates via Propensity Score Weighting. Journal of the American Statistical Association 113 390–400.
+Little, R. J. A. and Rubin, D. B. (2002). Statistical Analysis with Missing Data. Wiley.
+Luedtke, A. R. and Van Der Laan, M. J. (2016). Statistical inference for the mean
+outcome under a possibly non-unique optimal treatment strategy. Annals of statistics
+44 713.
+Mattei, A. (2009). Estimating and using propensity score in presence of missing background data: an application to assess the impact of childbearing on wellbeing. Statistical
+Methods and Applications 18 257–273.
+Pearl, J. (1995). Causal diagrams for empirical research. Biometrika 82 669–688.
+Qu, Y. and Lipkovich, I. (2009). Propensity score estimation with missing values using
+a multiple imputation missingness pattern (MIMP) approach. Statistics in Medicine 28
+1402–1414.
+Richardson, T. S. and Robins, J. M. (2013). Single world intervention graphs (SWIGs):
+A unification of the counterfactual and graphical approaches to causality. Technical
+Report, Center for Statistics and the Social Sciences, University of Washington.
+Robins, J. M., Rotnitzky, A. and Zhao, L. P. (1994). Estimation of Regression Coefficients When Some Regressors are not Always Observed. Journal of the American
+Statistical Association 89 846–866.
+Robins, J. M. and Wang, N. (2000). Inference for imputation estimators. Biometrika 87
+113–124.
+Rosenbaum, P. R. and Rubin, D. B. (1983). The central role of the propensity score in
+observational studies for causal effects. Biometrika 70 41–55.
+Rosenbaum, P. R. and Rubin, D. B. (1984). Reducing bias in observational studies
+using subclassification on the propensity score. Journal of the American Statistical
+Association 79 516–524.
+
+24
+
+I. MAYER ET AL.
+
+Rubin, D. B. (1976). Inference and missing data. Biometrika 63 581–592.
+Rubin, D. B. (1978). Multiple imputations in sample surveys-a phenomenological
+Bayesian approach to nonresponse. In Proceedings of the survey research methods section of the American Statistical Association 1 20–34. American Statistical Association.
+Rubin, D. B. (1987). Multlipe Imputation for Nonresponse in Surveys. Wiley, Hoboken,
+NJ, USA.
+Rubin, D. B. (2004). Multiple imputation for nonresponse in surveys 81. John Wiley &
+Sons.
+Schafer, J. L. (1997). Analysis of Incomplete Multivariate Data. CRC Monographs on
+Statistics & Applied Probability. Chapman and Hall/CRC, Boca Raton, FL, USA.
+Seaman, S. and White, I. (2014). Inverse probability weighting with missing predictors of treatment assignment or missingness. Communications in Statistics-Theory and
+Methods 43 3499–3515.
+Shakur, H., Roberts, I., Bautista, R., Caballero, J., Coats, T., Dewan, Y., ElSayed, H., Gogichaishvili, T., Gupta, S., Herrera, J. et al. (2010). CRASH-2 trial
+collaborators. Effects of tranexamic acid on death, vascular occlusive events, and blood
+transfusion in trauma patients with significant haemorrhage (CRASH-2): a randomised,
+placebo-controlled trial. Lancet 376 23–32.
+R Core Team (2018). R: A Language and Environment for Statistical Computing R
+Foundation for Statistical Computing, Vienna, Austria.
+Textor, J., Hardt, J. and Knüppel, S. (2011). DAGitty: a graphical tool for analyzing
+causal diagrams. Epidemiology 22 745.
+Twala, B., Jones, M. and Hand, D. J. (2008). Good methods for coping with missing
+data in decision trees. Pattern Recognition Letters 29 950–956.
+van Buuren, S. (2018). Flexible Imputation of Missing Data. Chapman and Hall/CRC,
+Boca Raton, FL.
+van Buuren, S. and Groothuis-Oudshoorn, K. (2011). mice: Multivariate Imputation
+by Chained Equations in R. Journal of Statistical Software 45 1-67.
+Van der Laan, M. J. and Rose, S. (2011). Targeted learning: causal inference for observational and experimental data. Springer Science & Business Media.
+Wager, S. and Athey, S. (2018). Estimation and inference of heterogeneous treatment
+effects using random forests. Journal of the American Statistical Association 113 1228–
+1242.
+Yang, S., Wang, L. and Ding, P. (2017). Causal inference with confounders missing not
+at random. arXiv preprint arXiv:1702.03951.
+Zhao, Y., Zeng, D., Rush, A. J. and Kosorok, M. R. (2012). Estimating individualized
+treatment rules using outcome weighted learning. Journal of the American Statistical
+Association 107 1106–1118.
+Zubizarreta, J. R. (2012). Using mixed integer programming for matching in an observational study of kidney failure after surgery. Journal of the American Statistical
+Association 107 1360–1371.
+I. Mayer
+Centre d’Analyse et de Mathématique Sociales
+EHESS
+75006 Paris, France
+E-mail: imke.mayer@ehess.fr
+
+J. Josse
+Centre de Mathématiques Appliquées
+École Polytechnique
+91128 Palaiseau Cedex, France
+E-mail: julie.josse@polytechnique.edu
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+S. Wager
+Graduate School of Business
+Stanford University
+CA 94305, USA
+E-mail: swager@stanford.edu
+
+25
+
+T. Gauss and J.-D. Moyer
+Department of anesthesia and intensive care
+Beaujon hospital, AP–HP
+92110 Clichy, France
+E-mail: tgauss@protonmail.com
+E-mail: jean-denis.moyer@aphp.fr
+
+26
+
+I. MAYER ET AL.
+IPW
+
+AIPW
+
+10
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+0
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+Standard unconf.
+
+●
+●
+
+5
+
+Method
+mean.loglin
+
+●
+●
+
+mean.grf
+
+●
+●
+
+●
+
+−5
+
+●
+
+mice
+
+●
+●
+
+5
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+●
+●
+
+100
+
+500
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+●
+
+1000
+
+5000
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+−5
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+
+0
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+100
+
+500
+
+●
+●
+
+●
+
+1000
+
+5000
+
+Unconf. despite missingness
+
+10
+
+mf
+saem
+mia.grf
+
+(a) MCAR (with 30% missing values in X·,1:10 )
+IPW
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+2.5
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+
+0.0
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+Standard unconf.
+
+5.0
+
+AIPW
+
+Method
+mean.loglin
+
+●
+●
+
+●
+●
+
+−2.5
+
+mean.grf
+
+●
+
+●
+
+●
+
+●
+●
+
+mice
+Unconf. despite missingness
+
+●
+
+●
+
+5.0
+
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+
+2.5
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+0.0
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+100
+
+500
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+●
+●
+
+●
+●
+
+−2.5
+
+●
+
+100
+
+500
+
+1000
+
+5000
+
+1000
+
+mf
+saem
+mia.grf
+
+5000
+
+(b) Informative missing values (with 30% missing values in X·,1:5 )
+
+Fig 3: Model 1. IPW and AIPW estimations across simulation designs described in Section 5.2. We report results for
+all combinations of n
+∈
+{100, 500, 1000, 5000}, missing values mechanism ∈
+{M CAR, general} and unconfoundedness ∈
+{unconf oundedness despite missingness, standard unconf oundedness}.
+Results are displayed for 100 runs of every setting.
+
+27
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+IPW
+10
+
+AIPW
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+●
+
+0
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+−5
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+Standard unconf.
+
+5
+
+●
+
+●
+
+●
+●
+
+−10
+
+●
+
+mean.grf
+
+●
+
+●
+
+mice
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+−5
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+0
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+−10
+
+100
+
+500
+
+1000
+
+5000
+
+100
+
+500
+
+1000
+
+Unconf. despite missingness
+
+10
+5
+
+mean.loglin
+
+●
+
+●
+●
+
+●
+●
+
+Method
+
+mf
+saem
+mia.grf
+
+5000
+
+(a) MCAR (with 30% missing values in X·,1:10 )
+
+IPW
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+0
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+
+−5
+
+●
+●
+●
+●
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+Standard unconf.
+
+5
+
+AIPW
+●
+
+●
+
+●
+
+Method
+mean.loglin
+
+●
+
+●
+●
+●
+
+−10
+
+●
+
+mean.grf
+
+●
+
+mice
+●
+●
+●
+●
+
+●
+●
+
+5
+
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+●
+
+0
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+●
+
+−5
+
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+
+−10
+
+100
+
+500
+
+1000
+
+5000
+
+100
+
+500
+
+1000
+
+Unconf. despite missingness
+
+●
+
+●
+●
+
+●
+
+mf
+saem
+mia.grf
+
+5000
+
+(b) Informative missing values (with 30% missing values in X·,1:5 )
+
+Fig 4: Model 2. IPW and AIPW estimations across simulation designs described in Section 5.2. We report results for
+all combinations of n
+∈
+{100, 500, 1000, 5000}, missing values mechanism ∈
+{M CAR, general} and unconfoundedness ∈
+{unconf oundedness despite missingness, standard unconf oundedness}.
+Results are displayed for 100 runs of every setting.
+
+28
+
+I. MAYER ET AL.
+IPW
+
+AIPW
+
+10
+
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+0
+
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+−10
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+●
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+−5
+
+●
+●
+●
+
+●
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+Standard unconf.
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+5
+
+Method
+mean.loglin
+
+●
+●
+●
+
+●
+
+●
+
+mean.grf
+
+●
+●
+
+●
+
+−15
+
+●
+
+mice
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+5
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+−5
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+0
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+−10
+
+●
+
+●
+●
+
+−15
+
+100
+
+500
+
+1000
+
+5000
+
+100
+
+500
+
+1000
+
+Unconf. despite missingness
+
+10
+
+mf
+saem
+mia.grf
+
+5000
+
+(a) MCAR (with 30% missing values in X·,1:10 )
+
+IPW
+
+AIPW
+
+10
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+0
+
+●
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+●
+
+●
+●
+●
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+−10
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+Standard unconf.
+
+●
+●
+
+Method
+mean.loglin
+
+●
+●
+
+mean.grf
+
+●
+●
+
+●
+
+−20
+
+●
+●
+
+●
+
+mice
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+0
+
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+●
+●
+
+−10
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+−20
+
+100
+
+500
+
+1000
+
+5000
+
+100
+
+500
+
+1000
+
+Unconf. despite missingness
+
+10
+
+mf
+saem
+mia.grf
+
+5000
+
+(b) Informative missing values (with 30% missing values in X·,1:5 )
+
+Fig 5: Model 3. IPW and AIPW estimations across simulation designs described in Section 5.2. We report results for
+all combinations of n
+∈
+{100, 500, 1000, 5000}, missing values mechanism ∈
+{M CAR, general} and unconfoundedness ∈
+{unconf oundedness despite missingness, standard unconf oundedness}.
+Results are displayed for 100 runs of every setting.
+
+29
+
+ATE ESTIMATION WITH MISSING ATTRIBUTES
+
+IPW
+
+AIPW
+
+3
+
+Method
+
+●
+
+●
+●
+●
+
+●
+
+2
+
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+1
+
+●
+●
+●
+
+●
+
+●
+●
+
+mice
+mf
+saem
+
+●
+
+●
+
+mia.grf
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+mean.grf
+
+●
+
+●
+
+●
+
+mean.loglin
+
+Standard unconf.
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+0
+
+●
+
+100
+
+500
+
+1000
+
+5000
+
+100
+
+500
+
+1000
+
+5000
+
+(a) MCAR (with 30% missing values in X·,1:10 )
+IPW
+
+AIPW
+
+3
+
+Method
+●
+
+●
+
+Standard unconf.
+
+●
+
+●
+●
+
+2
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+1
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+mean.loglin
+mean.grf
+mice
+mf
+saem
+
+●
+
+mia.grf
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+0
+
+100
+
+500
+
+1000
+
+5000
+
+100
+
+500
+
+1000
+
+5000
+
+(b) Informative missing values (with 30% missing values in X·,1:5 )
+
+Fig 6: Model 4. IPW and AIPW estimations across simulation designs
+described in Section 5.2. We report results for all combinations of n ∈
+{100, 500, 1000, 5000} and missing values mechanism ∈ {M CAR, general}.
+Results are displayed for 100 runs of every setting.
+
+30
+
+I. MAYER ET AL.
+Pre-hospital (and before treatment)
+NAs
+NAs
+NAs
+
+NAs
+NAs
+
+NAs
+
+NAs
+NAs
+NAs
+
+NAs
+NAs
+
+NAs
+
+NAs
+
+NAs
+NAs
+
+NAs
+NAs
+NAs
+
+Intra-hospital (and after treatment)
+
+Fig 7: Causal graph representing treatment, outcome, confounders and other
+predictors of outcome (Figure generated using DAGitty (Textor, Hardt and
+Knüppel, 2011); NAs indicates variables that still have missing values after
+pre-treatment).
+
+ATE estimation on tbi patients
+
+●
+
+(a) MIA
+
+●
+
+Imputation.method
+Imputation.set
+
+●
+
+FAMD
+
+●
+
+MICE
+
+●
+
+MIA
+
+as.factor(type)
+dr
+ipw
+
+●
+
+−5
+
+0
+
+(b) imputation (MICE)
+
+●
+
+5
+
+10
+
+15
+
+20
+
+ATE (in %)
+
+Fig 8: ATE estimations on Traumabase data (solid: doubly robust estimates;
+dotted: IPW estimates; dashed vertical line: without adjustment; x-axis: τ̂
+and bootstrap confidence intervals9 ).
+
+arXiv:1910.10624v1 [stat.ME] 23 Oct 2019
+
+SUPPLEMENTARY MATERIAL FOR DOUBLY ROBUST
+TREATMENT EFFECT ESTIMATION WITH
+INCOMPLETE ATTRIBUTES
+By Imke Mayer¶ , Stefan Wager†† Tobias Gauss‡‡ Jean-Denis
+Moyer‡‡ and Julie Josse∗∗
+École des Hautes Études en Sciences Sociales¶ , École Polytechnique¶∗∗ ,
+INRIA Saclay∗∗ , Stanford University†† and Beaujon Hospital‡‡
+1. Proofs.
+1.1. Consistency of AIPW.
+Proof. In order to show the double robustness of τ̂AIP W , as given in
+(??), let us rewrite it by rearranging the terms:
+τ̂AIP W
+
+n
+n
+Wi − ê(Xi )
+1X
+W i Yi
+(1 − Wi )Yi Wi − ê(Xi )
+1X
+µ̂1 (Xi ) −
+µ̂0 (Xi )
+−
++
+=
+n i=1 ê(Xi )
+ê(Xi )
+n i=1 1 − ê(Xi )
+1 − ê(Xi )
+
+=: µ̂1,AIP W − µ̂0,AIP W .
+
+First note that by the law of large numbers, µ̂1,AIP W and µ̂0,AIP W respectively estimate E[Yi (1)] + η1 and E[Yi (0)] + η0 where η1 and η0 are given
+by
+η1 , E
+
+
+
+
+
+Indeed we have that
+
+
+
+
+
+
+Wi − e(Xi )
+Wi − e(Xi )
+(Yi (1) − µ1 (Xi )) , η0 , E
+(Yi (0) − µ0 (Xi )) .
+e(Xi )
+1 − e(Xi )
+
+
+
+
+
+
+W i Yi
+Wi − e(Xi )
+Wi Yi (1) Wi − e(Xi )
+E
+−
+µ1 (Xi ) = E
+−
+µ1 (Xi )
+e(Xi )
+e(Xi )
+e(Xi )
+e(Xi )
+
+
+Wi − e(Xi )
+= E[Yi (1)] + E
+(Yi (1) − µ1 (Xi )) ,
+e(Xi )
+where the first equality results from SUTVA: Wi Yi = Wi (Wi Yi (1) + (1 −
+Wi )Yi (0)) = Wi Yi (1) + Wi (1 − Wi )Yi (0). And similar for the derivation of
+η0 .
+¶
+
+E-mail: imke.mayer@ehess.fr
+E-mail: swager@stanford.edu
+∗∗
+E-mail: julie.josse@polytechnique.edu
+††
+
+1
+
+2
+
+I. MAYER ET AL.
+
+Now, the double robustness can easily be shown by considering these two
+terms:
+• If the propensity model e(x) is correctly specified but the outcome
+model (µ0 (x), µ1 (x)) is mis-specified we have
+ 
+
+
+
+Wi − e(Xi )
+η1 = E E
+(Yi (1) − µ1 (Xi )) | Yi (1), Xi
+e(Xi )
+
+
+E[Wi | Yi (1), Xi ] − e(Xi )
+=E
+(Yi (1) − µ1 (Xi ))
+e(Xi )
+
+
+E[Wi | Xi ] − e(Xi )
+(Yi (1) − µ1 (Xi )) = 0.
+=E
+e(Xi )
+
+
+
+We use the unconfoundedness assumption to go from the second to
+the third line and the definition of the propensity score for the last
+equality.
+• If the propensity model e(x) is mis-specified but the outcome model
+(µ0 (x), µ1 (x)) is correctly specified we have
+ 
+
+
+
+
+
+Wi − e(Xi )
+η1 = E E
+(Yi (1) − µ1 (Xi )) | Wi , Xi
+e(Xi )
+ 
+
+Wi − e(Xi )
+=E E
+(Yi (1) − E[Yi | Wi = 1, Xi ]) | Wi , Xi
+e(Xi )
+
+
+Wi − e(Xi )
+=E
+(E[Yi (1) | Wi , Xi ] − E[Yi | Wi = 1, Xi ])
+e(Xi )
+
+
+Wi − e(Xi )
+=E
+(E[Yi (1) | Xi ] − E[Yi (1) | Xi ]) = 0,
+e(Xi )
+where we use SUTVA and unconfoundedness to go from the third to
+the fourth line.
+Analogously we obtain in both cases of mis-specification that η0 = 0, proving
+the double robustness of τ̂AIP W .
+1.2. Treatment Effect Estimation with Missing Attributes. Here we prove
+the balancing property of the generalized propensity score (??).
+Proof. We note that the distribution of W is fully specified by its mean.
+Therefore we need to prove that:
+E[Wi |{Yi (0), Yi (1)}, Xi∗ ] = E[Wi |Xi∗ ] ⇒ E[Wi |{Yi (0), Yi (1)}, e∗ (Xi∗ )] = E[Wi |e∗ (Xi∗ )]
+
+3
+
+SUPPLEMENTARY MATERIAL
+
+a) By the law of total expectation we have:
+E[Wi | e∗ (Xi∗ )] = E[E[Wi |Xi∗ , e∗ (Xi∗ )] | e∗ (Xi∗ )] = E[E[Wi |Xi∗ ] | e∗ (Xi∗ )] = e∗ (Xi∗ )
+b) And again using the law of total expectation we have the following:
+E[Wi | {Yi (0), Yi (1)}, e∗ (Xi∗ )]
+
+= E[E[Wi | {Yi (0), Yi (1)}, Xi∗ , e∗ (Xi∗ )] | {Yi (0), Yi (1)}, e∗ (Xi∗ )]
+= E[E[Wi |{Yi (0), Yi (1)}, Xi∗ ] | {Yi (0), Yi (1)}, e∗ (Xi∗ )]
+= E[E[Wi | Xi∗ ] | {Yi (0), Yi (1)}, e∗ (Xi∗ )]
+= E[e
+
+∗
+
+(Xi∗ ) | {Yi (0), Yi (1)}, e∗ (Xi∗ )]
+
+=e
+
+(assuming (??))
+
+∗
+
+(Xi∗ )
+
+2. Procedures. In this section we give the details of all procedures
+omitted in the main article. The IPW counterparts to the Procedures presented in the main article and to Procedure 4 are obtained by simply dropping the regressions of Y on the (proxies for the) confounders and by estimating τ using expression (??) and its generalized extension
+(1)
+
+τ̂IP W ∗ ,
+
+
+
+
+
+n
+1X
+W i Yi
+(1 − Wi )Yi
+−
+,
+∗
+n i=1 ê (Xi ) 1 − ê∗ (Xi )
+
+instead of expressions (??) and (??).
+
+4
+
+I. MAYER ET AL.
+
+Procedure 4: AIPW with matrix factorization pre-processing.
+This algorithm provides an estimation for the average treatment effect τ using a matrix factorization pre-processing, given observed
+covariates with missing attributes, observed treatment assignment
+and outcome. We assume a low rank matrix factorization model for
+X and unconfoundedness (??) given the latent factors U as detailed
+in Section ?? and MCAR.
+1. Estimate the latent factors U using SVD decomposition of X,
+choose the number of latent factors by cross-validation.
+2. Option 1 Nonparametric regression.
+(a) Train a causal forest on (Û , W, Y ).
+(b) Take the average over the out-of-bag predictions
+of conditional average treatment effects τ (Ûi ) =
+E[Yi (1) − Yi (0)|Ûi ] using the trained causal forest to
+obtain an estimation τ̂ for τ as in (??).
+Option 2 Parametric regression (we additionally assume
+logistic-linear model specification for (e, µ(0) , µ(1) )).
+(a) Fit a logistic model to obtain predictions for the
+propensity score e(Ûi )
+(b) Fit two separate linear models on (Yi: Wi =1 , Ûi: Wi =1 )
+and on (Yi: Wi =1 , Ûi: Wi =1 ) respectively to obtain predictions for µ(1) (Ûi ) and µ(0) (Ûi ) respectively.
+(c) Combine the predictions following (??) to obtain a
+doubly robust estimation τ̂ for τ .
+3. Simulation study on synthetic data.
+3.1. Interpretation and discussion of the results from Section ??. Figure
+?? shows that if the data is MCAR and satisfies (??), saem works well as expected, i.e. it converges to the true value τ . Note however that the EM-based
+estimators fail in the small sample case ((n, p) = (100, 10)). This is likely
+due to the strong correlation in the covariates, leading to numerically singular variance-covariance estimates for low sample sizes. Note that mia.grf
+also converges but very slowly which is expected due to the smoothness of e∗
+and µ∗(w) and as it does not use the strong parametric assumptions which are
+met in these simulations. The method mean.grf gives similar results than
+mia.grf, which is expected according to the results from Josse et al. (2019).
+We observe that mean.loglin performs similarly to saem, in terms of convergence and behavior w.r.t. the unconfoundedness assumptions. Figure ??
+
+SUPPLEMENTARY MATERIAL
+
+5
+
+shows as well that mice works under both unconfoundedness assumptions
+as expected1 . In particular, when only (??) holds and (??) is violated, then
+all methods but multiple imputation give biased results.
+In the general missingness case, Figure ??, we only expect mia.grf and
+mean.grf to perform well as explained in Section ??. However their convergence seems to be very slow which again can be explained with the strong
+parametric and smooth models we defined with the attributes X and that
+are hard to estimate with random forests. The good performance of the others estimators in this general case can only be observed when the mask R
+is used in the estimation, otherwise these methods fail in this setting, as
+expected but not shown in Figure ??.
+Under Model 3, Figures ?? show that, as expected, if (??) is satisfied,
+our estimator mia.grf converges quickly to the true value τ while the other
+methods remain biased. With the exception of mice, all other methods fail
+if the “unconfoundedness despite missingness” assumption is violated, independently from the missingness mechanism. However mia.grf and mean.grf
+in AIPW-form seem to cope well even under the standard unconfoundedness
+(??).
+Figures ?? and ?? show that under Model 4, mia.grf converges to the
+true value τ in all cases but rather slowly, provided assumption (??) is
+met. Even in the “simplest” MCAR case, the parametric observed-likelihood
+based approach, namely saem, fails under DLVM for small sample sizes
+(n ∈ {100, 500}). Indeed, while satisfying the necessary normality assumption, the observations Xi are not i.i.d. due to their (nonlinear) dependence
+on the (latent) codes Ci . This behavior of mia.grf and saem is again in accordance with Section ??. The multiple imputation method yields some biased
+estimations in the MCAR case but performs well in the general case (with
+the mask). Note that the poor performance of the estimator based on lowrank matrix factorization (mf ) is not surprising since the latency structure
+arises in the covariate generating process, but the confounders themselves
+are defined as the observed X rather than the latent factors (C or µ(C)).
+For model 4, where treatment and outcome are unconfounded given some
+latent factors U , we observe on Figure ?? that the estimator based on lowrank matrix factorization in the MCAR performs well. This result is expected, since we assume confoundedness on to the latent factors U and not
+the partially observed covariates X. Hence the crucial point for recovering
+the treatment effect is the recovery of these latent factors U , as pointed out
+by Kallus, Mao and Udell (2018). Interestingly, all methods—except saem
+1
+
+Note that the small remaining bias with multiple imputation is likely to vanish as the
+number of imputations increases.
+
+6
+
+I. MAYER ET AL.
+
+which fails in the case of informative missingness—empirically perform well
+in this scenario scenario. This again, is only observed as long as the mask
+is used for estimation. Furthermore, our mia.grf and mean.grf seem to converge to the true value of τ despite the “wrong” unconfoundedness assumption.
+3.2. Simulation results for a variant of Model 4. The hierarchical datagenerating model used in Section ?? can be modified in order to allow for
+correlation between covariates by defining the code-depending Gaussian parameters as
+(µ(c), Σ(c)) = (U (V tanh(W c + a) + b), U exp(γ T (W c + a) + δ)Ip U T ),
+for some randomly generated orthonormal matrix U .
+The difference in terms of bias and variability between the AIPW-type estimators and their IPW-type equivalent is clear in this scenario. However the
+difference in terms of bias w.r.t. the different unconfoundedness assumptions
+is less apparent. More precisely, mia.grf and mean.grf seem to approximate
+the true treatment effect τ for large sample sizes (n ≥ 500) similarly in both
+scenarios (first and second line in Figure 1a and 1b). These observations
+require further investigations in the future.
+4. Details on the medical application (Traumabase).
+4.1. Definition of the variables of the Traumabase used in the analysis.
+Here we provide the names and short descriptions of the variables we use in
+our causal analysis. The moment at which the variable is first available is
+given in parentheses (ph = pre-hospital phase, h = hospital phase).
+List of confounders:.
+• Trauma.center (categorical): name of the trauma center. (ph/h)
+• SBP.ph, DBP.ph, HR.ph (continuous): systolic and diastolic arterial
+pressure and heart rate during pre-hospital phase (SBP.ph = min(SBP.min,
+SBP.MICU), etc.); MICU = mobile intensive care unit. (ph)
+• Cardiac.arrest.ph (categorical): cardiac arrest during pre-hospital phase.
+(ph)
+• HemoCue.init (continuous): prehospital capillary hemoglobin concentration (the lower, the more the patient is probably bleeding and in
+shock); hemoglobin is an oxygen carrier molecule in the blood. (ph)
+• SpO2.min (continuous): peripheral oxygen saturation, measured by
+pulse oxymetry, to estimate oxygen content in the blood (95 − 100%:
+
+7
+
+SUPPLEMENTARY MATERIAL
+IPW
+
+AIPW
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+●
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+
+−10
+
+●
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+−20
+
+Standard unconf.
+
+0
+
+Method
+mean.loglin
+mean.grf
+
+●
+
+mice
+●
+●
+●
+
+●
+●
+●
+
+●
+
+0
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+−10
+
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+●
+
+−20
+
+100
+
+500
+
+1000
+
+5000
+
+100
+
+500
+
+1000
+
+Unconf. despite missingness
+
+●
+
+●
+
+mf
+saem
+mia.grf
+
+5000
+
+(a) MCAR (with 30% missing values in X·,1:10 )
+
+IPW
+
+AIPW
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+
+●
+●
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+●
+●
+●
+
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+
+−10
+
+●
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+−20
+
+Standard unconf.
+
+0
+
+Method
+mean.loglin
+mean.grf
+
+●
+
+mice
+●
+●
+●
+
+●
+●
+●
+
+●
+
+0
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+−10
+
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+●
+●
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+
+●
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+●
+
+●
+●
+
+●
+
+●
+
+●
+●
+●
+●
+
+●
+●
+
+●
+●
+
+−20
+
+100
+
+500
+
+1000
+
+5000
+
+100
+
+500
+
+1000
+
+Unconf. despite missingness
+
+●
+
+●
+
+mf
+saem
+mia.grf
+
+5000
+
+(b) MNAR (with 30% missing values in X·,1:5 )
+
+Fig 1: Estimated average treatment effect τ̂ . Hierarchical datagenerating model with dense covariance matrices for confounders.
+considered normal; < 90% critical and associated with considerable
+trauma, danger and mortality). (ph)
+
+8
+
+I. MAYER ET AL.
+
+• Vasopressor.therapy (continuous): treatment with catecholamines in
+case of physical or emotional stress increasing heart rate, blood pressure, breathing rate, muscle strength and mental alertness. (ph)
+• Cristalloid.volume (continuous): total amount of prehospital administered cristalloid fluid resuscitation (volume expansion). (ph)
+• Colloid.volume (continuous): total amount of prehospital administered
+colloid fluid resuscitation (volume expansion). (ph)
+• Shock.index.ph (continuous): ratio of heart rate and systolic arterial
+pressure during pre-hospital phase. (ph)
+• AIS.external (discrete, range: [0, 6]): Abbreviated Injury Score for external injuries, here it is assumed to be a proxy of information available/visible during pre-hospital phase. (ph/h)
+• Delta.shock.index (continuous): Difference of shock index between arrival at the hospital and arrival on the scene. (h)
+• Delta.hemoCue (continuous): Difference of hemoglobin level between
+arrival at the hospital and arrival on the scene. (h)
+List of predictors of mortality and that are not associated with treatment
+assignment.
+• Anticoagulant.therapy (categorical): oral anticoagulant therapy before
+the accident. (ph)
+• Antiplatelet.therapy (categorical): anti-platelet therapy before the accident. (ph)
+• GCS(.init) (discrete, range: [3, 15]): Initial Glasgow Coma Scale (GCS)
+on arrival on scene of enhanced care team and on arrival at the hospital
+(GCS = 3: deep coma; GCS = 15: conscious and alert). (ph & h)
+• GCS.motor(.init) (discrete, range: [1, 6]): Initial Glasgow Coma Scale
+motor score (GCS.motor = 1: no response; GCS.motor = 6: obeys
+command/purposeful movement). (ph & h)
+• Pupil.anomaly (categorical): pupil dilation indicating brain herniation.
+(ph & h)
+• Osmotherapy (categorical): administration of osmotherapy to alleviate
+compression of the brain (either Mannitol or hypertonic saline solution). (ph & h)
+• Improv.anomaly.osmo (categorical): change of pupil anomaly after administration of osmotherapy. (ph)
+• Medcare.time.ph (continuous): total duration of prehospital care team
+engaged (arrival on scene to arrival at hospital). (h)
+• FiO2 (discrete, range: [0, 5]): inspired concentration of oxygen on ventilatory support (the higher the more critical; V entilation = 0: no
+
+SUPPLEMENTARY MATERIAL
+
+9
+
+ventilatory support). (h)
+• Temperature.min (continuous): Minimal body temperature. (h)
+• TCD.PI.max (continuous): pulsatility index (PI) measured by echodoppler
+sonographic examen of blood velocity in cerebral arteries (P I > 1.2:
+indicates altered blood flow maybe due to traumatic brain injury). (h)
+• IICP (categorical): at least one episode of increased intracranial pressure; mainly in traumatic brain injury; usually associated with worse
+prognosis. (h)
+• EVD (categorical): external ventricular drainage (EVD); mean to drain
+cerebrospinal fluid to reduce intracranial pressure. (h)
+• Decompressive.craniectomy (categorical): surgical intervention to reduce intracranial hypertension. (h)
+• Neurosurgery.day0 (categorical): neurosurgical intervention performed
+on day of admission. (h)
+• AIS.head, AIS.face (discrete, range: [0, 6]): Abbreviated Injury Score,
+describing and quantifying facial and head injuries (AIS = 0: no injury; the higher the more critical).(h)
+• ISS (discrete, range: [0, 108]): Injury Severity Score, sum of squares of
+top three AIS scores. (h)
+• IGS.II (continuous): Simplified Acute Physiology Score. (h)
+4.2. ATE estimation on the Traumabase using overlap weights. An often
+raised concern with many medical observational data sets is the potential
+violation of the overlap assumption. For instance some patients might never
+get the treatment due to infrastructural circumstances or due to recommendations followed strictly by the entire medical staff. The overlap assumption however is needed for consistency of the treatment effect estimations
+and states that every patient has a non-zero probability of being in either
+treated or control group. Another way of describing this assumption is that
+the treatment groups are sufficiently comparable, otherwise the attempt of
+drawing causal inferences is doomed to failure from the beginning.
+Given the important level of heterogeneity among trauma patients, especially among patients with traumatic brain injury, and the multi-level and
+multi-actor nature of the data, it cannot be ruled out that the treatment
+groups have only small overlap. When considering standardized mean differences of the confounding variables between treatment and control groups in
+Figure 2 it appears indeed that certain features such as the hemoglobin level
+differ considerably between the two groups. As detailed in Section ??, a possible solution to deal with this potential situation is the use of overlap weights
+instead of the inverse propensity weights (Li, Morgan and Zaslavsky, 2018).
+
+10
+
+I. MAYER ET AL.
+
+However, in our case, when using the corresponding modified estimands and
+estimators, i.e. the average treatment effect on the overlap population, the
+results reported in Figure 3 are very similar to those from the normal average treatment effect estimation on the entire population (Figure ??) and
+lead to the same conclusion about the treatment effect.
+Covariate Balance
+Remplissage.total.cristalloides
+
+●
+
+PAS.min
+
+●
+
+PAD.min
+
+●
+
+Hemocue.init
+
+●
+
+Remplissage.total.colloides
+
+●
+
+Delta.hemocue
+
+●
+
+Catecholamines
+
+●
+
+FC.max
+
+●
+
+Shock.index.ph
+
+Sample
+
+●
+
+Trauma.Center_Bicêtre
+
+●
+
+Trauma.Center_Pitié Salpétrière
+
+●
+
+ACR.1
+
+●
+
+Unadjusted
+
+●
+
+AIS.externe
+
+●
+
+Delta.shock.index
+
+●
+
+Trauma.Center_Henri Mondor
+
+●
+
+Trauma.Center_Beaujon
+
+●
+
+Trauma.Center_HEGP
+
+●
+
+Trauma.Center_Percy
+
+●
+
+0.0
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+Absolute Mean Differences
+
+Fig 2: Unadjusted standardized mean differences of the confounding variables.
+
+ATE estimation with overlap weights on tbi patients
+
+●
+
+(a) MIA
+
+●
+
+Imputation.method
+Imputation.set
+
+●
+
+FAMD
+
+●
+
+MICE
+
+●
+
+MIA
+
+as.factor(type)
+dr
+ipw
+
+●
+
+−5
+
+0
+
+(b) imputation (MICE)
+
+●
+
+5
+
+10
+
+15
+
+20
+
+ATE (in %)
+
+Fig 3: ATE estimations on overlap population on Traumabase data (solid:
+doubly robust estimates; dotted: IPW estimates; dashed vertical line: without adjustment; x-axis: τ̂ and bootstrap confidence intervals2 ).
+
+SUPPLEMENTARY MATERIAL
+
+11
+
+References.
+Josse, J., Prost, N., Scornet, E. and Varoquaux, G. (2019). On the consistency of
+supervised learning with missing values. arXiv preprint.
+Kallus, N., Mao, X. and Udell, M. (2018). Causal Inference with Noisy and Missing
+Covariates via Matrix Factorization. In Advances in Neural Information Processing
+Systems 6921–6932.
+Li, F., Morgan, K. L. and Zaslavsky, A. M. (2018). Balancing Covariates via Propensity Score Weighting. Journal of the American Statistical Association 113 390–400.
+I. Mayer
+Centre d’Analyse et de Mathématique Sociales
+EHESS
+75006 Paris, France
+E-mail: imke.mayer@ehess.fr
+S. Wager
+Graduate School of Business
+Stanford University
+CA 94305, USA
+E-mail: swager@stanford.edu
+
+2
+
+J. Josse
+Centre de Mathématiques Appliquées
+École Polytechnique
+91128 Palaiseau Cedex, France
+E-mail: julie.josse@polytechnique.edu
+
+T. Gauss and J.-D. Moyer
+Department of anesthesia and intensive care
+Beaujon hospital, AP–HP
+92110 Clichy, France
+E-mail: tgauss@protonmail.com
+E-mail: jean-denis.moyer@aphp.fr
+
+Values on the x-axis are multiplied by 100 for better readability.
+
+

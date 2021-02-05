@@ -1,0 +1,2440 @@
+arXiv:1711.07077v4 [stat.ML] 16 Dec 2018
+
+Estimation Considerations in Contextual Bandits
+Maria Dimakopoulou Zhengyuan Zhou  Susan Athey  Guido Imbens §
+Abstract Contextual bandit algorithms are sensitive to the estimation method of the outcome model as well as the exploration method used, particularly in the presence of rich heterogeneity or complex outcome models, which can lead to difficult estimation problems along the path of learning. We study a consideration for the exploration vs. exploitation framework that does not arise in multi-armed bandits but is crucial in contextual bandits; the way exploration and exploitation is conducted in the present affects the bias and variance in the potential outcome model estimation in subsequent stages of learning. We develop parametric and non-parametric contextual bandits that integrate balancing methods from the causal inference literature in their estimation to make it less prone to problems of estimation bias. We provide the first regret bound analyses for contextual bandits with balancing in the domain of linear contextual bandits that match the state of the art regret bounds. We demonstrate the strong practical advantage of balanced contextual bandits on a large number of supervised learning datasets and on a synthetic example that simulates model mis-specification and prejudice in the initial training data. Additionally, we develop contextual bandits with simpler assignment policies by leveraging sparse model estimation methods from the econometrics literature and demonstrate empirically that in the early stages they can improve the rate of learning and decrease regret.
+Stanford University, Management Science and Engineering, madima@stanford.edu Stanford University, Electrical Engineering, zyzhou@stanford.edu Stanford University, Graduate School of Business, and NBER, athey@stanford.edu §Stanford University, Graduate School of Business, and NBER, imbens@stanford.edu
+1
+
+1 Introduction
+Contextual bandits seek to learn a personalized treatment assignment policy in the presence of treatment effects that vary with observed contextual features. In such settings, there is a need to balance the exploration of treatments1 for which there is limited knowledge in order to improve performance in the future against the exploitation of existing knowledge in order to attain better performance in the present (see [20] for a survey). Since large amounts of data can be required to learn how the benefits of alternative treatments vary with individual characteristics, contextual bandits can play an important role in making experimentation and learning more efficient. Several successful contextual bandit designs have been proposed [11, 45, 6, 4, 17]. The existing literature has provided regret bounds (e.g., the general bounds of [51], the bounds of [50, 49, 56] in the case of non-parametric function of arm rewards), has demonstrated successful applications (e.g., news article recommendations [45] or mobile health [42]), and has proposed system designs to apply these algorithms in practice [3].
+Contextual bandits are poised to play an important role in a wide range of applications: content recommendation in web-services, where the learner wants to personalize recommendations (arm) to the profile of a user (context) to maximize engagement (reward); online education platforms, where the learner wants to select a teaching method (arm) based on the characteristics of a student (context) in order to maximize the student's scores (reward); and survey experiments, where the learner wants to learn what information or persuasion (arm) influences the responses (reward) of subjects as a function of their demographics, political beliefs, or other characteristics (context).
+In the contextual setting, one does not expect to see many future observations with the same context as the current observation, and so the value of learning from pulling an arm for this context accrues when that observation is used to estimate the outcome from this arm for a different context in the future. Therefore, the performance of contextual bandit algorithms can be sensitive to the estimation method of the outcome model or the exploration method used. In the initial phases of learning when samples are small, biases are likely to arise in estimating the outcome model using data from previous non-uniform assignments of contexts to arms. The bias issue is aggravated in the case of a mismatch between the generative model and the functional form used for estimation of the outcome model, or similarly, when the heterogeneity in treatment effects is too complex to estimate well with small datasets. In that case methods that proceed under the assumption that the functional form for the outcome model is correct may be overly optimistic about the extent of the learning so far, and
+1A treatment is also referred to as an arm in the literature. In this paper, we use the two terms interchangeably.
+2
+
+emphasize exploitation over exploration. Another case where biases can arise occurs when training observations from certain regions of the context space are scarce (e.g., prejudice in training data if a non-representative set of users arrives in initial batches of data). These problems are common in real-world settings, such as in survey experiments in the domain of social sciences or in applications to health, recommender systems, or education. For example, early adopters of an online course may have different characteristics than later adopters.
+We develop parametric and non-parametric contextual bandits that integrate balancing methods from the causal inference literature [36] in their estimation to make it less prone to the aforementioned sources of bias. Our methods aim to balance covariates between treatment groups and achieve contextual bandit designs which are less prone to problems of bias. The balancing will lead to lower estimated precision in the reward functions, and thus will emphasize exploration longer than the conventional linear TS and UCB algorithms, leading to more robust estimates. Balancing can take various forms, ranging from the well-known inverse propensity score weighting to state of the art methods such as approximate residual balancing [8] or the method of [38]. Moreover, balancing can be integrated in contextual bandits with a parametric model estimation such as ridge or LASSO) or non-parametric model estimation such as forests.
+We further investigate the effect of balancing via inverse propensity weighting in the domain of linear contextual bandits, by comparing linear Thompson sampling (LinTS) [6] and linear upper confidence bound (LinUCB) [45] ­ which have strong theoretical guarantees ­ with our algorithms, balanced linear Thompson sampling (BLTS) and balanced linear upper confidence bound (BLUCB). Our main contribution here is to provide extensive and convincing empirical evidence for the effectiveness of BLTS and BLUCB (in comparison to LinTS and LinUCB) by considering the problem of multiclass classification with bandit feedback. Specifically, we transform a K-class classification task into a K-armed contextual bandit [28] and we use 300 public benchmark datasets for our evaluation. Additionally, we provide regret bounds for BLTS and BLUCB, which match the existing state-of-the-art regret bounds for LinTS and LinUCB. It is important to point out that, even though BLTS and LinTS share the same theoretical guarantee, BLTS outperforms LinTS empirically. Similarly, BLUCB has a strong empirical advantage over LinUCB. In bandits, this phenomenon is not uncommon. For instance, it is well-known that even though the existing UCB bounds are often tighter than those of Thompson sampling, Thompson sampling performs better in practice than UCB [22]. Consequently, we take the view that even though regret is a useful theoretical performance metric, it may not always provide clear guidance on which algorithm should be used in practice. We find that this is also the case for balanced linear contextual bandits, as in our evaluation BLTS has a strong empirical advantage over BLUCB. Overall, in this
+3
+
+large-scale evaluation, BLTS outperforms LinUCB, BLUCB and LinTS. In our empirical evaluation, we also consider a synthetic example which simulates in the simplest possible way two issues of bias that often arise in practice; training data with non-representative contexts and model mis-specification. BLTS is much more effective in escaping these biases and, as in the evaluation on supervised learning datasets, it outperforms LinUCB, BLUCB and LinTS by a large margin.
+To our knowledge, this is the first work to integrate balancing in the online contextual bandit setting, to perform a large-scale evaluation of it against direct estimation method baselines with theoretical guarantees and to provide a theoretical characterization of balanced contextual bandits that match the regret bound of their direct method counterparts. The balancing technique is well-known in machine learning, especially in domain adaptation and studies in learning-theoretic frameworks [35, 65, 24]. There is a number of recent works which approach contextual bandits through the framework of causality [14, 15, 31, 41]. There is also a significant body of research that leverages balancing for offline evaluation and learning of contextual bandit or reinforcement learning policies from logged data [57, 28, 44, 27, 43, 59, 37, 60, 10, 38, 64, 26, 39, 58, 66]. In the offline setting, the complexity of the historical assignment policy is taken as given, and thus the difficulty of the offline evaluation and learning of optimal policies is taken as given. Therefore, these results lie at the opposite end of the spectrum from our work, which focuses on the online setting, where the complexity of the assignment policy is known and controlled by the algorithm. Methods for reducing the bias due to adaptive data collection have also been studied for non-contextual multi-armed bandits [63, 47], but the nature of the estimation in contextual bandits is qualitatively different. Importance weighted regression in contextual bandits was first mentioned in [4], but without a systematic motivation, analysis and evaluation of this technique. To our knowledge, our paper is the first work to integrate balancing in the online contextual bandit setting, to perform a large-scale evaluation of it against direct estimation method baselines with theoretical guarantees and to provide a theoretical characterization of balanced contextual bandits that match the regret bound of their direct method counterparts. The effect of importance weighted regression is also evaluated in [18], but this paper is a successor to the extended version of our paper.
+Reweighting or balancing methods address model misspecification by making the estimation "doubly-robust,", robust against misspecification of the reward function, important here, and robust against the specification of the propensity score (not as important here because in the bandit setting we know the propensity score). The term "doubly-robust" comes from the extensive literature on offline policy evaluation [54]; it means that when comparing two policies using historical data, we get consistent estimates of the average difference in outcomes
+4
+
+for segments of the context whether we have either a well-specified model of rewards or not., because we have good model of the arm assignment policy (i.e., accurate propensity scores). In a contextual bandit, the learner controls the arm assignment policy conditional on the observed context and therefore has access to accurate propensity scores even in small samples. So, even when the reward model is severely misspecified, the learner can obtain more accurate value estimates of the reward function for each value of the context.
+In real-world applications, such as health, education, recommender systems, there may be contextual variables that are highly predictive of user outcomes (e.g. previous health metrics, previous test scores, or previous consumer choices), but less important for optimizing arm assignment. We continue by showing that such contextual variables can be particularly problematic in terms of generating bias and variance in the early stages of learning. Even though in principle a variety of methods can be used to consistently estimate outcome models in the presence of complex, non-uniform arm assignment in large samples (Ridge regression as in [6, 45], ordinary least squares as in [32], LASSO as in [16]), in the early stages of learning where samples are small, these methods are only partially effective, and so the extent to which the method exacerbates the estimation problem will affect performance. In the domain of linear contextual bandits, we simplify the assignment policy by simplifying the estimated outcome model. We develop the bootstrap LASSO Thompson sampling and UCB contextual bandits, which use L1 regularization in the estimation of the outcome models and circumvent the lack of closed-form solution by using the bootstrap to form a sampling distribution of the outcomes in order to obtain an approximate posterior for Thompson sampling and an upper confidence bound for UCB. We also propose a method to simplify the assignment policy with a form of smoothing that partitions the context space via a classification tree and defines the assignment rule for each partition rather than for each context distinctly. We show that, all else equal, using assignment policies that are simpler (in terms of how they vary with contextual variables) in the early learning phases of the algorithm can improve the rate of learning and decrease regret. Simple assignment rules may have other advantages as well; for example, [42] highlights the advantages of simplicity for interpretability in health applications of contextual bandits.
+2 Methodological Designs in Contextual Bandits
+In contextual bandits, contexts x1, x2, . . . , xT  X  Rd arrive sequentially. We have a finite set of K arms, A = {1, 2, . . . , K}, which we wish to assign to each context upon its arrival. We posit that the data (xt, rt(1), rt(2), . . . , rt(K)) are drawn iid from a fixed underlying joint distribution on (x, r(1), r(2), . . . , r(K)), where r(a)  R denotes the (random) reward under
+5
+
+arm a and context x. Note that the marginal distribution on x specifies the distribution from which the contexts are drawn. The observables are (xt, at, rt(at)); in particular, only the reward rt(at) for the chosen arm at is observed. For each context x  Rd, the optimal assignment is a(x) = argmaxa {E[r(a)|x]} and we let at = a(xt), which denotes the optimal assignment for context xt. The objective is to find an assignment rule that sequentially assigns at to minimize the cumulative expected regret t=1 E[r(at) - r(at)], where the assignment rule is a function of the previous observations (xj, aj, r(aj)) for j = 1, . . . , t - 1 and of the new context xt. We next discuss three methodological designs in contextual bandits.
+2.1 Model Estimation
+An important component for sequential arm assignment lies in modeling and estimating the conditional expected reward corresponding to each arm a  A given context x, µa(x) = E[r(a)|x]. In a contextual bandit there are as many models to be estimated as arms. We do this estimation separately for each arm a  A on the history of observations corresponding to this arm {(xt, at, rt(at)) | at = a}.
+2.1.1 Parametric Estimation
+In parametric estimation, we estimate µa(x) by a parametric form. A commonly used model in contextual bandits is the linear model, where µa(x) = x a, with unknown parameters a. More generally, estimation can be done via generalized linear models2 µa(x) = g(x a), where g : R  R is a strictly increasing and known link function. Denote ra as the response vector and Xa as the covariate matrix of the history of observations assigned to a. The model parameters can be estimated via L1 (LASSO [62] in linear models) or L2 (ridge [33] in linear models) regularized regression. For a new context x, we wish to obtain the conditional mean µ^a(x) of the reward associated with each arm a  A and its variance V(µ^a(x)). In some cases, the estimates can be computed in closed form (e.g. in the case of a linear model estimated with ridge regression). However, in many cases (e.g. in the case of a linear model estimated with LASSO regression, or generalized linear models) exact computation is intractable and we must perform approximation [53]. When exact computation is intractable, bootstraping provides a viable way to approximate these quantities. More specifically, we can obtain a sampling distribution on µa(x) by training many regularized regression models on bootstrap samples drawn from (Xa, ra). With this sampling distribution, we can then easily to compute the mean estimate µ^a(x) and the variance estimate V(µ^a(x)). Note that as long as one can solve the underlying regression problem efficiently (either in closed form or via some fast
+2GLM bandits are discussed in [46].
+6
+
+numeric scheme), the estimates can be constructed by bootstraping. Consequently, this provides a general-purpose way of computing µ^a(x) and estimate V(µ^a(x)) for contextual bandits.
+2.1.2 Non-parametric Estimation
+Parametric estimation can have high bias when the model is mis-specified (also called unrealizable in the literature). Non-parametric models, on the other hand, are more expressive and comparatively suffer less from the bias problem. In this paper, we consider non-parametric estimation of µa(x) by training a generalized random forest [9] on the history of observations assigned to a. Generalized random forest is an ensemble method and hence provides estimates of the conditional mean µ^a(x) and variance V(µ^a(x)). Related approaches based on random forests or decision trees have been proposed in [30, 29]. The generalized random forest is a method that preserves the core elements of random forests [19] including recursive partitioning, sub-sampling, and random split selection, but differs from traditional approaches in several ways, most notably that it integrates "honest" tree estimation [7]: the sample used to select the splits of the tree is independent from the sample used to estimate the improvement in fit yielded by a split. The "honesty" property of generalized random forests reduces bias and overfitting to outliers, which may be of particular concern in early stages of learning. In cases where the outcome functional form is complicated, as is often the case in practice, bandits based on non-parametric estimation tend to perform better. In addition, they can flexibly control for features which are confounders for the estimation of the reward functions (i.e., features that affect outcomes and were also used to determine assignments in earlier contexts).
+2.2 Treatment Assignment Rules
+Thompson sampling [61, 55, 5, 52] and upper confidence bound (UCB) [40, 12] are two different methods for assigning contexts to arms which are highly effective in dealing with the exploration-exploitation trade-off. In both methods, until every arm has been pulled at least once, the first contexts are assigned to arms in A at random with equal probability. At every time t and for every arm a, the two methods use the history of observations {(xt, at, rt(at)) | at = a}, to obtain the estimates of the functions µ^a(x) and V(µ^a(x)) with the methods outlined in Section 2.1.
+Thompson sampling assumes that the expected reward µa(xt) associated with arm a conditional on the context xt is Gaussian N (µ^a(xt), 2V(µ^a(xt))), where  is an appropriately chosen constant. Then, it draws a sample µ~a(xt) from the distribution of each arm a  and
+7
+
+context xt is then assigned to the arm with the highest sample, at = argmaxa{µ~a(xt)}. On the other hand, UCB computes upper confidence bounds for the expected reward
+µa(xt) of context xt associated with each arm a  A and assigns the context to the arm with the highest upper confidence bound, at = argmaxa µ^a(xt) +  V(µ^a(xt)) , where  is an appropriately chosen constant.
+2.3 Balancing in Contextual Bandits
+In this section, we use balancing methods from the causal inference literature to improve the existing UCB and Thompson sampling algorithms by balancing features between arms to reduce bias. We focus on the method of inverse propensity weighting (IPW) [36]. Denote r as the reward vector, X as the context matrix and a as the arm assignment vector of all previous observations.
+For UCB, we train a multi-class logistic regression model of a on X to estimate the assignment probabilities pa(x), a  A, also known as propensity scores. Note that UCB has deterministic assignment rules, so that conditional on the batch, the propensity scores are either zero or one. However, we can consider the ordering of contexts' arrival as random and use p^a(x) as a balancing weight to account for non-uniform assignment in previous contexts.
+For Thompson sampling, the propensity scores are in principle known because Thompson sampling performs probability matching, i.e., it assigns a context to an arm with the probability that this arm is optimal. Since computing the propensity scores involves high order integration, they can be approximated via Monte-Carlo simulation. Each iteration draws a sample from the posterior reward distribution of every arm a conditional on x, where the posterior is the one that the algorithm considered at the end of a randomly selected prior time period. The propensity score pa(x) is the fraction of the Monte-Carlo iterations in which arm a has the highest sampled reward, where the arrival time of context x is treated as random.
+With these propensity estimates, we can modify the model estimation as follows. For parametric estimation, we define the weight of each observation (x, a, r) as the inverse of the estimated propensity score,
+wa = 1/p^a(x)
+and we train the weighted counterparts of the regularized regressions discussed in Section 2.1.1. For non-parametric estimation (via generalized random forest), one alternative is to construct an augmented covariate matrix X~ a and reward vector ~ra by replicating [wa] times each observation (x, a, r) and subsequently to estimate the generalized random forest on X~ a and ~ra. Another alternative is to treat the propensity score of each observation as a
+8
+
+contextual variable and estimate the generalized random forest on [Xa : pa] and ra, where pa is the vector of the propensity scores for previous observations for arm a.
+In both cases, weighting the observations by the inverse propensity scores reduces bias, but even when the propensity scores are known it increases variance, particularly when they are small. Consequently, since eventually assignment probabilities should approach zero or one for all arms and contexts clipping the propensity scores [25, 39] with some threshold , e.g. 0.1 helps control the variance increase.
+Finally, note that one could integrate in the contextual bandit estimation other covariate balancing methods, such as the method of approximate residual balancing [8] or the method of [38]. For instance, with approximate residual balancing one would use as weights
+
+wa = argmin
+
+(1 - )
+
+w
+
+2 2
+
++
+
+
+
+x¯ - Xa w
+
+2 
+
+s.t.
+
+wt = 1 and 0  wt  na-2/3
+
+w
+
+t:at=a
+
+where   (0, 1) is a tuning parameter, na =
+
+T t=1
+
+1{at
+
+=
+
+a}
+
+and
+
+x¯
+
+=
+
+1 T
+
+T t=1
+
+xt
+
+and
+
+then
+
+use
+
+wa to modify the parametric and non-parametric model estimation as outlined before.
+
+3 The Effects of Balancing
+In this section, we study empirically and theoretically the effects of balancing as introduced in 2.3. For concreteness, we focus on the method of inverse propensity weighting for balancing and on linear models with L2 regularization (i.e. ridge) and refer to the resulting algorithms as balanced linear Thompson sampling (BLTS) and balanced linear upper confidence bound (BLUCB), as given in Algorithm 1 and Algorithm 2.
+BLTS and BLUCB build on linear contextual bandits LinTS [6] and LinUCB [45] respectively. In LinTS and LinUCB, the expected reward is assumed to be a linear function of the context xt with some unknown coefficient vector a, E[rt(a)|xt = x] = x a, and the variance is typically assumed to be constant V[rt(a)|xt = x] = a2. At time t, LinTS and LinUCB apply ridge regression with regularization parameter  to the history of observations (Xa, ra) for each arm a  A, in order to obtain an estimate ^a and its variance Va(^a). For the new context xt, ^a and its variance are used by LinTS and LinUCB to obtain the conditional mean µ^a(xt) = xt ^a of the reward associated with each arm a  A, and its variance V(µ^a(xt)) = xt V(^a)xt.
+BLTS and BLUCB are linear contextual bandit algorithms that perform balanced estimation of the model of all arms in order to obtain a Gaussian distribution and an upper confidence bound respectively for the reward associated with each arm conditional on the context. The idea is that at every time t, the linear contextual bandit weighs each observation
+9
+
+(x , a , r (a )),  = 1, . . . , t in the history up to time t by the inverse propensity score, pa (x ). Then, for each arm a  A, the linear contextual bandit weighs each observation (x , a, r (a)) in the history of arm a by wa = 1/pa(x ) and uses weighted regression to obtain the estimate ^abalanced with variance V(^abalanced).
+In BLTS (Algorithm 1), the observations are weighted by the known propensity scores. For every arm a, the history (Xa, ra, pa) is used to obtain a balanced estimate ^aBLTS of a and its variance V(^aBLTS) which produce a normally distributed estimate of µ~a  N xt ^aBLTS, 2xt V(^aBLTS)xt of the reward of arm a for context xt, where  is a parameter of the algorithm.
+In BLUCB (Algorithm 2), the observations are weighted by the estimated propensity scores. For every arm a, the history (Xa, ra, p^a) is used to obtain a balanced estimate ^aBLUCB of a and its variance V(^aBLUCB). These are used to construct the upper confidence bound, xt ^a +  xt V(^aBLUCB)xt, for the reward of arm a for context xt, where  is a constant. (For some results, e.g., [13],  needs to be slowly increasing in t.)
+We present computational results that compare the performance of BLTS and BLUCB, with the existing state-of-the-art linear contextual bandits algorithms LinTS [6] and LinUCB [45]. More specifically, we first present a simple synthetic example that simulates bias in the training data by under-representation or over-representation of certain regions of the context space and investigates the performance of the considered linear contextual bandits both when the outcome model of the arms matches the true reward generative process and when it does not match the true reward generative process. Second, we conduct an experiment by leveraging 300 public, supervised cost-sensitive classification datasets to obtain contextual bandit problems, treating the features as the context, the labels as the arms and revealing only the reward for the chosen label. We show that BLTS performs better than LinTS and that BLUCB performs better than LinUCB. The randomized assignment nature of Thompson sampling facilitates the estimation of the arms' outcomes models compared to UCB, and as a result LinTS outperforms LinUCB and BLTS outperforms BLUCB. Overall, BLTS has the best performance. In the supplemental material, we include experiments against the policy-based contextual bandit from [4] which is statistically optimal but it is also outperformed by BLTS. Finally, we give a theoretical guarantee that matches the existing regret performance of BLTS and BLUCB.
+3.1 A Synthetic Example
+This simulated example aims to reflect in a simple way two issues that often arise in practice. The first issue is the presence of bias in the training data by under-representation or over-
+10
+
+Algorithm 1 Balanced Linear Thompson Sampling
+
+1: Input: Regularization parameter  > 0, propensity score threshold   (0, 1), constant
+
+ (deafult is 1)
+
+2: Set ^aBLTS  null, Ba  null, a  A
+
+3: Set Xa  empty matrix, ra  empty vector a  A
+
+4: for t = 1, 2, . . . , T do
+
+5: if a  A s.t. ^aBLTS = null or Ba = null then
+
+6:
+
+Select a  Uniform(A)
+
+7: else
+
+8:
+
+Draw ~a from N ^aBLTS, 2V(^aBLTS) for all a  A
+
+9:
+
+Select
+
+a
+
+=
+
+arg
+
+max
+aA
+
+xt
+
+~a
+
+10: end if
+
+11: Observe reward rt(a). 12: Set Wa  empty matrix 13: for  = 1, . . . , t do
+
+14:
+
+if a = a then
+
+15:
+
+Compute
+
+pa(x )
+
+and
+
+set
+
+w
+
+=
+
+1 max(,pa(x ))
+
+16:
+
+Wa  diag(Wa, w)
+
+17:
+
+end if
+
+18: end for
+
+19: Xa  [Xa : xt ]
+
+20: Ba  Xa WaXa + I
+
+21: ra  [ra : rt(a)]
+
+22:
+
+^aBLTS  Ba-1Xa Wara
+
+23:
+
+V(^aBLTS)  Ba-1 (ra - Xa ^aBLTS) Wa(ra - Xa ^aBLTS)
+
+24: end for
+
+representation of certain regions. A personalized policy that is trained based on such data and is applied to the entire context space will result in biased decisions for certain contexts. The second issue is the problem of mismatch between the true reward generative process and the functional form used for estimation of the outcome model of the arms, which is common in applications with complex generative models. Model mis-specification aggravates the presence of bias in the learned policies.
+We use this simple example to present in an intuitive manner why balancing and randomized assignment rule help with these issues, before moving on to a large-scale evaluation of the algorithms in real datasets in the next section.
+Consider a simulation design where there is a warm-start batch of training observations, but it consists of contexts focused on one region of the context space. There are three arms A = {0, 1, 2} and the contexts xt = (xt,0, xt,1) are two-dimensional with xt,j  N (0, 1), j  {0, 1}. The rewards corresponding to each arm a  A are generated as follows; rt(0) =
+
+11
+
+Algorithm 2 Balanced Linear UCB
+
+1: Input: Regularization parameter  > 0, propensity score threshold   (0, 1), constant
+
+.
+
+2: Set ^aBLUCB  null, Ba  null, a  A
+
+3: Set Xa  empty matrix, ra  empty vector a  A
+
+4: for t = 1, 2, . . . , T do
+
+5: if a  A s.t. ^aBLUCB = null or Ba = null then
+
+6:
+
+Select a  Uniform(A)
+
+7: else
+
+8:
+
+Select a = arg max aA
+
+xt ^aBLUCB + 
+
+xt V(^aBLUCB)xt
+
+9: end if
+
+10: Observe reward rt(a).
+
+11: Set Wa  empty matrix 12: for  = 1, . . . , t do
+
+13:
+
+if a = a then
+
+14:
+
+Estimate
+
+p^a(x )
+
+and
+
+set
+
+w
+
+=
+
+1 max(,p^a(x ))
+
+15:
+
+Wa  diag(Wa, w)
+
+16:
+
+end if
+
+17: end for
+
+18: Xa  [Xa : xt ]
+
+19: Ba  Xa WaXa + I
+
+20: ra  [ra : rt(a)]
+
+21:
+
+^a  Ba-1Xa Wara
+
+22:
+
+V(^aBLUCB)  Ba-1 (ra - Xa ^aBLUCB) Wa(ra - Xa ^aBLUCB)
+
+23: end for
+
+0.5(xt,0 + 1)2 + 0.5(xt,1 + 1)2 + t, rt(1) = 1 + t, and rt(2) = 2 - 0.5(xt,0 + 1)2 - 0.5(xt,1 + 1)2 + t, where t  N (0, 2), 2 = 0.01. The expected values of the three arms' rewards are shown in Figure 1.
+In the warm-start data, xt,0 and xt,1 are generated from a truncated normal distribution N (0, 1) on the interval (-1.15, -0.85), while in subsequent data xt,0 and xt,1 are drawn from N (0, 1) without the truncation. Each one of the 50 warm-start contexts is assigned to one of the three arms at random with equal probability. Note that the warm-start contexts belong to a region of the context space where the reward surfaces do not change much with the context. Therefore, when training the reward model for the first time, the estimated reward of arm a = 2 (blue) is the highest, the one of arm a = 1 (yellow) is the second highest and the one of arm a = 0 (red) is the lowest across the context space.
+We run our experiment with a learning horizon T = 10000. The regularization parameter , which is present in all algorithms, is chosen via cross-validation every time the model is updated. The constant , which is present in all algorithms, is optimized among values
+
+12
+
+Figure 1: Expectation of each arm's reward, E[rt(0)] = 0.5(xt,0 +1)2 +0.5(xt,1 +1)2 (red), E[rt(1)] = 1 (yellow), E[rt(2)] = 2 - 0.5(xt,0 + 1)2 - 0.5(xt,1 + 1)2 (blue).
+0.25, 0.5, 1 in the Thompson sampling bandits (the value  = 1 corresponds to standard Thompson sampling, [22] suggest that smaller values may lower regret) and among values 1, 2, 4 in the UCB bandits [22]. The propensity threshold  for BLTS and BLUCB is optimized among the values 0.01, 0.05, 0.1, 0.2.
+3.1.1 Well-Specified Outcome Models
+In this section, we compare the behavior of LinTS, LinUCB, BLTS and BLUCB when the outcome model of the contextual bandits is well-specified, i.e., it includes both linear and quadratic terms. Note that this is still in the domain of linear contextual bandits, if we treat the quadratic terms as part of the context.
+First, we compare LinTS and LinUCB. Figure 2a shows that the uncertainty and the stochastic nature of LinTS leads to a "dispersed" assignment of arms a = 1 and a = 2 and to the crucial assignment of a few contexts to arm a = 0. This allows LinTS to start decreasing the bias in the estimation of all three arms in the subsequent time periods. Within the first few learning observations, LinTS estimates the outcome models of all three arms correctly and finds the optimal assignment. On the other hand, Figure 2b, shows that the deterministic nature of LinUCB assigns entire regions of the context space to the same arm. As a result not enough contexts are assigned to a = 0 and LinUCB delays the correction of bias in the estimation of this arm. Another way to understand the problem is that the outcome model in the LinUCB bandit has biased coefficients combined with estimated uncertainty that is too low to incentivize the exploration of arm a = 0 initially. LinUCB finds the correct assignment after 240 observations.
+Second, we study the performance of BLTS and BLUCB. In Figure 2d, we observe that balancing has a significant impact on the performance of UCB, since BLUCB finds the optimal assignment after 110 observations, much faster than LinUCB. This is because the few observations of arm a = 0 outside of the context region of the warm-start batch are weighted more heavily by BLUCB. As a result, BLUCB, despite its deterministic nature
+13
+
+(a) Well-specified LinTS
+(b) Well-specified LinUCB
+(c) Well-specified BLTS
+(d) Well-specified BLUCB Figure 2: Evolution of the arm assignment in the context space for well-specified LinTS, LinUCB, BLTS, BLUCB.
+which complicates estimation, is able to reduce its bias more quickly via balancing Figure 2c shows that BLTS is also able to find the optimal assignment a few observations earlier than LinTS. Figure 3 shows the evolution of the estimation bias for all three arms for the well-specified LinTS, LinUCB, BLTS and BLUCB.
+Figure 3: Evolution of the potential outcomes estimation bias in the (x0, x1) context space for well-specified LinTS, LinUCB, BLTS and BLUCB. Blue indicates that the actual estimate is lower than the predicted, whereas red indicates that the actual estimate is higher than the predicted.
+14
+
+(a) Mis-specified LinTS
+(b) Mis-specified LinUCB
+(c) Mis-specified BLTS
+(d) Mis-specified BLUCB Figure 4: Evolution of the arm assignment in the context space for mis-specified LinTS, LinUCB, BLTS, BLUCB.
+The first column of Table 1 shows the percentage of simulations in which LinTS, LinUCB, BLTS and BLUCB find the optimal assignment within T = 10000 contexts for the wellspecified case. BLTS outperforms all other algorithms by a large margin. 3.1.2 Mis-Specified Outcome Models We now study the behavior of LinTS, LinUCB, BLTS and BLUCB when the outcome models include only linear terms of the context and therefore are mis-specified. In real-world domains, the true data generative process is complex and very difficult to capture by the simpler outcome models assumed by the learning algorithms. Hence, model mismatch is very likely.
+We first compare LinTS and LinUCB. In Figures 4a, 4b, we see that during the first time periods, both bandits assign most contexts to arm a = 2 and a few contexts to arm a = 1. LinTS finds faster than LinUCB the linearly approximated area in which arm a = 2 is suboptimal. However, both LinTS and LinUCB have trouble identifying that the optimal
+15
+
+Figure 5: Evolution of the potential outcomes estimation bias in the (x0, x1) context space for mis-specified LinTS, LinUCB, BLTS and BLUCB. Blue indicates that the actual estimate is lower than the predicted, whereas red indicates that the actual estimate is higher than the predicted.
+arm is a = 0. Due to the low estimate of a = 0 from the mis-representative warm-start observations, LinUCB does not assign contexts to arm a = 0 for a long time and therefore, delays to estimate the model of a = 0 correctly. LinTS does assign a few contexts to arm a = 0, but they are not enough to quickly correct the estimation bias of arm a = 0 either. On the other hand, BLTS is able to harness the advantages of the stochastic assignment rule of Thompson sampling. The few contexts assigned to arm a = 0 are weighted more heavily by BLTS. Therefore, as shown in Figure 4c, BLTS corrects the estimation error of arm a = 0 and finds the (constrained) optimal assignment already after 20 observations. On the other hand, BLUCB does not handle better than LinUCB the estimation problem created by the deterministic nature of the assignment in the mis-specified case, as shown in Figure 4d. Figure 5 shows the evolution of the estimation bias for all three arms for the mis-specified LinTS, LinUCB, BLTS and BLUCB.
+The second column of table 1 shows the percentage of simulations in which LinTS, LinUCB, BLTS and BLUCB find the optimal assignment within T = 10000 contexts for the mis-specified case. Again, BLTS has a strong advantage.
+This simple synthetic example allowed us to explain transparently where the benefits of balancing in linear bandits stem from. Balancing helps escape biases in the training data and can be more robust in the case of model mis-specification. While, as we proved, balanced linear contextual bandits share the same strong theoretical guarantees, this indicates towards their better performance in practice compared to other contextual bandits with linear realizability assumption. We investigate this further in the next section with an extensive evaluation on real cost-sensitive classification datasets.
+16
+
+LinTS LinUCB BLTS BLUCB
+
+Well-Specified 84% 51% 92% 79%
+
+Mis-Specified 39% 29% 58% 30%
+
+Table 1: Percentage of simulations in which LinTS, LinUCB, BLTS and BLUCB find the optimal assignment within learning horizon of 10000 contexts
+
+3.2 Multiclass Classification with Bandit Feedback
+
+Adapting a classification task to a bandit problem is a common method for comparing
+
+contextual bandit algorithms [28], [4], [18]. In a classification task, we assume data are drawn
+
+IID from a fixed distribution: (x, c)  D, where x  X is the context and c  1, 2, . . . , K is the
+
+class. The goal is to find a classifier  : X  {1, 2, . . . , K} that minimizes the classification
+
+error E(x,c)D1 {(x) = c}. The classifier can be seen as an arm-selection policy and the classification error is the policy's expected regret. Further, if only the loss associated with
+
+the policy's chosen arm is revealed, this becomes a contextual bandit setting. So, at time t,
+
+context xt is sampled from the dataset, the contextual bandit selects arm at  {1, 2, . . . , K} and observes reward rt(at) = 1 {at = ct}, where ct is the unknown, true class of xt. The performance of a contextual bandit algorithm on a dataset with n observations is measured
+
+with
+
+respect
+
+to
+
+the
+
+normalized
+
+cumulative
+
+regret,
+
+1 n
+
+n t=1
+
+(1
+
+-
+
+rt(at
+
+)).
+
+We use 300 multiclass datasets from the Open Media Library (OpenML). The datasets
+
+vary in number of observations, number of classes and number of features. Table 2 summarizes
+
+the characteristics of these benchmark datasets. Each dataset is randomly shuffled.
+
+Observations  100
+> 100 and  1000 > 1000 and  10000
+> 10000
+
+Datasets 58 152 57 33
+
+Classes Count
+
+2
+
+243
+
+> 2 and 10 48
+
+> 10
+
+9
+
+Features
+
+Count
+
+ 10
+
+154
+
+> 10 and  100 106
+
+> 100
+
+40
+
+Table 2: Characteristics of the 300 datasets used for the experiments of multiclass classification with bandit feedback.
+
+We evaluate LinTS, BLTS, LinUCB and BLUCB on these 300 benchmark datasets. We run each contextual bandit on every dataset for different choices of input parameters. The regularization parameter , which is present in all algorithms, is chosen via cross-validation every time the model is updated. The constant , which is present in all algorithms, is optimized among values 0.25, 0.5, 1 in the Thompson sampling bandits [22] and among
+17
+
+values 1, 2, 4 in the UCB bandits [22]. The propensity threshold  for BLTS and BLUCB is optimized among the values 0.01, 0.05, 0.1, 0.2. Apart from baselines that belong in the family of contextual bandits with linear realizability assumption and have strong theoretical guarantees, we also evaluate the policy-based ILOVETOCONBANDITS (ILTCB) from [4] that does not estimate a model, but instead it assumes access to an oracle for solving fully supervised cost-sensitive classification problems and achieves the statistically optimal regret.
+Figure 6: Pairwise comparison of LinTS, BLTS, LinUCB, BLUCB on 300 classification datasets. BLUCB outperforms LinUCB. BLTS outperforms LinTS, LinUCB, BLUCB.
+Figure 6 shows the pairwise comparison of LinTS, BLTS, LinUCB, BLUCB and ILTCB on the 300 classification datasets. Each point corresponds to a dataset. The x coordinate is
+18
+
+the normalized cumulative regret of the column bandit and the y coordinate is the normalized cumulative regret of the row bandit. The point is blue when the row bandit has smaller normalized cumulative regret and wins over the column bandit. The point is red when the row bandit loses from the column bandit. The point's size grows with the significance of the win or loss.
+The first important observation is that the improved model estimation achieved via balancing leads to better practical performance across a large number of contextual bandit instances. Specifically, BLTS outperforms LinTS and BLUCB outperforms LinUCB. The second important observation is that deterministic assignment rule bandits are at a disadvantage compared to randomized assignment rule bandits. The improvement in estimation via balancing is not enough to outweigh the fact that estimation is more difficult when the assignment is deterministic and BLUCB is outperformed by LinTS. Overall, BLTS which has both balancing and a randomized assignment rule, outperforms all other linear contextual bandits with strong theoretical guarantees. BLTS also outperforms the model-agnostic ILTCB algorithm.
+We refer the reader to Appendix B of the supplemental material for details on the datasets.
+3.3 Theoretical Guarantee
+Here we establish theoretical guarantees of BLTS and BLUCB that are comparable to LinTS and LinUCB. We start with a few technical assumptions that are standard in the contextual bandits literature.
+Assumption 1. Linear Realizability: There exist parameters {a}aA such that given any context x, E[rt(a)|x] = x a, a  A, t  0.
+We use the standard (frequentist) regret criterion to measure performance as defined next:
+Definition 1. The instantaneous regret at iteration t is xt at -xt at, where at is the optimal arm at iteration t and at is the arm taken at iteration t. The cumulative regret R(T ) with horizon T is the defined as R(T ) = t=1 xt at - xt at .
+Definition 2. We denote the canonical filtration of the underlying contextual bandits problem by {Ft}t=1, where Ft = ({xs}st=1, {as}ts=1, {rs(as)}ts=1, xt+1): the sigma algebra3 generated by all the random variables up to and including iteration t, plus xt+1. In other words, Ft contains all the information that is available before making the decision for iteration t + 1.
+3All the random variables xt, at, rt are defined on some common underlying probability space, which we do not write out explicitly here.
+19
+
+Next, we make the standard assumptions on the regularity of the distributions:
+
+Assumption 2. For each a  A and every t  1:
+
+1. Sub-Gaussian Noise: rt(a) - xt a is conditionally sub-Gaussian: there exists some
+
+La
+
+>
+
+0,
+
+such
+
+that
+
+E[es(rt(a)-xt
+
+a)
+
+|
+
+Ft-1]
+
+
+
+exp(
+
+s2 L2a 2
+
+),
+
+s,
+
+xt.
+
+2. Bounded Contexts and Parameters: The contexts xt and parameters a are assumed to be bounded. Consequently, without loss of generality, we can rescale them such that xt 2  1, a 2  1, a, t.
+
+Remark 1. Note that we make no assumption of the underlying {xt} t=1 process: the contexts {xt}t=1 need not to be fixed beforehand or come from some stationary process. Further, they can even be adapted to ({xs}ts=1, {as}st=1, {rs(as)}ts=1), in which case they are called adversarial contexts in the literature as the contexts can be chosen by an adversary who chooses a context after observing the arms played and the corresponding rewards. If {xt} t=1 is an IID process, then the problem is known as stochastic contextual bandits. From this
+viewpoint, adversarial contextual bandits are more general, but the regret bounds tend to be
+worse. Both are studied in the literature.
+
+Theorem 1. Under Assumption 1 and Assumption 2:
+
+1. If BLTS is run with  = R(T ) = O~ d KT 1+ .
+
+log
+
+1 
+
+in
+
+Algorithm
+
+1,
+
+then with probability
+
+at least 1 - ,
+
+2. If BLUCB is run with  =
+
+R(T ) = O~
+
+ T dK
+
+.
+
+log
+
+TK 
+
+in
+
+Algorithm
+
+2,
+
+then
+
+with
+
+probability
+
+at
+
+least
+
+1 - ,
+
+We refer the reader to Appendix A of the supplemental material for the regret bound proofs.
+
+Remark 2. The above bound essentially matches the existing state-of-the art regret bounds
+
+for linear Thompson sampling with direct model estimation (e.g. [6]). Note that in [6], an
+
+infinite number of arms is also allowed, but all arms share the same parameter . The final 
+regret bound is O~ d2 T 1+ . Note that even though no explicit dependence on K is present in 
+the regret bound (and hence our regret bound appears as a factor of K worse), this is to be
+
+expected, as we have K parameters to estimate, one for each arm. Note that here we do not
+
+assume any structure on the K arms; they are just K stand-alone parameters, each of which
+
+needs to be independently estimated. Similarly, for BLUCB, our regret bound is O~
+
+ T dK
+
+,
+
+which
+
+is
+
+a
+
+factor
+
+of
+
+ K
+
+worse
+
+than
+
+that
+
+of
+
+[23],
+
+which
+
+establishes
+
+a
+
+O~
+
+ Td
+
+regret bound.
+
+20
+
+Again, this is because a single true  is assumed in [23], rather than K arm-dependent parameters.
+Of course, we also point out that our regret bounds are not tight, nor do they achieve state-of-the-art regret bounds in contextual bandits algorithms in general. The lower bound ( dT ) is established in [23] for linear contextual bandits (again in the context of a single parameter  for all K arms). In general, UCB based algorithms ([11, 23, 21, 1]) tend to have better (and sometimes near-optimal) theoretical regret bounds. In particular, the state-
+ of-the-art bound of O( dT log K) for linear contextual bandits is given in [21] (optimal up to a O(log K) factor). However, as mentioned in the introduction, Thompson sampling based algorithms tend to perform much better in practice (even though their regret bounds tend not to match UCB based algorithms, as is also the case here). Hence, our objective here is not to provide state-of-the-art regret guarantees. Rather, we are motivated to design algorithms that have better empirical performance (compared to both the existing UCB style algorithms and Thompson sampling style algorithms), which also enjoy the baseline theoretical guarantee.
+Finally, we give some quick intuition for the proof. For BLTS, we first show that estimated means concentrate around true mean (i.e. xt ^a concentrates around xt a). Then, we establish that sampled means concentrate around the estimated means (i.e. xt ~a concentrates around xt ^a). These two steps together indicate that the sampled mean is close to the true mean. A further consequence of that is we can then bound the instantaneous regret (regret at each time step t) in terms of the sum of two standard deviations: one corresponds to the optimal arm at time t, the other corresponds to the actual selected arm at t. The rest of the proof then follows by giving tight characterizations of these two standard deviations. For BLUCB, the proof again utilizes the first concentration mentioned above: the estimated means concentrate around true mean (note that there is no sampled means in BLUCB). The rest of the proof adopts a similar structure as in [23].
+4 Additional Estimation Considerations
+In this section, we investigate three additional estimation considerations and present further evidence from simulations that demonstrate our design outlined in Section 2 can be more effective in a variety of different contexts.
+4.1 The Effect of Simpler Outcome Models: LASSO v.s. Ridge
+In contextual bandits, the assignment to an arm is a function of the contexts and not all contexts have the same assignment probabilities. This creates an environment with
+21
+
+confounding, often in combination with small samples, in which the choice of the estimation
+
+method plays a very significant role. In this section, we study the significance maintaining a
+
+simple outcome model in contextual bandits. The potential outcome models corresponding
+
+to each arm are estimated in every batch and are used by the bandit to determine the
+
+assignment of contexts to arms, e.g. via the construction of upper confidence bounds.
+
+Therefore, maintaining a simple outcome model results in a simple assignment model.
+
+We compare a contextual bandit that maintains a simpler outcome model, such as LASSO,
+
+with a contextual bandit that maintains a more complex outcome model, such as ridge. As
+
+mentioned in 2, exact computation of the reward mean and variance in the case of LASSO is
+
+intractable and we must perform approximation [53]. Bootstraping provides a viable way to
+
+approximate the quantities. More specifically, we can obtain a sampling distribution on µa(x) by training many regularized regression models on bootstrap samples drawn from (Xa, ra). With this sampling distribution, we can then easily to compute the mean estimate µ^a(x) and the variance estimate ^a2(x). This section compares bootstrap LASSO Thompson sampling and bootstrap ridge Thompson sampling. In Appendix C, we provide a Bayesian way of
+
+using LASSO estimation in a Thompson sampling or UCB contextual bandit motivated by
+
+[48]. The theoretical analysis of Bayesian LASSO contextual bandit may be proven more
+
+straightforward than the theoretical analysis of bootstrap LASSO contextual bandit, though
+
+we leave this analysis for future work.
+
+Consider a simulation setting where the contexts xt are d-dimensional and xt  N (0d, Id). There are three arm A = {0, 1, 2} and the potential outcomes are generated as rt(0) = xt,0 + f (xt) + t, rt(1) = 1 - xt,0 + f (xt) + t, and rt(2) = xt,1 + f (xt) + t, where t  N (0, 2) and f (xt) is a function that shifts the potential outcomes of all arms. Therefore, in this design, only contextual variables xt,0 and xt,1 are relevant to the assignment model. Among the remaining d - 2 contextual variables, there are q nuisance contextual variables that appear
+
+in the outcome model, but should not play a role in the assignment model, as their effect to
+
+the potential outcomes is the same for all arms. These nuisance contextual variables shift the
+
+potential outcomes by f (xt) = 2
+
+q+1 j=2
+
+xt,j
+
+.
+
+The
+
+remaining
+
+d-q-2
+
+contextual
+
+variables
+
+are
+
+noise contextual variables and do not play a role in either the assignment or the outcome
+
+model.
+
+We choose d = 102 and q = 51. So, among the 100 non-relevant contextual variables, 51
+
+are nuisance contextual variables and 49 are noise contextual variables. First, we compare
+
+LASSO and ridge in terms of fit on 1000 observations, when the assignment of contexts to
+
+arms is purely randomized. The number of nuisance contextual variables, q, is chosen so that
+
+LASSO and ridge perform equivalently in terms of fit on purely randomized data, in order
+
+to evaluate the choice of the estimation method in the adaptive setting all else being equal.
+
+22
+
+Indeed, as demonstrated in Figure 7, the LASSO and ridge models are almost identical in terms of mean squared error (MSE) when trained on batches of randomized data.
+
+(a) MSE for a = 0
+
+(b) MSE for a = 1
+
+(c) MSE for a = 2
+
+Figure 7: Cumulative MSE averaged over hundreds of simulations for LASSO and ridge of all arms' outcome model estimation on 1000 randomized observations.
+
+Subsequently, we compare the performance of LASSO and ridge in the bandit setting with learning horizon 1000 context. Despite the initial equivalence of LASSO and ridge in the training setting, LASSO clearly outperforms ridge in terms of regret in the adaptive learning setting, as shown in Figure 8.
+
+Figure 8: Cumulative regret averaged over hundreds of simulations for LASSO Thompson sampling and ridge Thompson sampling on 1000 learning observations.
+The contributing factor to the bandit performance dissimilarity of these seemingly equivalent models on randomized training data is the presence of confounding. In the initial learning observations, a ridge bandit, due to L2 regularization, brings in all of the nuisance and noise contextual variables, as shown in Figures 9a, 9c. The nuisance contextual variables affect assignment (possibly in non-linear ways) and act as confounders. There is insufficient data in the early observations to accurately control for all of them in the outcome model estimation. Both the nuisance and the noise contextual variables create more extreme and variable assignment probabilities, increasing the variance of estimation. A LASSO bandit, due to the L1 regularization, excludes from the outcome model most of the noise contextual
+23
+
+(a) Ridge Weak Coefficients
+
+(b) LASSO Weak Coefficients
+
+(c) Ridge Noise Coefficients
+
+(d) LASSO Noise Coefficients
+
+Figure 9: Coefficient paths of nuisance and noise contextual variables of the first arm's outcome model in the first 100 learning observations for ridge Thompson sampling and LASSO Thompson sampling.
+
+variables and initially, the nuisance contextual variables, as shown in Figures 9b, 9d. As a result, in the early observations, there are fewer confounders compared to a ridge bandit. Therefore, in the subsequent stages of learning, there is less bias as well as less noise in the assignment process for the LASSO bandit than for the ridge bandit.
+
+4.2 Significance of Non-Parametric Bandits under Non-Linearities
+Real-world applications, such as recommendation systems, may have inherently difficult and complex outcome models. In such cases, contextual bandits based on non-parametric model estimation may be more agile. In this section, we compare non-parametric contextual bandits (generalized random forest Thompson sampling) with parametric contextual bandits that make linearity assumptions on the potential outcome models (bootstrap LASSO Thompson sampling and bootstrap ridge Thompson sampling).
+Consider a simple non-linear simulation design with 10-dimensional contexts xt such that xt,j  N (0, 1), j = 0, . . . , 9. There are three arms A = {0, 1, 2} and the potential outcomes are generated as rt(0) = xt,0 + t, rt(1) = -xt,0 + t, and rt(2) = 1{xt,1 <
+24
+
+0} (min{xt,0, -xt,0} - 1) + 1{xt,1 > 0} (max{xt,0, -xt,0} + 1) + t, where t  N (0, 2) with  = 0.1. Therefore, only contextual variables xt,0 and xt,1 are relevant to the arm assignment model. In this design, the correct assignment is a = 2 in the first and second quadrants, a = 1 in the third quadrant and a = 0 in the fourth quadrant. We run the bandits on 5000 observations. The models of LASSO and ridge include quadratic and second order interarm terms, there are B = 100 bootstrap samples, and the regularization parameter is chosen via cross-validation. The number of trees in the generalized random forest is m = 200 and the tuning parameters are the default, specified in [9] and in the grf R package.
+Figure 10 shows that the generalized random forest bandit outperforms the LASSO and the ridge bandits. In cases where the outcome functional form is complicated, which is expected in real-world settings, bandits based on non-parametric model estimation may be proven useful and perform better. However, one needs to bear in mind that similarly to the ridge bandit, the generalized random forest bandit creates a complex assignment model and is subject to the disadvantages discussed in Section 4.1. In this simulation design, the presence of noise contextual variables leads the LASSO bandit to outperform the ridge bandit. But the inability of the LASSO bandit and the ability of the generalized random forest bandit to fit the potential outcome model of the third arm, results in a strong performance edge of the latter. Figure 11 shows the assignment evolution in the (x·,0, x·,1) for the ridge, the LASSO and the generalized random forest bandit. The generalized random forest bandit has the advantage that the outcome model is non-parametric, and thus is able to account for non-linear functions of the contextual variables, in principle reducing problems that might arise if the assignment model is a non-linear function of contextual variables. Additionally, the "honest" estimation property featured by the generalized random forest bandit reduces bias.
+Figure 10: Cumulative regret averaged over hundreds of simulations of ridge, LASSO and generalized random forest Thompson sampling over 5000.
+25
+
+(a) Ridge Thompson Sampling
+
+(b) LASSO Thompson Sampling
+
+(c) GRF Thompson Sampling
+Figure 11: Evolution of the arm assignment in the (x·,0, x·,1) context space for ridge, LASSO and generalized random forest Thompson sampling. The optimal assignment is a = 2 (blue) in the 1st and 2nd quadrants, a = 1 (yellow) in the 3rd quadrant and a = 0 (red) in the 4th quadrant.
+
+4.3 Smoothing the Assignment Policy
+
+So far, we have considered the assignment rule for each context distinctly; the rule depends
+
+on the mean and variance of estimates at each context x. A literature on optimal policy
+
+evaluation in the offline world (e.g. [10]) derives efficient methods for offline policy estimation
+
+when the policy is constrained to be of limited complexity. One example uses trees of
+
+limited depth as the relevant policy class. The method first constructs the efficient score
+
+µ^a(x) +
+
+r-µ^a(x) p^a(x)
+
+for
+
+each
+
+observation
+
+(x, a, r).
+
+Subsequently,
+
+it
+
+estimates
+
+a
+
+classification
+
+tree
+
+on the history of contexts X and assignments a, weighted by the absolute value of the efficient
+
+scores in order to determine the optimal choice of arm in each leaf, where leaves are regions
+
+of the context space.
+
+Here, we propose to follow their method to estimate a policy assignment tree. However,
+
+we use the output differently: rather than deterministically assigning each context to the
+
+estimated optimal policy, instead we use estimates of the mean and variance of each arm
+
+within each leaf together with Thompson sampling or UCB to determine assignments. One
+
+complication that potentially arises in the online setting is that in the early stages of learning
+
+the estimation of the "nuisance parameters" in the efficient score, µ^a(x) and p^a(x), may be noisy due to the small number of observations.
+
+To understand why using simpler assignment rules through a form of smoothing can
+
+be beneficial, it is useful to contrast two cases, one where the probability that an arm is
+
+26
+
+best is estimated very precisely, and the second where we have a noisy estimate of that probability. Suppose that sampling according to the true probability balances exploration and exploitation in an ideal way (e.g. that the Thompson sampling heuristic is ideal in a given setting). Then, when shifting to the second case where the probabilities are unknown, adding a small amount of smoothing to the assignment rule will have little effect on the exploitation side of the bandit trade-off (given that the estimates were noisy, a little smoothing does not introduce first-order mistakes in assignment). From a practical perspective, this suggests using simpler assignment rules can improve performance; further, the Thompson sampling heuristic, which incorporates its own form of smoothing by randomizing assignment, may also improve performance over UCB. However, smoothing improves the exploration side of the trade-off, since it enables lower-variance estimation in future batches. Note that simple assignment rules may have other advantages; for example, [42] highlights the advantages of simplicity for interpretability in health applications of contextual bandits.
+5 Closing Remarks
+Contextual bandits are poised to play an important role in a wide range of applications: In these settings, there are many potential sources of bias in estimation of outcome models, not only due to the inherent adaptive data collection, but also due to mismatch between the true data generating process and the outcome model assumptions, and due to prejudice in the training data in form of under-representation or over-representation of certain regions of the context space. content recommendation in web-services, where the learner wants to personalize recommendations (arm) to the profile of a user (context) to maximize engagement (reward); online education platforms, where the learner wants to select a teaching method (arm) based on the characteristics of a student (context) in order to maximize the student's scores (reward); and survey experiments, where the learner wants to learn what information or persuasion (arm) influences the responses (reward) of subjects as a function of their demographics, political beliefs, or other characteristics (context). In these settings, there are many potential sources of bias in estimation of outcome models, not only due to the inherent adaptive data collection, but also due to mismatch between the true data generating process and the outcome model assumptions, and prejudice in the training data in form of under-representation or over-representation of certain regions of the context space in the cold-start training data. To reduce bias, we proposed new contextual bandit designs which integrate balancing methods from the causal inference literature and parametric and non-parametric model estimation methods with optimism or randomization based exploration methods. We provided the first regret bound analysis for linear contextual bandits with
+27
+
+balancing that matches the theoretical guarantees of the linear contextual bandits with direct model estimation We showed that contextual bandit designs with randomization based exploration and balancing in model estimation are more robust to the aforementioned sources of bias and have improved learning rates. We also showed that using simpler, less variable assignment policies, reduces variance in estimation and bias due to confounding and decreases regret. Through a range of simulations and experiments on real-world datasets, we aimed to highlight key tradeoffs and thus provide methodological guidelines to anyone who wishes to efficiently use contextual bandits for learning personalized policies in practice.
+6 Acknowledgments
+The authors would like to thank Emma Brunskill for valuable comments on the paper and John Langford, Miroslav Dudík, Akshay Krishnamurthy and Chicheng Zhang for useful discussions regarding the evaluation on classification datasets. This research is generously supported by ONR grant N00014-17-1-2131, by the Sloan Foundation, by the "Arvanitidis in Memory of William K. Linvill" Stanford Graduate Fellowship in Science & Engineering and by the Onassis Foundation.
+28
+
+References
+[1] Yasin Abbasi-Yadkori, Dávid Pál, and Csaba Szepesvári. Improved algorithms for linear stochastic bandits. In NIPS, 2011.
+[2] Milton Abramowitz and Irene A Stegun. Handbook of mathematical functions: with formulas, graphs, and mathematical tables, volume 55. Courier Corporation, 1964.
+[3] A. Agarwal, S. Bird, M. Cozowicz, L. Hoang, J. Langford, S. Lee, J. Li, D. Melamed, G. Oshri, O. Ribas, S. Sen, and A. Slivkins. Making contextual decisions with low technical debt. 2017.
+[4] A. Agarwal, D. Hsu, S. Kale, J. Langford, L. Li, and R. Schapire. Taming the monster: A fast and simple algorithm for contextual bandits. ICML, 2014.
+[5] S. Agrawal and N. Goyal. Analysis of thompson sampling for the multi-armed bandit problem. Journal of Machine Learning Research Workshop and Conference Proceedings, 2012.
+[6] S. Agrawal and N. Goyal. Thompson sampling for contextual bandits with linear payoffs. ICML, 2013.
+[7] S. Athey and G. Imbens. Recursive partitioning for heterogeneous causal effects. Proceedings of the National Academy of Sciences, 2016.
+[8] S. Athey, G. Imbens, and S. Wager. Approximate residual balancing. arXiv, 2017.
+[9] S. Athey, J. Tibshirani, and S. Wager. Generalized random forests. arXiv, 2017.
+[10] S. Athey and S. Wager. Efficient policy learning. arXiv, 2017.
+[11] P. Auer. Using confidence bounds for exploitation-exploration trade-offs. Journal of Machine Learning Research, 2003.
+[12] P. Auer, N. Cesa-Bianchi, and P. Fischer. Finite-time analysis of the multiarmed bandit problem. Machine Learning, 2002.
+[13] Peter Auer. Using confidence bounds for exploitation-exploration trade-offs. Journal of Machine Learning Research, 3(Nov), 2002.
+[14] E. Bareinboim, A. Forney, and J. Pearl. Bandits with unobserved confounders: A causal approach. ICML, 2015.
+29
+
+[15] E. Bareinboim and J. Pearl. Causal inference and the data-fusion problem. Proceedings of the National Academy of Sciences, 2015.
+[16] H. Bastani and M. Bayati. Online decision-making with high-dimensional covariates. 2015.
+[17] Hamsa Bastani and Mohsen Bayati. Online decision-making with high-dimensional covariates. 2015.
+[18] Alberto Bietti, Alekh Agarwal, and John Langford. A contextual bandit bake-off. arXiv preprint arXiv:1802.04064, 2018.
+[19] L. Breiman. Random forests. Machine Learning, 2001.
+[20] S. Bubeck and N. Cesa-Bianchi. Regret analysis of stochastic and nonstochastic multiarmed bandit problems. Foundations and Trends in Machine Learning, 2012.
+[21] Sébastien Bubeck and Nicolo Cesa-Bianchi. Regret analysis of stochastic and nonstochastic multi-armed bandit problems. Foundations and Trends in Machine Learning, 2012.
+[22] O. Chapelle and L. Li. An empirical evaluation of thompson sampling. NIPS, 2011.
+[23] Wei Chu, Lihong Li, Lev Reyzin, and Robert Schapire. Contextual bandits with linear payoff functions. In AISTATS, 2011.
+[24] C. Cortes, Y. Mansour, and M. Mohri. Learning bounds for importance eeighting. NIPS, 2010.
+[25] Richard K Crump, V Joseph Hotz, Guido W Imbens, and Oscar A Mitnik. Dealing with limited overlap in estimation of average treatment effects. Biometrika, 96(1):187­199, 2009.
+[26] Y. Deshpande, L. Mackey, V. Syrgkanis, and M. Taddy. Accurate inference in adaptive linear models. arXiv, 2017.
+[27] M. Dudik, D. Erhan, J. Langford, and L. Li. Doubly robust policy evaluation and optimization. Statistical Science, 2014.
+[28] M. Dudik, J. Langford, and L. Li. Doubly robust policy evaluation and learning. ICML, 2011.
+30
+
+[29] A. Elmachtoub, R. McNellis, S. Oh, and M. Petrik. A practical method for solving contextual bandit problems using decision trees. arXiv, 2017.
+[30] R. Feraud, R. Allesiardo, T. Urvoy, and F. Clerot. Random forest for the contextual bandit problem. AISTATS, 2016.
+[31] A. Forney, J. Pearl, and E. Bareinboim. Counterfactual data-fusion for online reinforcement learners. ICML, 2017.
+[32] A. Goldenshluger and A. Zeevi. A linear response bandit problem. Stochastic Systems, 2013.
+[33] A. Hoerl and R. Kennard. Ridge regression: Applications to nonorthogonal problems. Technometrics, 1970.
+[34] Roger A Horn, Roger A Horn, and Charles R Johnson. Matrix analysis. Cambridge university press, 1990.
+[35] J. Huang, A. Gretton, K. M. Borgwardt, B. Scholkopf, and A. J. Smola. Correcting sample selection bias by unlabeled data. NIPS, 2007.
+[36] G. W. Imbens and D. B. Rubin. Causal Inference in Statistics, Social, and Biomedical Sciences. 2015.
+[37] N. Jiang and L. Li. Doubly robust off-policy value evaluation for reinforcement learning. ICML, 2016.
+[38] N. Kallus. Balanced policy evaluation and learning. arXiv, 2017.
+[39] Nathan Kallus and Angela Zhou. Policy evaluation and optimization with continuous treatments. AISTATS, 2018.
+[40] T. Lai and H. Robbins. Asymptotically efficient adaptive allocation rules. Advances in Applied Mathematics, 1985.
+[41] F. Lattimore, T. Lattimore, and M. D. Reid. Causal bandits: Learning good interventions via causal inference. NIPS, 2016.
+[42] H. Lei, A. Tewari, and S. Murphy. An actor-critic contextual bandit algorithm for personalized mobile health interventions. arXiv, 2017.
+[43] L. Li, S. Chen, J. Kleban, and A. Gupta. Counterfactual estimation and optimization of click metrics for search engines. CoRR, 2014.
+31
+
+[44] L. Li, W. Chu, J. Langford, T. Moon, and X. Wang. An unbiased offline evaluation of contextual bandit algorithms with generalized linear models. Journal of Machine Learning Research Workshop and Conference Proceedings, 2012.
+[45] L. Li, W. Chu, J. Langford, and R. Schapire. A contextual-bandit approach to personalized news article recommendation. WWW, 2010.
+[46] L. Li, Y. Lu, and D. Zhou. Provably optimal algorithms for generalized linear contextual bandits. ICML, 2017.
+[47] X. Nie, X. Tian, J. Taylor, and J. Zou. Why adaptively collected data have negative bias and how to correct for it. AISTATS, 2018.
+[48] Trevor Park and George Casella. The bayesian lasso. Journal of the American Statistical Association, 103(482):681­686, 2008.
+[49] V. Perchet and P. Rigollet. The multi-armed bandit problem with covariates. The Annals of Statistics, 2013.
+[50] P. Rigollet and R. Zeevi. Nonparametric bandits with covariates. COLT, 2010.
+[51] D. Russo and B. Van Roy. Learning to optimize via posterior sampling. Mathematics of Operations Research, 2014.
+[52] D. Russo, B. Van Roy, A. Kazerouni, I. Osband, and Z. Wen. A tutorial on Thompson sampling. arXiv, 2017.
+[53] Daniel J Russo, Benjamin Van Roy, Abbas Kazerouni, Ian Osband, Zheng Wen, et al. A tutorial on thompson sampling. Foundations and Trends R in Machine Learning, 11(1):1­96, 2018.
+[54] Daniel O Scharfstein, Andrea Rotnitzky, and James M Robins. Adjusting for nonignorable drop-out using semiparametric nonresponse models. Journal of the American Statistical Association, 94(448):1096­1120, 1999.
+[55] S. Scott. A modern bayesian look at the multi-armed bandit. Applied Stochastic Models in Business and Industry, 2010.
+[56] A. Slivkins. Contextual bandits with similarity information. Journal of Machine Learning Research, 2014.
+[57] A. Strehl, J. Langford, L. Li, and S. Kakade. Learning from logged implicit exploration data. NIPS, 2010.
+32
+
+[58] Alex Strehl, John Langford, Lihong Li, and Sham M Kakade. Learning from logged implicit exploration data. In NIPS, 2010.
+[59] A. Swaminathan and T. Joachims. Batch learning from logged bandit feedback through counterfactual risk minimization. Journal of Machine Learning Research, 2015.
+[60] P. Thomas and E. Brunskill. Data-efficient off-policy policy evaluation for reinforcement learning. ICML, 2016.
+[61] W. Thompson. On the likelihood that one unknown probability exceeds another in view of the evidence of two samples. Biometrika, 1933.
+[62] R. Tibshirani. Regression shrinkage and selection via the lasso. Journal of the Royal Statistical Society, 1996.
+[63] S. Villar, J. Bowden, and J. Wason. Multi-armed bandit models for the optimal design of clinical trials: benefits and challenges. Statistical Science, 2015.
+[64] Y. X. Wang, A. Agarwal, and M. Dudik. Optimal and adaptive off-policy evaluation in contextual bandits. ICML, 2017.
+[65] B. Zadrozny. Learning and evaluating classifiers under sample selection bias. ICML, 2004.
+[66] Zhengyuan Zhou, Susan Athey, and Stefan Wager. Offline multi-action policy learning: Generalization and optimization. arXiv preprint arXiv:1810.04778, 2018.
+33
+
+A Appendix A: Regret Bound Proofs
+
+A.1 Auxiliary Results
+
+We collect in this section all the existing results in the literature for later use.
+
+The first one is the self-normalized bound for vector-valued martingales in [1].
+
+Lemma 1. Let {Ft} t=0 be a filtration. Let {t} t=1 be a real-valued stochastic process such that
+
+t is Ft measurable and t is conditionally R-sub-Guassian for some R  0: E[et | Ft-1] 
+
+exp(
+
+2 R2 2
+
+).
+
+Let
+
+{Zt}t=1
+
+be
+
+an
+
+Rd-valued
+
+stochastic
+
+process
+
+such
+
+that
+
+Zt
+
+is
+
+Ft-1
+
+measurable.
+
+Assume that V is a d × d positive definite matrix, and for any integer t  0, define:
+
+t
+
+t
+
+Vt = V + ZsZsT , St = sZs.
+
+s=1
+
+s=1
+
+Then, for any  > 0, with probability at least 1 - , we have:
+
+(1)
+
+StT
+
+Vt-1St
+
+
+
+2R2
+
+log(
+
+(det(Vt
+
+))
+
+1 2
+
+(det(V
+
+
+
+))
+
+1 2
+
+).
+
+The second one, taken from [2], gives large deviation bounds for Guassian random variables. Lemma 2. Let Z be a Guassian random variable with mean m and variance 2. Then for any real number r  1,
+
+(2)
+
+1
+
+e-
+
+r2 2
+
+2 r
+
+ P(|Z - m| >
+
+r) 
+
+1
+
+e-
+
+r2 2
+
+.
+
+r
+
+The third one is taken from [13].
+
+Lemma 3. Let Z and Z be two symmetric and positive semidefinite d × d matrices where the
+
+corresponding eigenvalues are 1, . . . , d and 1, . . . , d respectively. If Z = Z + xxT , then
+
+the eigenvalues can be arranged in such a way that j  j and xT Z-1x  10
+
+. d j -j
+j=1 j
+
+The next one is a basic fact from matrix algebra ( [34]).
+
+Lemma 4. Let M be a symmetric, positive definite matrix, and x, y be vectors (all with appropriate dimensions). Then the weighted inner product ·, · M is defined as x, y M =
+
+34
+
+xT M y. Furthermore, x, x M is a norm on x, which we denote by x M and we have | x, y M |  x M y M .
+
+A.2 Proof of Theorem 1
+
+In this section, we provide the proof to the regret bound given in Theorem 1. We start with
+
+BLTS, which is more involved. For ease of exposition, we break the proof into several steps,
+
+each of which will be explained. We start by setting up some notation. Let ^a(t) and ~a(t)
+
+denote the estimated mean and the sampled mean for arm a in the BLTS algorithm at time t,
+
+respectively. By some algebra, one can show that (ra(t) - XaT ^a(t))T Wa(ra(t) - XaT ^a(t)) =
+
+a2
+
+t i=1
+
+wi
+
+t
+
+
+
+[a2
+
+,
+
+a2
+
+1 
+
+].
+
+Consequently,
+
+Ba(t)
+
+is
+
+only
+
+a
+
+constant
+
+factor
+
+of
+
+the
+
+variance
+
+V(^a(t))
+
+term and it suffices to focus on Ba(t). Let wt denote the thresholded inverse propensity
+
+score computed at t. For each arm a, an equivalent way of writing the updates in the BLTS
+
+algorithm is:
+
+
+
+Ba(t + 1)
+
+=
+
+ 
+
+Ba(t) + wtxt+1xtT+1, Ba(t),
+
+if a is selected in t otherwise,
+
+
+
+^a(t
+
++
+
+1)
+
+=
+
+ 
+
+Ba(t + 1)-1 ^a(t),
+
+sSa(t) wsxsra(s), if a is selected in t otherwise,
+
+where Sa(t) = {1  s  t | a(s) = a} keeps track of all the iterations where action
+
+a is taken. Note that an equivalent way of expressing Ba(t) that will be used later is
+
+Ba(t) = I +
+
+sSa
+
+(t)
+
+ wsxs( ws
+
+xs
+
+)T
+
+.
+
+We
+
+shall
+
+freely
+
+use
+
+and
+
+switch
+
+between
+
+the
+
+update
+
+written in this incremental format and the update format given in the main text.
+
+Step 1: High concentration bound of estimated means.
+
+Here we show that xtT ^a(t) concentrates around xtT a. Furthermore, such concentration is
+
+uniform across time t and different arms. Specifically, define the event C =
+
+T t=1
+
+aA Ca(t),
+
+where Ca(t) is the following event:
+
+xTt ^a(t)  [xTt a-O
+
+KT d log( )
+
+
+xtT (Ba(t))-1xt, xTt a+O
+
+KT d log( )
+
+
+xtT (Ba(t))-1xt].
+
+The event Ca(t) essentially says that xtT ^a(t) is within some constant multiple of standard
+
+deviations from xtT a (the true mean reward). Note that since ~ is drawn from a Guassian with
+
+mean
+
+^ and
+
+variance
+
+log
+
+1 
+
+(Ba(t))-1,
+
+the
+
+quantity
+
+xtT (Ba(t))-1xt is the standard deviation
+
+(up to some constant multiple) of xtT ~a, which is the sample reward associated with arm a
+
+estimated by the algorithm BLTS. Our goal in this step is to show that the event C occurs
+
+35
+
+with high probability. Intuitively, this means that the estimated parameter ^a is concentrated around the true parameter a: this is an important ingredient for low regret, because if the estimated mean parameters were wrong, then the model maintained by the algorithm would
+
+be incorrect, in which case it is impossible to attain any good performance. Specifically,
+
+we
+
+establish
+
+that
+
+P(C )
+
+
+
+1
+
+-
+
+ T
+
+,
+
+xtT ^a(t)
+
+
+
+[xTt a
+
+-
+
+O
+
+d
+
+log(
+
+KT 
+
+)
+
+xTt (Ba(t))-1xt, xTt a +
+
+O
+
+d
+
+log(
+
+KT 
+
+)
+
+xtT (Ba(t))-1xt], t  {1, . . . , T }, a  A. To show this, let
+
+ Xs = wsxs, Vta = I +
+
+sa
+
+=
+
+ ws(ra(s)
+
+-
+
+xsT a)
+
+wsxs(wsxs)T = I +
+
+XsXsT
+
+Sta =
+
+sSa(t)
+wsxssa =
+
+saXs.
+
+sSa(t)
+
+sSa(t)
+
+sSa(t)
+
+Sinwcse(rraa((ss))--xxTtTtaa)
+
+is is
+
+conditionally sub-Gaussian (conditioned on Ft-1), and ws is bounded, also conditionally sub-Gaussian. Let R be the universal sub-Gaussian
+
+constant for the entire proof. It is easy to check that under the canonical filtration Ft, all
+
+the adaptability assumptions in Lemma 1 hold: specifically, Xt is adapted to Ft-1 and t is
+
+adapted to Ft. Consequently, by Lemma 1, we have for each a  A, with probability at least
+
+1 - :
+
+(3)
+
+StT
+
+Vt-1St
+
+
+
+2R2
+
+log(
+
+(det(Vt
+
+))
+
+1 2
+
+(det(I))-
+
+1 2
+
+
+
+)
+
+=
+
+2R2
+
+log(
+
+(det(Vt
+
+))
+
+1 2
+
+
+
+()-
+
+p 2
+
+)
+
+(4)
+
+
+
+2R2
+
+log(
+
+(
+
+|Sa(t)| 
+
++
+
+)
+
+p 2
+
+-
+
+p 2
+
+)
+
+
+
+2R2
+
+log(
+
+(
+
+t 
+
++
+
+)
+
+p 2
+
+-
+
+p 2
+
+)
+
+=
+
+pR2
+
+1 log(
+
++
+
+t 
+
+),
+
+
+
+
+
+
+
+where the last inequality follows because the largest eigenvalue of the matrix xTt xt can be
+
+at most one and hence by a simple calculation, the largest eigenvalue of Vta can be at most
+
+|Sa(t)| 
+
++
+
+,
+
+which
+
+in
+
+turn
+
+is
+
+upper
+
+bounded
+
+by
+
+t 
+
++ .
+
+Since
+
+the
+
+determinant
+
+equals
+
+the
+
+product
+
+of all the eigenvalues, and since all the matrices involved are positive-semidefinite, the result
+
+follows.
+
+With the above bound in place, we are now ready to bound xTt ^a(t) - xtT a. First note that |xtT ^a(t) - xtT a| = |xTt (Vta)-1(Sta - a)|. Since Vta is positive definite, its inverse is positive
+definite as well. Consequently, by Lemma 4, we have:
+
+(5)
+
+|xTt ^a(t) - xTt a| = |xtT (Vta)-1(Sta - a)| 
+
+xTt
+
+S -  a
+(Vta)-1 t
+
+a (Vta)-1
+
+(6)
+
+= xtT (Bta)-1 Sta - a = (Vta)-1 xtT (Ba(t))-1xt Sta - a , (Vta)-1
+
+36
+
+where the first equality follows from the following algebraic calculation:
+
+(7) (Vta)-1(Sta - a) = (I +
+
+XsXsT )-1(Sta - a)
+
+sSa(t)
+
+(8) = (XaT W Xa + I)(XaT Wara - XaT WaXaa - Ia)
+
+(9) = (XaT W Xa + I)-1(XaT Wara) - (XaT W Xa + I)-1(XaT WaXaa + Ia) = ^a(t) - a,
+
+and the second inequality follows from Lemma 4. Note that since
+
+(10) (11)
+
+ = a (Vta)-1 aT (Vta)-1a  max[(Vta)-1] a 
+
+
+
+1
+
+
+
+1
+
+= 1 ,
+
+min[Vta]
+
+min[I]
+
+
+
+max[(Vta)-1]
+
+where max and min denote the maximum eigenvalue and the minimum eigenvalue of a matrix respectively. Consequently, we have that with probability at least 1 - :
+
+(12)
+
+|xTt ^a(t) - xtT a|  (13)
+
+xTt (Ba(t))-1xt Sta - a (Vta)-1
+
+
+
+xTt (Ba(t))-1xt
+
+S +   a t (Vta)-1
+
+a (Vta)-1
+
+(14)
+
+ (15)
+
+xtT (Ba(t))-1xt
+
+Sta
+
+1
+
+(Vta )-1
+
++
+
+ 
+
+
+
+ xtT (Ba(t))-1xt dR
+
+1 log(
+
++
+
+t 
+
+)
+
++
+
+ 
+
+
+
+
+
+ xTt (Ba(t))-1xt dR
+
+1 log(
+
++
+
+T 
+
+)
+
++
+
+ 
+
+
+
+(16)
+
+where the second inequality follows from the triangle inequality of a norm, the third inequality
+
+follows from Equation (10) and the last inequality follows from Equation (3). Now take  to
+
+be
+
+ KT
+
+2
+
+,
+
+and
+
+absorbing
+
+all
+
+the
+
+constants
+
+into
+
+the
+
+big-O,
+
+we
+
+have,
+
+with
+
+probability
+
+at
+
+least
+
+37
+
+1
+
+-
+
+ KT
+
+2
+
+,
+
+P(Ca(t)) 
+
+ xtT (Ba(t))-1xt dR
+
+log(
+
+K
+
+T
+
+2
+
++
+
+K
+
+T3 
+
+ )+ 
+
+
+
+=
+
+xtT (Ba(t))-1xtO
+
+d log( KT ) . 
+
+By a union bound, we have: P(C) = 1-P(
+
+T t=1
+
+aA Cac(t)) 
+
+T t=1
+
+aA P(Cac(t))
+
+
+
+ T
+
+.
+
+Con-
+
+sequently,
+
+we
+
+have
+
+with
+
+probability
+
+at
+
+least
+
+1-
+
+ T
+
+,
+
+xtT
+
+^a(t)
+
+
+
+[xtT
+
+a-O
+
+d
+
+log(
+
+KT 
+
+)
+
+xtT (Ba(t))-1xt,
+
+xtT a + O
+
+d
+
+log(
+
+KT 
+
+)
+
+xtT (Ba(t))-1xt], t  {1, . . . , T }, a  A.
+
+Step 2: High concentration bound of sampled means.
+
+The above step establishes that ^a concentrates around the true a. We now establish that ~a is concentrates around ^a. This concentration is very much to be expected, because ~a is exactly drawn from a Guassian with mean ^a. Consequently, since Guassian random variables
+concentrate around its mean (Lemma 2), by choosing an appropriate multiple of its standard
+
+deviation, we can get the desired concentration probability relatively easily. Specifically, here
+
+we
+
+have
+
+that
+
+with
+
+probablity
+
+at
+
+least
+
+1
+
+-
+
+1 T
+
+,
+
+for
+
+all
+
+t
+
+=
+
+1,
+
+.
+
+.
+
+.
+
+,
+
+T,
+
+and
+
+for
+
+all
+
+a
+
+
+
+A:
+
+(17)
+
+xtT ~a(t) [xtT ^a - O
+
+log d
+
+1 
+
+log(dKT ))
+
+xTt (Ba(t))-1xt,
+
+(18)
+
+xtT ^a + O
+
+log d
+
+1 
+
+log(dKT ))
+
+xtT (Ba(t))-1xt].
+
+To see this, denote Ea(t) to be the above event. Then by a straightfoward application of Lemma 2, one can easily check that
+
+P Ba(t)0.5 ~a(t) - ^a(t)
+
+
+
+log
+
+1 
+
+4d log(dN T ) 
+
+1 .
+
+KT 2
+
+Consequently, by a further union bound across all a and across all t, we have with probability
+
+at
+
+least
+
+1
+
+-
+
+1 T
+
+,
+
+Ba(t)0.5
+
+~a(t) - ^a(t)
+
+
+
+log
+
+1 
+
+4d log(dKT ). Note that when this holds,
+
+we can easily bound |xtT ~a(t) - xtT ^a| as follows:
+
+(19)
+
+|xTt ~a(t) - xTt ^a| = |xtT Ba(t)-0.5Ba(t)0.5(~a(t) - ^a)|
+
+(20)
+
+ xTt Ba(t)-0.5
+
+Ba(t)0.5(~a(t) - ^a) 
+
+xtT Ba(t)-1xt
+
+log
+
+1 
+
+4d log(dKT ).
+
+38
+
+Putting the above two pieces together and using O(·) to simplify all the constants, yields that
+
+with
+
+probablity
+
+at
+
+least
+
+1-
+
+1 T
+
+,
+
+xTt
+
+~a(t)
+
+
+
+[xTt
+
+^a-O
+
+d log
+
+1 
+
+log(dKT ))
+
+xtT (Ba(t))-1xt, xTt ^a+
+
+O
+
+d log
+
+1 
+
+log(dKT ))
+
+xTt (Ba(t))-1xt].
+
+Step 3: Bounding regret in terms of standard deviations.
+
+The previous two steps combined together establish that the samples ~a(t) produced by
+
+BLTS are close to the true a. An immediate consequence of this is that we can then
+
+bound the instantaneous regret ir(t) at time t in terms of the standard deviations. More
+
+specifically, under the above two concentration events, for each arm a, xtT ~a(t) differs from
+
+xTt ^a by at most O
+
+d log
+
+1 
+
+log(dKT ))
+
+xtT (Ba(t))-1xt and xTt ^a(t) differs from xtT a by at
+
+most O
+
+d
+
+log(
+
+KT 
+
+)
+
+xtT (Ba(t))-1xt]. Consequently, xtT ~a(t) differs from xTt a by at most
+
+O
+
+d log
+
+1 
+
+log(dKT ))
+
++
+
+d
+
+log(
+
+KT 
+
+)
+
+xtT (Ba(t))-1xt. Next, since action a is chosen at time
+
+t, it must be that xTt ~a(t) yields the largest value, and in particualr, xTt ~a(t)  xTt a(t).
+
+Putting the above discussion together, we can bound the instantaneous regret as follows:
+
+(21) ir(t) = xTt (a(t) - a(t))
+
+(22)  O
+
+log d
+
+1 
+
+log(dKT ))
+
++
+
+KT d log( )
+
+
+xtT (Ba(t)(t))-1xt + xtT (Ba(t)(t))-1xt ,
+
+where a(t) is the arm chosen at t and a(t) is the optimal arm at t. Consequently,
+
+(23)
+T
+R(T ) = ir(t)  O
+t=1
+(24)
+=O
+(25)
+= O~
+
+log d
+
+1 
+
+log(dKT ))
+
++
+
+KT d log( )
+
+T
+
+
+
+t=1
+
+xTt (Ba(t)(t))-1xt + xTt (Ba(t)(t))-1xt
+
+log d
+
+1 
+
+log(dKT ))
+
+T
+
+t=1
+
+xtT (Ba(t)(t))-1xt + xTt (Ba(t)(t))-1xt
+
+dT
+t=1
+
+xtT (Ba(t)(t))-1xt + xTt (Ba(t)(t))-1xt .
+
+The rest of the proof can then be completed by bounding the sum in the right-hand side of the above equation. First, following a similar analysis (with differences only in constants) as in [6], one can use a martingale based approach to bound xTt (Ba(t)(t))-1xt in terms
+
+39
+
+of xTt (Ba(t)(t))-1xt. This is done by dividing arms into two different categories and do a careful analysis of the bound in each case. The final bound on the sum, after dropping all the lower order terms is that
+
+T
+(26)
+t=1
+
+T
+
+
+
+xTt (Ba(t)(t))-1xt + xTt (Ba(t)(t))-1xt  (1 + O( T )) xtT (Ba(t)(t))-1xt.
+
+t=1
+
+Next, in [23], it is shown that for each arm a, define Ta = {1  t  T | a(t) = a}, then the following holds:
+
+xtT (Ba(t)(t))-1xt  5 dNa(T ) log(Na(T )),
+tTa
+
+where Na(T ) = |Ta| is the total number of times arm a is selected (note in particular
+
+aA Na(T ) = T ). Consequently, summing over all a, we have:
+
+(27)
+
+T
+
+xtT (Ba(t)(t))-1xt =
+
+t=1
+
+aA tTa
+
+xTt (Ba(t)(t))-1xt  5 dNa(T ) log(Na(T )) = O( dKT log T ).
+aA
+
+Consequently, combining the above inequality with Equation (26), we have:
+
+T
+
+
+
+(28)
+
+xtT (Ba(t)(t))-1xt + xtT (Ba(t)(t))-1xt  (1 + O( T ))O( pN T log T )
+
+t=1
+
+
+
+(29) = O( dKT 1+ log T ) = O~( dKT 1+ ).
+
+Finally, combining the preceding inequality with Equation (2.23), we obtain the final regret bound (note that all the inequalities hold with probability 1 - 2, since we need the concentration events to hold true):
+
+R(T ) = O~
+
+d
+
+ O~( dKT 1+
+
+)
+
+=
+
+ O~(d KT 1+
+
+).
+
+Next, the proof of regret bound for BLUCB follows closely to that of LinUCB in [23] and LinRel in [13], where one divides the BLUCB into two parts for analysis, the first part is BaseBLUCB (which corresponds to BaseLinUCB) and the second part is SuperBLUCB (which is the same as SuperLinUCB in [23]). Hence, the analysis only needs to be adjusted for BaseBLUCB (and we omit the discussion of SuperBLUCB as it is the same as SuperLinUCB in [23]). We start by noting that parameters in BLUCB follow the same update as BLST,
+
+40
+
+Algorithm 3 BaseBLUCB at Step t
+
+1: Inputs:  > 0 and t  {1, 2, . . . , t - 1}
+
+2: for  = 1, . . . , t - 1 do
+
+3:
+
+Estimate
+
+p^a(x )
+
+and
+
+set
+
+w
+
+=
+
+. 1
+max(,p^a(x ))
+
+4: end for 5: Ba(t)  I +
+
+sSa(t)
+
+1st
+
+ ws
+
+ xs( ws
+
+xs
+
+)T
+
+,
+
+for
+
+each
+
+a.
+
+6: ^a(t)  Ba(t)-1 sSa(t) 1stwsxsra(s), for each a.
+
+7: Observe feature xt.
+
+8: sa(t)   xtT Ba-1(t)xt, for each a.
+
+9: ra(t)  ^aT xt, for each a.
+
+which are written as follows:
+
+
+
+Ba(t + 1)
+
+=
+
+ 
+
+Ba(t) + wtxt+1xtT+1, Ba(t),
+
+if a is selected in t otherwise,
+
+
+
+^a(t
+
++
+
+1)
+
+=
+
+ 
+
+Ba(t + 1)-1 ^a(t),
+
+sSa(t) wsxsra(s), if a is selected in t otherwise,
+
+where Sa(t) = {1  s  t | a(s) = a} keeps track of all the iterations where action a is taken.
+
+Consequently, from Step 1 above, and with  =
+
+log
+
+TK 
+
+,
+
+we
+
+know
+
+that
+
+with
+
+probability
+
+at
+
+least
+
+1
+
+-
+
+ T
+
+,
+
+for
+
+each
+
+a
+
+
+
+A
+
+and
+
+each
+
+t
+
+=
+
+1,
+
+2,
+
+..
+
+.
+
+,
+
+T:
+
+|xtT ^a(t) - xTt a|  O
+
+KT log( )
+
+
+xtT (Ba(t))-1xt.
+
+Furthermore, by Equation 27 in Step 3, we have:
+
+(30)
+
+xtT (Ba(t)(t))-1xt = O( dK|T +1| log |T +1|).
+t=T +1
+
+With these two main ingredients in place, the rest of the proof follows the same steps as
+
+in [23] (which in turn follows [13]), giving a O(
+
+T
+
+dK
+
+log3( log
+
+KT log(T 
+
+)
+
+)
+
+regret
+
+bound.
+
+41
+
+B Experiments on Multi-Class Classification Datasets
+We use 300 multiclass datasets from the Open Media Library (OpenML). The full list of datasets in alphabetical order is:
+2dplanes, abalone (183), abalone (720), acute-inflammations, Agrawal1, aids, ailerons, airlines, analcatdata_apnea2, analcatdata_apnea3, analcatdata_asbestos, analcatdata_authorship, analcatdata_challenger, analcatdata_creditscore, analcatdata_dmft, analcatdata_germangss, analcatdata_japansolvent, analcatdata_michiganacc, analcatdata_olympic2000, analcatdata_seropositive, analcatdata_vehicle, analcatdata_vineyard, analcatdata_wildcat, AP_Breast_Kidney, AP_Breast_Omentum, AP_Breast_Ovary, AP_Colon_Kidney, AP_Colon_Lung, AP_Endometrium_Breast, AP_Endometrium_Kidney, AP_Endometrium_Ovary, AP_Endometrium_Prostate, AP_Lung_Kidney, AP_Lung_Uterus, AP_Omentum_Lung, AP_Omentum_Prostate, AP_Omentum_Uterus, AP_Ovary_Kidney, AP_Ovary_Lung, AP_Prostate_Ovary, AP_Uterus_Kidney, ar3, ar4, ar5, ar6, arsenic-malebladder, arsenic-male-lung, artificial-characters, Australian, autoPrice, balance-scale, banana, baskball, bodyfat, bolts, boston (853), boston (872), boston_corrected, BurkittLymphoma, cal_housing, car, chatfield_4, chscase_adopt, chscase_census2, chscase_census3, chscase_vine2, cmc, codrna, codrnaNorm, collins (478), collins (987), confidence (468), confidence (1015), covertype (180), covertype (293), cpu, cpu_small, delta_ailerons, delta_elevators, desharnais, diabetes, diabetes_numeric, diggle_table_a2, disclosure_x_bias, disclosure_x_noise, dresses-sales, eating, ecoli, electricity, elevators, elusage, energy-efficiency, first-order-theorem-proving, fl2000, flags (285), flags (1012), fri_c0_1000_25, fri_c0_1000_5, fri_c0_100_10, fri_c0_100_50, fri_c0_250_10, fri_c0_250_25, fri_c0_250_5, fri_c0_500_25, fri_c0_500_50, fri_c1_1000_5, fri_c1_1000_50, fri_c1_100_10, fri_c1_100_5, fri_c1_100_50, fri_c1_250_10, fri_c1_250_5, fri_c1_250_50, fri_c1_500_10, fri_c1_500_5, fri_c1_500_50, fri_c2_1000_10, fri_c2_1000_25, fri_c2_1000_5, fri_c2_1000_50, fri_c2_100_10, fri_c2_100_25, fri_c2_100_5, fri_c2_100_50, fri_c2_250_10, fri_c2_250_25, fri_c2_250_5, fri_c2_250_50, fri_c2_500_10, fri_c2_500_25, fri_c2_500_5, fri_c3_1000_10, fri_c3_1000_25, fri_c3_1000_5, fri_c3_1000_50, fri_c3_100_10, fri_c3_100_5, fri_c3_250_10, fri_c3_250_5, fri_c3_500_10, fri_c3_500_25, fri_c3_500_5, fri_c4_1000_10, fri_c4_1000_50, fri_c4_100_10, fri_c4_100_100, fri_c4_100_50, fri_c4_250_25, fri_c4_500_10, fri_c4_500_100, fri_c4_500_50, gina_agnostic, gina_prior2, glass, grub-damage (338), grub-damage (1026), hayes-roth, heart-statlog, houses, humandevel, hutsof99_child_witness, hutsof99_logis, Hyperplane_10_1E-4, iris, JapaneseVowels, jEdit_4.0_4.2, jEdit_4.2_4.3, kc1, kc1-binary, kc2, kin8nm, kr-vs-k, kr-vs-kp, kropt, leaf, letter (6), letter (977), leukemia, lowbwt, lupus, machine_cpu, MagicTelescope, mammography, mc2, meta_all.arff,
+42
+
+meta_ensembles.arff, mfeat-factors, mfeat-fourier, mfeat-karhunen (16), mfeat-karhunen (1020), mfeat-morphological (18), mfeat-morphological (962), mfeat-pixel (20), mfeat-pixel (1022), mfeatzernike (22), mfeat-zernike (995), monks-problems-3, mu284, musk, mv, mw1, MyIris, newton_hema, no2, nursery (26), nursery (959), optdigits, OVA_Endometrium, OVA_Ovary, OVA_Prostate, page-blocks, pasture (339), pasture (964), pc1, pc2, pc3, pc4, pendigits, PieChart1, PieChart3, PieChart4, PizzaCutter3, plasma_retinol, pm10, pollen, pollution, prnn_cushings, prnn_fglass (952), prnn_fglass (996), puma32H, puma8NH, pwLinear, pyrim, quake (209), quake (772), quake (948), rabe_131, rabe_148, rabe_265, rabe_266, rabe_97, rmftsa_ladata, rmftsa_sleepdata (679), rmftsa_sleepdata (741), rsctc2010_1, rsctc2010_2, satellite_image, satimage, scene, schlvote, SEA(50), SEA(50000), segment, sensory, sleuth_case1102, sleuth_case1201, sleuth_case1202, sleuth_case2002, sleuth_ex1605, sleuth_ex2016 (682), sleuth_ex2016 (862), socmob, sonar, space_ga, spambase, spectrometer (313), spectrometer (754), Stagger1, Stagger2, Stagger3, stock, strikes, sylva_agnostic, sylva_prior, synthetic_control (377), synthetic_control (1004), tae, teachingAssistant, tecator, tic-tac-toe, tr21.wc, tr23.wc, vehicle (54), vehicle (994), vehicle_sensIT, vehicleNorm, vinnie, visualizing_environmental, visualizing_galaxy, visualizing_hamster, visualizing_soil, vowel, waveform-5000, white-clover, wind, wind_correlations, wine, wine_quality, witmer_census_1980, zoo
+
+The datasets vary in number of observations, number of classes and number of features. Table 3 summarizes the characteristics of these benchmark datasets.
+
+Observations  100
+> 100 and  1000 > 1000 and  10000
+> 10000
+
+Datasets 58 152 57 33
+
+Classes 2
+> 2 and 10 > 10
+
+Count 243 48 9
+
+Features  10
+> 10 and  100 > 100
+
+Count 154 106 40
+
+Table 3: Characteristics of the 300 datasets used for the multiclass classification with bandit feedback experiment.
+
+In the main paper, we focused on the family of contextual bandits with linear realizability assumption and on how to improve model estimation in linear contextual bandits using balancing. Hence, we compared our algorithms, balanced linear Thompson sampling (BLTS)
+43
+
+and balanced linear UCB (BLUCB), with LinTS [6] and LinUCB [45], which are baselines that belong in the family of contextual bandits with linear realizability assumption and have strong theoretical guarantees. Here, apart from BLTS, BLUCB, LinTS and LinUCB, we also evaluate the policy-based ILOVETOCONBANDITS (ILTCB) from [4] that does not estimate a model, but instead it assumes access to an oracle for solving fully supervised cost-sensitive classification problems and achieves the statistically optimal regret guarantee.
+Figure 12: Pairwise comparison of LinTS, BLTS, LinUCB, BLUCB and ILTCB on the 300 classification datasets. BLTS outperforms LinTS, LinUCB, BLUCB and ILTCB.
+44
+
+Figure 12 shows the pairwise comparison of LinTS, BLTS, LinUCB, BLUCB and ILTCB on the 300 classification datasets. Each point corresponds to a dataset. The x coordinate is the normalized cumulative regret of the column bandit and the y coordinate is the normalized cumulative regret of the row bandit. The point is blue when the row bandit has smaller normalized cumulative regret and wins over the column bandit indicated. The point is red when the row bandit loses from the column bandit. The point's size grows with the significance of the win or loss. Table 4 presents the pairwise comparison of LinTS, BLTS, LinUCB, BLUCB and ILTCB on the 300 classification datasets in table-form.
+In LinTS, LinUCB, BLTS and BLUCB, the ridge regularization parameter  is chosen via cross-validation every time the model is updated. In LinTS and BLTS, the constant  is optimized among values 0.25, 0.5, 1, while in LinUCB and BLUCB the constant  is optimized among values 1, 2, 4. In BLTS and BLUCB, the propensity threshold  is optimized among the values 0.01, 0.05, 0.1, 0.2. In ILTCB, the parameter µ of algorithm 1 in [4] is optimized among the values 0.01, 0.1, 1.
+
+(down vs. right) LinTS BLTS LinUCB BLUCB ILTCB
+
+LinTS W=0, L=0 W=233, L=58 W=96, L=180 W=130, L=149 W=95, L=191
+
+BLTS W=58, L=233
+W=0, L=0 W=55, L=232 W=92, L=191 W=60, L=222
+
+LinUCB W=180, L=96 W=232, L=55
+W=0, L=0 W=185, L=56 W=153, L=135
+
+BLUCB W=149, L=130 W=191, L=92 W=56, L=185
+W=0, L=0 W=129, L=153
+
+ILTCB W=191, L=95 W=222, L=60 W=135, L=153 W=153, L=129
+W=0, L=0
+
+Table 4: Number of the 300 classification datasets in which the contextual bandit algorithm of the row name wins over (W) or loses from (L) the contextual bandit algorithm of the column name. The 300 - W - L remaining datasets are ties.
+
+45
+
+C Bayesian LASSO Contextual Bandit
+
+We now provide a Bayesian way of using LASSO estimation in a Thompson sampling contextual bandit inspired by [48]. The theoretical analysis of Bayesian LASSO contextual bandit may be proven more straightforward than the theoretical analysis of bootstrap LASSO contextual bandit, though we leave this analysis for future work.
+We model the reward as a linear function of the context r = xT  + ,  N (0, 2), where  is p-dimensional and sparse. LASSO estimates can be interpreted as posterior mode estimates when the coefficients have iid Laplace priors [62]. [48] propose an expanded hierarchy with conjugate normal priors for the regression parameters and independent exponential priors on their variances to perform Gibbs sampling on this posterior. Algorithm 4 proposes a contextual bandit that uses the Gibbs sampler hierarchy of [48].
+
+Algorithm 4 Bayesian LASSO Thompson sampling
+
+1: Input: Regularization parameter  > 0
+
+2: Set Xa  empty matrix, ra  empty vector a  A
+
+3: Sample iid a2,1, . . . , a2,p 
+
+p j=1
+
+e d 2
+
+-
+
+2 j2 2
+
+2
+
+2 j
+
+a
+
+
+
+A
+
+4: Set Da  diag(a2,1, . . . , a2,p) a  A
+
+5: Sample a,1  N (0, 2Da)
+
+6: for t = 1, 2, . . . , T do
+
+7: Observe xt 8: Select a  arg maxaA xTt a,t 9: Observe reward rt(a). 10: Xa  [Xa : xTt ] 11: ra  [ra : rt(a)]
+
+12: for k = 1, . . . , K Gibbs sampling iterations do
+
+13:
+
+if k = 1 then
+
+14:
+
+ak,t+1  a,t
+
+15:
+
+end if
+
+16:
+
+Sample
+
+ak,j
+
+2
+ InverseGaussian
+
+µ=
+
+2  2
+( ) ,  ak,t+1,j 2
+
+= 2
+
+j = 1, . . . , p
+
+17:
+
+Set Dak  diag
+
+ak,1
+
+2
+,...,
+
+ak,p
+
+2
+
+and Aa = XaT Xa + Dak
+
+18:
+
+Sample ak,t+1  N (Aa-1XTa ra, 2Aa-1)
+
+19: end for
+
+20:
+
+Sample a,t+1  a1,t+1, . . . , aK,t+1 .
+
+21: Set a ,t+1  a ,t a  A\a
+
+22: end for
+
+46
+
+

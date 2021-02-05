@@ -1,0 +1,4779 @@
+Learning When-to-Treat Policies
+
+arXiv:1905.09751v2 [stat.ME] 15 Jun 2019
+
+Xinkun Nie
+xinkun@stanford.edu
+
+Emma Brunskill
+ebrun@cs.stanford.edu
+
+Stefan Wager
+swager@stanford.edu
+Draft version June 2019
+Abstract
+Many applied decision-making problems have a dynamic component: The policymaker needs not only to choose whom to treat, but also when to start which treatment.
+For example, a medical doctor may see a patient many times and, at each visit, need
+to choose between prescribing either an invasive or a non-invasive procedure and postponing the decision to the next visit. In this paper, we develop an “advantage doubly
+robust” estimator for learning such dynamic treatment rules using observational data
+under sequential ignorability. We prove welfare regret bounds that generalize results for
+doubly robust learning in the single-step setting, and show promising empirical performance in several different contexts. Our approach is practical for policy optimization,
+and does not need any structural (e.g., Markovian) assumptions.
+
+1
+
+Introduction
+
+The promise of personalized data-driven decision-making has led to a surge in interest in
+methods that leverage observational data to help inform how and whom to intervene on
+(Athey and Wager, 2017; Bertsimas and Kallus, 2014; Dudı́k, Erhan, Langford, and Li,
+2014; Elmachtoub and Grigas, 2017; Kallus and Zhou, 2018; Kitagawa and Tetenov, 2018;
+Manski, 2004; Swaminathan and Joachims, 2015; Zhang, Tsiatis, Davidian, Zhang, and
+Laber, 2012; Zhao, Zeng, Rush, and Kosorok, 2012). Any solution to the “policy learning”
+problem needs to deal with numerous difficulties, including how to incorporate robustness
+to potential selection bias as well as fairness constraints articulated by stakeholders, and
+there have been several notable advances that address these difficulties over the past few
+years.
+One limitation of this line of work, however, is that the results cited above all focus on a
+static setting where a decision-maker only sees each subject once and immediately decides
+how to treat the subject. In contrast, many problems of applied interest involve a dynamic
+component whereby the decision-maker makes a series of decisions based on time-varying
+covariates. In medicine, if a patient has a disease for which all known cures are invasive and
+have serious side effects, their doctor may choose to monitor disease progression for some
+time before prescribing one of these invasive treatments. Meanwhile, a health inspector
+needs to not only choose which restaurants to inspect, but also when to carry out these
+inspections.
+
+1
+
+In this paper, we study the problem of learning dynamic when-to-treat policies, where
+a decision-maker is only allowed to act once, but gets to choose both which action to take
+and when to perform the action.1 This setting covers several application areas that have
+recently been discussed in the literature, including when to start antiretroviral therapy
+for HIV-positive patients to prevent AIDS while mitigating side effects (When To Start
+Consortium, 2009), when to recommend mothers to stop breastfeeding to maximize infants’
+health (Moodie, Platt, and Kramer, 2009), and when to to turn off ventilators for intensive
+care patients to maximize health outcomes (Prasad et al., 2017).
+In developing our approach, we build on recent results on doubly robust static policy
+learning (Athey and Wager, 2017; Zhou, Athey, and Wager, 2018), and show how they
+can be adapted to our dynamic setting without making any structural (e.g., Markovian)
+assumptions and without compromising computational performance. Throughout this paper, we assume sequential ignorability, meaning that any confounders that affect making a
+treatment choice at time t have already been measured by time t. Sequential ignorability
+is a widely used generalization of the classical ignorability assumption of Rosenbaum and
+Rubin (1983) to the dynamic setting (Hernán, Brumback, and Robins, 2001; Murphy, 2003;
+Robins, 1986, 2004). We then develop methods that can leverage generic machine learning
+estimates of various nuisance components (e.g., the propensity of starting treatment in any
+given state and time) for learning policies with strong utilitarian regret bounds that hold in
+a nonparametric setting.
+Our problem setting is closely related to batch reinforcement learning (Sutton and Barto,
+2018). The types of guarantees we derive, however, are more closely related to results from
+the static policy learning, in that we derive sharp regret bounds given only nonparametric
+assumptions using tools from semiparametric statistics. To our knowledge, the reinforcement
+learning literature has not pursued nor obtained the type of results we achieve here for the
+problems of off-policy policy learning in a nonparametric setting.
+We also note work on optimal stopping motivated by the problem of when to buy or
+sell an asset. This setting, however, is different from ours in that most of the literature on
+optimal stopping either works with a known probabilistic model (Jacka, 1991; Van Moerbeke,
+1976), or assumes that we can observe the price evolution of the asset whether or not we
+purchase it (Goel, Dann, and Brunskill, 2017). In contrast, we work in a nonparametric
+setting, and adopt a potential outcomes model in which we only get to observe outcomes
+corresponding to the sequence of actions we choose to take (Imbens and Rubin, 2015; Robins,
+1986). Rust (1987) considers the descriptive problem of fitting an optimal stopping model to
+the behavior of a rational agent; this is different from our perspective problem of learning a
+decision rule that can be used to guide future decisions. We will review the related literature
+in more detail in Section 3 after first presenting our method below.
+
+2
+2.1
+
+Policy Learning under Sequential Ignorability
+Setup and Notation
+
+We work in the following statistical setting. We observe a set of i = 1, ..., n independent
+and identically distributed trajectories generated from some distribution P that describe
+the evolution of subjects over T time steps. For each subject i, we observe a vector of
+1 We note that the policies of interest in this paper also include when-to-stop policies. By flipping the
+treatment indicator, it is without loss of generality that we only consider when-to-treat policies.
+
+2
+
+states S (i) ∈ S T and actions A(i) ∈ AT , as well as a final outcome Y (i) ∈ R.2 For each
+(i)
+(i)
+t = 1, ..., T , St denotes the state of the subject at time t and At denotes the action
+taken. We write the set of possible actions as A = {0, 1, · · · , K}, and let At = 0 denote
+no action (i.e., no treatment assignment) at time t. For notational convenience, we denote
+(i)
+(i)
+(i)
+(i)
+St1 :t2 := {St1 , · · · , St2 }, and we similarly define At1 :t2 . We write the relevant
+ generalization
+of the propensity score as et,a (s1:t ) = P At = a S1:t = s1:t , A1:(t−1) = 0 , and we assume
+the outcome has bounded support, i.e. Y ≤ M almost surely for some constant M .
+We formulate causal effects in terms of potential outcomes (Neyman, 1923; Robins, 1986;
+Rubin, 1974). For any set of actions a ∈ AT , we posit potential outcomes Y (i) (a1:T ) and
+(i)
+St (a1:(t−1) ) corresponding to the outcome and state values we would have obtained for
+subject i had we assigned treatment sequence a. In order to identify causal effects, we
+make the standard assumptions of sequential ignorability, consistency and overlap (Hernán,
+Brumback, and Robins, 2001; Murphy, 2003; Robins, 1986, 2004).
+Assumption 1 (Sequential Ignorability). {Y (A1:(t−1) , at:T ), St0 (A1:(t−1) , at:(t0 −1) )}Tt0 =t ⊥
+⊥
+At:T Ft for all t = 1, · · · , T .
+(i)
+
+(i)
+
+(i)
+
+(i)
+
+Assumption 2 (Consistency of potential outcomes). Y (i) = Y (i) (A1:T ) and St = St (A1:(t−1) ).
+Assumption 3 (Overlap). There are constants η, η0 > 0 such that, for all t = 1, · · · , T and
+s1:t ∈ S t , the following hold: et,a (s1:t ) > η/T for all a ∈ A \ {0} and et,0 (s1:t ) > 1 − η0 /T .
+Note that, in Assumption 3, we scale the overlap parameters η and η0 with the number
+of time periods T , and also impose separate lower bounds on the probability of starting
+treatment and the probability of continuing with no treatment assigment in any given time
+period (to make sure that we observe some trajectories for which treatment starts late or
+never). Because of Assumption 1, the probability of choosing an action depends on the
+observed history, i.e. for k ∈ A,
+
+
+
+
+(1)
+P At = k S1:t , A1:(t−1) , {Y (a1:T ), St0 (a1:(t0 −1) )}a,t0 = P At = k S1:t , A1:(t−1)
+We define the filtration F1 ⊆ F2 ⊆ · · · ⊆ FT +1 , where Ft = σ (S1:t , A1:t−1 ) has information
+available at time t for t = 1, ..., T , and FT +1 = σ (S1:T , A1:T , Y ) also has information on
+the final outcome.
+A policy π is
+that, for each time t = 1, ..., T , maps time-t observables to
+Qat mapping
+Qt−1
+an action: πt : i=1 S × i=1 A → A such that πt is Ft -measurable; then π := {πt }Tt=1 .
+Recall that we focus on when-to-treat type rules, meaning that the decision-maker only gets
+to act once by starting a non-0 treatment regime at the time of their choice. For example,
+if K = 3 and T = 5, then the decision-maker may choose for instance to start treatment
+option #2 at time t = 4, resulting in a trajectory A = (0, 0, 0, 2, 2). For conciseness, we
+write τπ = inf {t : At 6= 0} for the time at which π chooses to act, and Wπ = Aτπ for the
+action taken. When π chooses to never start treating, we write τπ = T + 1 and Wπ = 0.
+Note that τπ and Wπ are both Fτπ -measurable.
+Following Murphy (2005), we let ft (St S1:(t−1) , A1:(t−1) ) be the conditional density for
+state transitions at time t. Given (1), we can further define the distribution function for
+2 We note that it is without loss of generality that we assume the outcome Y (i) is only observed at the end
+of a trajectory, since intermediate outcomes/rewards can be incorporated as part of the state representation.
+
+3
+
+trajectories (s1:T , a1:T )
+f (s, a) =
+
+T
+Y
+
+ 
+
+ft st s1:(t−1) , a1:(t−1) P At = at s1:t , a1:(t−1) .
+
+(2)
+
+t=1
+
+We denote the expectation with respect to the above distribution as E. Similarly, we define
+the distribution of a trajectory under policy π as
+f (s, a; π) ∝
+
+T
+Y
+
+ft st s1:(t−1) , a1:(t−1)
+
+
+
+1at =πt (s1:t ,a1:(t−1) ) .
+
+(3)
+
+t=1
+
+and we use Eπ to denote the expectation with respect to the distribution
+above. Define
+
+Vπ := Eπ [Y ] = E Y π1 (S1 ), π2 (S1:2 , A1 ), · · · , πT (S1:T , A1:(T −1) ) to be the value of the
+policy π, i.e. the expected outcome Y with actions At chosen according to π such that
+At = π(S1:t , A1:(t−1) ) for all t = 1, ..., T . We further define the conditional value function
+
+
+(4)
+µπ,t (s1:t , a1:t−1 ) = Eπ Y S1:t = s1:t , A1:t−1 = a1:t−1 ,
+and the Q-function
+
+
+Qπ,t (s1:t , a1:t ) = Eπ Y S1:t = s1:t , A1:t = a1:t .
+
+(5)
+
+For any class Π, we write the optimal value function as V ∗ = supπ∈Π Vπ , and define the
+regret of any other policy π ∈ Π as R(π) = V ∗ − Vπ (Manski, 2004).
+Given this setting, our goal is to learn the best policy from a predefined policy class Π
+to minimize regret. Our main result is a method for learning a policy π̂ ∈ Π along with a
+bound on its regret R(π̂).
+
+2.2
+
+Existing Methods
+
+In the static setting, a popular approach to policy learning starts by first providing an estimate Vbπ for the value Vπ of each feasible policy π ∈ Π, and then sets π̂ = argmax{Vbπ : π ∈ Π}
+(e.g., Athey and Wager, 2017; Kitagawa and Tetenov, 2018; Manski, 2004; Swaminathan and
+Joachims, 2015; Zhang, Tsiatis, Davidian, Zhang, and Laber, 2012). At a high level our goal
+is to pursue the same strategy, but now in a dynamic setting. The challenge is then to find a
+robust estimate Vbπ that behaves well when optimized over a policy class Π of interest—both
+statistically and computationally.
+Perhaps the most straightforward approach to estimating Vπ starts from inverse propensity weighting as used in the context of marginal structural modeling (Robins, Hernán, and
+Brumback, 2000; Precup, 2000). Given sequential ignorability, we can write inverse propen(i)
+sity weights γt (π) for any policy π recursively as follows, resulting in a value estimate
+o
+n
+(i)
+(i)
+(i)
+(i)
+n
+γt−1 1 At = π(S1:t , A1:t−1 )
+X
+1
+(i)
+(i)
+i,
+γ (π)Y (i) , γt (π) = h
+(6)
+V̂πIPW =
+(i)
+(i)
+(i)
+(i)
+(i)
+n i=1 T
+P At = π(S1:t , A1:t−1 ) S1:t , A1:t−1
+ Pn
+Pn
+(i)
+(i)
+or the normalized alternative V̂πWIPW = i=1 γT (π)Y (i)
+i=1 γT (π). The functional
+form of V̂πIPW makes it feasible to optimize this value estimate over a pre-specified policy
+class π ∈ Π (e.g., via a grid-search or mixed integer programming). By Assumptions 1, 2
+4
+
+and 3, IPW is consistent if the treatment probabilities are known a-priori, and by uniform
+concentration arguments following Kitagawa and Tetenov
+√ (2018), the regret of the policy π̂
+learned by maximizing V̂πIPW over π ∈ Π decays as 1/ n if Π is not too large (e.g. Π is a
+VC-class).
+While inverse propensity weighting is a simple and transparent approach to estimating
+Vπ , it has several limitations. In observational studies treatment probabilities need to be es(i)
+timated from data, and it is known that the variant of (6) with estimated weights γ̂t (π) can
+perform poorly with even mild estimation error (see, e.g., Liu et al., 2018b). Furthermore,
+for any policy π considered, the IPW value estimator only uses trajectories that match the
+policy π exactly, which can make policy learning sample-inefficient. Finally, IPW is known
+to be unstable when treatment propensities get small, and this difficulty is exacerbated in
+the multi-period setting as the probability of observing any specific trajectory decays. In
+the static policy learning setting, related considerations led several authors to recommend
+against inverse propensity weighted policy learning and to develop new methods that were
+found to have stronger properties both in theory and in practice (Athey and Wager, 2017;
+Dudı́k, Erhan, Langford, and Li, 2014; Kallus, 2018; Zhang, Tsiatis, Davidian, Zhang, and
+Laber, 2012; Zhou, Mayer-Hamblett, Khan, and Kosorok, 2017).
+Another approach to estimating Vπ is using a doubly robust estimator as follows (Jiang
+and Li, 2016; Thomas and Brunskill, 2016; Zhang, Tsiatis, Laber, and Davidian, 2013)
+!
+n
+T 
+ 
+
+X
+X
+1
+(i)
+(i)
+(i)
+(i)
+(i)
+γ̂T (π)Y (i) −
+γ̂t (π) − γ̂t−1 (π) µ̂π S1:t , A1:t−1
+,
+(7)
+VbπDR =
+n i=1
+t=1
+where µ̂π (·) is an estimate of µπ (·), the expected value following policy π conditionally on
+the history up to time t as defined in the previous subsection. This estimator generalizes
+the well known augmented inverse propensity weighted estimator of Robins, Rotnitzky, and
+Zhao (1994) beyond the static case. The doubly robust estimator (7) is consistent if either
+the propensity weights {γ̂t (·)}Tt=1 or the conditional value estimates µ̂π (·) are consistent.
+From an optimization point of view, however, a major limitation of (7) is that evaluating a given policy π requires nuisance components estimates µ̂π (·) that are specific to the
+policy under consideration. This makes policy learning by optimizing VbπDR problematic for
+several reasons. Computationally, maximizing VbπDR for all π in a non-trivial set Π would
+require solving a multitude of non-parametric dynamic programming problems. Meanwhile,
+statistically, standard regret bounds for policy learning rely crucially on the fact that Vbπ is
+continuous in π in an appropriate sense, meaning that two policies are taken to have similar
+values if they make similar recommendations in almost all cases (see, e.g., Athey and Wager,
+2017). But, if µ̂π (·) is learned separately for each π, we have no strong reason to believe
+that two similar policies would necessarily have similar value function estimates.
+
+2.3
+
+Advantage Doubly Robust Policy Learning
+
+The goal of this paper is to develop a new method for learning when-to-treat policies that addresses the shortcomings of both inverse propensity weighting and the doubly robust method
+discussed above. Our main proposal, the Advantage Doubly Robust (ADR) estimator, uses
+an outcome regression like the doubly robust estimator (7) to stabilize and robustify its
+value estimates. However, unlike the estimator (7) which needs to use different outcome
+regressions µ̂π (·) to evaluate each different policy π, ADR only has “universal” nuisance
+components that do not depend on the policy being estimated, leveraging the when-to-treat
+5
+
+(or when-to-stop) structure of the domain. Throughout this paper, we will find that this
+universality property enables us to both effectively optimize our value estimates to learn
+policies and to prove robust utilitarian regret bounds.
+The motivation for our approach starts from an “advantage decomposition” presented
+below. First, define
+
+
+µnow,k (s1:t , t) := E Y S1:t = s1:t , A1:t−1 = 0, At = k ,
+
+
+(8)
+µnext,k (s1:t , t) := E Y S1:t = s1:t , A1:t = 0, At+1 = k ,
+which measure the conditional value of a policy that starts treatment k either now or in the
+next time period, given that we have not yet started any treatment so far. Note that, for any
+when-to-treat policy π as considered in this paper, the expectations in (8) do not depend
+on π because the conditioning specifies all actions from time t = 1 to T . Given policies
+π, π 0 ∈ Π, define ∆(π, π 0 ) = Vπ − Vπ0 to be the difference in value of the two policies.
+Denote the never treating-policy by 0. Then, a result from Kakade (2003, Chapter 5) and
+Murphy (2005) yields the following:
+Lemma 1. For any when-to-treat policy π,
+" T
+#
+X
+∆(π, 0) = E0
+µnow,Wπ (St , t) − µnext,Wπ (St , t) ,
+t=τπ
+
+where, as discussed in Section 2.1, τπ is the time at which π starts treating and Wπ is the
+action taken.
+In Lemma 1, first note that the expectation is taken with respect to the never-treating
+policy 0. To effectively use this decomposition for estimation, we need the following lemma,
+the proof of which
+follows immediately from Lemma
+1 with a change of measure. Recall that
+
+
+et,a (s1:t ) = P At = a S1:t = s1:t , A1:t−1 = 0 denotes the propensity of starting treatment
+a assuming a never-treating history up to time t.
+Lemma 2. Given a policy π ∈ Π, under Assumption 1, 2 and 3,
+#
+" T
+X
+1A1:t−1 =0
+∆(π, 0) = E
+1t≥τπ Qt−1
+(µnow,Wπ (S1:t , t) − µnext,Wπ (S1:t , t)) .
+0
+0
+t0 =1 et ,0 (S1:t )
+t=1
+
+(9)
+
+This representation (9) is at the core of our approach, as it decomposes the relative
+value of any given policy π in comparison to that of the never-treating policy 0 into a sum
+of “local advantages”. For any t, the local advantage
+δlocal,k (s1:t , t) := µnow,k (s1:t , t) − µnext,k (s1:t , t)
+
+(10)
+
+is the relative advantage of starting treatment k at t versus at t + 1 given the the state
+history s1:t . The upshot is that the specification of these local advantages does not depend
+on which policy we are evaluating, so if we get a handle on quantities δlocal,k (s1:t , t) for all
+s and t, we can use (9) to evaluate any policy π.
+Note that the quantity defined in (10) can be seen as a specific treatment effect, namely
+the effect of starting treatment k at time t versus t + 1 among all trajectories that were in
+state s1:t at time t and started treatment k in either time t or t + 1. Given this observation,
+we propose turning (9) into a feasible estimator by replacing all instances of the unknown
+6
+
+regression surfaces δlocal,k (s1:t , t) with doubly robust scores analogous to those used for
+augmented inverse propensity weighting in the static case (Robins and Rotnitzky, 1995).
+More specifically, we propose the following 3-step policy learning algorithm, outlined
+as Algorithm 1. We call our approach the Advantage Doubly Robust (ADR) estimator,
+because it replaces local advantages (10) with appropriate doubly robust scores (12) when
+estimating ∆(π, 0). In the first estimation step in Algorithm 1, we employ cross-fitting
+where we divide the data into Q folds, and only use the Q − 1 folds that a sample trajectory
+does not belong to to learn the estimates of its nuisance components; we use superscript
+−q(i) on a predictor to denote using trajectories of all folds excluding the fold that the
+i-th trajectory belongs to in training a predictor.3 Finally we note that, in addition to
+the treatment propensities et,a
+ estimate “delayed action
+ (s1:t ), our approach requires us to
+propensities” et+,a (S1:t ) = P At = 0, At+1 = a S1:t , A1:t−1 = 0 .
+Algorithm 1: Adantage Doubly Robust (ADR) Estimator
+1
+
+2
+
+First, estimate the outcome models µnow,k (·), µnext,k (·), as well as treatment
+propensities et,a (s1:t ) and “delayed action propensities” et+,a (S1:t ) with cross fitting
+using any supervised learning method tuned for prediction accuracy.
+Second, given these nuisance component estimates, we construct value estimates
+
+1A(i) =0
+1 XX
+(i)
+ˆ
+Ψ̂t,Wπ (S1:t )
+∆(π,
+0) =
+1t≥τπ Qt−1 1:t−1
+(i)
+−q(i)
+n i=1 t=1
+)
+(S
+ê
+0
+0
+0
+n
+
+T
+
+(11)
+
+1:t
+
+t =1 t ,0
+
+for each policy π ∈ Π, where the relevant doubly robust score is
+(i)
+
+−q(i)
+
+−q(i)
+
+(i)
+
+(i)
+
+Ψ̂t,k (S1:t ) = µ̂now,k (S1:t , t) − µ̂next,k (S1:t , t)
+−q(i)
+
++ 1A(i) =k
+
+−q(i)
+
+êt,k
+
+t
+
+− 1A(i) =0 1A(i)
+
+t+1 =k
+
+t
+
+3
+
+(i)
+
+Y (i) − µ̂now,k (S1:t , t)
+
+Y
+
+(i)
+
+(S1:t )
+
+(12)
+
+−q(i)
+(i)
+(i)
+− µ̂next,k (S1:t , t)
+.
+−q(i)
+(i)
+êt+,k (S1:t )
+
+ˆ
+Finally, we learn the optimal policy by setting π̂ = argmaxπ∈Π ∆(π,
+0).
+
+The main strength of this procedure relative to existing doubly robust approaches discussed above (Jiang and Li, 2016; Thomas and Brunskill, 2016; Zhang, Tsiatis, Laber, and
+Davidian, 2013) is that ADR can evaluate any stopping policy using universal scores Ψ̂t,k (·)
+that do not depend on π, thus making the ADR estimator is practical for policy optimization. The specific policy π we are evaluating only enters into (11) by specifying which doubly
+robust scores we should sum over. In particular, the number of nuisance components we
+need to learn in the first step of the ADR procedure scales linearly with the horizon T , but
+not with the complexity of the policy class Π.
+By constructing doubly robust scores Ψ̂t,k (·), the ADR estimator benefits from certain
+3 The idea of cross-fitting has gained growing popularity recently to reduce the effect of own-observation
+bias and to enable results on semiparametric rates of convergence using generic nuisance component estimates
+(Athey and Wager, 2017; Chernozhukov et al., 2016a; Schick, 1986).
+
+7
+
+doubly robust properties; however, it is not doubly robust in the usual sense, e.g. we do not
+robustly correct for the change of measure used to get from the representation in Lemma 1
+to the one in Lemma 2. We discuss the asymptotic behavior of our method in Section 4, and
+find it to achieve optimal rates of convergence if either the inverse propensity weights needed
+to carry out the change of measure in Lemma 2 are known a-priori or, qualitatively, if the
+local advantages are reasonably small relative to the signal strength. In our experiments, we
+learn all the nuisance components in the first step with nonparametric regression methods
+(e.g. boosting, lasso, a deep net, etc.), and then optimize for the best in-class policy by
+performing a grid search over the parameters that define the policies in a policy class of
+interest.
+
+3
+
+Related Works
+
+The problem of learning optimal dynamic sequential decision rules is also called learning
+dynamic optimal regimes (Murphy, 2003; Robins, 2004), adaptive strategies (Lavori and
+Dawson, 2000), or batch off-policy policy learning in the reinforcement learning (RL) literature (Sutton and Barto, 2018). There are a few predominant approaches: the G-estimation
+procedure (Robins, 1989; Robins et al., 1992) learns the Structural Nested Mean Models
+(SNMM) (Robins, 1994) which model the difference in the marginal outcome functions directly. See also Robins (2004); Moodie, Richardson, and Stephens (2007); Murphy (2003);
+Vansteelandt, Joffe, et al. (2014) for a further discussion. Orellana et al. (2006) and van der
+Laan and Petersen (2007) proposed the dynamic marginal structural models (MSM) to
+model the marginal outcome function directly. Under MSM, Robins (1986) proposed using
+the G-computation, which is a maximum likelihood approach for solving the MSM; Robins,
+Hernán, and Brumback (2000) and Precup (2000) proposed using the inverse propensity
+weighting (IPW) approach. Unlike G-estimation or G-computation, we focus on policy
+learning instead of structural parameter estimation, and our proposed approach ADR is
+more data efficient and robust compared to IPW. Finally, Q-learning4 (Watkins and Dayan,
+1992) and the closely related fitted-Q iteration algorithm model the optimal marginal outcome Q functions directly and seek to evaluate the optimal policy by stagewise backwards
+regression (Ernst et al., 2005; Murphy, 2005; Prasad et al., 2017). Our work focuses on finding the best in-class policy in a pre-defined policy class, whereas fitted-Q iteration focuses
+on finding the best policy by learning Q functions associated with the optimal policy, which
+might not fall into the predefined policy class. The two approaches are complementary, and
+the ADR estimator shines when there are predefined structural constraints on the policy
+class (e.g. for ease of interpretability, budget constraints, etc.). We note that the fitted-Q
+iteration algorithm can be adapted to learn the value of an arbitrary policy by learning the
+Q functions associated with this policy. However, this makes optimization over a policy
+class intractable, as we would need to estimate separate Q functions for each policy in the
+class. For more discussion on the comparison of the existing approaches, see Chakraborty
+and Moodie (2013); Moodie et al. (2007); Robins et al. (2008); Vansteelandt et al. (2014).
+Considerable progress has been made in learning good models for the value functions
+and combining them with propensity models in doubly robust forms. On the RL side, there
+has been extensive work focused on learning good models (Farajtabar et al., 2018; Hanna
+4 The fitted-Q iteration algorithm in reinforcement learning is a batch algorithm, and is also called Qlearning in the causal inference and biostatistics literature. This is not to be confused with Q-learning in
+the reinforcement learning literature, which is an online-version of the batch-mode fitted-Q algorithm.
+
+8
+
+et al., 2017; Liu et al., 2018b). Guo et al. (2017) focuse reducing the mean-squared error in
+policy evaluation in long horizon settings. Ernst et al. (2005) and Ormoneit and Sen (2002)
+study approximating the Bellman operator using empirical estimates with kernel averagers,
+and Haskell et al. (2016) focuses on the case with discrete state spaces. Recently Doroudi
+et al. (2017) has shown that learning high-quality and fair policy decisions is nontrivial
+from inverse propensity weighting based policy evaluation methods. Adaptions of actorcritic (Degris et al., 2012) and Gaussian processes (Schulam and Saria, 2017) have been
+proposed for the off-policy setting as well. Finally, there has been a line of work that builds
+doubly-robust estimators that combines the model based estimators with inverse propensity
+weighting based estimates to improve robustness (Dudı́k, Langford, and Li, 2011; Jiang and
+Li, 2016; Liu, Wang, Kosorok, Zhao, and Zeng, 2018c; Thomas and Brunskill, 2016; Zhang,
+Tsiatis, Laber, and Davidian, 2013; Zhao, Zeng, Laber, Song, Yuan, and Kosorok, 2014).
+We note that the closest works to ours are Jiang and Li (2016), Thomas and Brunskill (2016)
+and Zhang, Tsiatis, Laber, and Davidian (2013), with the key difference that our proposal
+has universal scores and nuisance components for all policies in a policy class, and thus
+is practical for policy optimization, whereas it is unclear yet if this is possible for generic
+Markov Decision Process settings considered in these works.
+Among prior work from the RL community that directly tries to learn an optimal value
+function and policy, formal bounds on the optimality of the resulting policy tend to require
+that the true value function is realizable by the regressor function used to model the value
+function in order to obtain good rates and consistent estimators (e.g., Chen and Jiang,
+2019; Le, Voloshin, and Yue, 2019; Munos and Szepesvári, 2008). Such results also require
+a bound on the concentratability coefficient (Munos, 2003), which measures the ratio of
+the state action distribution of a policy to the state-action distribution under the behavior
+policy, for any behavior policy (e.g., Chen and Jiang, 2019; Le, Voloshin, and Yue, 2019;
+Munos and Szepesvári, 2008) – this can be viewed as a similar analogue to the covering
+requirements in our Assumption 3. To our knowledge, there are no regret bounds on batch
+direct policy search and optimization: recent work provides convergence guarantees for batch
+policy gradient, but no regret bounds (Liu et al., 2019).
+In the special case of offline policy learning in a single timestep where a policy only needs
+to decide whether to treat a subject but not when, substantial progress has been made in how
+to derive an optimal regret and performing optimization in finding the optimal policy (Athey
+and Wager, 2017; Kallus and Zhou, 2018; Kitagawa and Tetenov, 2018; Swaminathan and
+Joachims, 2015; Zhang, Tsiatis, Davidian, Zhang, and Laber, 2012; Zhao, Zeng, Rush, and
+Kosorok, 2012; Zhou, Athey, and Wager, 2018; Zhou, Mayer-Hamblett, Khan, and Kosorok,
+√
+2017). In particular, Kitagawa and Tetenov (2018) establishes a lower bound Ω(1/ n)
+on learning the regret in the case of binary treatment. Athey and Wager (2017) and Zhou
+et al. (2018) show a matching upperbound assuming the nuisance components can be learned
+at a much slower rate in the settings where the treatment consists of binary actions and
+multiple actions respectively. Extending this line of result to sequential multi-step settings
+is nontrivial for several reasons: First, it is unclear how to optimize efficiently across all
+policies in a policy class, especially given the increasing complexity with long horizons.
+Second, the regret results used in Athey and Wager (2017) and Zhou et al. (2018) rely on a
+chaining argument in which the special form of the estimator ensures values of policies close
+to each other is close. It is not obvious whether existing doubly-robust estimators in the
+sequential settings (e.g., Thomas and Brunskill, 2016; Zhang, Tsiatis, Laber, and Davidian,
+2013) have such a form.
+We note that there is a vast literature in optimal stopping (Goel et al., 2017; Jacka,
+
+9
+
+1991; Mordecki, 2002; Van Moerbeke, 1976). In optimal stopping, the treatment choices are
+binary, i.e. whether to stop or not, and the goal is to optimize for a policy for when to start
+or stop a treatment. In our setup, we assume multiple treatment actions are allowed. Many
+existing works in optimal stopping (e.g. in finance) focus on the setup where a generator
+is available for the system dynamics, or the full potential outcomes are available in the
+training data. In our setup, we assume neither, and the policies of interest only make
+treatment decisions given data observed thus far.
+The problem of learning optimal decision rules is also closely related to learning heterogeneous treatment effects (Athey and Imbens, 2016; Athey, Tibshirani, Wager, et al., 2019;
+Chen, 2007; Künzel, Sekhon, Bickel, and Yu, 2019; Nie and Wager, 2017; Wager and Athey,
+2017). In both problems, the goal is to learn individualized treatment effect and decision
+rules, but the type of estimands differ in that instead of learning a nonparametric function
+of the treatment effects, here we learn decision rules in a policy class.
+Finally, we note that while we focus on the finite horizon setting, there is a large literature
+in policy evaluation in the infinite horizon setting (see Antos et al. (2008a,b); Liu et al.
+(2018a); Luckett et al. (2019); Munos and Szepesvári (2008) and references therein), and
+in the online setting (see Shah and Xie (2018) and references therein). Both cases are
+considerably different from ours and are beyond the scope of this work.
+In this paper, we focus on the problem of making treatment decisions once and for all
+and with multiple actions at the decision point, which we note is a strict generalization
+of the setting in Zhou et al. (2018). We propose an advantage doubly robust estimator
+that draws upon the semiparametrics and orthogonal moments literature (Belloni et al.,
+2014; Chernozhukov et al., 2016a; Newey, 1994; Robins and Rotnitzky, 1995; Scharfstein
+et al., 1999). There is also a growing number of existing works that have applied orthogonal
+moments construction to policy evaluation (Belloni et al., 2017; Chernozhukov et al., 2016b;
+Kallus, 2018).
+Finally, our proposed estimator heavily relies on an advantage decomposition in Murphy
+(2005). Murphy (2005) focuses on the generalization error on a variant of Q-learning, and
+we turn such a decomposition into a practical and efficient estimator for learning policy
+values.
+
+4
+
+Asymptotics
+
+In this section, we study large-sample behavior of the advantage doubly robust estimator
+proposed in Section 2.3 for policy learning over a class Π. As is now standard in the literature
+(e.g., Athey and Wager, 2017; Kitagawa and Tetenov, 2018; Manski, 2004; Swaminathan and
+Joachims, 2015), our main goal is to prove a bound on the utilitarian regret R of the learned
+policy π̂, where
+R (π̂) = sup {V (π) : π ∈ Π} − V (π̂) .
+(13)
+In order to do so, we follow the high-level proof strategy taken by Athey and Wager (2017) for
+studying static doubly robust policy learning: We first consider the behavior of an “oracle”
+learner who runs our procedure but with perfect estimates of the nuisance components
+µnow,k (·), µnext,k (·), et,k (·) and et+,k (·), then we couple the behavior of our feasible estimator
+that uses estimated nuisance components with this oracle.
+Following this outline, recall that our approach starts by estimating the policy value
+difference ∆(π, 0) between deploying policy π and the never treating policy 0. The oracle
+
+10
+
+b
+variant of our estimator ∆(π,
+0) is then
+
+1A(i) =0
+1 XX
+(i)
+˜
+1t≥τπ Qt−1 1:t−1
+Ψ̃t,Wπ (S1:t ),
+∆(π,
+0) =
+n i=1 t=1
+0
+0
+e
+(S
+)
+1:t
+t0 =1 t ,0
+n
+
+T
+
+(14)
+
+where
+(i)
+
+(i)
+
+(i)
+
+Ψ̃t,k (S1:t ) = µnow,k (S1:t , t) − µnext,k (S1:t , t)
++ 1A(i) =k
+
+(i)
+
+Y (i) − µnow,k (S1:t , t)
+(i)
+
+Y
+
+− 1A(i) =0 1A(i)
+
+(i)
+
+t+1 =k
+
+t
+
+(15)
+
+et,k (S1:t )
+
+t
+
+(i)
+− µnext,k (S1:t , t)
+.
+(i)
+et+,k (S1:t )
+
+We name Equation (14) the oracle estimator since we assume µnow,k , µnext,k , et,k , et+,k for
+t = 1, · · · , T and k = 0, 1, · · · , K take ground-truth values in Equation (15).
+Because the nuisance components in (14) are known a-priori, we can use a standard
+central limit theorem argument to verify the following:
+Lemma 3. Suppose that Assumptions 1, 2, and 3 hold,
+√
+˜
+n(∆(π,
+0) − ∆(π, 0)) ⇒ N (0, Ωπ ),
+#
+" T
+1A(i) =0
+X
+(i)
+1:t−1
+Ψ̃t,Wπ (S1:t ) .
+where Ωπ = Var
+1t≥τπ Qt−1
+(i)
+0
+t=1
+t0 =1 et ,0 (S1:t0 )
+
+(16)
+
+Next, we show that the rate of convergence suggested by (16) is in fact uniform over the
+whole class Π under appropriate bounded entropy conditions, thus enabling a regret bound
+for the oracle learner that gets to optimize (14).
+We start by introducing a few more notations. Let H = {S1:T , A1:T } be the entire
+history of a trajectory. For ease of regret analysis, we redefine policy π as a mapping from
+H to a length KT + 1 vector of all zeros except for an indicator 1 at one position in the
+probability simplex ∆KT +1 , i.e.
+π : S T AT → ∆KT +1 .
+
+(17)
+
+For all 1 ≤ t ≤ T and 1 ≤ k ≤ K, having an indicator 1 at the (K(t − 1) + k)-th position
+corresponds to policy π starting k-th treatment at time t, and having the indicator 1 in the
+last element of the vector indicates that policy π never starts treatment.
+Given the new vector form representation of the policy function π maps to an indicator
+vector of length KT + 1, we can rewrite the oracle empirical estimate of the value difference
+function as follows: for π, π 0 ∈ Π,
+n
+
+1X
+˜
+∆(π,
+π0 ) =
+hπ(H (i) ) − π 0 (H (i) ), Γ̃(i) i
+n i=1
+
+(18)
+
+where Γ̃(i) is a vector with entries corresponding to each action sequence, i.e. if π(H (i) ) =
+eK(t−1)+k for 1 ≤ t ≤ T and 1 ≤ k ≤ K, where em ∈ ∆KT +1 is the indicator vector with
+the m-th position 1, and all others 0, then
+(i)
+
+Γ̃K(t−1)+k =
+
+T
+X
+t0 =t
+
+1A(i) 0
+
+1:(t −1)
+
+Qt0 −1
+
+t00 =1
+
+e
+
+11
+
+t00 ,0
+
+=0
+
+(i)
+(S1:t00 )
+
+(i)
+
+Ψ̃t,k (S1:t0 ),
+
+(19)
+
+h
+i
+(i)
+˜
+and Γ̃KT +1 = 0. We can similarly let ∆(π, π 0 ) = E ∆(π,
+π 0 ) be the population quantity
+for the difference in value between the two polices π and π 0 .
+Let the Hamming distance between any two policies π, π 0 be
+n
+
+dh (π, π 0 ) =
+
+1X
+1 (i) 0 (i) .
+n i=1 π(H )6=π (H )
+
+Define the ε-Hamming covering number of Π as
+o
+o
+n
+
+n
+H (1) , · · · , H (n) ,
+Ndh (ε, Π) = sup Ndh ε, Π, H (1) , · · · , H (n)
+
+
+where Ndh ε, Π, H (1) , · · · , H (n)
+is the smallest number of policies π (1) , π (2) , · · · , ∈ Π
+(i)
+such that ∀π ∈ Π, ∃π such that dh (π, π (i) ) ≤ ε. Define the entropy integral κ(Π) =
+R1p
+log Ndh (ε2 , Π)dε. For a policy class of interest Π we consider, the assumption below
+0
+implies that κ(Π) < ∞.
+Assumption 4. ∀0 < ε < 1, Ndh (ε, Π) ≤ C exp(D( 1ε )ω ) for some constant C, D ≥ 0,
+0 < ω < 0.5.
+Example 1 (The class of linear thresholding policies). In the case of linear thresholding
+policies with binary actions |A| = 2, i.e. {π ∈ Π : τπ = min(t : θ> S1:t > 0)} where
+θ ∈ Rd , we note that by Haussler (1995), the covering number of a policy class for singlestep decision-making is bounded by NL1 (Pn ) (ε, Πt ) ≤ cV C(Πt ) expV C(Πt ) (1/ε)V C(Πt ) where
+V C(Πt ) is the VC dimension of Πt , the linear thresholding policy class at time t, and c is
+some numerical constant. Thus, with a different constant c, NL1 (Pn ) (ε, Πt ) ≤ cded (1/ε)d .
+By taking a cartesian product of the covering at each timestep and with a union bound
+on the error incurred at each timestep, we achieve a strict upperbound on Ndh (ε, Π) <
+cdT edT (T /ε)2dT for a (again different) constant c, and so κ(Π) < cdT log(T ). We note that
+this is a fairly loose bound and we conjecture that bounds on κ(Π) with a better dependence
+on T may be available.
+Following the argument of Zhou et al. (2018, Lemma 2), we can show that if κ(Π) < ∞,
+the rate of convergence in (16) in fact holds uniformly over the whole class Π for the oracle
+˜
+estimator ∆(π,
+π 0 ).
+Lemma 4. Under Assumptions 1-4, for any δ, c > 0, there exists 0 < ε0 (δ, c) < ∞ and
+universal constants 0 < c1 , c2 < ∞ such that for all ε < ε0 (δ, c), if we collect at least n(ε, δ)
+samples, with
+s
+ !!2
+√
+1
+1
+n(ε, δ) = 2 c + V ∗ c1 κ(Π) + c2 + 2 log
+(20)
+ε
+δ
+h
+i
+where V ∗ = supπ,π0 ∈Π E hπ(H (i) ) − π 0 (H (i) ), Γ̃(i) i2 , then, with probability at least 1 − 2δ,
+sup
+
+˜
+∆(π,
+π 0 ) − ∆(π, π 0 ) ≤ ε
+
+(21)
+
+π,π 0 ∈Π
+
+˜
+and, moreover, letting π̃ = argmax{∆(π,
+0) : π ∈ Π} be the policy learned by optimizing the
+oracle objective (14), we have with probability at least 1 − 2δ, R(π̃) ≤ ε.
+12
+
+Our goal is to get a comparable regret bound using the feasible estimator from (11) in
+Algorithm 1 that uses estimated nuisance components by coupling the feasible value estimates with the oracle ones. We establish our coupling result in terms of rates of convergence
+on the nuisance components, as follows.
+−q(i)
+
+Assumption 5. We work with a sequence of problems and estimators such that µ̂now,k ,
+−q(i)
+
+−q(i)
+
+µ̂next,k , êt,k
+
+−q(i)
+
+−q(i)
+
+, êt+,k , êt,0
+sup E
+
+
+
+k,t
+
+sup E
+
+
+
+k,t
+
+sup E
+k6=0,t
+
+satisfy for some universal constants Cµ , Ce , Ce0 , κµ , κe , κe0 ,
+2 
+− µnow,k (S1:t , t)
+≤ Cµ n−2κµ ,
+
+(22)
+
+2 
+−q(i)
+µ̂next,k (S1:t , t) − µnext,k (S1:t , t)
+≤ Cµ n−2κµ ,
+
+(23)
+
+−q(i)
+µ̂now,k (S1:t , t)
+
+
+2 
+−q(i)
+êt,k (S1:t ) − et,k (S1:t )
+≤ Ce n−2κe ,
+
+
+2 
+−q(i)
+sup E êt+,k (S1:t ) − et+,k (S1:t )
+≤ Ce n−2κe ,
+
+(24)
+(25)
+
+k6=0,t
+
+sup E
+t
+
+
+
+−q(i)
+
+êt,0
+
+(S1:t ) − et,0 (S1:t )
+
+2 
+
+≤ Ce0 n−2κe0 .
+
+(26)
+
+Moreover, motivated by the observation that, in problems of interest, treatment effects are weak relative to the available sample size, we allow for problem sequences where
+treatment effects can shrink with sample size n. In contrast, in regimes where treatment effects stay constant when the sample size grows, super-efficiency phenomena are unavoidable
+(Luedtke and Chambaz, 2017). Recall the definition of δlocal,k defined in (10).
+Assumption 6. For some universal constants Cδ , κδ ,
+ 2
+
+sup E δlocal,k
+(S1:t , t) ≤ Cδ n−2κδ
+
+(27)
+
+t,k
+
+Lemma 5. Suppose that Assumptions 1-6 hold. Then, for any δ, c > 0, there exists universal constants 0 < c1 , c2 < ∞ and 0 < ε0 (c, δ) < ∞ such that for all ε < ε0 (δ, c), with
+probability at least 1 − 13δ,
+ˆ
+˜
+π 0 ) − ∆(π,
+π0 ) ≤ ε
+sup ∆(π,
+
+(28)
+
+π,π 0
+
+provided we collect at least n(ε, δ) samples, where
+n(ε, δ) = max{n1 (ε, δ), n2 (ε, δ), n3 (ε, δ), n4 (ε, δ), n5 (ε, δ), n6 (ε, δ)}
+
+13
+
+(29)
+
+with
+n1 (ε, δ) =
+
+12
+ε
+
+n2 (ε, δ) =
+
+12
+ε
+
+2
+! 1+2κ
+!
+ 
+µ
+p
+1
+e2η0
+c1 κ(Π) + 2 log
++ c2
+Cµ T
+,
+(30)
+δ
+η
+2
+s
+! 1+2 min(κ
+!
+ 
+e0 ,κe )
+p
+1
+e4η0 2.5
+c1 κ(Π) + 2 log
+,
++ c2
+max(Ce , Ce0 ) 2 T
+δ
+η
+
+s
+
+(31)
+
+n3 (ε, δ) =
+
+12
+εδ
+
+q
+Ce0 Cµ e8η0 T
+
+1
+e0 +κµ
+
+κ
+
+,
+
+s
+
+e8η0
+n4 (ε, δ) =
+max(Ce0 , Ce )Cµ 4 T 5
+η
+1
+ q
+ κ +κ
+e0
+δ
+6
+,
+n5 (ε, δ) =
+Ce0 Cµ e8η0 T
+εδ
+ 2
+6c
+n6 (ε, δ) =
+ε
+12
+εδ
+
+(32)
+! min(κe
+
+1
+,κe )+κµ
+
+0
+
+,
+
+(33)
+
+(34)
+(35)
+
+Combining the above with Lemma 4, we immediately have the following finite-sample
+bound for the regret on the feasible estimator.
+n
+o
+ˆ
+Theorem 6. Let π̂ = argmax ∆(π,
+0) : π ∈ Π be the policy learned by optimizing the
+feasible objective (11). Under Assumptions 1-6, for any δ, c > 0, there exists 0 < ε0 (δ, c) <
+∞ and universal constants 0 < c1 , c2 < ∞ such that for all ε < ε0 (δ, c), with probability at
+least 1 − 15δ
+sup
+
+ˆ
+∆(π,
+π 0 ) − ∆(π, π 0 ) ≤ 2ε
+
+(36)
+
+π,π 0 ∈Π
+
+and hence with probability at least 1 − 15δ,
+R(π̂) ≤ 2ε
+
+(37)
+
+provided we collect at least n(ε, δ) samples, where
+
+n(ε, δ) = max
+
+1
+ε2
+
+√
+c+
+
+s
+V∗
+
+c1 κ(Π) + c2 +
+
+ !!2
+1
+2 log
+, n1 (ε, δ), n2 (ε, δ), n3 (ε, δ),
+δ
+
+
+n4 (ε, δ), n5 (ε, δ), n6 (ε, δ)
+
+(38)
+
+h
+i
+with V ∗ = supπ,π0 ∈Π E hπ(H (i) ) − π 0 (H (i) ), Γ̃(i) i2 , and n1 (ε, δ), · · · , n6 (ε, δ) defined as in
+Lemma 5.
+The following corollary immediately follows once we assume specific learning rates on
+the nuisance components:
+14
+
+Corollary 7. Assume κµ , κe , κe0 > 0, min(κe , κe0 ) + κµ > 21 , κe0 + κδ > 12 . Suppose
+Assumptions 1-6 hold. For any δ, c > 0, there exists 0 < ε0 (δ, c) < ∞ and universal
+constants 0 < c1 , c2 < ∞ such that for all ε < ε0 (δ, c), with probability at least 1 − 15δ
+ˆ
+∆(π,
+π 0 ) − ∆(π, π 0 ) ≤ 2ε
+
+sup
+
+(39)
+
+π,π 0 ∈Π
+
+and hence with probability at least 1 − 15δ,
+R(π̂) ≤ 2ε
+
+(40)
+
+provided we collect at least n(ε, δ) samples, where
+1
+n(ε, δ) = 2
+ε
+
+s
+
+√
+c+
+
+V
+
+∗
+
+c1 κ(Π) + c2 +
+
+ !!2
+1
+2 log
+δ
+
+(41)
+
+h
+i
+with V ∗ = supπ,π0 ∈Π E hπ(H (i) ) − π 0 (H (i) ), Γ̃(i) i2 .
+Our result above can be interpreted in several different regimes. First, we note that we
+can reach the optimal sample complexity n ∼ ε−2 if either (a) the probabilities of starting
+the treatment et,0 are known, and we can consistently estimate µnow,k and µnext,k ; or (b) the
+signal size of the advantages is null (i.e. µnow,k (S1:t , t) − µnext,k (S1:t , t) = 0) or is weak (in
+the sense that κδ > 0 and et,0 can be learned at a rate such that κδ + κe0 > 1/2), and we can
+consistently estimate µnow,k , µnext,k , et,0 , et,k and et+,k such that min(κe , κe0 ) + κµ > 1/2.
+Conversely, if the treatment effects are of a fixed size (i.e. kδ = 0), and we don’t know
+the treatment starting probabilities et,0 a priori, then we pay a price for not being robust
+to the change of measure from Lemma 1 to Lemma 2, and we no longer achieve the optimal
+rate. The term that hurts us is n5 (ε, δ) which arises from the interaction of how we use
+inverse propensity weighting for the treatment starting probabilities and the signal size of
+the advantages. If advantages are small, this won’t matter for smaller target error rates ε,
+but requires a bigger sample size when we aim for very small ε.
+Finally, we emphasize that under the assumptions in Corollary 7, we note that the
+feasible regret optimizer is able to match the strength of the oracle regret optimizer, even if
+the nuisance components are estimated at a much slower rate. Under these conditions,
+q
+
+
+∗
+R(π̂) = Op
+V κ(Π) n .
+(42)
+In the
+p case of linear thresholding policies following Example 1, the regret becomes R(π̂) =
+Op ( V ∗ dT log(T ) / n).
+
+5
+
+Experiments
+
+We consider two different simulation studies. In the first simulation, we consider the optimal stopping case in which the treatment decision is binary and the treatment assignment
+propensities are not known a-priori. In the second simulation, the data are generated from a
+randomized control trial with known treatment assignment propensities but there are multiple treatment options, and we want to learn when to start which treatment. Both setups
+
+15
+
+employ linear thresholding policy rules. In our implementation, we use the normalized variant of the IPW estimator V̂πWIPW as presented in Section 2.2, and also use a correspondingly
+ˆ W in Step 2 of Algorithm 1:
+normalized ADR estimator ∆
+
+ˆ W (π, 0) =
+∆
+
+T
+X
+
+Pn
+
+1A(i)
+
+1:t−1
+
++
+
+Pn
+
+−
+
+1A(i)
+
+1:t−1
+
+=0
+
+i=1 Qt−1 ê−q(i) (S (i) )
+1:t0
+t0 =1 t0 ,0
+
+1:t−1
+
+=0
+
+1A(i) =k
+
+
+
+t
+
+i=1 Qt−1 ê−q(i) (S (i) )ê−q(i) (S (i) )
+1:t
+t,k
+1:t0
+t0 =1 t0 ,0
+
+1A(i)
+
+Pn
+
+t=1
+
+T
+X
+
+1A(i)
+
+
+
+(i)
+−q(i)
+(i)
+1t≥τπ µ̂−q(i)
+now,k (S1:t , t) − µ̂next,k (S1:t , t)
+
+Pn
+
+t=1
+
+T
+X
+
+
+
+=0
+
+i=1 Qt−1 ê−q(i) (S (i) )
+1:t0
+t0 =1 t0 ,0
+
+
+
+(i)
+1t≥τπ Y (i) − µ̂−q(i)
+now,k (S1:t , t)
+
+1:t−1
+
+=0
+
+(43)
+
+1A(i) =k
+t
+
+i=1 Qt−1 ê−q(i) (S 0 )ê−q(i) (S (i) )
+1:t
+1:t
+t,k
+t0 =1 t0 ,0
+
+Pn
+
+1A(i) =0 1A(i)
+1:t
+
+t+1
+
+
+
+=k
+
+i=1 Qt−1 ê−q(i) (S 0 )ê−q(i) (S (i) )
+1:t
+1:t
+t+,k
+t0 =1 t0 ,0
+
+t=1
+
+(i)
+1t≥τπ Y (i) − µ̂−q(i)
+next,k (S1:t , t)
+
+1A(i) =0 1A(i)
+
+Pn
+
+1:t
+
+t+1
+
+
+
+=k
+
+i=1 Qt−1 ê−q(i) (S 0 )ê−q(i) (S (i) )
+1:t
+1:t
+t+,k
+t0 =1 t0 ,0
+
+For simplicity, we will refer to them as IPW and ADR respectively in this section.
+In addition, we also compare the ADR estimator against fitted-Q iteration. We define the
+optimal conditional value function at time t as µ∗t (s1:t , a1:(t−1) ) = maxπ µπ,t (s1:t , a1:(t−1) ),
+
+and the optimal Q-function at time t as Q∗t (s1:t , a1:t ) = E µ∗t+1 (S1:(t+1) , A1:t ) S1:t = s1:t , A1:t = a1:t .
+Specifically, the variant of fitted-Q iteration we implement follows the Batch Q-learning algorithm as described in (Murphy, 2005) for solving the optimal Q function at each timestep:
+At each t = T, T − 1, · · · , 1, we solve
+Q̂∗t (·, ·)
+
+= argminQt
+
+2
+n 
+1X
+(i)
+(i)
+(i)
+(i)
+∗
+, {A1:t , at+1 }) − Qt (S1:t , A1:t )
+max Q̂ (S
+n i=1 at+1 t+1 1:(t+1)
+
+(44)
+
+where we let Q̂∗T +1 = Y (i) .
+We note that fitted-Q iteration is an iterative backwards regression based algorithm
+targeted at learning the optimal policy by learning the corresponding optimal Q functions,
+whereas our goal is to learn the best in-class policy given a user-defined policy class. We implemented the fitted-Q iteration using gradient boosting (See XGboost in Chen and Guestrin
+(2016)) for each of the stagewise regressions using the full history up to each time step. We
+next present results using all three methods, and discuss in length the comparison between
+ADR and fitted-Q iteration at the end of this section.
+
+5.1
+
+Binay Treatment Choices in an Observational Study
+
+Our first simulation is motivated by a setting where we track a health metric and get a
+reward if the health metric is above a threshold at T = 10. The treatment provides a
+positive nudge to the health metric at a cost. We start with treatment on, and need to
+choose when to stop to minimize cost while trying to keep the health metric stay above the
+
+16
+
+threshold. The data generating process is as follows:
+
+2
+X1 ∼ N (0, σ ), Xt+1 Xt , At ∼ 1Xt ≥−0.5 N Xt +
+St
+
+σ2
+1
+A
+,
+t
+1 + e0.3Xt
+2T
+
+
+
++ 1Xt <−0.5 Xt
+
+T
+1X
+Xt ∼ N (Xt , ν ), Y = β 1ST +1 >0 −
+At .
+T t=1
+2
+
+with the stopping action At Xt ∼ Bernoulli(1−1/(1+e−(Xt −1.5) −e−(t−3) )). We note that
+Y is the final outcome we’d like to maximize. We also do not assume Markovian structure
+and only get to observe St , which is a noisy version of the underlying state Xt .
+In this setup, we learn the propensity score at each stage via a lasso (Tibshirani, 1996)
+with a 5-degree spline basis expansion and pairwise interactions, and learn the conditional
+expectations of the outcome µnow,k and µnext,k using the R-learner with gradient boosting
+as proposed in Nie and Wager (2017). The R-learner is designed for learning the single-step
+treatment effects (e.g. µnow,k − µnext,k ) without assuming any parametric functional forms,
+and has shown promising empirical performance. We note that we could also use any other
+off-the-shelf estimators to learn the regression adjustments. In our implementation, both
+the propensity and outcome regressions only use the current state and action information
+as opposed to the full history even though the underlying dynamic is not Markovian. We
+parameterize the policy class of interest by [θ1 , θ2 , θ3 ] and define each policy to be a linear
+thresholding rule θ1 St ≥ θ2 t + θ3 such that whenever this holds, we stop the treatment. We
+then perform a grid search over a range of values for the policy parameters, with the grid
+specified in Appendix B.
+For each of the parameter combinations, we run ADR and IPW to estimate the value
+of the corresponding policy. The average mean-squared error (MSE) of each of the policy
+values across all policies in the policy class is then computed against an oracle evaluation by
+using a Monte-Carlo rollout of the policy using the underlying transition dynamics averaged
+across 30000 times. We vary β, σ, and the observation noise ν and plot the regret and the
+average mean-squared error of policy value estimates. In Figure 1, we have used σ = 3, β = 2
+and ν = 0.5, and we compare the performance of ADR against IPW and fitted-Q iteration
+with varying number of offline trajectories. We note that IPW and ADR first evaluate the
+values of the policies in the policy class, and so we plot the MSE of their policy estimates
+averaged across all policies in the policy class in the right plot; it is not applicable for FittedQ which seeks to learn the optimal policy directly. We present the tables of raw results for
+varying values of σ, β and ν in Table 1-4 in Appendix B. ADR shows a clear advantage in
+both regret and learning the correct value of policies, whereas fitted-Q tends to have strong
+inductive bias in small sample regimes but is not able to benefit from moderately large
+sample sizes as well as the other two methods.
+
+5.2
+
+Multiple Treatment Choices
+
+In the second setup, we consider multiple treatment choices. Our design here is motivated
+by a healthcare setting where, once a doctor starts treatment, they can choose between a
+more effective but more invasive treatment with strong side effects, or a less effective but less
+invasive treatment. More specifically, imagine a cancer patient’s state at time t is modeled
+by Xt , Yt and Z, where Xt is the general health state, Yt is the state of a tumor, and Z
+is not time-dependent but models the category of the patients for which lifespan differs. In
+particular, if Z = 0, a patient always dies immediately; if Z = 1, a patient always survives
+17
+
+●
+●
+
+−1
+
+−2.0
+
+●
+
+●
+●
+●
+
+log(regret)
+
+●
+
+−2.5
+
+●
+
+●
+●
+
+−2
+
+●
+●
+
+log(mse)
+
+●
+
+method
+
+●
+
+●
+●
+
+−3.0
+
+●
+
+ADR
+IPW
+Fitted−Q
+
+●
+
+●
+
+method
+
+●
+●
+
+−3
+
+●
+●
+●
+
+●
+
+ADR
+IPW
+
+−4
+
+−3.5
+
+●
+●
+●
+●
+
+−5
+
+−4.0
+300
+
+1000
+
+3000
+
+300
+
+1000
+
+n
+
+3000
+
+n
+
+Figure 1: We compare the performance of ADR in comparison to IPW and fitted-Q iteration
+using σ = 3, β = 2 and ν = 0.5 in the binary treatment setup. We plot the regret (left
+figure) relative to the best in-class policy and the average mean-squared error (right figure)
+of the value estimates for policies in the same policy class across all policies (both in logscale). In the regret plot, we have also plotted the standard error bars. In the mean-squared
+error (MSE) plot, the MSE for each policy is computed against an oracle evaluation using a
+Monte-Carlo rollouts using the underlying transition dynamics averaged across 30000 runs.
+Both the regret and MSE results are averaged across 200 runs. The x-axis shows the number
+of offline trajectories we generate in the observational data.
+until the end of a trial; if Z = 2, the patient’s lifespan has a strong dependency on Yt ,
+which we detail below. There are two treatment choices, one non-invasive (At = 1) and
+one invasive (At = 2). The non-invasive option lessens the severity of the tumor, and the
+invasive option completely removes the tumor, but exacerbates a patient’s general health
+conditions. The final outcome is denoted R, which is the lifetime of a patient, and we seek a
+policy π that maximizes Eπ [R]. We consider horizon T = 10. The data generating process
+is as follows:
+X1 ∼ Exp(1)
+
+Y1 ∼ 0.5Exp(3)
+
+Z = 1 : Lt+1 = 0,
+
+Z ∼ M ultinomial(0.3, 0.3, 0.4)
+
+L1 = 1
+
+Z = 2 : Lt+1 = 1
+
+Z = 3 : Lt+1 = 0 if Lt = 0; otherwise, Lt+1 ∼ Bernoulli(1Yt ≤5 exp(−0.02Yt ) + 15<Yt ≤14 exp(−0.06Yt ))
+At = 0 : Xt+1 = |Xt + σt |
+
+Yt+1 = |Yt + 0.5Xt + σt |
+
+At = 1 : Xt+1 = |Xt + σt |
+
+Yt+1 = |0.5Yt + σt |
+
+At = 2 : Xt+1 = Xt + max(Xt2 , 1.5Xt ) + σt − Xt
+Xt0
+
+= max (0, min (Xmax , Xt + ν)) ,
+
+R = min{t : Lt = 0} − 1,
+
+Yt0
+
+Xmax = 10,
+
+Yt+1 = 0
+
+= max (0, min (Ymax , Yt + ν))
+Ymax = 16,
+
+σt ∼ N (0, 0.25),
+
+ν ∼ N (0, σ 2 )
+
+where Lt is an indicator for whether the patient is alive at time t.
+In this setting, the treatment assignment mechanism is based on sequential randomization in the data such that there are roughly equal number of trajectories that start treating
+at each time with either treatment option. Note that the states we observe is Xt0 and Yt0 ,
+which is the original states added with noise, making our setup non-Markovian. We con18
+
+●
+●
+
+−2.0
+
+0
+
+●
+
+●
+
+●
+●
+
+●
+
+●
+
+−2.5
+
+●
+●
+
+●
+●
+
+−1
+
+●
+
+●
+
+method
+●
+●
+
+●
+
+●
+
+ADR
+IPW
+Fitted−Q
+
+log(mse)
+
+log(regret)
+
+●
+●
+
+method
+
+●
+
+−2
+
+●
+
+●
+
+●
+
+ADR
+IPW
+
+●
+●
+
+●
+
+−3.0
+
+−3
+●
+●
+
+−4
+300
+
+1000
+
+3000
+
+●
+
+300
+
+n
+
+1000
+
+3000
+
+n
+
+Figure 2: We compare the performance of ADR in comparison to IPW and fitted-Q iteration
+in the multiple treatment setup. We plot the regret (left figure) relative to the best in-class
+policy and the average mean-squared error (right figure) of the value estimates for policies
+in the same policy class across all policies (both in log-scale). In the regret plot, we have
+also plotted the standard error bars. In the mean-squared error (MSE) plot, the MSE for
+each policy is computed against an oracle evaluation using a Monte-Carlo rollouts using
+the underlying transition dynamics averaged across 30000 runs. Both the regret and MSE
+results are averaged across 200 runs. The x-axis shows the number of offline trajectories we
+generate in the observational data.
+
+sider the following linear thresholding class: θ1 Xt0 + θ2 Yt0 + θ3 t ≥ θ4 is the region in which
+we start treatment. If in addition, θ5 Xt0 + θ6 Yt0 + θ7 t ≥ θ8 , we use the invasive treatment
+and otherwise, use the non-invasive treatment. We search over the eight parameters in the
+policy class with a grid search, with details in Appendix B. We again employ the R-learner
+with gradient boosting to learn the regression adjustment using only the current state and
+action, but do not need to estimate the propensities as we assume this setup is a sequentially
+randomized trial. Like in the previous setup, we use the full history up to each time t for
+the Q-function regressions in fitted-Q with gradient boosting.
+We compare running the ADR policy optimization procedure (as shown in Section 2.3)
+against IPW and fitted-Q iteration. Like the binary-action setup, we again estimate the
+oracle value of all policies in the policy class with a Monte-Carlo rollouts averaged across
+30000 times. In Figure 2, we see that for both the best value learned and the average
+mean-squared error, ADR outperforms IPW. We also include the complete set of results
+with varying noise parameter σ in Table 5 in Appendix B.
+
+5.3
+
+Comparison between ADR and Fitted-Q Iteration
+
+We see that our method, ADR, sometimes suffers from high regret in small samples, but
+quickly improves as the sample size grows—largely as we would expect as our estimator was
+motivated by asymptotic consideration. In contrast, by learning a stage-wise model for the
+19
+
+ADR
+
+Fitted−Q
+5.0
+
+5.0
+
+2.5
+
+2.5
+
+treatment
+St
+
+St
+
+on
+off
+0.0
+
+0.0
+
+policy
+ADR
+IPW
+oracle
+−2.5
+
+−2.5
+
+−5.0
+
+−5.0
+1
+
+2
+
+3
+
+4
+
+5
+
+1
+
+t
+
+2
+
+3
+
+4
+
+5
+
+t
+
+Figure 3: A single realization of the best policy learned in the binary action setup case as described
+in Section 5.1, in the setting of ν = 0.5, β = 5, σ = 1. ADR, IPW, and the oracle choose the best
+in-class policy from the predefined linear policy class, whereas fitted-Q learns the value function
+via blackbox regression methods and learns a policy that is not so easy to interpret. At each time
+step, we plot the value of the state St from trajectories that have not stopped treating yet.
+
+value function, fitted-Q can have good performance in the small-sample regime, as can be
+seen in Figure 2; however, as the sample size grows, the value loss of fitted-Q iteration does
+not decay as fast as that of IPW and ADR. In fact, in our second simulation with multiple
+treatment choices, we even sometimes see the error rate increase with n.
+To understand this phenomenon, we emphasize that fitted-Q iteration needs to recursively solve a series of nonparametric regression problems, the convergence properties of
+which are still poorly understood. It is thus not unimaginable that, with very little data,
+fitted-Q would regularize towards a decent model of the world which motivates reasonable
+decisions; however, once we get more data and fitted-Q increases the complexity of its model
+fit, the resulting decisions get worse. In very large sample sizes, fitted-Q must converge to
+the Bayes-optimal decision rule, but we appear to be very far from that sample regime in
+our experiments.
+Finally, as discussed previously, fitted-Q iteration seeks to learn the optimal nonparametric policy, whereas ADR aims for the best in-class policy. As argued by, e.g., Athey
+and Wager (2017) and Kitagawa and Tetenov (2018), learning policies that belong to a
+structured class specified in advance is important in practice, as this allows stakeholders to
+enforce constraints such as interpretability, implementability and resource use. To visualize
+this point, recall that, in Section 5.1, we used ADR to learn over linear thresholding policies.
+In Figure 3, we plot the policies learned with different methods for one realization of the
+simulation in the binary simulation setup in Section 5.1. The left panel of Figure 3 shows,
+at each time step, the value of the state St for any trajectory that has not stopped treatment yet according to the policy learned by ADR (shown as a black line). The color coding
+20
+
+specifies the policy decision for each trajectory at the given time step.5 For comparison,
+we also plot the best policy learned by the oracle and IPW using the dotted-dashed and
+dotted lines respectively. The right panel of Figure 3 is generated the same way, but shows
+decisions made by the policy learned using fitted-Q instead. Unlike ADR, which returns a
+linear policy, fitted-Q iteration learns a policy with a complicated functional form that is
+not so easy to interpret.
+One might ask whether we could make fitted-Q interpretable by using linear regression
+in the recursive step (44). Doing so, however, would void any nonparametric consistency
+guaranteed for fitted-Q, and in particular would not recover best-in-class linear policies. The
+problem is that fitted-Q conflates modeling and policy optimization, rather than separating
+out these two steps like ADR; in contrast, we first model µnow and µnext using appropriately
+flexible method and then choose policy π̂ in a separate optimization step where we can
+enforce structure. The upshot is that, in order to be consistent, fitted-Q needs to use a
+flexible nonparametric specification in (44), and this then implies that fitted-Q will result
+in nonparametric and potentially uninterpretable decision rules.
+We note that we can adapt the Fitted-Q algorithm for learning values for a specific
+policy π by learning its associated Q value function instead of learning the Q function that
+corresponds to be the optimal policy. However, just like in the doubly robust estimator as
+discussed in Section 2.2, we would again have to learn separate Q functions for each of the
+policies in a given policy class, making it infeasible for policy optimization.
+
+6
+
+Conclusion
+
+In this paper, we propose the Advantage Doubly Robust Estimator (ADR) to learn sequential policies that decide when to start which treatment in a pre-defined structured policy
+class. The ADR estimator builds upon an advantage decomposition from Murphy (2005),
+and decomposes the problem of evaluating a sequential policy into many one-step treatment effect estimation problems, each of which uses a doubly robust score. This√resulting
+estimator achieves certain doubly robust properties, and achieves the optimal 1/ n regret
+bound while the nuisance components can be learned at a much slower rate. Further, we
+do not make the Markovian assumption in our problem setup. By taking advantage of the
+structure of our problem setup in learning a decision rule only once, the number of nuisance
+components the ADR estimator needs to learn scales linearly with the time horizon, and
+not with the complexity of a policy class. Thus, the ADR estimator can efficiently optimize
+over a policy class. Unlike the popular inverse propensity weighting method, ADR is able to
+use trajectories that do not necessarily match exactly with any evaluation policy. Thus, in
+general ADR is more sample efficient than IPW. Compared to the fitted-Q iteration method
+widely used in the reinforcement learning literature, the ADR estimator is a complementary
+approach as it aims to learn the optimal policy within a structured policy class. Finally, it
+is of considerable interest to see whether the ADR approach can be extended to the general
+Markov Decision Process case, in which instead of making a decision once, an agent needs
+to choose from an action space every time period.
+5 There are fewer trajectories plotted as we move along the time axis, because once a trajectory has
+stopped treatment, it would always stop treatment and there will be no longer decisions made.
+
+21
+
+Acknowledgement
+We are grateful for enlightening conversations with Susan Athey, Michael Kosorok, Percy
+Liang, Susan Murphy, Jamie Robins, Andrea Rotnitzky and Zhengyuan Zhou, as well as
+for helpful comments and feedback from seminar participants at several universities and
+workshops. XN acknowledges the partial support from the Stanford Data Science Scholars
+program. EB acknowledges the partial support of a NSF Career Award and a Siemens grant.
+SW acknowledges the partial support of a Stanford Institute for Human-Centered Artificial
+Intelligence grant and a Facebook Faculty Award.
+
+References
+A. Antos, C. Szepesvári, and R. Munos. Fitted q-iteration in continuous action-space mdps.
+In Advances in neural information processing systems, pages 9–16, 2008a.
+A. Antos, C. Szepesvári, and R. Munos. Learning near-optimal policies with bellmanresidual minimization based fitted policy iteration and a single sample path. Machine
+Learning, 71(1):89–129, 2008b.
+S. Athey and G. Imbens. Recursive partitioning for heterogeneous causal effects. Proceedings
+of the National Academy of Sciences, 113(27):7353–7360, 2016.
+S. Athey and S. Wager. Efficient policy learning. arXiv preprint arXiv:1702.02896, 2017.
+S. Athey, J. Tibshirani, S. Wager, et al. Generalized random forests. The Annals of Statistics,
+47(2):1148–1178, 2019.
+A. Belloni, V. Chernozhukov, and C. Hansen. Inference on treatment effects after selection
+among high-dimensional controls. The Review of Economic Studies, 81(2):608–650, 2014.
+A. Belloni, V. Chernozhukov, I. Fernández-Val, and C. Hansen. Program evaluation with
+high-dimensional data. Econometrica, 85(1):233–298, 2017.
+D. Bertsimas and N. Kallus. From predictive to prescriptive analytics. arXiv preprint
+arXiv:1402.5481, 2014.
+B. Chakraborty and E. Moodie. Statistical methods for dynamic treatment regimes. Springer,
+2013.
+J. Chen and N. Jiang. Information-theoretic considerations in batch reinforcement learning.
+Proceedings of International Conference on Machine Learning, 2019.
+T. Chen and C. Guestrin. XGBoost: A scalable tree boosting system. In Proceedings of the
+22nd ACM SIGKDD international conference on knowledge discovery and data mining,
+pages 785–794. ACM, 2016.
+X. Chen. Large sample sieve estimation of semi-nonparametric models. Handbook of econometrics, 6:5549–5632, 2007.
+V. Chernozhukov, D. Chetverikov, M. Demirer, E. Duflo, C. Hansen, and W. Newey. Double
+machine learning for treatment and causal parameters. arXiv preprint arXiv:1608.00060,
+2016a.
+22
+
+V. Chernozhukov, J. C. Escanciano, H. Ichimura, and W. K. Newey. Locally robust semiparametric estimation. arXiv preprint arXiv:1608.00033, 2016b.
+T. Degris, M. White, and R. S. Sutton.
+arXiv:1205.4839, 2012.
+
+Off-policy actor-critic.
+
+arXiv preprint
+
+S. Doroudi, P. S. Thomas, and E. Brunskill. Importance sampling for fair policy selection.
+Grantee Submission, 2017.
+M. Dudı́k, J. Langford, and L. Li. Doubly robust policy evaluation and learning. In Proceedings of the 28th International Conference on Machine Learning, pages 1097–1104,
+2011.
+M. Dudı́k, D. Erhan, J. Langford, and L. Li. Doubly robust policy evaluation and optimization. Statistical Science, 29(4):485–511, 2014.
+A. N. Elmachtoub and P. Grigas.
+arXiv:1710.08005, 2017.
+
+Smart” predict, then optimize”.
+
+arXiv preprint
+
+D. Ernst, P. Geurts, and L. Wehenkel. Tree-based batch mode reinforcement learning.
+Journal of Machine Learning Research, 6(Apr):503–556, 2005.
+M. Farajtabar, Y. Chow, and M. Ghavamzadeh. More robust doubly robust off-policy
+evaluation. arXiv preprint arXiv:1802.03493, 2018.
+K. Goel, C. Dann, and E. Brunskill. Sample efficient policy search for optimal stopping
+domains. Proceedings of the 26th International Joint Conference on Artificial Intelligence,
+pages 1711–1717, 2017.
+Z. Guo, P. S. Thomas, and E. Brunskill. Using options and covariance testing for long horizon
+off-policy policy evaluation. In Advances in Neural Information Processing Systems, pages
+2492–2501, 2017.
+J. P. Hanna, P. Stone, and S. Niekum. Bootstrapping with models: Confidence intervals for
+off-policy evaluation. In Proceedings of the 16th Conference on Autonomous Agents and
+MultiAgent Systems, pages 538–546. International Foundation for Autonomous Agents
+and Multiagent Systems, 2017.
+W. B. Haskell, R. Jain, and D. Kalathil. Empirical dynamic programming. Mathematics of
+Operations Research, 41(2):402–429, 2016.
+D. Haussler. Sphere packing numbers for subsets of the boolean n-cube with bounded
+vapnik-chervonenkis dimension. Journal of Combinatorial Theory, Series A, 69(2):217–
+232, 1995.
+M. A. Hernán, B. Brumback, and J. M. Robins. Marginal structural models to estimate
+the joint causal effect of nonrandomized treatments. Journal of the American Statistical
+Association, 96(454):440–448, 2001.
+G. W. Imbens and D. B. Rubin. Causal inference in statistics, social, and biomedical
+sciences. Cambridge University Press, 2015.
+S. . Jacka. Optimal stopping and the american put. Mathematical Finance, 1(2):1–14, 1991.
+
+23
+
+N. Jiang and L. Li. Doubly robust off-policy value evaluation for reinforcement learning.
+pages 652–661, 2016.
+S. M. Kakade. On the sample complexity of reinforcement learning. PhD thesis, 2003.
+N. Kallus. Balanced policy evaluation and learning. In Advances in Neural Information
+Processing Systems, pages 8909–8920, 2018.
+N. Kallus and A. Zhou.
+arXiv:1805.08593, 2018.
+
+Confounding-robust policy improvement.
+
+arXiv preprint
+
+T. Kitagawa and A. Tetenov. Who should be treated? empirical welfare maximization
+methods for treatment choice. Econometrica, 86(2):591–616, 2018.
+S. R. Künzel, J. S. Sekhon, P. J. Bickel, and B. Yu. Metalearners for estimating heterogeneous treatment effects using machine learning. Proceedings of the National Academy of
+Sciences, 116(10):4156–4165, 2019.
+P. W. Lavori and R. Dawson. A design for testing clinical strategies: biased adaptive withinsubject randomization. Journal of the Royal Statistical Society: Series A (Statistics in
+Society), 163(1):29–38, 2000.
+H. M. Le, C. Voloshin, and Y. Yue. Batch policy learning under constraints. arXiv preprint
+arXiv:1903.08738, 2019.
+Q. Liu, L. Li, Z. Tang, and D. Zhou. Breaking the curse of horizon: Infinite-horizon off-policy
+estimation. In Advances in Neural Information Processing Systems, pages 5361–5371,
+2018a.
+Y. Liu, O. Gottesman, A. Raghu, M. Komorowski, A. Faisal, F. Doshi-Velez, and E. Brunskill. Representation balancing mdps for off-policy policy evaluation. arXiv preprint
+arXiv:1805.09044, 2018b.
+Y. Liu, A. Swaminathan, A. Agarwal, and E. Brunskill. Off-policy policy gradient with
+state distribution correction. Proceedings of Uncertainty in AI, 2019.
+Y. Liu, Y. Wang, M. R. Kosorok, Y. Zhao, and D. Zeng. Augmented outcome-weighted
+learning for estimating optimal dynamic treatment regimens. Statistics in medicine, 2018c.
+D. J. Luckett, E. B. Laber, A. R. Kahkoska, D. M. Maahs, E. Mayer-Davis, and M. R.
+Kosorok. Estimating dynamic treatment regimes in mobile health using v-learning. Journal of the American Statistical Association, (just-accepted):1–39, 2019.
+A. Luedtke and A. Chambaz.
+arXiv:1704.06431, 2017.
+
+Faster rates for policy learning.
+
+arXiv preprint
+
+C. F. Manski. Statistical treatment rules for heterogeneous populations. Econometrica, 72
+(4):1221–1246, 2004.
+E. E. Moodie, T. S. Richardson, and D. A. Stephens. Demystifying optimal dynamic treatment regimes. Biometrics, 63(2):447–455, 2007.
+
+24
+
+E. E. Moodie, R. W. Platt, and M. S. Kramer. Estimating response-maximized decision
+rules with applications to breastfeeding. Journal of the American Statistical Association,
+104(485):155–165, 2009.
+E. Mordecki. Optimal stopping and perpetual options for lévy processes. Finance and
+Stochastics, 6(4):473–493, 2002.
+R. Munos. Error bounds for approximate policy iteration. In ICML, volume 3, pages
+560–567, 2003.
+R. Munos and C. Szepesvári. Finite-time bounds for fitted value iteration. Journal of
+Machine Learning Research, 9(May):815–857, 2008.
+S. A. Murphy. Optimal dynamic treatment regimes. Journal of the Royal Statistical Society:
+Series B (Statistical Methodology), 65(2):331–355, 2003.
+S. A. Murphy. A generalization error for q-learning. Journal of Machine Learning Research,
+6(Jul):1073–1097, 2005.
+W. K. Newey. The asymptotic variance of semiparametric estimators. Econometrica: Journal of the Econometric Society, pages 1349–1382, 1994.
+J. Neyman. Sur les applications de la théorie des probabilités aux experiences agricoles:
+Essai des principes. Roczniki Nauk Rolniczych, 10:1–51, 1923.
+X. Nie and S. Wager. Quasi-oracle estimation of heterogeneous treatment effects. arXiv
+preprint arXiv:1712.04912, 2017.
+L. Orellana, A. Rotnitzky, and J. Robins. Generalized marginal structural models for estimating optimal treatment regimes, 2006.
+D. Ormoneit and Ś. Sen. Kernel-based reinforcement learning. Machine learning, 49(2-3):
+161–178, 2002.
+N. Prasad, L.-F. Cheng, C. Chivers, M. Draugelis, and B. E. Engelhardt. A reinforcement
+learning approach to weaning of mechanical ventilation in intensive care units. Conference
+on Uncertainty in Artificial Intelligence, 2017.
+D. Precup. Eligibility traces for off-policy policy evaluation. Computer Science Department
+Faculty Publication Series, page 80, 2000.
+J. Robins. A new approach to causal inference in mortality studies with a sustained exposure period: application to control of the healthy worker survivor effect. Mathematical
+Modelling, 7(9-12):1393–1512, 1986.
+J. Robins, L. Orellana, and A. Rotnitzky. Estimation and extrapolation of optimal treatment
+and testing strategies. Statistics in medicine, 27(23):4678–4721, 2008.
+J. M. Robins. The analysis of randomized and non-randomized aids treatment trials using a new approach to causal inference in longitudinal studies. Health service research
+methodology: a focus on AIDS, pages 113–159, 1989.
+J. M. Robins. Correcting for non-compliance in randomized trials using structural nested
+mean models. Communications in Statistics-Theory and methods, 23(8):2379–2412, 1994.
+25
+
+J. M. Robins. Optimal structural nested models for optimal sequential decisions. In Proceedings of the second Seattle Symposium in Biostatistics, pages 189–326. Springer, 2004.
+J. M. Robins and A. Rotnitzky. Semiparametric efficiency in multivariate regression models
+with missing data. Journal of the American Statistical Association, 90(429):122–129,
+1995.
+J. M. Robins, D. Blevins, G. Ritter, and M. Wulfsohn. G-estimation of the effect of prophylaxis therapy for pneumocystis carinii pneumonia on the survival of aids patients.
+Epidemiology, pages 319–336, 1992.
+J. M. Robins, A. Rotnitzky, and L. P. Zhao. Estimation of regression coefficients when some
+regressors are not always observed. Journal of the American statistical Association, 89
+(427):846–866, 1994.
+J. M. Robins, M. A. Hernán, and B. Brumback. Marginal structural models and causal
+inference in epidemiology. Epidemiology, 11(5):551, 2000.
+P. R. Rosenbaum and D. B. Rubin. The central role of the propensity score in observational
+studies for causal effects. Biometrika, 70(1):41–55, 1983.
+D. B. Rubin. Estimating causal effects of treatments in randomized and nonrandomized
+studies. Journal of Educational Psychology, 66(5):688, 1974.
+J. Rust. Optimal replacement of gmc bus engines: An empirical model of harold zurcher.
+Econometrica: Journal of the Econometric Society, pages 999–1033, 1987.
+D. O. Scharfstein, A. Rotnitzky, and J. M. Robins. Adjusting for nonignorable drop-out using semiparametric nonresponse models. Journal of the American Statistical Association,
+94(448):1096–1120, 1999.
+A. Schick. On asymptotically efficient estimation in semiparametric models. The Annals of
+Statistics, pages 1139–1151, 1986.
+P. Schulam and S. Saria. Reliable decision support using counterfactual models. In Advances
+in Neural Information Processing Systems, pages 1697–1708, 2017.
+D. Shah and Q. Xie. Q-learning with nearest neighbors. In Advances in Neural Information
+Processing Systems, pages 3111–3121, 2018.
+R. S. Sutton and A. G. Barto. Reinforcement learning: An introduction. MIT press, 2018.
+A. Swaminathan and T. Joachims. Batch learning from logged bandit feedback through
+counterfactual risk minimization. Journal of Machine Learning Research, 16:1731–1755,
+2015.
+P. Thomas and E. Brunskill. Data-efficient off-policy policy evaluation for reinforcement
+learning. In International Conference on Machine Learning, pages 2139–2148, 2016.
+R. Tibshirani. Regression shrinkage and selection via the lasso. Journal of the Royal Statistical Society: Series B (Methodological), 58(1):267–288, 1996.
+
+26
+
+M. J. van der Laan and M. L. Petersen. Causal effect models for realistic individualized
+treatment and intention to treat rules. The international journal of biostatistics, 3(1),
+2007.
+P. Van Moerbeke. On optimal stopping and free boundary problems. Archive for Rational
+Mechanics and Analysis, 60(2):101–148, 1976.
+S. Vansteelandt, M. Joffe, et al. Structural nested models and g-estimation: the partially
+realized promise. Statistical Science, 29(4):707–731, 2014.
+S. Wager and S. Athey. Estimation and inference of heterogeneous treatment effects using
+random forests. Journal of the American Statistical Association, (just-accepted), 2017.
+C. J. Watkins and P. Dayan. Q-learning. Machine learning, 8(3-4):279–292, 1992.
+When To Start Consortium. Timing of initiation of antiretroviral therapy in aids-free hiv1-infected patients: a collaborative analysis of 18 hiv cohort studies. The Lancet, 373
+(9672):1352–1363, 2009.
+B. Zhang, A. A. Tsiatis, M. Davidian, M. Zhang, and E. Laber. Estimating optimal treatment regimes from a classification perspective. Stat, 1(1):103–114, 2012.
+B. Zhang, A. A. Tsiatis, E. B. Laber, and M. Davidian. Robust estimation of optimal
+dynamic treatment regimes for sequential treatment decisions. Biometrika, 100(3):681–
+694, 2013.
+Y. Zhang, E. B. Laber, M. Davidian, and A. A. Tsiatis. Estimation of optimal treatment
+regimes using lists. Journal of the American Statistical Association, pages 1–9, 2018.
+Y.-Q. Zhao, D. Zeng, E. B. Laber, R. Song, M. Yuan, and M. R. Kosorok. Doubly robust
+learning for estimating individualized treatment with censored data. Biometrika, 102(1):
+151–168, 2014.
+Y. Zhao, D. Zeng, A. J. Rush, and M. R. Kosorok. Estimating individualized treatment
+rules using outcome weighted learning. Journal of the American Statistical Association,
+107(499):1106–1118, 2012.
+X. Zhou, N. Mayer-Hamblett, U. Khan, and M. R. Kosorok. Residual weighted learning for
+estimating individualized treatment rules. Journal of the American Statistical Association,
+112(517):169–187, 2017.
+Z. Zhou, S. Athey, and S. Wager. Offline multi-action policy learning: Generalization and
+optimization. arXiv preprint arXiv:1810.04778, 2018.
+
+27
+
+SUPPLEMENTARY MATERIAL
+
+A
+
+Proofs
+
+Proof of Lemma 1.
+(a)
+
+∆(π, 0) = −E0
+
+" T
+X
+
+#
+Qπ,t (S1:t , A1:t ) − µπ,t (S1:t , A1:t−1 )
+
+t=1
+
+"
+= −E0
+
+T
+X
+
+1t≥τπ Qπ,t (S1:t , 01:t ) − µπ,t (S1:t , 01:(t−1) )
+
+#
+
+
+t=1
+
+= E0
+
+" T
+X
+
+1t≥τπ (µnow,Wπ (S1:t , t) − µnext,Wπ (S1:t , t))
+
+#
+
+t=1
+
+where (a) follows immediately from Lemma 1 in Murphy (2005).
+Proof of Lemma 2. For a fixed t such that 1 ≤ t ≤ T ,
+"
+E
+
+1A1:t−1 =0
+
+1t≥τπ Qt−1
+
+0
+0
+t0 =1 et ,0 (S1:t )
+
+=E
+
+(µnow,Wπ (S1:t , t) − µnext,Wπ (S1:t , t))
+
+1A1:t−1 =0
+
+"
+
+#
+(45)
+#
+
+1t≥τπ Qt−1
+
+0
+0
+t0 =1 et ,0 (S1:t )
+
+
+µnow,Wπ (S1:t (01:(t−1) ), t) − µnext,Wπ (S1:t (01:(t−1) ), t)
+(46)
+
+1A1:t−1 =0
+
+" "
+=E E
+
+1t≥τπ Qt−1
+
+0
+0
+t0 =1 et ,0 (S1:t )
+
+##
+
+µnow,Wπ (S1:t (01:(t−1) ), t) − µnext,Wπ (S1:t (01:(t−1) ), t) Ft−1
+(47)
+
+" "
+
+1A1:t−1 =0
+
+= E E Qt−1
+
+0
+0
+t0 =1 et ,0 (S1:t )
+
+#
+Ft−1 E
+
+1t≥τπ
+
+
+
+#
+
+
+µnow,Wπ (S1:t (01:(t−1) ), t) − µnext,Wπ (S1:t (01:(t−1) ), t) Ft−1
+(48)
+
+= E0 [1t≥τπ (µnow,Wπ (S1:t , t) − µnext,Wπ (S1:t , t))]
+
+(49)
+
+where (46) follows from Assumption 2 and (48) follows from Assumption 1 and the fact that
+conditioning on Ft−1 , 1t≥τπ depends on St (01:(t−1) ).
+h
+i
+˜
+Proof of Lemma 3. First, we check that E ∆(π,
+0) = ∆(π, 0). It is sufficient to check that
+
+28
+
+for each t such that 1 ≤ t ≤ T , the following hold.
+"
+#
+
+
+1A(i) =0 1A(i)
+(i)
+t =k
+1:t−1
+E 1t≥τπ Qt−1
+Y (i) (01:(t−1) , k, A(t+1):T ) − µnow,k (S1:t (01:(t−1) , k, A(t+1):T ), t)
+(i)
+0 ,0 (S1:t0 )et,k (S
+e
+)
+0
+t
+1:t
+t =1
+(50)
+" "
+
+1A(i) =0 1A(i)
+t =k
+Y (i) (01:(t−1) , k, A(t+1):T )
+(51)
+= E E 1t≥τπ Qt−1 1:t−1
+(i)
+0
+0
+t0 =1 et ,0 (S1:t )et,k (S1:t )
+##
+
+(i)
+− µnow,k (S1:t (01:(t−1) , k, A(t+1):T ), t) Ft
+(52)
+"
+=E
+
+1t≥τπ Qt−1
+
+t0 =1
+
+1A(i)
+
+"
+
+1:t−1 =0
+
+e
+
+t0 ,0
+
+(S
+
+1:t0
+
+(i)
+)et,k (S1:t )
+
+E
+
+1A(i)
+Y (i) (01:(t−1) , k, A(t+1):T )
+t =k
+!
+
+−
+"
+=E
+
+(i)
+µnow,k (S1:t (01:(t−1) , k, A(t+1):T ), t)
+
+1t≥τπ Qt−1
+
+1A(i)
+
+1:t−1 =0
+
+##
+Ft
+
+h
+(i)
+
+0
+0
+t0 =1 et ,0 (S1:t )et,k (S1:t )
+
+i
+
+(54)
+"
+
+1A(i)
+Ft E Y (i) (01:(t−1) , k, A(t+1):T )
+t =k
+
+E
+
+(53)
+
+(55)
+
+##
+−
+"
+=E
+
+(i)
+µnow,k (S1:t (01:(t−1) , k, A(t+1):T ), t)
+
+1t≥τπ Qt−1
+
+1A(i)
+
+1:t−1 =0
+
+h
+
+(i)
+0
+0
+t0 =1 et ,0 (S1:t )et,k (S1:t )
+
+E
+
+Ft
+
+1A(i)
+t =k
+
+(56)
+
+i h
+i
+
+(i)
+(i)
+Ft E Y (i) S1:t , A1:(t−1) = 0, At = k − µnow,k (S1:t
+(57)
+
+=0
+
+(58)
+
+Next, we check that the variance Ωπ < ∞. Note that, given overlap as in Assumption 3, we
+1
+have QT −1 e1 (S ) et,k (S
+≤ T (1−η0 /T )−T /η ≤ T exp(2η0 )/η when T ≥ 2 and 0 < η0 < 1.
+1:t )
+t,0
+1:t
+t=1
+Note that the outcomes are bounded almost surely, i.e. Y ≤ M for some universal constant
+M. We then conclude that Ωπ < ∞.
+The desired result then follows from the LindebergLvy Central Limit Theorem.
+Proof of Lemma 4. Given a policy class Π, letting π ∗ = argmaxπ∈Π Vπ . First, we note that
+R(π̃) = Vπ∗ − Vπ̃
+
+(59)
+
+∗
+
+= ∆(π , π̃)
+˜ ∗ , π̃) + ∆(π ∗ , π̃) − ∆(π
+˜ ∗ , π̃)
+= ∆(π
+
+(60)
+
+˜
+≤ ∆(π , π̃) − ∆(π
+, π̃)
+
+(62)
+
+∗
+
+≤ sup
+
+∗
+
+˜
+∆(π, π 0 ) − ∆(π,
+π0 ) .
+
+(61)
+
+(63)
+
+π,π 0 ∈Π
+
+We note that although we work in the sequential policy learning setup, by redefining policy
+˜ in (18) becomes the same as ∆
+˜ in Zhou et al. (2018). Given Asπ as in (17), the form of ∆
+sumptions 1-4, by directly following their Lemma 2, we have for any δ > 0, with probability
+
+29
+
+#
+
+at least 1 − 2δ, there exists universal constants 0 < c1 , c2 < ∞ such that
+!r
+r
+
+
+V∗
+1
+1
+0
+0
+˜
+sup ∆(π, π ) − ∆(π, π ) ≤ c1 κ(Π) + c2 + 2 log
++o √
+.
+δ
+n
+n
+π,π 0 ∈Π
+
+(64)
+
+Let the last term be cn . Thus for any c > 0, there existsN (c) such thatq
+for all n>
+qN (c),
+√
+1
+V∗
+cn < c/ n. Choose ε0 (c, δ) so small such that by letting c1 κ(Π) + c2 + 2 log δ
+n +
+√
+c/ n < ε0 (δ, c), we have n > N (c). The result then follows immediately for all ε <
+ε0 (δ, c).
+(i)
+
+Proof of Lemma 5. For notational convenience, we let uk,t (π, π 0 ) := π(k−1)(T +1)+t (H (i) ) −
+0
+(i)
+0
+π(k−1)(T
++1)+t (H ) denote the difference in the policy indicator of π and π at time t for
+(i)
+action k for the i-th trajectory H using the definition of π in (17). We start by rewriting
+the value difference function (18) as follows: for π, π 0 ∈ Π,
+n
+
+1X
+˜
+∆(π,
+π0 ) =
+hπ(H (i) ) − π 0 (H (i) ), Γ̃(i) i
+n i=1
+=
+
+(65)
+
+K
+T X
+n
+
+
+X
+1 X (i)
+uk,t (π, π 0 ) Υ̃t,k,now − Υ̃t,k,next
+n i=1
+t=1
+
+(66)
+
+k=1
+
+where
+(i)
+Υ̃t,k,now (S1:t )
+
+1A(i)
+
+1:t−1 =0
+
+= Qt−1
+
+(i)
+µnow,k (S1:t , t)
+
+(i)
+0
+t0 =1 et ,0 (S1:t0 )
+
++ 1A(i) =k
+
+(i)
+
+Y (i) − µnow,k (S1:t , t)
+
+!
+(67)
+
+(i)
+
+et,k (S1:t )
+
+t
+
+and
+(i)
+Υ̃t,k,next (S1:t )
+
+1A(i)
+
+1:t−1 =0
+
+= Qt−1
+
+(i)
+0
+t0 =1 et ,0 (S1:t0 )
+
+(i)
+µnext,k (S1:t , t)
+
++ 1A(i) =0,A(i)
+
+(i)
+
+Y (i) − µnext,k (S1:t , t)
+
+t+1 =k
+
+t
+
+!
+
+(i)
+
+.
+
+et+,k (S1:t )
+(68)
+
+We can similarly rewrite the feasible difference quantity as
+n
+
+1X
+ˆ
+∆(π,
+π0 ) =
+hπ(H (i) ) − π 0 (H (i) ), Γ̂(i) i
+n i=1
+=
+
+(69)
+
+T X
+K
+n
+
+
+X
+1 X (i)
+uk,t (π, π 0 ) Υ̂t,k,now − Υ̂t,k,next
+n i=1
+t=1
+
+(70)
+
+k=1
+
+where
+(i)
+Υ̂t,k,now (S1:t )
+
+1A(i)
+
+= Qt−1
+
+1:t−1 =0
+
+−q(i)
+(i)
+t0 =1 êt0 ,0 (S1:t0 )
+
+−q(i)
+
+−q(i)
+(i)
+µ̂now,k (S1:t , t)
+
++ 1A(i) =k
+
+(i)
+
+Y (i) − µ̂now,k (S1:t , t)
+−q(i)
+
+êt,k
+
+t
+
+!
+
+(i)
+
+(71)
+
+(S1:t )
+
+and
+(i)
+Υ̂t,k,next (S1:t )
+
+1A(i)
+
+= Qt−1
+
+1:t−1 =0
+
+−q(i)
+(i)
+t0 =1 êt0 ,0 (S1:t0 )
+
+−q(i)
+
+−q(i)
+(i)
+µ̂next,k (S1:t , t)
+
++ 1A(i) =0,A(i)
+t
+
+t+1 =k
+
+(i)
+
+Y (i) − µ̂next,k (S1:t , t)
+−q(i)
+
+!
+
+(i)
+
+êt+,k (S1:t )
+(72)
+
+30
+
+.
+
+ˆ
+˜
+π 0 ) − ∆(π,
+π 0 ) . For a fixed t, k, we start with the folWe wish to bound supπ,π0 ∈Π ∆(π,
+lowing decomposition:
+
+
+1 X (i)
+(i)
+(i)
+sup
+uk,t (π, π 0 ) Υ̂t,k,now (S1:t ) − Υ̃t,k,now (S1:t )
+(73)
+π,π 0 ∈Π n
+i:t≥τπ
+Wπ =k
+
+= sup
+π,π 0 ∈Π
+
+1 X (i)
+uk,t (π, π 0 )
+n
+i:t≥τπ
+Wπ =k
+
+
+
++ sup
+π,π 0 ∈Π
+
+1A(i)
+
+1A(i)
+
+1:t−1 =0
+
+(i)
+0
+t0 =1 et ,0 (S1:t0 )
+
+Qt−1
+
+− Qt−1
+
+1:t−1 =0
+
+1A(i)
+t =k
+
+!
+(74)
+
+(i)
+(i)
+0
+t0 =0 et ,0 (S1:t0 )et,k (S1:t )
+
+
+(−q(i))
+(i)
+(i)
+µ̂now,k (S1:t , t) − µnow,k (S1:t , t)
+
+1 X (i)
+uk,t (π, π 0 )
+n
+i:t≥τπ
+Wπ =k
+
+1A(i)
+
+1:t−1 =0
+
+(75)
+
+1A(i)
+
+1A(i)
+t =k
+
+−q(i)
+(i)
+−q(i)
+(i)
+t0 =0 êt0 ,0 (S1:t0 )êt,k (S1:t )
+
+Qt−1
+
+− Qt−1
+
+1:t−1 =0
+
+1A(i)
+t =k
+
+!
+
+(i)
+(i)
+0
+t0 =0 et ,0 (S1:t0 )et,k (S1:t )
+
+(76)
+
+
++ sup
+π,π 0 ∈Π
+
+
+(i)
+Y (i) − µnow,k (S1:t , t)
+
+1 X (i)
+uk,t (π, π 0 )
+n
+i:t≥τπ
+Wπ =k
+
+(77)
+
+1A(i)
+
+1A(i)
+
+1:t−1 =0
+
+− Qt−1
+
+(i)
+−q(i)
+t0 =1 êt0 ,0 (S1:t0 )
+
+Qt−1
+
+t0 =1
+
+!
+
+1:t−1 =0
+
+(i)
+
+µnow,k (S1:t , t)
+
+(i)
+
+et0 ,0 (S1:t0 )
+
+(78)
++ sup
+π,π 0 ∈Π
+
+1 X (i)
+uk,t (π, π 0 )
+n
+i:t≥τπ
+Wπ =k
+
+1A(i)
+
+1A(i)
+
+1:t−1 =0
+
+− Qt−1
+
+(i)
+−q(i)
+t0 =1 êt0 ,0 (S1:t0 )
+
+!
+
+1:t−1 =0
+
+
+
+(i)
+0
+t0 =1 et ,0 (S1:t0 )
+
+Qt−1
+
+
+(−q(i))
+(i)
+(i)
+µ̂now,k (S1:t , t) − µnow,k (S1:t , t)
+(79)
+
++ sup
+π,π 0 ∈Π
+
+1 X (i)
+−
+uk,t (π, π 0 )
+n
+i:t≥τπ
+Wπ =k
+
+1A(i)
+
+1:t−1 =0
+
+1A(i)
+t =k
+
+−q(i)
+(i)
+(i)
+−q(i)
+t0 =0 êt0 ,0 (S1:t0 )êt,k (S1:t )
+
+Qt−1
+
+1A(i)
+
+− Qt−1
+
+1:t−1 =0
+
+1A(i)
+t =k
+
+(i)
+(i)
+0
+t0 =0 et ,0 (S1:t0 )et,k (S1:t )
+
+(80)
+
+
+
+(−q(i))
+(i)
+(i)
+µ̂now,k (S1:t , t) − µnow,k (S1:t , t)
+
+(81)
+
+Let the five terms above be m1,t,k,now , m2,t,k,now , m3,t,k,now , m4,t,k,now , m5,t,k,now respectively. Analogously, we can decompose
+
+
+1 X (i)
+(i)
+(i)
+sup
+uk,t (π, π 0 ) Υ̂t,k,next (S1:t ) − Υ̃t,k,next (S1:t )
+(82)
+π,π 0 ∈Π n
+i:t≥τπ
+Wπ =k
+
+in a similar fashion, and call the decomposed summands m1,t,k,next , m2,t,k,next , m3,t,k,next ,
+m4,t,k,next , m5,t,k,next .
+We proceed by bounding m1,t,k,now , m2,t,k,now , m3,t,k,now , m4,t,k,now , m5,t,k,now respectively. It is easy to see with analogous arguments, m1,t,k,next , m2,t,k,next , m3,t,k,next , m4,t,k,next ,
+m5,t,k,next can be bounded similarly. Finally, we bound the term m3,t,k,now − m3,t,k,next .
+To bound m1,t,k,now , for simplicity and without loss of generality, we assume there are
+only two folds, I1 and I2 . We denote the superscript (−Ik ) to be using all folds except Ik
+31
+
+!
+
+to train the corresponding predictor. Then
+m1,t,k,now ≤
+
+|I1 | I1
+|I2 | I2
+m
++
+m
+n 1,t,k,now
+n 1,t,k,now
+
+where
+1
+mI1,t,k,now
+
+= sup
+π,π 0 ∈Π
+
+1 X (i)
+uk,t (π, π 0 )
+|I1 |
+i:t≥τπ
+Wπ =k
+
+1A(i)
+
+1A(i)
+
+1:t−1 =0
+
+Qt−1
+
+t0 =1
+
+(83)
+
+(i)
+
+et0 ,0 (S1:t0 )
+
+1:t−1 =0
+
+− Qt−1
+
+1A(i)
+t =k
+
+!
+
+(i)
+(i)
+0
+t0 =0 et ,0 (S1:t0 )et,k (S1:t )
+
+(84)
+
+
+(−I1 )
+(i)
+(i)
+µ̂now,k
+(S1:t , t) − µnow,k (S1:t , t)
+
+(85)
+
+I2
+and m1,t,k,now
+can be similarly defined.
+First, we note that by Assumptions 1, 2 and 3 the expectation of the term above without
+the supremum is 0 after conditioning
+on Ft−1 following a similar argument
+ as inthe proof of
+
+
+Lemma 2 and noting that E
+
+1A(i)
+
+1:t−1
+
+=0
+
+(i)
+e 0 (S1:t0 )
+t0 =1 t ,0
+
+Qt−1
+
+−
+
+1A(i)
+
+1
+
+(i)
+At =k
+(i)
+(i)
+e 0 (S1:t0 )et,k (S1:t )
+t0 =0 t ,0
+1:t−1
+
+=0
+
+Qt−1
+
+Ft−1 = 0. Next,
+
+given overlap and applying Lemma 4 by identifying all terms within the absolute value in
+1
+˜
+mI1,t,k,now
+after conditioning on the fold I2 and Ft as the new ∆(π,
+π 0 ) and identifying
+
+
+
+1A(i) =0 1A(i) =k
+1A(i) =0
+(−I1 )
+(i)
+(i)
+1:t−1
+µ̂now,k
+(S1:t , t) − µnow,k (S1:t , t) as the new
+− Qt−1 1:t−1 (i) t
+Qt−1
+(i)
+(i)
+t0 =1
+
+1−et0 ,0 (S1:t0 )
+
+t0 =0
+
+et0 ,0 (S1:t0 )et,k (S1:t )
+
+(i)
+
+Γ̃ , we obtain that there exists universal constants 0 < c1 , c2 < ∞ such that any δ > 0,
+with probability at least 1 − 2δ,
+s
+!
+! s
+
+
+ 
+sup
+E
+U
+I
+0
+1
+1
+2
+π,π ∈Π
+I1
+
+
+m1,t,k,now ≤ c1 κ(Π) + 2 log
++ c2 E
++o p
+δ
+|I1 |
+|I1 |
+(86)
+where
+U = u2k,t (π, π 0 )
+
+1A(i)
+
+1A(i)
+
+1:t−1 =0
+
+1:t−1
+
+= 01A(i) =k
+t
+
+− Qt−1
+(i)
+(i)
+(i)
+0
+1 − et0 ,0 (S1:t0 )
+t0 =0 1 − et ,0 (S1:t0 )et,k (S1:t )
+
+2
+(i)
+(i)
+2
+µ̂Inow,k
+(S1:t , t) − µnow,k (S1:t , t)
+Qt−1
+
+!2
+(87)
+
+t0 =1
+
+(88)
+
+Given |uk,t | < 1, from our assumption on the decay rate on µ̂now,k and Jensen’s inequality,
+for some constant c,
+v
+
+u 
+2
+s
+
+u
+(−I1 )
+(i)
+(i)
+
+
+I2 
+E µ̂now,k (S1:t , t) − µnow,k (S1:t , t)
+u
+2η0
+supπ,π0 ∈Π E U I2
+t
+
+≤Te E
+E
+
+
+|I1 |
+η
+|I1 |
+
+
+(89)
+s 
+2 
+
+(−I1 )
+(i)
+(i)
+(90)
+E µ̂now,k
+(S1:t , t) − µnow,k (S1:t , t)
+
+e2η0 1
+p
+η
+|I1 |
+2η
+p
+e 0 −κµ 1
+p
+≤ Cµ T
+n
+η
+|I1 |
+
+≤T
+
+32
+
+(91)
+
+where we have used the same argument on bounding the product of propensities with overlap. Completing the above argument with a symmetrical one for the fold I2 , we conclude that
+for any δ > 0, with probability at least 1 − δ, there exists universal constants 0 < c1 , c2 < ∞
+such that any δ > 0, with probability at least 1 − 2δ,
+s
+!
+ 
+
+
+p
+1
+e2η0 − 1 −κµ
+1
+2
++ c2
+Cµ T
+n
++o √
+(92)
+m1,t,k,now ≤ c1 κ(Π) + 2 log
+δ
+η
+n
+To bound m2,t,k,now , we hfirst noteithat if for some estimator ˆli of li where |li | ≤ 1 for
+some constant Li > 0 and E (ˆli − li )2 ≤ Ci n−k for i = 1, · · · , T and some constant C and
+k, then by Cauchy Schwartz,
+
+!2 
+T
+T
+Y
+Y
+ˆli −
+E
+li  ≤ T max Ci n−k
+(93)
+i=1
+
+i
+
+i=1
+
+Thus, given (24) in Assumption 5 and overlap, we automatically have
+
+!2 
+8η0
+1
+1
+ ≤ max(Ce , Ce0 ) e T 5 n−2 min(κe ,κe0 ) .
+− Qt
+E  Qt−1
+η4
+0
+0
+0
+0
+t0 =1 et ,0 (S1:t )et,k (S1:t )
+t0 =1 êt ,0 (S1:t )êt,k (S1:t )
+(94)
+
+
+1
+where we note again that Qt e 0 (S1 0 )e (S1:t ) ≤ (1−η0 /T
+≤ e2η0 Tη when T ≥ 2
+T η/T
+)
+t,k
+1:t
+t0 =1 t ,0
+and 0 < η0 < 1.
+Following a similar argument, we can show that for any δ > 0, there exist (the same)
+universal constants 0 < c1 , c2 < ∞ such that with probability at least 1 − 2δ,
+s
+!
+ 
+
+
+p
+1
+1
+1
+e4η0
+m2,t,k,now ≤ c1 κ(Π) + 2 log
+max(Ce , Ce0 ) 2 T 2.5 n− 2 −min(κe ,κe0 ) + o √
++ c2
+δ
+η
+n
+(95)
+To bound m4,t,k,now , by Cauchy-Schwartz
+"
+!
+
+1A(i)
+
+E
+
+1:t−1 =0
+
+−q(i)
+(i)
+t0 =1 êt0 ,0 (S1:t0 )
+
+Qt−1
+
+1A(i)
+
+− Qt−1
+
+1:t−1 =0
+
+(i)
+0
+t0 =1 et ,0 (S1:t0 )
+
+
+
+(−q(i))
+µ̂now,k
+
+− µnow,k
+
+
+
+#
+
+v 
+u
+!2  
+u
+
+2 
+1
+1
+(i)
+(i)
+A
+=0
+A1:t−1 =0
+u
+(−q(i))
+
+≤ tE  Qt−1 1:t−1
+−
+E
+µ̂
+−
+µ
+now,k
+Qt−1
+now,k
+−q(i)
+(i)
+(i)
+0
+t0 =1 êt0 ,0 (S1:t0 )
+t0 =1 et ,0 (S1:t0 )
+q
+≤ Ce0 Cµ e8η0 T n−2(κe0 +κµ )
+By Markov’s inequality, we have with probability 1 − δ,
+q
+1
+Ce0 Cµ e8η0 T n−2(κe0 +κµ )
+m4,t,k,now ≤
+δ
+
+33
+
+(96)
+
+(97)
+
+(98)
+
+(99)
+
+Bounding m5,t,k,now now follows a similar argument using Cauchy-Schwartz, and we have
+with probability 1 − δ,
+s
+e8η0
+1
+max(Ce0 , Ce )Cµ 4 T 5 n−2(min(κe0 ,κe )+κµ )
+(100)
+m5,t,k,now ≤
+δ
+η
+Finally, to bound m3,now − m3,next , it follows from a similar argument by CauchySchwartz as well, and we have with probability 1 − δ,
+q
+1
+(101)
+m3,t,k,now − m3,t,k,next ≤
+Ce0 Cµ e8η0 T n−2(κe0 +κδ )
+δ
+By symmetry, we can have similar statements for m1,t,k,next , m2,t,k,next , m4,t,k,next , m5,t,k,next .
+Combining the above, we have with probability at least 1 − 13δ, there exists universal constants 0 < c1 , c2 < ∞ such that
+s
+!
+ 
+p
+1
+e2η0 − 1 −κµ
+0
+0
+ˆ
+˜
+sup ∆(π, π ) − ∆(π, π ) ≤ 2 c1 κ(Π) + 2 log
+Cµ T
+n 2
++
++ c2
+δ
+η
+π,π 0 ∈Π
+s
+2 c1 κ(Π) +
+
+2
+δ
+
+(102)
+!
+ 
+q
+p
+1
+2
+1
+e4η0
++ c2
+2 log
+max(Ce , Ce0 ) 2 T 2.5 n− 2 −min(κe ,κe0 ) +
+Ce0 Cµ e8η0 T n−2(κe0 +κµ ) +
+δ
+η
+δ
+
+s
+max(Ce0 , Ce )Cµ
+
+e8η0 5 −2(min(κe ,κe )+κµ ) 1
+0
+T n
++
+η4
+δ
+
+q
+
+Ce0 Cµ e8η0 T n−2(κe0 +κδ ) + o
+
+
+
+1
+√
+n
+
+(103)
+
+(104)
+
+Letting √
+the last term be cn . Thus for any c > 0, there exists N (c) such that for all n > N (c),
+cn < c/ n. Choose ε0 (c, δ) so small such that by letting each of the six term terms on the
+right hand side bounded by ε0 (δc )/6, we have n > N (c). We then have for any δ > 0, for
+all ε < ε0 (δ, c), there exists universal constants 0 < c1 , c2 < ∞ such that with probability
+at least 1 − 13δ,
+ˆ
+˜
+sup ∆(π,
+π 0 ) − ∆(π,
+π0 ) ≤ ε
+
+(105)
+
+π,π 0
+
+provided we collect at least n(ε, δ) samples, where
+n(ε, δ) = max{n1 (ε, δ), n2 (ε, δ), n3 (ε, δ), n4 (ε, δ), n5 (ε, δ), n6 (ε, δ)}
+
+34
+
+(106)
+
+where
+n1 (ε, δ) =
+
+12
+ε
+
+n2 (ε, δ) =
+
+12
+ε
+
+2
+! 1+2κ
+!
+ 
+µ
+p
+1
+e2η0
+,
+(107)
+c1 κ(Π) + 2 log
+Cµ T
++ c2
+δ
+η
+2
+s
+! 1+2 min(κ
+!
+ 
+e0 ,κe )
+p
+1
+e4η0 2.5
+max(Ce , Ce0 ) 2 T
+,
+c1 κ(Π) + 2 log
++ c2
+δ
+η
+
+s
+
+(108)
+
+n3 (ε, δ) =
+
+12
+εδ
+
+q
+Ce0 Cµ e8η0 T
+s
+
+1
+e0 +κµ
+
+κ
+
+,
+
+e8η0
+max(Ce0 , Ce )Cµ 4 T 5
+n4 (ε, δ) =
+η
+ q
+ κ 1+κ
+e0
+δ
+6
+n5 (ε, δ) =
+Ce0 Cµ e8η0 T
+,
+εδ
+ 2
+6c
+n6 (ε, δ) =
+ε
+12
+εδ
+
+B
+
+(109)
+! min(κe
+
+1
+,κe )+κµ
+
+0
+
+,
+
+(110)
+
+(111)
+(112)
+
+Simulation Details and Results
+
+For the binary treatment choices setup as described in Section 5.1, we define a linear thresholding rule θ1 St ≥ θ2 t + θ3 such that whenever this holds, we stop the treatment. We search
+over three classes of policies:
+• Policies that always stop after some time t, corresponding to θ1 = 0, θ2 = −1, θ3 ∈
+[1, 2, · · · , T + 1] where T = 10 is the horizon length of the study.
+• Policies that always stop once the patient’s state St is above some threshold, corresponding to θ1 = 1, θ2 = 0, θ3 ∈ [−0.5, 0, 0.5, · · · , 4.5, 5].
+• Policies that depend on both the time and the patient’s state St , corresponding to
+θ1 = 1, θ2 ∈ [−1/4, −1/3, −1/2, −1, −2, −3, −4], θ3 ∈ [1, 2, · · · , 15].
+For the multiple treatment choices setup as descibed in Section 5.2, we consider the
+linear thresholding class: θ1 Xt0 + θ2 Yt0 + θ3 t ≥ θ4 is the region in which we start treatment.
+If in addition, θ5 Xt0 + θ6 Yt0 + θ7 t ≥ θ8 , we use the invasive treatment and otherwise, use the
+non-invasive treatment. We search over the following classes of policies:
+• Policies that always start treating at sometime, and always assign the non-invasive
+treatment option, corresponding to θ1 = 0, θ2 = 0, θ3 = 1, θ4 ∈ [1, 2, · · · , T + 1] where
+T = 10 is the horizon length of the study, θ5 = 0, θ6 = 0, θ7 = 0, θ8 = 1
+• Policies that always start treating at sometime, and always assign the invasive treatment option, corresponding to θ1 = 0, θ2 = 0, θ3 = 1, θ4 ∈ [1, 2, · · · , T + 1] where
+T = 10 is the horizon length of the study, θ5 = 0, θ6 = 0, θ7 = 1, θ8 = 0
+35
+
+• Policies that depend on both the time and the two covariates in the form of θ1 ∈
+[0.2, 0.7, 1, 3, 5], θ2 = 1, θ3 ∈ [0, 1], θ4 ∈ [1, 3, 5, 7, 9], θ5 ∈ [0.1, 0.35, 0.5, 1.5, 2.5], θ6 =
+1, θ7 ∈ [0, 1], θ8 ∈ [1, 3, 5, 7, 9].
+• Policies that depend on both the time and the two covariates in the form of θ1 ∈
+[0.2, 0.7, 1, 3, 5], θ2 = 1, θ3 ∈ [0, 1], θ4 ∈ [1, 3, 5, 7, 9], θ5 = −0.5, θ6 = 1, θ7 ∈ [0, 1], θ8 ∈
+[−5, −2, 1, 4].
+n
+250
+250
+250
+250
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+2500
+2500
+2500
+2500
+5000
+5000
+5000
+5000
+
+ν
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+
+β
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+0.5
+
+σ
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+
+ADR
+8.70
+9.06
+8.56
+9.04
+8.74
+9.19
+8.61
+9.16
+8.77
+9.23
+8.66
+9.24
+8.79
+9.23
+8.71
+9.26
+8.80
+9.23
+8.74
+9.26
+
+IPW
+8.36
+8.56
+8.35
+8.43
+8.53
+8.85
+8.52
+8.80
+8.64
+8.93
+8.61
+8.90
+8.74
+9.05
+8.68
+8.98
+8.77
+9.14
+8.75
+9.10
+
+Fitted-Q
+7.55
+7.50
+7.53
+7.39
+7.77
+7.59
+7.70
+7.58
+7.78
+7.59
+7.69
+7.58
+7.78
+7.59
+7.69
+7.59
+7.77
+7.59
+7.69
+7.59
+
+Oracle
+8.81
+9.23
+8.78
+9.26
+8.81
+9.23
+8.78
+9.26
+8.81
+9.23
+8.78
+9.26
+8.81
+9.23
+8.78
+9.26
+8.81
+9.23
+8.78
+9.26
+
+MSE:ADR
+0.09
+0.14
+0.18
+0.17
+0.08
+0.05
+0.08
+0.08
+0.10
+0.03
+0.05
+0.04
+0.09
+0.01
+0.06
+0.01
+0.06
+0.00
+0.05
+0.01
+
+MSE:IPW
+0.88
+0.33
+0.82
+0.34
+0.75
+0.15
+0.75
+0.22
+0.71
+0.08
+0.67
+0.10
+0.57
+0.04
+0.51
+0.05
+0.37
+0.02
+0.36
+0.04
+
+Table
+1:
+Detailed numerical results in the binary-action setup with
+β = 0.5; all numbers have been multiplied by 10. In the fifth to the eighth
+columns, we show the value of the best learned policy using ADR, weighted
+IPW, and fitted-Q iteration against the value of the oracle (oracle) best
+policy in the prespecified policy class, with all value estimates evaluated
+using a Monte-Carlo rollout with 30000 repeats. In the right two columns,
+we show the mean-squared error of the value estimates averaged across all
+policies in the policy class. Results are averaged across 200 runs and
+rounded to two decimal places.
+
+36
+
+n
+250
+250
+250
+250
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+2500
+2500
+2500
+2500
+5000
+5000
+5000
+5000
+
+ν
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+
+β
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+
+σ
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+
+ADR
+7.81
+8.04
+7.21
+7.81
+7.86
+8.19
+7.49
+8.10
+7.90
+8.40
+7.55
+8.35
+7.96
+8.46
+7.64
+8.46
+8.00
+8.46
+7.66
+8.51
+
+IPW
+7.38
+7.26
+7.21
+7.46
+7.60
+7.61
+7.37
+7.62
+7.67
+7.76
+7.45
+7.85
+7.83
+8.09
+7.51
+8.04
+7.89
+8.15
+7.57
+8.06
+
+Fitted-Q
+7.43
+7.05
+7.25
+6.91
+7.41
+7.22
+7.32
+7.10
+7.34
+7.19
+7.32
+7.19
+7.33
+7.15
+7.30
+7.18
+7.33
+7.15
+7.28
+7.18
+
+Oracle
+8.02
+8.47
+7.75
+8.51
+8.03
+8.47
+7.75
+8.52
+8.02
+8.47
+7.76
+8.51
+8.02
+8.47
+7.75
+8.51
+8.03
+8.46
+7.75
+8.51
+
+MSE:ADR
+0.18
+0.33
+0.65
+0.45
+0.16
+0.13
+0.18
+0.30
+0.15
+0.09
+0.10
+0.11
+0.11
+0.02
+0.08
+0.03
+0.07
+0.01
+0.03
+0.02
+
+MSE:IPW
+3.44
+1.19
+3.21
+1.20
+3.07
+0.56
+3.03
+0.65
+2.92
+0.34
+2.76
+0.28
+2.13
+0.10
+2.16
+0.19
+1.51
+0.08
+1.46
+0.12
+
+Table 2: Detailed numerical results in the binary-action setup with β = 1;
+details see caption of Table 1. All numbers have been multiplied by 10.
+
+37
+
+n
+250
+250
+250
+250
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+2500
+2500
+2500
+2500
+5000
+5000
+5000
+5000
+
+ν
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+
+β
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+
+σ
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+
+ADR
+6.84
+6.01
+5.59
+5.55
+7.11
+6.30
+6.11
+6.05
+7.27
+6.57
+6.34
+6.33
+7.35
+6.79
+6.65
+6.74
+7.38
+6.85
+6.74
+6.81
+
+IPW
+6.44
+5.70
+6.08
+5.54
+6.77
+5.60
+6.29
+5.94
+6.99
+5.98
+6.47
+6.12
+7.11
+6.15
+6.59
+6.24
+7.18
+6.37
+6.59
+6.26
+
+Fitted-Q
+6.47
+6.12
+6.24
+6.04
+6.43
+6.18
+6.26
+6.14
+6.39
+6.22
+6.20
+6.23
+6.33
+6.14
+6.19
+6.21
+6.30
+6.09
+6.17
+6.22
+
+Oracle
+7.40
+6.94
+6.80
+7.03
+7.40
+6.93
+6.80
+7.03
+7.40
+6.94
+6.80
+7.02
+7.40
+6.93
+6.80
+7.03
+7.40
+6.93
+6.80
+7.02
+
+MSE:ADR
+0.34
+0.97
+1.63
+1.42
+0.23
+0.53
+0.59
+0.76
+0.17
+0.20
+0.51
+0.35
+0.13
+0.06
+0.31
+0.10
+0.08
+0.02
+0.24
+0.07
+
+MSE:IPW
+13.32
+3.95
+12.91
+4.40
+12.59
+1.95
+12.11
+2.09
+11.73
+0.88
+10.96
+1.33
+8.06
+0.38
+8.24
+0.59
+5.58
+0.25
+5.23
+0.45
+
+Table 3: Detailed numerical results in the binary-action setup with β = 2;
+details see caption of Table 1. All numbers have been multiplied by 10.
+
+38
+
+n
+250
+250
+250
+250
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+2500
+2500
+2500
+2500
+5000
+5000
+5000
+5000
+
+ν
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+0
+0
+0.5
+0.5
+
+β
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+5
+
+σ
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+1
+3
+
+ADR
+5.29
+2.82
+3.88
+2.68
+6.20
+3.03
+4.40
+2.81
+6.33
+3.15
+4.82
+2.96
+6.53
+3.48
+5.16
+3.35
+6.63
+3.73
+5.51
+3.65
+
+IPW
+5.08
+2.89
+4.44
+3.01
+5.03
+2.83
+4.44
+2.81
+5.25
+2.84
+4.60
+2.84
+5.17
+2.98
+4.67
+2.95
+5.18
+3.18
+5.03
+2.98
+
+Fitted-Q
+3.31
+3.01
+2.43
+3.09
+3.23
+2.98
+2.44
+3.02
+3.20
+2.99
+2.38
+3.01
+3.16
+2.84
+2.36
+2.97
+3.18
+2.86
+2.35
+3.10
+
+Oracle
+6.66
+4.01
+5.83
+3.99
+6.67
+4.00
+5.84
+3.99
+6.67
+4.02
+5.82
+3.98
+6.67
+4.03
+5.84
+3.98
+6.67
+4.01
+5.84
+3.99
+
+MSE:ADR
+0.92
+3.03
+8.29
+9.25
+0.44
+2.13
+3.90
+3.63
+0.25
+0.85
+3.04
+1.98
+0.21
+0.28
+2.15
+0.70
+0.17
+0.14
+2.00
+0.31
+
+MSE:IPW
+81.68
+25.35
+79.25
+26.88
+74.17
+11.65
+73.36
+14.78
+70.49
+4.68
+68.17
+6.76
+56.47
+2.24
+51.22
+4.00
+32.34
+1.85
+36.01
+2.86
+
+Table 4: Detailed numerical results in the binary-action setup with β = 5;
+details see caption of Table 1. All numbers have been multiplied by 10.
+
+39
+
+n
+250
+250
+250
+250
+500
+500
+500
+500
+1000
+1000
+1000
+1000
+2500
+2500
+2500
+2500
+5000
+5000
+5000
+5000
+
+σ
+0
+0.5
+1
+1.5
+0
+0.5
+1
+1.5
+0
+0.5
+1
+1.5
+0
+0.5
+1
+1.5
+0
+0.5
+1
+1.5
+
+ADR
+1.49
+1.44
+1.56
+1.43
+1.69
+1.64
+1.64
+1.59
+1.90
+1.82
+1.83
+1.56
+2.13
+2.05
+1.92
+1.83
+2.25
+2.17
+2.04
+1.98
+
+IPW
+1.09
+1.12
+1.14
+0.97
+1.45
+1.30
+1.15
+1.21
+1.49
+1.40
+1.38
+1.24
+1.59
+1.64
+1.58
+1.42
+1.90
+1.80
+1.76
+1.68
+
+Fitted-Q
+1.80
+1.63
+1.57
+1.64
+2.03
+1.87
+1.87
+1.90
+1.94
+1.87
+1.93
+1.90
+1.89
+1.89
+1.96
+1.87
+1.75
+1.78
+1.74
+1.78
+
+Oracle
+2.62
+2.56
+2.53
+2.48
+2.61
+2.57
+2.55
+2.48
+2.60
+2.57
+2.55
+2.48
+2.60
+2.57
+2.55
+2.49
+2.62
+2.57
+2.54
+2.48
+
+MSE:ADR
+4.77
+5.12
+5.80
+5.98
+1.89
+2.16
+2.62
+2.62
+0.88
+0.92
+1.05
+1.21
+0.31
+0.33
+0.39
+0.43
+0.15
+0.17
+0.19
+0.21
+
+MSE:IPW
+15.09
+15.15
+13.63
+16.32
+6.84
+6.89
+7.39
+7.74
+3.27
+3.45
+3.55
+3.71
+1.25
+1.32
+1.33
+1.41
+0.60
+0.64
+0.67
+0.74
+
+Table 5: Detailed numerical results in the multiple-action setup; all numbers
+have been multiplied by 10. In the third to the sixth columns, we show
+the value of the best learned policy using ADR, IPW, and fitted-Q iteration
+against the value of the oracle best policy in the prespecified policy
+class, with all value estimates evaluated using a Monte-Carlo rollout with
+30000 repeats. In the right two columns, we show the mean-squared error
+of the value estimates averaged across all policies in the policy class.
+Results are averaged across 200 runs and rounded to two decimal places.
+
+40
+
+

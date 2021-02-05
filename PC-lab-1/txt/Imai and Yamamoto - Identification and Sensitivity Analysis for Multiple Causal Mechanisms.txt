@@ -1,0 +1,2235 @@
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+Advance Access publication January 12, 2013
+
+Political Analysis (2013) 21:141–171
+doi:10.1093/pan/mps040
+
+Identification and Sensitivity Analysis for Multiple Causal
+Mechanisms: Revisiting Evidence from Framing Experiments
+Kosuke Imai
+Department of Politics, Princeton University, Princeton NJ 08544
+e-mail: kimai@princeton.edu (corresponding author)
+Teppei Yamamoto
+Department of Political Science, Massachusetts Institute of Technology, 77 Massachusetts Avenue,
+Cambridge, MA 02139
+e-mail: teppei@mit.edu
+Edited by Jasjeet Sekhon
+Social scientists are often interested in testing multiple causal mechanisms through which a treatment affects
+outcomes. A predominant approach has been to use linear structural equation models and examine the
+statistical significance of the corresponding path coefficients. However, this approach implicitly assumes
+that the multiple mechanisms are causally independent of one another. In this article, we consider a set of
+alternative assumptions that are sufficient to identify the average causal mediation effects when multiple,
+causally related mediators exist. We develop a new sensitivity analysis for examining the robustness of empirical findings to the potential violation of a key identification assumption. We apply the proposed methods to
+three political psychology experiments, which examine alternative causal pathways between media framing
+and public opinion. Our analysis reveals that the validity of original conclusions is highly reliant on the assumed
+independence of alternative causal mechanisms, highlighting the importance of proposed sensitivity analysis.
+All of the proposed methods can be implemented via an open source R package, mediation.
+
+1
+
+Introduction
+
+The identiﬁcation of causal mechanisms is an important goal of empirical social science research.
+Researchers are often not only interested in the question of whether a particular causal variable of
+interest aﬀects outcomes, but they also wish to understand the mechanisms through which such causal
+eﬀects arise. Causal mediation analysis represents a formal statistical framework that can be used to
+study causal mechanisms. For example, Imai et al. (2011) identify a set of commonly invoked assumptions under which such an analysis can be justiﬁed, develop general estimation algorithms, and propose
+sensitivity analysis and new research design strategies. Indeed, there exists a fast-growing methodological literature about how to study causal mechanisms through the use of statistical methods (see
+Robins and Greenland 1992; Pearl 2001; Petersen, Sinisi, and van der Laan 2006; VanderWeele 2009;
+Imai, Keele, and Yamamoto 2010c; Glynn 2012; and many others). With such methodological
+advances, researchers can now base their mediation analysis on a rigorous statistical foundation.
+Nevertheless, an important deﬁciency of the existing methodologies is their limited ability to
+handle multiple causal mechanisms of interest (see, e.g., Bullock, Green, and Ha 2010; Imai et al.
+2011). Given this current state of the literature, the prevailing practice among applied researchers
+is to assume, often without explicitly stating it, that no causal relationship exists among these
+
+Authors’ note: The proposed methods can be implemented via open-source software mediation that is freely available as an R
+package at the Comprehensive R Archive Network (CRAN, http://cran.r-project.org/package¼mediation). The replication
+archive for this article is available online as Imai and Yamamoto (2012). We are grateful to Ted Brader, Jamie Druckman,
+and Rune Slothuus for sharing their data with us. We thank Dustin Tingley and Mike Tomz for useful discussions that
+motivated this article. John Bullock, Adam Glynn, and Tyler VanderWeele provided helpful suggestions. We also thank the
+Associate Editor and two anonymous referees for their comments that signiﬁcantly improved the paper. An earlier version of
+this article was circulated under the title “Sensitivity Analysis for Causal Mediation Eﬀects under Alternative Exogeneity
+Conditions.”
+ß The Author 2013. Published by Oxford University Press on behalf of the Society for Political Methodology.
+All rights reserved. For Permissions, please email: journals.permissions@oup.com
+
+141
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+142
+
+Kosuke Imai and Teppei Yamamoto
+
+alternative mechanisms. In many applications, however, such an assumption is not credible because
+competing theoretical explanations are often closely tied to each other.
+In this article, we consider the identiﬁcation and sensitivity analysis of multiple causal mechanisms by extending causal mediation analysis to the cases involving several mediators that are
+causally related to each other. Figure 1 presents two causal diagrams with multiple causal mechanisms. They represent the speciﬁc scenarios studied in this article, where the treatment variable T
+could aﬀect the outcome Y in three ways: through the main mediator of interest M (red arrows),
+through the set of alternative mediators W, and directly. The critical diﬀerence between Figs. 1(a)
+and (b) is that in the former M and W are assumed to have no causal relationship with one another,
+whereas in the latter W may possibly aﬀect M (but not the other way around). We ﬁrst show that
+the standard mediation analysis assumes the causal independence between multiple mediators as in
+Fig. 1(a), regardless of whether alternative mediators W are measured. We then develop a set of
+statistical methods to relax this assumption and address the situation in Fig. 1(b).1
+In Section 2, we introduce three experimental studies from the political psychology literature on
+framing eﬀects, which we use as illustrative examples throughout this article. All of these studies
+investigate how issue frames aﬀect opinions and behavior through multiple causal pathways, such
+as changes in perceived issue importance or belief content. To identify these multiple mechanisms,
+they rely on a traditional path analytic method which, as we show, implicitly assumes the absence of
+causal relationship between the corresponding mediators. This assumption is problematic from a
+theoretical point of view because, for example, framing may also alter the perceived importance of
+the issue by changing the factual content of beliefs (Miller 2007).
+In Section 3, we use a formal statistical framework of causal inference and show that the
+standard causal mediation analysis, including the ones conducted in these framing studies,
+assumes causal independence between multiple causal mechanisms. Under this independence
+assumption, there is no need to measure alternative mediators W to identify the main mediation
+eﬀect of interest. After reviewing the assumptions required for the identiﬁcation of independent
+multiple mechanisms, we reanalyze the data from the framing experiments under these assumptions. The results suggest that the empirical conclusions in the original studies are largely valid so
+long as these mechanisms are independent of each other, although statistical signiﬁcance appears to
+be somewhat lessened for some of the studies.
+In Section 5, we develop new statistical methods that allow for the existence of multiple causal
+mechanisms that are causally related to each other. Our methods are formulated within a framework of familiar linear regression models, and yet the models are much more ﬂexible than standard
+regression models because every coeﬃcient is allowed to vary across individual observations in an
+arbitrary fashion: the model can be considered as semiparametric, making no distributional assumption about varying coeﬃcients. Thus, the proposed model encompasses a large class of realistic statistical models that can be applied to various social science research projects while
+maintaining the simplicity and interpretability of the linear model.
+Under this framework of multiple mechanisms, we ﬁrst consider the identiﬁcation assumptions
+originally introduced by Robins (2003), which allow for the presence of competing mechanisms.
+Robins assumes that the treatment assignment is exogenous given a set of observed pretreatment
+covariates and that the mediator of interest is also exogenous conditional on observed pre- and
+posttreatment covariates. This setup allows for the existence of alternative mediators that
+confound the relationship between the main mediator of interest and the outcome, provided that
+they are all observed. Under this circumstance, Robins shows that the assumption of no interaction
+eﬀect between the treatment and the mediator (i.e., the causal eﬀect of the mediator on the outcome
+does not depend on the treatment status) is suﬃcient for identifying the causal mechanism of interest.
+However, as previously noted by many researchers, including Robins himself (e.g., Petersen,
+Sinisi, and van der Laan 2006; Imai, Tingley, and Yamamoto 2013), the assumption of no
+1
+
+The other important situation involving multiple mechanisms is cyclic causation, i.e., both W and M cause each other.
+Identifying whether the causal relationship is cyclic or acyclic is difficult without some help of prior theoretical or
+empirical information, and care must be taken so that the assumed causal ordering is plausible. Here, we focus on the
+case of Fig. 1(b), in part motivated by the primary concern in the framing literature (see the discussion in Section 4.1).
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+Multiple Causal Mechanisms
+
+143
+
+Fig. 1 Causal diagrams with multiple causal mechanisms. In Panel (a), the treatment variable T can affect
+the outcome variable Y either through the mediator of interest M (dashed arrows), through alternative
+mediators W, or directly (solid bottom arrow). In addition, the causal relationship between M and W is
+assumed to be nonexistent. Panel (b) represents an alternative scenario, where W can affect Y either directly
+or through M, thereby allowing for the potential causal relationship between M and W. The quantity of
+interest for the proposed methods is the ACME with respect to M, which is represented by the dashed
+arrows connecting T and Y through M in both panels.
+
+treatment–mediator interaction is often too strong in empirical applications. For example, in
+framing experiments, the eﬀect of the perceived issue importance on opinions may well depend
+on which frame was initially given. Therefore, we relax this key identiﬁcation assumption by developing a new sensitivity analysis that assesses the robustness of empirical results to the potential
+violation of this key identiﬁcation assumption. Our sensitivity analysis also directly addresses “the
+product and diﬀerence fallacies” pointed out by Glynn (2012) because his model is a special case of
+our model. We illustrate the proposed methods by applying them to the framing experiments from
+the political psychology literature. Our analysis reveals that the validity of original ﬁndings is highly
+reliant on the assumed independence of alternative causal mechanisms, implying the essential role
+of identiﬁcation and sensitivity analyses in the study of multiple mediators.
+Causal mediation analysis, like many other tools of causal inference, relies on untestable assumptions. Thus, it is essential for applied researchers to examine the robustness of empirical
+ﬁndings to the violation of key identiﬁcation assumptions. While there exist sensitivity analysis
+tools in the literature, many of them deal with pretreatment confounders and essentially assume the
+absence of causally related alternative mediators (e.g., Hafeman 2008; Imai, Keele, and Tingley
+2010a; Imai, Keele, and Yamamoto 2010c; VanderWeele 2010). In contrast to these previous
+studies, the sensitivity analysis proposed in this article addresses the possible existence of
+posttreatment confounders. Sensitivity analyses that can handle posttreatment confounders are
+just beginning to appear in the methodological literature on causal mediation (e.g., Albert and
+Nelson 2011; Tchetgen Tchetgen and Shpitser 2011).
+Nevertheless, one limitation of the proposed approach is that, even though it addresses the
+potential violation of the no treatment–mediator interaction assumption, it still hinges on
+another untestable assumption of no unmeasured confounder for the mediator. To address this
+issue, in Section 7, we consider the extensions of the proposed method to the new experimental
+designs recently developed by Imai, Tingley, and Yamamoto (2013). In particular, we consider the
+“parallel design” where the sample is randomly divided into two groups and separate randomized
+experiments are conducted in parallel for those groups.2 We also consider the “parallel encouragement design,” a natural generalization of the parallel design for the situation, where the direct
+manipulation of the mediator is diﬃcult. While the randomization of the treatment and the
+mediator is not suﬃcient for the identiﬁcation of the ACME (Imai, Tingley, and Yamamoto
+2013), both experimental designs relax the unconfoundedness assumption with respect to the treatment and the mediator. This eliminates the need to measure alternative mediators and allows us to
+develop a sensitivity analysis for the key identiﬁcation assumption. While these experimental
+designs are new and hence have not yet been used by many applied researchers, we hope that
+their future use can improve the credibility of causal mediation analysis. In addition, these new
+
+2
+
+In one experiment, researchers randomize the treatment and observe the values of the mediator and the outcome. In the
+other experiment, both the treatment and the mediating variables are randomized and subsequently the values of the
+outcome variable are recorded.
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+144
+
+Kosuke Imai and Teppei Yamamoto
+
+experimental designs can serve as templates for designing observational studies (see Imai et al. 2011
+for some examples).
+Finally, Section 8 oﬀers concluding remarks and some suggestions for applied researchers who
+wish to study multiple causal mechanisms. All of our proposed methods can be implemented
+through the open-source software program mediation (Imai et al. 2010b; Tingley et al. 2012),
+which is freely available at the Comprehensive R Archive Network (CRAN, http://cran.r-project.
+org/package ¼ mediation).
+2
+
+Framing Experiments in Political Psychology
+
+In this section, we introduce three empirical studies of framing eﬀects, which serve as examples
+throughout the article. In political psychology, scholars are interested in whether and how the
+framing of political issues in mass media and elite communications aﬀects citizens’ political
+opinion and behavior. Psychological theory suggests that issue framing, or a presenter’s deliberate
+emphasis on certain aspects of an issue, may aﬀect how individuals perceive the issue and change
+their attitudes and behavior (Tversky and Kahneman 1981).
+If citizens are prone to such cognitive biases when interpreting media contents, political elites
+may be able to inﬂuence, or even manipulate, the public opinion by carefully choosing the languages they use in their communication through mass media (Zaller 1992). While early studies
+focused on identifying the issue areas in which such framing eﬀects manifest (e.g., Kinder and
+Sanders 1990; Iyengar 1991; Nelson and Kinder 1996), recent studies address the question of the
+mechanisms through which framing aﬀects public opinion and political behavior (e.g., Nelson,
+Clawson, and Oxley 1997; Callaghan and Schnell 2005; Chong and Druckman 2007).
+Below, we brieﬂy describe three experimental studies that are aimed at the identiﬁcation of such
+mechanisms. Aside from their prominence in the literature, these studies all explicitly examine more
+than one causal mechanism by measuring multiple mediators corresponding to those competing
+possible pathways. In each of these studies, the authors implicitly assume that the multiple causal
+pathways under study are independent of one another. As we discuss below, however, this assumption is theoretically implausible and statistically problematic, for its violation can lead to a substantial bias in the estimated importance of causal mechanisms.
+2.1
+
+Druckman and Nelson’s Campaign Finance Reform Experiment
+
+One of the most important debates in the framing eﬀects literature concerns whether issue framing
+aﬀects citizens’ opinions by shifting the perceived importance of the issue (hereafter the “importance” mechanism) or changing the content of their belief about the issue (hereafter the “content”
+mechanism). As part of their experimental study on the interaction between issue framing and
+interpersonal conversations, Druckman and Nelson (2003) examine this question using a path
+analytic approach. First, they randomly assign each of their 261 study participants to one of the
+two conditions. In one condition, the subject is asked to read an article on proposed campaign
+ﬁnance reform that emphasizes its possible violation of free speech. In the other condition, the
+assigned article emphasizes the potential of campaign ﬁnance reform to limit special interests. Then,
+after additionally randomizing whether the participants will engage in discussion, the authors
+measured the two mediators: the participants’ perceived importance of free speech and special
+interests as well as their belief about the impact of the proposed reform on these items. Finally,
+the authors measured the outcome variable, the overall level of support for the proposed campaign
+ﬁnance reform. The substantive question of interest for the original authors is whether the eﬀect of
+the frames on the support levels are mediated by the importance mechanism or the content
+mechanism.
+2.2
+
+Slothuus’ Social Welfare Reform Experiment
+
+Following Druckman and Nelson (2003), Slothuus (2008) conducted a randomized experiment
+to analyze the above two mechanisms of framing eﬀects. Using a sample of 408 Danish students,
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+Multiple Causal Mechanisms
+
+145
+
+the author examined how two versions of a newspaper article on a social welfare reform bill—one
+emphasizing the reform’s supposed positive eﬀect on job creation and the other focusing on its
+negative impact on low-income population—aﬀect diﬀerently the participants’ opinion about the
+reform. After randomly assigning participants to either the “job frame” or the “poor frame,” the
+author measured the two mediators, i.e., the importance and the content of issue-related considerations, by asking a series of 5-point-scale questions. Finally, the outcome variable was measured
+by asking the participants whether and to what extent they agree or disagree with the proposed
+welfare reform. Similar to the previous study, the key substantive question of interest is whether the
+framing eﬀects transmit through the importance mechanism or the content mechanism.
+2.3
+
+Brader, Valentino, and Suhay’s Immigration Experiment
+
+The third study we analyze also investigates the causal mechanisms underlying framing eﬀects but
+focuses on the role of emotions as opposed to more conscious beliefs about the issue. Brader,
+Valentino, and Suhay (2008) report the results of their randomized experiment on the framing of
+immigration policy. As part of a nationally representative survey of 354 White non-Latino adults,
+they randomly assigned diﬀerent versions of a mock New York Times article about immigration by
+varying the origin of the featured immigrant as well as the tone of the story. The article featured
+either a European or Latino immigrant and emphasized either the positive or negative consequences of increased immigration. After the treatment, the authors measured the participants’
+belief about the likely negative impact of immigration (hereafter the “perceived harm” mechanism)
+as well as their emotions by asking how they feel about increased immigration (hereafter the
+“anxiety” mechanism). Finally, the authors recorded the participants’ opinions and behavioral
+reactions to an increase in immigration. The main goal was to identify the mechanism through
+which the framing eﬀects of the news stories operated.
+3
+
+Identification of Independent Multiple Mechanisms
+
+In this section, we use the formal statistical framework of causal inference and show that the
+standard causal mediation analysis commonly used in empirical studies (including our running
+examples introduced in the previous section) implicitly assumes the independence of competing
+causal mechanisms. We then reanalyze the framing experiments described above under this independence assumption.
+3.1
+
+Causal Mediation Analysis with a Single Mediator: A Review
+
+We begin by brieﬂy reviewing the standard causal mediation analysis with a single mediator (see
+Imai et al. [2011] for a more detailed explanation). Suppose that we have a simple random sample
+of size n from a population of interest P. Let Ti be a binary treatment variable, which equals one if
+unit i receives the treatment and is equal to zero otherwise. We use Mi and Yi to denote the
+observed value of the mediator and the outcome of interest for unit i, respectively. Under the
+formal statistical framework of causal inference (Neyman 1923; Rubin 1974; Holland 1986), we
+write Mi(t) to represent the potential mediator value under the treatment status t ¼ 0, 1, where the
+observed value Mi equals the potential value of the mediator under the observed treatment status
+Mi(Ti). Similarly, we use Y i(t,m) to denote the potential outcome under the treatment status t and
+the mediator value m, where the observed outcome Yi equals Yi ðTi ,Mi ðTi ÞÞ. We assume throughout
+the rest of the article that there is no measurement error in the observed values of the variables.3
+In the literature of causal mediation analysis initiated by Robins and Greenland (1992) and Pearl
+(2001), the causal mediation eﬀect (or indirect eﬀect) for unit i given the treatment status t is deﬁned as
+3
+
+Little is known about the consequences of measurement error in causal mediation analysis. The simplest case is classical
+measurement error in one (and only one) of the variables, which will lead to an attenuation bias in the estimate of the
+regression coefficient corresponding to the mismeasured variable. It is likely, however, that more complex patterns of
+measurement error often exist in practice. Analysis of such cases is beyond the scope of the current paper.
+
+146
+
+Kosuke Imai and Teppei Yamamoto
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+i ðtÞ  Yi ðt,Mi ð1ÞÞ  Yi ðt,Mi ð0ÞÞ,
+
+ð1Þ
+
+which represents the causal eﬀect of the treatment on the outcome that can be attributed to the
+treatment-induced change in the mediator. This quantity represents the change in outcome under
+the scenario where the treatment variable is held constant at t and the mediator is changed from
+Mi(0) to Mi(1). Similarly, the unit-level direct eﬀect of the treatment is deﬁned as
+i ðtÞ  Yi ð1,Mi ðtÞÞ  Yi ð0,Mi ðtÞÞ,
+
+ð2Þ
+
+which denotes the causal eﬀect of the treatment on the outcome that can be attributed to causal
+mechanisms other than the one represented by the mediator. Here, the mediator is held constant at
+Mi(t) and the treatment variable is changed from zero to one.
+Finally, the sum of these direct and indirect eﬀects equals the following total eﬀect, which
+formally decomposes the total eﬀect into the direct and indirect eﬀects,
+i  Yi ð1,Mi ð1ÞÞ  Yi ð0,Mi ð0ÞÞ ¼ i ðtÞ þ i ð1  tÞ:
+
+ð3Þ
+
+If we assume that the indirect and direct eﬀects do not depend on the treatment status, i.e.,
+i ðtÞ ¼ i
+
+and
+
+i ðtÞ ¼ i ,
+
+ð4Þ
+
+for each t, then we have simpler decomposition i ¼ i þ i . Given these unit-level causal quantities
+of interest, we can deﬁne the population average eﬀect for each quantity,
+ ¼ Eði ðtÞÞ,
+ðtÞ
+
+ ¼ Eði ðtÞÞ, and
+
+ ¼ Eði Þ:
+
+ð5Þ
+
+The goal of causal mediation analysis is, therefore, to decompose the total treatment eﬀect into
+the direct and indirect eﬀects, where the former corresponds to the causal mechanism of interest
+and the latter represents all other causal mechanisms.
+The standard mediation analysis most commonly used across various social science disciplines
+entails the process of ﬁtting the following two linear regressions separately,
+Mi ¼ 2 þ 2 Ti þ 2> Xi þ ei2 ,
+Yi ¼ 3 þ 3 Ti þ Mi þ
+
+3> Xi
+
+ð6Þ
+þ ei3 ,
+
+ð7Þ
+
+where Xi represents a vector of observed pretreatment confounders. After ﬁtting these two models,
+^ and interpret it as an estimate of the
+researchers compute the product of two coeﬃcients, i.e., ^2 ,
+
+ACME ðtÞ,
+whereas the estimated coeﬃcient ^3 is interpreted as an estimate of the average direct
+
+eﬀect (ADE) ðtÞ.
+Alternatively, researchers can ﬁt the regression model given in equation (7) as
+well as the following regression model,
+Yi ¼ 1 þ 1 Ti þ 1> Xi þ ei1 ;
+
+ð8Þ
+
+and compute the diﬀerence of the two coeﬃcients, i.e., ^1  ^3 , to obtain the estimated average
+mediation eﬀect. Here, ^1 is taken as an estimate of the average total eﬀect.
+Imai, Keele, and Yamamoto (2010c) prove that this standard mediation analysis can be justiﬁed
+under the following sequential ignorability assumption,
+fYi ðt,mÞ,Mi ðt0 Þg??Ti jXi ¼ x
+0
+
+Yi ðt ,mÞ??Mi jTi ¼ t,Xi ¼ x;
+
+ð9Þ
+ð10Þ
+
+for any value of x, t, t0 , m, and every unit i. In fact, it has been shown that under this assumption,
+the ACMEs are nonparametrically identiﬁed, i.e., without any functional form or distributional
+assumptions. Imai, Keele, and Tingley (2010a) develop general algorithms to compute an estimate
+of the ACME and its uncertainty given any statistical models speciﬁed by applied researchers
+(linear, nonlinear, parametric, nonparametric models, etc.).
+Is the sequential ignorability assumption plausible? While equation (9) is guaranteed to hold in a
+standard randomized experiment where the treatment is randomly administered, equation (10) is
+often diﬃcult to justify in many practical situations. The reason is two-fold. First, equation (10)
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+Multiple Causal Mechanisms
+
+147
+
+implies that there must not be any unobserved pretreatment confounding between the observed
+mediator and outcome once the treatment and the observed pretreatment covariates are conditioned on. Second, equation (10) also requires that there be no posttreatment confounding between
+the mediator and the outcome whatsoever, observed or unobserved. If equation (10) does not hold
+for either (or both) of these two reasons, the sequential ignorability assumption is violated and the
+ACME cannot be nonparametrically identiﬁed.
+To address the possibility that equation (10) may not hold, Imai, Keele, and Yamamoto (2010c)
+develop a sensitivity analysis under the framework of the structural linear equations model. Their
+method relies on the fact that under equations (6) and (7), one can summarize the degree of the
+violation of equation (10) by the correlation coeﬃcient between the two error terms, i.e.,
+ Corrðei2 ,ei3 Þ. They show that the ACME can be identiﬁed given a value of and also that
+equation (10) implies ¼ 0. Thus, one can analyze the robustness of the structural equations-based
+estimate of the ACME to the violation of sequential ignorability by examining how the value of the
+ACME varies as a function of .
+Moreover, Imai, Keele, and Yamamoto (2010c) propose an alternative formulation of the
+sensitivity analysis that may be easier to interpret. This version is based on the idea that the
+error terms ei2 and ei3 can each be decomposed into a common unobserved pretreatment
+confounder plus an independent random disturbance, i.e., eij ¼ j Ui þ e0ij for j ¼ 2, 3. Then,
+the degree of the sequential ignorability violation can be summarized by the importance of this
+common term (but with diﬀerent coeﬃcients) in explaining variations in the mediator and the
+outcome, which is represented as the (partial) coeﬃcients of determination, i.e.,
+R~ 2M  fVðei2 Þ  Vðe0i2 Þg=VðMi Þ and R~ 2Y  fVðei3 Þ  Vðe0i3 Þg=VðYi Þ. They show that the ACME can
+also be expressed as a function of R~ 2M and R~ 2Y , making it possible to conduct the equivalent sensitivity analysis with respect to these alternative parameters.
+3.2
+
+Assumed Independence of Multiple Causal Mechanisms
+
+While these identiﬁcation results and sensitivity analysis provide a useful framework for analyzing a
+single causal mechanism, it leaves an important situation unaddressed. Recall that equation (10)
+can fail because of two reasons: unobserved pretreatment confounding or any posttreatment confounding. This means that even if the mediator can be assumed to be exogenous after conditioning
+on a vector of observed posttreatment confounders (denoted by Wi) as well as Ti and Xi (i.e., no
+unobserved confounding, but observed posttreatment confounding), sequential ignorability is
+violated and the standard causal mediation analysis cannot identify the average mediation
+eﬀects. In addition, while the above sensitivity analysis addresses the problem of potential
+unobserved pretreatment confounding, it cannot cope with the possibility of posttreatment
+confounding, such as Wi. Therefore, this framework assumes the absence of any form of posttreatment confounding.
+Now, consider the problem of multiple mechanisms. Since alternative mediators (Wi) are by
+deﬁnition causally aﬀected by the treatment and inﬂuence the outcome, the assumption of no posttreatment confounding is equivalent to assuming that these alternative mediators do not causally
+inﬂuence the mediator of interest. Going back to Fig. 1, this means that the standard analysis based
+on the sequential ignorability assumption implicitly presupposes a situation like Fig. 1(a), where the
+causal relationship between the mediator of interest Mi and alternative mediators Wi is absent. In
+contrast, Fig. 1(b) corresponds to a case where alternative mediators Wi causally aﬀect the
+mediator of interest Mi. It is easy to see that the latter scenario violates the sequential ignorability
+assumption because Wi is a set of posttreatment variables that confound the relationship between
+Mi and Yi. Thus, the standard causal mediation analysis assumes the independence between the
+causal mechanism of interest and other alternative mechanisms. As shown below, another diﬃculty
+resulting from this limitation of the standard causal mediation analysis is that this independence
+assumption is not directly testable from the observed data.
+We now formalize the above argument. To make the existence of alternative mediators explicit,
+we introduce potential values of those other mediators Wi and denote them as Wi(t) for t ¼ 0, 1,
+implying that Wi is a posttreatment variable and hence possibly aﬀected by the treatment. If there is
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+148
+
+Kosuke Imai and Teppei Yamamoto
+
+no causal relationship between Mi and Wi as in Fig. 1(a), the potential value of Mi is not a function
+of Wi and thus can be written as before, i.e., Mi(t). The potential outcomes, on the other hand,
+depend on both Mi and Wi and are denoted by Y i(t,m,w) for any t, m, w. The observed outcome Yi
+equalsYi ðTi ,Mi ðTi Þ,Wi ðTi ÞÞ. We emphasize that Wi could be either a single alternative mediator or a
+vector of multiple alternative mediators, and that those mediators may or may not be causally
+related to each other. Our framework does not require that researchers specify causal relationships
+among these alternative mechanisms.
+Under this setup, we can deﬁne the two types of causal mediation eﬀects, one with respect to Mi
+and the other with respect to Wi,
+M
+i ðtÞ  Yi ðt,Mi ð1Þ,Wi ðtÞÞ  Yi ðt,Mi ð0Þ,Wi ðtÞÞ,
+
+ð11Þ
+
+W
+i ðtÞ  Yi ðt,Mi ðtÞ,Wi ð1ÞÞ  Yi ðt,Mi ðtÞ,Wi ð0ÞÞ,
+
+ð12Þ
+
+W
+for t ¼ 0, 1, where M
+i ðtÞ (i ðtÞ) represents the unit-level indirect eﬀect of the treatment on the
+outcome through the mediator Mi (Wi) while holding the treatment at t and the other mediator
+at its value that would be realized under the same treatment status, i.e., Wi(t) (Mi(t)). For example,
+in framing experiments, such as those by Druckman and Nelson (2003) and Slothuus (2008), M
+i ðtÞ
+represents the eﬀect of issue frames on opinions that goes through changes in the perceived importance of the issue induced by the framing eﬀect, whereas W
+i ðtÞ equals the portion of the framing
+eﬀect that operates through changes in belief content. As before, for each of these two causal
+W
+W
+mediation eﬀects, we can deﬁne the ACME as M ðtÞ  EðM
+i ðtÞÞ or  ðtÞ  Eði ðtÞÞ by averaging
+it over the target population P.
+W
+We emphasize that both M
+i ðtÞ and i ðtÞ are counterfactual quantities because, for example,
+0
+Mi(t) and Wi ðt Þ are never jointly observed at the same time when t 6¼ t0 . Similarly, Yi ðt,Mi ðt0 Þ,Wi ðtÞÞ
+can never be observed unless Mi ðt0 Þ ¼ Mi ðtÞ. This counterfactual nature leads some scholars to
+question the value of causal mediation analysis (e.g., Rubin 2004). Nevertheless, these indirect
+eﬀects formalize causal processes that are often of scientiﬁc importance to applied researchers,
+and hence our goal is to oﬀer a set of statistical methods that take seriously the required identiﬁcation assumptions.
+In addition, the unit-level direct eﬀect can be deﬁned as
+
+i ðt,t0 Þ  Yi ð1,Mi ðtÞ,Wi ðt0 ÞÞ  Yi ð0,Mi ðtÞ,Wi ðt0 ÞÞ
+
+ð13Þ
+
+for each t,t0 ¼ 0,1, where zi(1,0), for example, represents the direct eﬀect of the treatment while
+holding the mediators at ðMi ð1Þ,Wi ð0ÞÞ. Again, in Druckman and Nelson’s experiment, this
+quantity represents the eﬀect of frames that does not operate through either the importance mech 0 Þ  Eði ðt,t0 ÞÞ. Given these
+anism or the content mechanism. As before, the ADEs are given by ðt,t
+deﬁnitions, we can decompose the total eﬀect as the sum of direct and mediation (indirect) eﬀects,
+i  Yi ð1,Mi ð1Þ,Wi ð1ÞÞ  Yi ð0,Mi ð0Þ,Wi ð0ÞÞ
+W
+¼ M
+i ðtÞ þ i ð1  tÞ þ i ð1  t,tÞ,
+
+for t ¼ 0, 1.4 As in the case of a single mediator, we can simplify this expression under the
+no-interaction assumptions,
+4
+
+To verify this relationship, note that
+W
+M
+i ð1Þ þ i ð0Þ þ i ð1; 0Þ ¼ Yi ð1; Mi ð1Þ; Wi ð1ÞÞ  Yi ð1; Mi ð0Þ; Wi ð1ÞÞ
+
+þ Yi ð0; Mi ð0Þ; Wi ð1ÞÞ  Yi ð0; Mi ð0Þ; Wi ð0ÞÞ
+þ Yi ð1; Mi ð0Þ; Wi ð1ÞÞ  Yi ð0; Mi ð0Þ; Wi ð1ÞÞ ¼ i ;
+and
+W
+M
+i ð0Þ þ i ð1Þ þ i ð0; 1Þ ¼ Yi ð0; Mi ð1Þ; Wi ð0ÞÞ  Yi ð0; Mi ð0Þ; Wi ð0ÞÞ
+
+þ Yi ð1; Mi ð1Þ; Wi ð1ÞÞ  Yi ð1; Mi ð1Þ; Wi ð0ÞÞ
+þ Yi ð1; Mi ð1Þ; Wi ð0ÞÞ  Yi ð0; Mi ð1Þ; Wi ð0ÞÞ ¼ i :
+
+149
+
+Multiple Causal Mechanisms
+M
+W
+W
+M
+i ðtÞ ¼ i , i ðtÞ ¼ i , and
+
+i ðt,t0 Þ ¼ i ,
+
+ð14Þ
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+0
+
+for any t,t . Under these conditions, we have a simpler decomposition relationship, i.e.,
+W
+i ¼ M
+i þ i þ i .
+We now generalize the sequential ignorability assumption to the case with multiple mediators,
+where the causal independence between the main mediator of interest Mi and alternative mediators
+Wi is assumed.
+Assumption 1 (Sequential Ignorability with Multiple Causally Independent
+Mediators). We assume that the following three conditional independence statements hold:
+fYi ðt,m,wÞ,Mi ðt0 Þ,Wi ðt00 Þg??Ti jXi ¼ x,
+
+ð15Þ
+
+Yi ðt0 ,m,Wi ðt0 ÞÞ??Mi jTi ¼ t,Xi ¼ x,
+
+ð16Þ
+
+Yi ðt0 ,Mi ðt0 Þ,wÞ??Wi jTi ¼ t,Xi ¼ x,
+
+ð17Þ
+
+where 0 < PrðTi ¼ tjXi ¼ xÞ and 0 < pðMi ¼ m,Wi ¼ wjTi ¼ t,Xi ¼ xÞ for any x,t,t0 ,m,w.
+Under this assumption, it can be shown that the ACMEs, M ðtÞ and W ðtÞ, as well as the ADEs
+ðt,t0 Þ are nonparametrically identiﬁed and expressed by the same formula as Theorem 1 of Imai,
+Keele, and Yamamoto (2010c). Proof of this identiﬁcation result is provided in Appendix A1.
+Can the assumption of no causal relationship between these mediators be tested using the
+observed data? We note that Assumption 1 neither implies nor is implied by the conditional independence between the observed values of Mi and Wi given the treatment Ti and observed pretreatment confounders Xi. This means that there exists no direct test of the assumed independence
+between causal mechanisms. However, we suggest that researchers at least check the degree of
+statistical dependence between Mi and Wi given (Ti,Xi) as well as the association between Wi
+and Ti given Xi because these strong dependent relationships are likely to indicate the violation
+of Assumption 1. Another important limitation of Assumption 1 is that equations (16) and (17)
+assume what is sometimes called the “cross-world” independence. For example, the independence
+in equation (16) conditions on Ti ¼ t, whereas the potential outcome Yi ðt0 ,m,Wi ðt0 ÞÞ conditions on a
+possibly diﬀerent treatment condition, i.e., Ti ¼ t0 . This issue is further discussed in Section 5, where
+we relax the restriction.
+Next, we show that the standard analysis of multiple mediators in many social science applications, such as those described in Section 2, implicitly relies on Assumption 1. While our fundamental point applies more generally, we use the following linear structural equations model, which
+is by far the most commonly used method, to illustrate the point clearly:
+>
+Xi þ eiM ,
+Mi ¼ M þ M Ti þ M
+
+ð18Þ
+
+>
+Xi þ eiW ,
+Wi ¼ W þ W Ti þ W
+
+ð19Þ
+
+Yi ¼ 3 þ 3 Ti þ Mi þ
+
+>
+
+Wi þ 3> Xi þ ei3 :
+
+ð20Þ
+
+In the standard procedure, the product of the estimated regression coeﬃcients that correspond to
+^ is then computed and interpreted as an estimate of the ACME
+the mechanism of interest (e.g., ^M Þ
+for that mechanism. The three studies of framing eﬀects described in Section 2 all use this path
+analytic approach and investigate the statistical signiﬁcance of the estimated ACMEs for either
+mechanisms (or their standardized values).
+It can be shown that, under Assumption 1, the product of the unstandardized path coeﬃcients in
+equations (18–20) can be justiﬁed as an estimate of the corresponding ACME. The result is proved
+in Appendix A2. However, it is important to note that Assumption 1 is merely an alternative
+representation of the same assumption, i.e., sequential ignorability given in equations (9) and
+(10). Thus, under Assumption 1, the same ACME can also be estimated by applying the
+standard causal mediation analysis to one of the mechanisms at a time. That is, under
+Assumption 1, the product of coeﬃcients based on equations (6) and (7) also consistently estimates
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+150
+
+Kosuke Imai and Teppei Yamamoto
+
+the ACME with respect to Mi, and the same analysis can be conducted for Wi using the linear
+structural equations model analogous to equations (6) and (7).
+Earlier, we recommended that applied researchers should check the conditional independence
+between M and W given T and X. If these two mediators are dependent, then it is likely that
+Assumption 1 is violated. Indeed, if the separate application of the standard causal mediation
+analysis procedure to M and W gives results that are diﬀerent from those obtained by using the
+model speciﬁed in equations (18–20), then Assumption 1 is unlikely to hold because W is likely to
+aﬀect M. A straightforward way to explore this possibility in the linear structural equations framework is to regress M on (W, T, X) and conduct an F-test with respect to W to see whether M and W
+are correlated even after conditioning on T and X. If one ﬁnds a statistically signiﬁcant relationship,
+M is likely to be causally related to W, thereby violating the key identiﬁcation assumption of the
+standard causal mediation analysis. A similar analysis should be conducted to examine the
+conditional association between W and T given X. We also note that these analyses should be
+interpreted with care: the failure to reject the null hypothesis of no conditional association does not
+necessarily imply the complete absence of such relationships.
+In sum, from a causal inference perspective, the standard path analytic procedure for multiple
+mediators does not fundamentally add anything to the simpler one-mechanism-at-a-time procedure. In fact, they are based on the same exact assumption about the causal independence of multiple
+mediators. This implies that if one’s sole goal is to identify the ACME with respect to M, there is no
+need to measure alternative mediators W if they are causally independent of M. Nevertheless, we
+suggest that researchers measure W and examine the statistical relationship between M and W.
+Strong statistical dependence between those mediators implies that the sequential ignorability assumption is likely to be violated and researchers need a diﬀerent statistical methodology in order to
+conduct causal mediation analysis in the presence of causally dependent multiple mediators. Before
+we turn to our proposed methodology for such analysis in Section 5, we next analyze the framing
+experiments under the assumption of independent causal mechanisms.
+4
+
+Empirical Analysis under the Independence Assumption
+
+We reanalyze the data from the three experiments under the assumption of independence between
+mechanisms using the framework of causal mediation analysis outlined by Imai et al. (2011). We
+also conduct a sensitivity analysis that addresses the potential violation of the sequential
+ignorability assumption by explicitly calculating how much the estimate of the ACME could
+change if the assumption is violated to a speciﬁed degree. Since the original analyses of these
+experiments also made the independence assumption implicitly, our sensitivity analysis here
+serves as a check on whether the original conclusions are robust to unobserved pretreatment
+confounders. Unlike the one proposed later in this article, however, the limitation of this
+existing sensitivity analysis is that it only allows for the possible existence of unobserved pretreatment confounders and assumes no posttreatment confounder. In other words, the sensitivity
+analysis maintains the assumption of independent causal mechanisms and relaxes the exogeneity
+of the mediator by introducing a certain degree of pretreatment confounding.
+Below, we apply this procedure to the three framing experiments. We ﬁnd that their original
+conclusions are largely (though less conclusively for some of the studies) valid and robust to unobserved confounders, so long as we maintain the independence assumption. Unfortunately, we also
+ﬁnd evidence suggesting that alternative causal mechanisms are causally dependent on each other,
+possibly invalidating the original conclusions. Thus, the analyses in this section provide empirical
+examples where the independence assumption is probably violated. We also speculate that such
+violation is likely to be prevalent in many other similar studies of survey experiments.
+4.1
+
+Druckman and Nelson’s Campaign Finance Reform Experiment
+
+In their analysis, Druckman and Nelson ﬁnd that the framing eﬀect is mediated by the importance
+mechanism but not by the belief content mechanism. For the group of subjects who were not
+allowed to discuss the issue with other subjects, “the frame shaped the belief importance ratings,
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+Multiple Causal Mechanisms
+
+151
+
+which in turn substantially aﬀected overall opinions,” whereas “the frames had minimal impact on
+the content measures and even when they did, [. . .] this eﬀect did not carry through to overall
+opinions” (p. 737). However, even under the assumption of independent mechanisms, a potential
+problem is that the estimated mediation eﬀects may be biased due to unobserved pretreatment
+confounding between the mediator and the outcome variable. For example, participants with
+libertarian ideology may think freedom of speech is more important than nonlibertarian participants, and at the same time, they may also be more opposed to campaign ﬁnance reform. If the
+available pretreatment covariates fail to adjust for libertarianism, the estimated causal mediation
+eﬀect may be upward biased.
+4.1.1
+
+Estimation of Causal Mediation Effects
+
+To address this concern about confounding, we apply the framework of Imai et al. (2011) and
+estimate ACME and examine its robustness to the violation of sequential ignorability due to an
+unobserved pretreatment confounder of the mediator and the outcome, as explained in Section 3.1.5
+Here, we focus on the no-discussion group and the causal mechanism corresponding to the
+perceived importance of freedom of speech (hereafter the “free speech importance” mechanism),
+which the original study found the most signiﬁcant. As shown above, ignoring the other mechanisms should not aﬀect the result under Assumption 1. The results are presented in the ﬁrst column
+of Fig. 2. The top ﬁgure presents the estimated ACME under sequential ignorability along with its
+90% conﬁdence interval. In addition to the overall estimate shown at the top, we also estimate the
+ACMEs for the treatment and the control conditions separately in the plot in order to allow for the
+possibility that the ACME may diﬀer depending on the baseline treatment status.
+We ﬁnd that the frame diﬀerence aﬀected the participants’ support for the campaign ﬁnance
+reform by approximately 0.286 points on the seven-point scale via the free speech importance
+mechanism, with a 90% conﬁdence interval of (0.025, 0.625). Since the average total causal
+eﬀect of the frame diﬀerence is estimated to be 0.969 points, it suggests that about 28.6% of the
+total eﬀect was transmitted through changes in the perceived importance of free speech. The
+ACME, however, appears to slightly diﬀer depending on the baseline value of the treatment, as
+the estimate for the treatment condition (0.197) is closer to zero than the estimate under the control
+condition (0.375). In fact, the 90% conﬁdence interval for the former overlaps with zero (–0.019,
+0.497), whereas the interval for the latter does not (0.035, 0.819). Overall, though, the result
+conﬁrms the original ﬁnding that the free speech importance mechanism signiﬁcantly mediates
+the framing eﬀect in the theoretically expected direction, although the estimation uncertainty is
+relatively large.
+4.1.2
+
+Sensitivity Analysis
+
+The remaining two plots show the results of the sensitivity analysis with respect to two alternative
+sensitivity parameters. First, we calculate the estimated ACME as a function of the parameter ,
+the correlation between the error terms in the mediator and the outcome models. A large value of
+indicates the existence of strong confounding between the mediator and the outcome, and thus a
+serious violation of the sequential ignorability assumption. The result suggests that the ACME
+equals zero when is below –0.43, indicating a moderate degree of robustness when compared to
+other similar studies (see Imai et al. 2011). The lower bound of the 90% conﬁdence band, however,
+immediately crosses the zero line once we allow a slight negative correlation between the errors.
+Thus, a larger sample size may be needed in order to establish the robustness of the original ﬁndings
+to the possible existence of an unobserved pretreatment confounder that aﬀects the mediator and
+the outcome in diﬀerent directions (e.g., libertarianism).
+5
+
+We also include a set of observed pretreatment covariates in the model in order to make the sequential ignorability
+assumption as plausible as the data permit. These covariates are year in college, age, gender, ethnicity, level of political
+knowledge, tendency for online processing, partisanship, and left–right ideology.
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+152
+
+Kosuke Imai and Teppei Yamamoto
+
+Finally, the bottom plot shows the estimated true ACME as contour lines with respect to the R~ 2M
+and R~ 2Y parameters, the proportions of the total variance in the mediator and the outcome variables, respectively, which would be explained by an unobserved pretreatment confounder. The
+contours correspond to the scenario that the unobserved confounder aﬀects the mediator and
+the outcome in opposite directions (i.e., is negative), as it is the only case where the estimated
+ACME can become negative. The result shows that the ACME can be estimated negative if the
+product of the two parameters are greater than 0.078. For example, the estimated ACME will be
+exactly zero, if the unmeasured libertarianism explains 37% of the variation in the perceived importance of freedom of speech and 21% of the variation in the campaign ﬁnance reform opinions.
+4.1.3
+
+Discussion
+
+The above results indicate that Druckman and Nelson’s original conclusion about the free speech
+importance mechanism is largely valid under the assumption of independent causal mechanisms.
+The perceived importance of freedom of speech seems to mediate the framing eﬀect, and the
+estimate is reasonably robust to the violation of the sequential ignorability assumption once we
+adjust for a set of pretreatment covariates, including partisanship and standard left–right ideology.
+However, we emphasize that these results were obtained under the assumption that the free speech
+importance mechanism operates independently of other mechanisms, including the one represented
+by the participants’ belief about the impact of the campaign ﬁnance reform on freedom of speech
+(hereafter the “free speech belief” mechanism). The assumption would be violated if, for example,
+the change in the content of the participant’s belief about the reform due to framing diﬀerences then
+caused any changes in their perceived importance of free speech. Indeed, this is of major concern
+because, as Miller (2007) points out on the basis of her experimental study, “individuals use information obtained from the media to evaluate how important issues are” (p. 711) and “when media
+exposure to an issue causes negative emotional reactions about the issue, increased importance
+judgments will follow” (p. 712).
+The data in fact underline the concern. By regressing the free speech importance mediator on the
+belief content mediator, the treatment, and the other covariates, we ﬁnd that the coeﬃcient of the
+belief mediator is negative and signiﬁcantly diﬀerent from zero at the 0.1 level (–0.23, with a p-value
+of 0.093). Moreover, regressing the belief content mediator on the treatment and the same set of
+pretreatment covariates yields a statistically signiﬁcant coeﬃcient (0.61, with a p-value of 0.086), as
+found in the original study. As discussed earlier, these analyses suggest that there may exist an
+additional causal pathway linking the treatment to the free speech belief mechanism and then to the
+importance mechanism. Such a dependent mediator lying between the treatment and the primary
+mediator of interest can be seen as a posttreatment confounder, whose existence, whether observed
+or unobserved, can cause a substantial bias in the estimate of ACME and invalidate the above
+results (see also the Appendix of Imai et al. [2011]).
+4.2
+
+Slothuus’ Social Welfare Reform Experiment
+
+Contrary to Druckman and Nelson (2003), Slothuus (2008) ﬁnds both importance and content
+mechanisms to be at work and concludes that “both the importance change process and the content
+change process mediate the framing eﬀects” (p. 18). Like Druckman and Nelson, Slothuus relies on
+a path analytic method to estimate the mediation eﬀects. We therefore estimate ACME for the
+importance mechanism and evaluate its robustness to unobserved pretreatment confounding
+between the mediator and the outcome variable under the assumption of independent causal mechanisms.6 For simplicity, we focus on one of the mediators used in the original analysis (the “incentive to work” importance), which was found to be the most statistically signiﬁcant.
+6
+
+Again, we add a set of observed pretreatment covariates to the model to make the sequential ignorability assumption as
+plausible as possible. The covariates are gender, education, level of political interest, self-placement on a left–right
+ideology scale, school, year of birth, political knowledge, and extremity of political values.
+
+Multiple Causal Mechanisms
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+4.2.1
+
+153
+
+Estimation of Causal Mediation Effects
+
+The results are shown in the middle column of Fig. 2. The top panel shows that the ACME for the
+incentive-to-work importance mechanism is estimated to be about 0.230 on a seven-point scale,
+with a 90% conﬁdence interval of (0.082, 0.402). This represents 21.3% of the total framing eﬀect,
+which is estimated to be 1.064 points (0.640, 1.490). Unlike the Druckman and Nelson study, this
+proportion does not appear to vary depending on the baseline treatment frame: the estimated
+ACME is largely similar for the treatment [0.205 (0.052, 0.400)] and control [0.255 (0.092,
+0.445)] conditions. Overall, the result conﬁrms the original ﬁnding that the importance mechanism
+signiﬁcantly mediates the framing eﬀect for the social welfare reform.
+4.2.2
+
+Sensitivity Analysis
+
+How robust is this conclusion to the possible existence of unobserved pretreatment confounding?
+The middle panel shows that the ACME for the importance mechanism equals zero, when the error
+correlation between the mediator and the outcome models becomes >0.37. This indicates a degree
+of robustness slightly less than that of the Druckman and Nelson study. However, the estimated
+ACME has smaller estimation uncertainty and hence the lower conﬁdence bound does not cross
+zero until the parameter becomes >0.20. The analysis with respect to the R~ 2 parameters leads to
+similar conclusions as shown in the bottom panel. The estimated ACME becomes negative when
+the product of R~ 2M and R~ 2Y is >0.05, which again indicates a slightly greater sensitivity than the
+result of the Druckman and Nelson study. For example, the estimate equals zero if an unobserved
+pretreatment confounder explains 25% of the variation in the perceived importance of work incentives and 20% of the variation in the welfare reform opinion.
+4.2.3
+
+Discussion
+
+The Slothuus study is subject to the same potential problem as the Druckman and Nelson study
+because both are based on the assumption that alternative causal mechanisms are independent of
+one another. For example, the change in the content of participants’ considerations about the
+welfare reform may not only directly aﬀect their opinions but also inﬂuence the perceived importance of work incentives, thereby also aﬀecting the outcome indirectly through further changes in
+the importance mediator. If this were to be the case, there exists a causal arrow linking the content
+mediator to the importance mediator, violating the independence assumption. Indeed, regressing
+the importance mediator on the content mediator and the treatment (as well as the set of pretreatment covariates), we ﬁnd a large positive and statistically signiﬁcant coeﬃcient on the content
+mediator (0.350, with a p-value of 0.000). Moreover, a regression of the content mediator on the
+treatment and the pretreatment covariates reveals that the eﬀect of the treatment on the content
+mediator is positive and close to statistical signiﬁcance (0.052, with a p-value of 0.120), which raises
+a legitimate concern about the existence of a confounding causal pathway. Thus, similar to the
+Druckman and Nelson study, the possibility of bias due to posttreatment confounding is an
+important issue.
+4.3
+
+Brader, Valentino, and Suhay’s Immigration Experiment
+
+The original analysis of Brader, Valentino, and Suhay (2008) reveals that the combination of
+Latino cues and negative framing changed the participant’s opinions and behavior in the
+anti-immigration direction. That is, the participants who read the Latino article emphasizing the
+negative consequences of immigration became more opposed to increased immigration than the rest
+of the participants. More importantly, the authors ﬁnd that the frame aﬀected the outcome variables through the anxiety mechanism rather than the perceived harm mechanism.7 Like the other
+7
+
+In their own words, “The conjunction of Latino cues and negative news about immigration influenced levels of anxiety.
+Anxiety then caused shifts in policy attitudes, information seeking, and political action” (p. 969). In contrast, “belief
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+154
+
+Kosuke Imai and Teppei Yamamoto
+
+Fig. 2 Estimation and sensitivity analysis under the assumption of independent causal mechanisms. The
+top panels present the estimated ACMEs under the sequential ignorability assumption (Assumption 1) along
+with their 90% confidence intervals for each of the three studies indicated at the top. The panels in the
+middle row show the estimated true values of ACMEs as functions of the sensitivity parameter , which
+represents the correlation between the error terms in the mediator and the outcome models. The thick lines
+and gray bands represent the point estimates of the ACME and their 90% confidence intervals, respectively.
+The bottom panels show the same sensitivity analyses, except that the ACME estimates are plotted against
+ðR~ 2Y ,R~ 2M Þ, the proportions of the total variance in the outcome and mediator variables, respectively, that
+would be explained by a hypothetical unobserved pretreatment confounder. Overall, the results suggest that
+under the assumption of independence between mechanisms, the causal mediation effects are positive and
+moderately statistically significant in all of the three studies, and the estimates are fairly robust to the
+possible unobserved pretreatment mediator–outcome confounding to varying degrees.
+
+two studies, Brader, Valentino, and Suhay rely on the structural equation modeling approach of
+Baron and Kenny (1986). However, the validity of this causal mediation analysis crucially hinges on
+the sequential ignorability assumption. The estimated eﬀects will be biased if, for example, unmeasured job skills of the participants aﬀect both their levels of anxiety and opinions about increased
+
+about the severity of the immigration problem does not mediate the interactive effect of ethnic cues and news emphasis”
+(p. 969).
+
+Multiple Causal Mechanisms
+
+155
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+immigration. This is likely if low-skilled workers feel more anxious about immigrants and are also
+more anti-immigrants than high-skill participants.
+4.3.1
+
+Estimation of Causal Mediation Effects
+
+We estimate the ACME for the anxiety mechanism by focusing on one of the outcome variables in
+the original study (whether immigration to the United States should be increased or decreased) and
+examine how much of the total eﬀect of the negative Latino frame on the variable operated through
+the anxiety mediator. The point estimates are shown in the top panel of the left column in Fig. 2
+along with their 90% conﬁdence intervals. The result supports the original conclusion, indicating
+that the negative Latino frame made the participants 0.216 points more opposed to immigration on
+the ﬁve-point scale via the anxiety mechanism, with a 90% conﬁdence interval of (0.120, 0.329).
+This represents roughly half of the estimated total framing eﬀect, which is 0.423 points. The
+estimate varies slightly across the treatment values [0.184 with (0.083, 0.311) for the treated;
+0.247 with (0.136, 0.360) for the control].
+4.3.2
+
+Sensitivity Analysis
+
+The middle and the bottom plots show the result of sensitivity analysis. According to this analysis,
+the ACME is estimated to be negative when the correlation between the error terms in the mediator
+and the outcome models is larger than 0.47, and the ACME is statistically indistinguishable from
+zero at the 90% level when the parameter is >0.33. Thus, the result of this study is slightly more
+robust to the sequential ignorability violation than those of the above two studies. Finally, in terms
+of the coeﬃcient of determination parameters, the product of R~ 2M and R~ 2Y must be at least as large
+as 0.08, implying that an unobserved pretreatment confounder must explain 20% of the variation in
+the participants’ anxiety and 40% of the variation in their immigration opinions, for example.
+These results conﬁrm the original ﬁnding that the anxiety mechanism plays a major role in the
+framing eﬀect on opinions toward increased immigration.
+4.3.3
+
+Discussion
+
+As in the previous two studies, the above analysis rests on the key assumption that the anxiety
+mechanism is independent of other mechanisms underlying the framing eﬀect. In particular, the
+participants’ conscious belief about the negative impact of increased immigration—the other mechanism explicitly studied in the original article—is assumed to have no impact on their levels of
+anxiety. This assumption may not be entirely plausible because the increased level of perceived
+harm of immigration due to the negative Latino framing can cause the participants to feel more
+anxious about increase in immigration (Isbell and Ottati 2002). Indeed, there is a strong statistical
+dependence between the two mediators. Regressing the anxiety mediator on the perceived harm
+mediator as well as the treatment and the pretreatment covariates, we ﬁnd that the estimated
+coeﬃcient of the perceived harm mediator is positive and large (1.016, with a p-value of 0.000).
+Furthermore, regressing the perceived harm mediator on the treatment and the covariates yields a
+positive and signiﬁcant estimate of the treatment eﬀect on the perceived harm mediator (0.436, with
+a p-value of 0.070). Thus, like in the above two examples, we must address the issue of the
+posttreatment confounding between the mediator and the outcome variable in order to evaluate
+the empirical ﬁndings of this study.
+5
+
+Statistical Analysis of Causally Related Multiple Mechanisms
+
+In this section, we consider statistical analysis of causally related multiple mechanisms. In particular, we focus on the situation depicted in Fig. 1(b) where other mediators W confound the relationship between the mediator of interest M and the outcome Y. We assume the exogeneity of the
+mediator M conditional on the pretreatment covariates X, the treatment T, and the posttreatment
+confounders W. Unlike in Section 3, we must measure alternative mediators W when allowing for
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+156
+
+Kosuke Imai and Teppei Yamamoto
+
+the causal relationship between M and W (see Section 7 for the designs that do not require causally
+related multiple mediators to be measured). In this setting, we ﬁrst review the identiﬁcation result of
+Robins (2003) that the ACMEs (represented by red arrows in the ﬁgure) can be nonparametrically
+identiﬁed under an additional assumption of no interaction between the treatment T and the
+mediator M.
+However, as noted by many researchers, including Robins (2003) himself (e.g. Petersen, Sinisi,
+and van der Laan 2006; Imai, Tingley, and Yamamoto 2013), this assumption is unrealistic in many
+applications. In particular, the assumption must hold not just on average but rather for every
+observation. To overcome this limitation, we propose a new sensitivity analysis, which can be
+used to examine how empirical results change as we gradually relax the no-interaction assumption.
+Such an analysis reveals how robust one’s empirical results are to the potential violation of the key
+identiﬁcation assumption. We develop this methodology in the context of a fairly general
+varying-coeﬃcient linear regression model where each coeﬃcient can vary arbitrarily across observations. We then apply the proposed method to the framing experiments introduced earlier.
+
+5.1
+
+The Setup and Assumptions
+
+We use the framework of causal mediation analysis and its associated notation introduced in
+Sections 3.1 and 3.2. Recall that the key diﬀerence between Figs. 1(a) and (b) is that we allow
+the mediator of interest M to be causally aﬀected by a set of alternative mediators W. This means
+that the potential values of M are now a function of W. That is, we use Mi(t,w) to denote the
+potential value of the mediator of interest for unit i when the treatment status is t and the alternative mediators W take the value of w. Then, the observed value of the mediator for this unit is
+given by Mi ¼ Mi ðTi ,Wi ðTi ÞÞ.
+Under this setting, for each unit, we deﬁne the causal mediation (with respect to M) and direct
+eﬀects as
+i ðtÞ  Yi ðt,Mi ð1,Wi ð1ÞÞ,Wi ðtÞÞ  Yi ðt,Mi ð0,Wi ð0ÞÞ,Wi ðtÞÞ
+
+ð21Þ
+
+i ðtÞ  Yi ð1,Mi ðt,Wi ðtÞÞ,Wi ð1ÞÞ  Yi ð0,Mi ðt,Wi ðtÞÞ,Wi ð0ÞÞ
+
+ð22Þ
+
+for t ¼ 0, 1, where di(t) corresponds to the causal eﬀect of the treatment on the outcome that
+transmits through the mediator of interest M (i.e., the red arrows in Fig. 1(b)). In the framing
+experiment of Druckman and Nelson, for example, this represents the portion of the framing eﬀect
+due to the change in issue importance induced by the framing manipulation, while the belief content
+is held constant at the value that would be naturally observed when one of the issue frames is given.
+On the other hand, zi(t) represents the rest of the treatment eﬀect (denoted by the black arrow at the
+bottom of the ﬁgure and the combination of the red and black arrows that go from T to Y through
+W but not through M). In Druckman and Nelson’s experiment, this represents the fraction of the
+framing eﬀect that does not go through the issue importance mechanism, regardless of whether it
+gets transmitted through the belief content mechanism or through other unspeciﬁed mechanisms.
+Notice that these two eﬀects represent the quantities identical to those in equations (1) and (2); the
+only diﬀerence is that the expressions in equations (21) and (22) make the existence of the alternative mediators W explicit, whereas equations (1) and (2) do not. Thus, as expected, the sum of
+these two eﬀects equals the total treatment eﬀect,
+i  Yi ð1,Mi ð1,Wi ð1ÞÞ,Wi ð1ÞÞ  Yi ð0,Mi ð0,Wi ð0ÞÞ,Wi ð0ÞÞ ¼ i ðtÞ þ i ð1  tÞ;
+
+ð23Þ
+
+  Eði ðtÞÞ, and the average
+for t ¼ 0, 1. Again, we are interested in estimating the ACME, i.e., ðtÞ
+  Eði ðtÞÞ and   Eði Þ.
+direct and total eﬀects can also be deﬁned in an analogous manner, i.e., ðtÞ
+What assumptions do we need to make in order to identify the ACME in this scenario? We
+modify Assumption 1 and consider the following weaker version of the sequential ignorability
+assumption,
+Assumption 2 (Sequential Ignorability with Multiple Causally Dependent Mediators).
+assume that the following three conditional independence statements hold:
+
+We
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+Multiple Causal Mechanisms
+
+157
+
+fYi ðt,m,wÞ,Mi ðt,wÞ,Wi ðtÞg??Ti j Xi ¼ x
+
+ð24Þ
+
+fYi ðt,m,wÞ,Mi ðt,wÞg??Wi j Ti ¼ t, Xi ¼ x
+
+ð25Þ
+
+fYi ðt,m,wÞg??Mi j Wi ðtÞ ¼ w, Ti ¼ t, Xi ¼ x;
+
+ð26Þ
+
+for any t, m, w, x.
+This assumption corresponds to what Robins (1986, 2003) called the FRCISTG (fully
+randomized causally interpretable structural tree graph) model. Assumption 2 is similar to
+Assumption 1 in that exogeneity is assumed for the treatment T, the alternative mediators W,
+and the mediator of interest M.
+However, Assumption 2 relaxes Assumption 1 in two important ways. First, the mediator of
+interest M is assumed to be exogenous after conditioning on alternative mediators W as well as the
+treatment T and the pretreatment confounders X, whereas Assumption 1 does not permit conditioning on the posttreatment confounders. In the context of Druckman and Nelson’s framing
+experiment, this implies that Assumption 2 allows for the possibility that the perceived issue importance is aﬀected by the content of the belief about the issue, whereas Assumption 1 rules out the
+existence of such causal dependence.
+Second, Assumption 2 avoids specifying the conditional independence relationship between the
+potential outcome under the treatment status t and the potential value of mediator under the
+opposite treatment status t0 . For example, contrast equation (16) with equation (26). The former
+assumes the conditional independence between Yi ðt0 ,m,Wi ðt0 ÞÞ and Mi(t) even when t 6¼ t0 , whereas
+the latter only applies the conditional independence assumption to the relationship between
+Yi ðt,m,wÞ and Mi(t). Some scholars (e.g., Robins and Richardson 2010) consider this distinction
+to be important because one can conceive of a randomized experiment on a separate exchangeable
+population with which Assumption 2 can be tested, while such an experiment does not exist for
+Assumption 1 (Section 7) even as a purely theoretical possibility (Robins 2003). This implies that
+Assumption 2 can be empirically veriﬁed from observed data at least in theory, whereas
+Assumption 1 cannot.
+Unfortunately, in the presence of causally dependent multiple mediators, Assumption 2 is not
+suﬃcient for the identiﬁcation of the ACME. Robins (2003) shows that under this setting the
+ACMEs are nonparametrically identiﬁable if the following assumption of no treatment–mediator
+interaction eﬀect holds:
+Assumption 3 (No Interaction Between Treatment and Mediator).
+assume the following equality,
+
+For every unit i, we
+
+Yi ð1,m,Wi ð1ÞÞ  Yi ð0,m,Wi ð0ÞÞ ¼ Yi ð1,m0 ,Wi ð1ÞÞ  Yi ð0,m0 ,Wi ð0ÞÞ,
+
+ð27Þ
+
+for any m,m0 .
+The problem of this assumption is that it is unlikely to be credible in most applications because it
+must hold for every unit. In Druckman and Nelson’s experiment, for example, Assumption 3
+implies that for every subject, the causal eﬀect of the perceived issue importance on opinions
+must be constant regardless of whether the subject read the positive or negative article. To
+overcome this limitation, we now introduce our proposed methodology that allows one to relax
+this no-interaction assumption.
+5.2
+
+The Proposed Methodology
+
+Given the above setup, we show how to relax the no-interaction assumption (Assumption 3) while
+maintaining the exogeneity of treatment and mediator (Assumption 2). We consider the following
+linear structural equation model with varying coeﬃcients,
+>
+Mi ðt,wÞ ¼ 2 þ 2i t þ 2i
+wþ
+
+>
+2i tw
+
+þ
+
+Yi ðt,m,wÞ ¼ 3 þ 3i t þ i m þ i tm þ
+
+>
+2i x
+
+>
+3i
+w
+
+þ e2i ,
+
+þ
+
+>
+3i tw
+
+ð28Þ
+þ
+
+>
+3i x
+
+þ e3i ,
+
+ð29Þ
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+158
+
+Kosuke Imai and Teppei Yamamoto
+
+where Eðe2i Þ ¼ Eðe3i Þ ¼ 0 is assumed without the loss of generality.8 The model generalizes the linear
+structural equation model commonly used by applied researchers (see equations (18) and (20)) in
+several important ways. First, the model reﬂects the particular situation depicted in Fig. 1(b) and
+discussed above which permits the presence of causally dependent multiple mediators. Speciﬁcally,
+the mediator of interest M is allowed to depend on a set of alternative mediators W, which themselves are possibly aﬀected by the treatment, as well as the treatment variable T. Similarly, the
+outcome variable Y depends on W as well as M and T. Second, each coeﬃcient is allowed to vary
+across individual observations in an arbitrary manner, allowing for a wide range of patterns of
+heterogeneous treatment eﬀects. This is a crucial advantage over the traditional structural equation
+modeling framework, which typically assumes the unit homogeneity of treatment eﬀects. Finally,
+we include the interaction between the treatment and each of the mediators (both M and W) so that
+mediation eﬀects can vary depending on the baseline treatment status.
+While the model is semiparametric and hence quite ﬂexible, it imposes a structure by assuming
+additivity. In particular, the model assumes no interaction between the two mediators. While it is
+possible to allow for the existence of the interaction between M and W, the resulting sensitivity
+analysis would include additional sensitivity parameters and thus become more complex. We thus
+focus on the simpler model in equation (29).
+How is this model related to the standard linear structural equation model? We decompose each
+of the varying coeﬃcients into the mean and the deviation from it,
+Mi ðt,wÞ ¼ 2 þ 2 t þ 2> w þ
+
+>
+2 tw
+
+þ
+
+>
+2x
+
+þ 2i ðt,wÞ,
+
+Yi ðt,m,wÞ ¼ 3 þ 3 t þ m þ tm þ 3> w þ
+
+>
+3 tw
+
+þ
+
+>
+3x
+
+ð30Þ
+þ 3i ðt,m,wÞ,
+
+ð31Þ
+
+where 2  Eð2i Þ, 3  Eð3i Þ,   Eði Þ,  Eð i Þ, 2  Eð2i Þ, 3  Eð3i Þ, 2  Eð 2i Þ, 3  Eð 3i Þ,
+2  Eð 2i Þ, and 3  Eð 3i Þ are the mean parameters of corresponding varying coeﬃcients. The
+new error terms are given by
+>
+~>
+w þ ~>
+2i ðt,wÞ ¼ ~2i t þ ~2i
+2i tw þ 2i x þ e2i
+>
+~>
+3i ðt,m,wÞ ¼ ~3i t þ ~i m þ ~ i tm þ ~3i
+w þ ~>
+3i tw þ 3i x þ e3i ;
+
+ð32Þ
+ð33Þ
+
+where by construction we have Eð~2i Þ ¼ Eð~3i Þ ¼ Eð~2i Þ ¼ Eð~3i Þ ¼ Eð ~ 2i Þ ¼ Eð ~ 3i Þ ¼ Eð ~2i Þ ¼
+Eð ~3i Þ ¼ Eð~i Þ ¼ Eð ~ i Þ ¼ 0 and hence Eð2i ðt,wÞÞ ¼ Eð3i ðt,m,wÞÞ ¼ 0. Since Assumption 2 implies
+the following exogeneity conditions, Eðe2i jXi ,Ti ,Wi Þ ¼ Eðe3i jTi ,Wi ,Mi Þ ¼ 0, it follows that the
+exogeneity condition also holds for the new error terms, i.e., Eð2i ðTi ,Wi ÞjXi ,Ti ,Wi Þ ¼
+Eð3i ðTi ,Mi ,Wi ÞjXi ,Ti ,Wi ,Mi Þ ¼ 0. Thus, the coeﬃcients in equations (30) and (31) can be estimated
+without bias under Assumption 2.
+We show that the ACMEs are identiﬁed if we ﬁx two unobserved quantities, which we use as
+sensitivity parameters.9 The ﬁrst parameter is the correlation between the mediator of interest Mi(t)
+and the individual-level treatment–mediator interaction eﬀect ki, i.e., t ¼ CorrðMi ðt,Wi ðtÞÞ, i Þ.
+This parameter represents the direction of the interaction eﬀect. The second parameter is the
+standard p
+deviation
+(SD) of the individual-level coeﬃcient for the treatment–mediator interaction,
+ﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+i.e.,  ¼ Vð i Þ, representing the degree of heterogeneity in the treatment–mediator interaction
+eﬀect. In Appendix A3, we prove that the ACMEs and direct eﬀects can be written as a function of
+the identiﬁable model parameters (under Assumption 2 but without requiring Assumption 3) and
+the two sensitivity parameters for t ¼ 0, 1,
+ ¼   ð1
+  tÞ
+ðtÞ
+
+8
+9
+
+ð34Þ
+
+This model encompasses the model considered by Glynn (2012) as a special case.
+Albert and Nelson (2011) assume a stronger version of exogeneity that is by itself sufficient to identify the ACMEs (e.g.,
+the sequential ignorability of Imai, Keele, and Yamamoto [2010c]) in order to consider the estimation of other
+path-specific effects. Tchetgen Tchetgen and Shpitser (2011) propose a semiparametric sensitivity analysis for the
+possible existence of unmeasured pre- and posttreatment confounders under Assumption 1 rather than the sensitivity
+analysis for the possible interaction under Assumption 2.
+
+159
+
+Multiple Causal Mechanisms
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+ ¼ 3 þ EðMi jTi ¼ tÞ þ
+ðtÞ
+
+t
+
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+VðMi jTi ¼ tÞ þ ð3 þ
+
+3Þ
+
+>
+
+EðWi jTi ¼ 1Þ  3> EðWi jTi ¼ 0Þ: ð35Þ
+
+Thus, under the situation depicted in Fig. 1(b) with Assumption 2, we can conduct a sensitivity
+analysis even in the presence of posttreatment confounders to examine how the estimated ACME
+changes as a function of the two parameters, t and . Several remarks are in order. First,
+the no-interaction assumption given in equation (27) implies that ki ¼ 0 and hence ¼  ¼ t ¼ 0.
+Thus, under the model considered here, the ACME and the ADE are identiﬁed as
+ ¼   3  ð3 þ 3 Þ> EðWi jTi ¼ 1Þ þ > EðWi jTi ¼ 0Þ and ðtÞ
+ ¼ 3 þ ð3 þ 3 Þ> EðWi jTi ¼ 1Þ
+ðtÞ
+3
+>
+3 EðWi jTi ¼ 0Þ. These expressions correspond exactly to the procedure used by applied researchers
+who rely on a linear regression to model the conditional expectation of Wi given Ti (e.g., Taylor,
+MacKinnon, and Tein 2008). While these researchers appear to be unaware of the essential role of
+the no-interaction assumption, the sensitivity analysis developed here can formally assess the robustness of empirical results to the potential violation of this key identifying assumption.
+Second, we can relax the no-interaction assumption of equation (27) to some extent under our
+linear structural equation framework by considering instead of following the homogeneous interaction eﬀect assumption,
+Yi ð1,m,Wi ð1ÞÞ  Yi ð0,m,Wi ð0ÞÞ ¼ Bi þ Cm;
+
+ð36Þ
+
+for any m. Unlike the no-interaction assumption, this assumption allows for the treatment–
+mediator interaction in a way that is common to all observations. This homogeneous interaction
+eﬀect assumption implies  ¼ 0 and thus we can identify the ACME and ADE whose expressions
+ ¼   ð1
+  tÞ and ðtÞ
+ ¼ 3 þ EðMi jTi ¼ tÞ þ ð3 þ 3 Þ> EðWi jTi ¼ 1Þ  3> E
+are given by ðtÞ
+ðWi jTi ¼ 0Þ, respectively.
+Third, when neither of the above assumptions
+holds, the standard estimation procedure results
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+in bias. For the ACME, this bias equals  1t  VðMi jTi ¼ 1  tÞ that depends on the variance of
+mediator within the treatment or control group as well as the sensitivity parameters. For example,
+the bias is negative and large if the treatment–mediator interaction eﬀect tends to be higher when
+the mediator takes a larger value, i.e., rt > 0, and the variance of mediator and the degree of
+heterogeneity in these interaction eﬀects are large.
+Fourth, we note that when t ¼ 0, we can identify the ACME regardless of the value of .
+However, when t is not equal to zero, we must specify both t and  in order to estimate the
+ACME under Assumption 2. If the interpretation of t is diﬃcult, we can derive the bounds on the
+ACME as a function of  while allowing t to take any value between –1 and 1.10
+Fifth, for the ease of the interpretation of , we follow Imai, Keele, and Tingley (2010a) and
+Imai, Keele, and Yamamoto (2010c) and use coeﬃcients of determination as an alternative parameterization. Speciﬁcally, we use the proportion of the unexplained or original variance of the
+outcome that is explained by incorporating the heterogeneity in the treatment–mediator interaction. Thus, the sensitivity parameter represents how important it would be to incorporate the
+interaction heterogeneity in the regression model in order to explain the variation in the outcome
+variable. Formally, these parameters are deﬁned as
+R2 ¼
+
+Vð ~ i Ti Mi Þ
+Vð3i ðTi ,Mi ,Wi ÞÞ
+
+Vð ~ i Ti Mi Þ
+and R~ 2 ¼
+VðYi Þ
+
+ð37Þ
+
+for the proportion of unexplained variance and that of the original variance explained by the
+heterogeneity of the treatment–mediator interaction eﬀects, respectively. We can directly relate
+these quantities to the ACME via the following one-to-one relationship between  and each of
+these coeﬃcients of determination:11
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+The expression for such bounds is given by the following:   3  EðMp
+i jT
+i ¼ 1  tÞ   VðMi jTi ¼ 1  tÞ
+ﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+>
+>
+
+   3  EðMi jTi ¼ 1  tÞ þ  VðMi jTi ¼ 1  tÞ  ð3 þ 3 Þ>
+ð3 þ 3 Þ EðWi jTi ¼ 1Þ þ 3 EðWi jTi ¼ 0Þ  ðtÞ
+EðWi jTi ¼ 1Þ þ 3> EðWi jTi ¼ 0Þ.
+11
+We used the following equality, Vð ~ i Ti Mi Þ ¼ EðVð ~ i Ti Mi jTi ,Mi ,Wi ÞÞ þ VðEð ~ i Ti Mi jTi ,Mi ,Wi ÞÞ ¼ EðTi M2i V
+ð ~i jTi ,Mi ,Wi ÞÞ ¼  2 EðTi M2i Þ, where the second equality is due to the law of total variance, and the next two equalities
+hold because of Assumption 2.
+10
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+160
+
+Kosuke Imai and Teppei Yamamoto
+
+sﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+sﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+Vð3i ðTi ,Mi ,Wi ÞÞR2
+VðYi ÞR~ 2
+¼
+¼
+:
+ð38Þ
+2
+EðTi Mi Þ
+EðTi M2i Þ
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+
+This implies that  is bounded from above by Vð3i ðTi ,Mi ,Wi ÞÞ=EðTi M2i Þ because 0  R2  1.
+Furthermore, the sensitivity to the interaction heterogeneity can be assessed by studying how the
+ACME varies depending on the values of R2* and R~ 2 . This can also be done by calculating the ratio
+of  to its upper bound.
+Finally, under Assumption 2 and the model in equations (28) and (29), we can also identify
+another possible quantity of interest, the population average of the causal mediation eﬀect speciﬁc
+to the path T ! W ! Y. This quantity is deﬁned as
+i ðtÞ ¼ Yi ðt,Mi ðt,Wi ðtÞÞ,Wi ð1ÞÞ  Yi ðt,Mi ðt,Wi ðtÞÞ,Wi ð0ÞÞ,
+
+ð39Þ
+
+for t ¼ 0, 1, and corresponds to the eﬀect of the treatment on the outcome that goes through the
+posttreatment confounders W but not through the primary mediator M. In Appendix A4, we prove
+  Eði ðtÞÞ is given by
+that ðtÞ
+
+
+
+ð40Þ
+ðtÞ
+¼ ð3 þ t 3 Þ EðWi jTi ¼ 1Þ  EðWi jTi ¼ 0Þ ;
+for t ¼ 0, 1. It is noteworthy that under our model, this identiﬁcation result only requires
+Assumption 2 and does not need any assumption about the treatment–mediator interaction or
+sensitivity parameters. This contrasts with the result by Albert and Nelson (2011) that the
+ cannot be identiﬁed under the set of assumptions they consider, as well
+path-speciﬁc eﬀect ðtÞ
+as the more general nonparametric identiﬁcation result about path-speciﬁc eﬀects by Avin,
+ becomes unidentiﬁed if we include
+Shpitser, and Pearl (2005). Indeed, it can be shown that ðtÞ
+the interaction between M and W to the model. In that case, a sensitivity analysis analogous to
+ described above can be conducted for ðtÞ
+ using sensitivity parameters similar to
+the one about ðtÞ
+and
+.
+t
+6
+
+Empirical Analysis without the Independence Assumption
+
+We now revisit the media framing experiments introduced in Section 2. The authors of these studies
+implicitly assumed that the mechanisms of their primary interest were causally independent from
+the alternative mechanisms incorporated in the original analyses. However, as discussed in Section
+4, this assumption is implausible on both theoretical and empirical grounds. We therefore use the
+method developed in the previous section to estimate ACMEs without assuming the independence
+between these mechanisms. We also apply our proposed sensitivity analysis to assess how robust
+these estimates are to the violation of the key assumption that the eﬀect of the primary mediator
+does not depend on the value of the treatment (Assumption 3).
+6.1
+
+Druckman and Nelson’s Campaign Finance Reform Experiment
+
+In Section 4.1, we noted that in Druckman and Nelson’s framing experiment, the participants’
+belief about the eﬀect of campaign ﬁnance reform may have inﬂuenced their perceived importance
+of free speech. We thus reanalyze their data to allow for the causal dependence of the importance
+mechanism on the belief content mechanism. That is, we ﬁrst estimate the linear structural equations models in equations (30) and (31) with the same set of pretreatment covariates as in Section
+4.1, and then compute the ACME as a function of the sensitivity parameters using equations (34)
+and (35). The results are shown in the three plots in the left column of Fig. 3.
+As in Section 4, the top panel presents the estimated ACMEs (overall, treatment, and control)
+with the 90% conﬁdence intervals, but this time under diﬀerent assumptions (Assumptions 2 and
+equation (36)). The average total eﬀect and its 90% conﬁdence intervals that are essentially identical to those in Fig. 2 are also shown at the bottom. Unlike what we found under Assumption 1,
+the estimated overall ACME is statistically indistinguishable from zero, although it is similar in
+magnitude [0.313 with a conﬁdence interval of (–0.021, 0.648)] and represents about 32.2% of the
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+Multiple Causal Mechanisms
+
+161
+
+total framing eﬀect. The ACME does not vary as much according to the baseline treatment status, with the estimate being statistically insigniﬁcant in either case [0.265 (–0.077, 0.606) for the
+treatment condition; 0.332 (–0.092, 0.755) for the control]. Thus, the results give only modest
+support to the original conclusion once the assumed causal independence between the mechanisms
+is relaxed.
+This analysis relaxes the independence assumption but still assumes that the interaction between
+framing eﬀects and the eﬀects of issue importance is homogeneous across participants (equation
+(36)). Since this assumption is rather strong, we examine the robustness of our conclusions to
+its violation via the proposed sensitivity analysis. The remaining two panels in the left column of
+Fig. 3 show the results. In the ﬁrst panel, the sharp bounds on the true values of the overall ACME
+are plotted as functions of the sensitivity parameter  (thick solid lines), which represents the degree
+of heterogeneity in the interaction between the issue frames and perceived importance. As discussed
+in Section 5, observed data imply an upper bound on the possible values of this parameter, which
+equals the rightmost value of  in the ﬁgure (0.382) and represents the maximal possible violation of
+equation (36) given in the data. The 90% conﬁdence intervals are computed based on the approach
+of Imbens and Manski (2004) with the bootstrap standard errors (SEs) and are represented by the
+gray region around the bounds. The point-identiﬁed value of ACME under equation (36) is represented by the dashed horizontal line.
+The result shows that the lower bound of ACME does not become negative until  becomes > 0.195, or 51% of its largest possible value. This implies that, disregarding the statistical
+uncertainty in these estimates, the data from Druckman and Nelson’s experiment provide some
+support for the importance mechanism even if we allow for a certain degree of violation of the nointeraction assumption. When we completely relax the no-interaction assumption and only make
+the sequential ignorability assumption (Assumption 2), however, the bounds become wide (–0.303,
+0.922), with a 90% conﬁdence interval of (–0.618, 1.159).
+The bottom ﬁgure presents the result of the same sensitivity analysis using an alternative parameterization. As discussed in Section 5, the R~ 2 parameter here represents the proportion of the
+total variance of the outcome variable that would be explained if we could take into account the
+heterogeneity of the treatment–mediator interaction in the regression model. The upper bound of
+R~ 2 , 0.610, corresponds to the scenario where the residual variation in the outcome variable is
+completely attributed to the interaction heterogeneity and thus represents the severest possible
+violation of the no-interaction assumption given the observed data. In this alternative formulation,
+the bounds on the overall ACME include zero only when R~ 2 is greater than 0.159. This implies that
+we can maintain the conclusion of the original analysis unless the interaction heterogeneity explains
+>15.9% of the total variance of the participants’ opinion. In summary, if one ignores estimation
+uncertainty, the conclusions of Druckman and Nelson (2003) are reasonably robust to the violations of the two assumptions made in their original analysis: the causal independence between
+alternative mechanisms and the no treatment–mediator interaction eﬀect. However, the generally
+wide conﬁdence intervals suggest that drawing deﬁnite conclusions would require a study with a
+larger sample size.
+6.2
+
+Slothuus’ Social Welfare Reform Experiment
+
+The framing experiment of Slothuus is also subject to the possibility that the participants’ perceived
+importance of work incentives may be inﬂuenced by the content of their considerations about
+welfare reform. If this were the case, the importance mechanism is causally dependent on the
+belief content mechanism. We therefore apply our proposed method to reestimate the ACME for
+the importance mechanism relaxing the independence assumption. Again, we use the same set of
+pretreatment covariates as in Section 4.2. The results are presented in the middle column of Fig. 3.
+The top panel shows that under the assumptions of sequential ignorability (Assumption 2) and
+homogeneous interaction (equation (36)), the estimated overall ACME for the importance mechanism is about 0.159, representing 14.1% of the total eﬀect (1.128). The 90% conﬁdence interval
+for this estimate does not contain zero (0.004, 0.315). The estimates for the treatment and control conditions are slightly diﬀerent [0.102 with (–0.054, 0.257) and 0.208 with (0.004, 0.411),
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+162
+
+Kosuke Imai and Teppei Yamamoto
+
+Fig. 3 Estimation and sensitivity analysis without the independence assumption. The top panels present the
+estimated ACMEs under the sequential ignorability and homogeneous interaction assumptions (Assumption
+2 and equation (36)) with their 90% confidence intervals for the three framing studies. The panels in the
+middle row show the sharp bounds on the true values of ACMEs as functions of the sensitivity parameter ,
+which equals the SD of the varying coefficient on the treatment–mediator interaction term and thus represents the degree of unit heterogeneity in the interaction. The bottom panels plot the same estimated
+ACMEs with respect to R~ 2 , the proportion of the total variance of the outcome variable that would be
+explained by the treatment–mediator interaction term. The results suggest that the positive mediation effects
+found in the original studies (Fig. 2) become smaller in magnitude and statistically either insignificant or
+barely significant once we allow for the causal pathway from the alternative mediator (W) to the mediator
+of interest (M) as in Fig. 1(b).
+
+respectively]. These estimates are both smaller in magnitude and weaker in statistical signiﬁcance
+than those assuming the causal independence between the importance and content mechanisms (see
+Section 4.2).
+The other two panels show the results of the sensitivity analysis. As we gradually relax the
+homogeneous interaction assumption, the 90% conﬁdence interval for the overall ACME
+covers zero almost immediately. The lower bound also becomes less than zero when  is >0.607,
+or 24.5% of its largest possible value implied by the data (0.987). This indicates that the result of
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+Multiple Causal Mechanisms
+
+163
+
+Slothuus’s experiment is more sensitive to the heterogeneity in the treatment–mediator interaction
+than Druckman and Nelson’s result, despite the statistical signiﬁcance of the original point
+estimate. The result translates to the value of 0.029 in terms of the alternative R~ 2 parameter,
+suggesting that the interaction heterogeneity must only explain 2.9% of the total variation in the
+participants’ opinion (out of the maximum value of 48.9%), so that the bounds on the overall
+ACME for the importance mechanism contain zero. In summary, once we allow for the dependence
+among mechanisms, the original conclusions from Slothuus’s framing experiment are quite sensitive
+to the violation of no interaction even under the exogeneity assumptions.
+6.3
+
+Brader, Valentino, and Suhay’s Immigration Experiment
+
+Finally, we apply our proposed framework to the experiment of Brader, Valentino, and Suhay.
+Like the above two experiments, the assumption of independence between the anxiety and
+perceived harm mechanisms (Assumption 1) is problematic in Brader et al.’s study from both
+theoretical and empirical perspectives. The right column of Fig. 3 shows the results of our
+analysis using the same pretreatment covariates as in the original study, but accommodating the
+dependence of anxiety on perceived harm.
+Unlike the other two examples, the overall ACME for the anxiety mechanism remains statistically signiﬁcant at the 0.1 level under Assumption 2 and equation (36) (0.030, 0.182). However, when
+compared to the estimate under the independence assumption, the estimated overall ACME is
+substantially smaller (0.106) and represents only 25.3% of the total framing eﬀect (0.420).
+Moreover, the estimated ACME for the treatment condition is even smaller (0.057) and statistically
+insigniﬁcant (–0.073, 0.187), whereas the estimate for the control condition is signiﬁcant [0.123
+(0.042, 0.204)]. The evidence for the anxiety mechanism thus appears much weaker when we allow
+the participants’ perceived harm to inﬂuence their anxiety levels.
+This conclusion is reinforced when we examine the sensitivity of these estimates to the violation
+of the homogeneous interaction eﬀect assumption (equation (36)). The middle panel shows that the
+lower bound of the ACME becomes less than zero when the SD of the coeﬃcient of the interaction
+term is >0.042, or 24.5% of its largest possible value given the data (0.173). This is roughly the
+same degree of sensitivity as the Slothuus study. The 90% conﬁdence interval overlaps with zero
+when  is 0.013. The bottom panel indicates that these values of  translate to the R~ 2 values of
+0.036 and 0.006, respectively, implying that the heterogeneity in the interaction between the frame
+and anxiety must only explain 3.6% of the total variance in the outcome variable out of its 59.3%
+residual variance. Thus, the evidence for the anxiety mechanism in Brader et al.’s study becomes
+quite fragile when we allow for its dependence on the participants’ perceived harm of immigration.
+7
+
+Statistical Analysis When the Mediator Can Be Manipulated
+
+So far we have analyzed standard randomized experiments where the treatment is randomized but
+the mediator is not. In this setup, the exogeneity of the mediator must be assumed instead of
+guaranteed by the experimental design. This remains an important limitation even though our
+framework described in Section 5 allows for the existence of posttreatment observed confounders.
+For example, in Druckman and Nelson’s framing experiment, we cannot rule out the possibility
+that there exists an unobserved posttreatment confounder aﬀecting both the perceived issue importance and opinions about the campaign ﬁnance reform, even after taking into account the belief
+content mechanism.
+In this section, we extend our method to the two new experimental designs recently proposed by
+Imai, Tingley, and Yamamoto (2013), where the mediator is manipulated to avoid the exogeneity
+assumption. In particular, we ﬁrst consider the parallel design where two randomized experiments
+are run in parallel; one experiment employs the standard design where only the treatment is
+randomized, whereas the other experiment randomizes both the treatment and the mediator of
+interest. We also consider the parallel encouragement design where the manipulation of the
+mediator is imperfect in the second experiment. These designs allow for the existence of causally
+dependent multiple mediators W and yet can make the main mediator M unconfounded by directly
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+164
+
+Kosuke Imai and Teppei Yamamoto
+
+or indirectly randomizing it. Thus, under these designs, we no longer need to measure W. While the
+randomization of the treatment and the mediator is not suﬃcient for the identiﬁcation of the
+ACME (Imai, Tingley, and Yamamoto 2013), we develop a sensitivity analysis that can be used
+to examine the robustness of empirical ﬁndings to the potential violation of the key identiﬁcation
+assumption under each of these two designs. While these designs are new and hence have not yet
+been used by many applied researchers, we hope that their future use can improve the credibility of
+causal mediation analysis.
+7.1
+
+The Parallel Design
+
+Under the parallel design, we randomly split the sample into two groups and conduct a separate
+randomized experiment for each group in parallel. One experiment is conducted under the standard
+design where, after the treatment is randomized and administered, the values of the mediator and
+the outcome are measured. In the other experiment, both the treatment and the mediating variables
+are randomized and subsequently the values of the outcome variable are recorded. We assume that
+the values of the potential outcomes remain identical regardless of the experiment to which each
+unit is assigned. In other words, the potential outcomes are assumed to depend on the values of the
+treatment and mediator, but not how they are realized. Imai, Tingley, and Yamamoto (2013)
+emphasize the importance of this assumption and suggest that the manipulation of the mediator
+needs to be subtle in order to make sure that it aﬀects the outcome only through the mediator value
+and has no direct eﬀect.
+Under this design, the ﬁrst experiment allows for the existence of multiple mechanisms that may
+be causally related. However, in the second experiment, the randomization of the mediator removes
+all of its confounders including alternative mediators. Formally, let Di be an indicator variable
+representing whether unit i is randomly assigned to the ﬁrst (Di ¼ 0) or second (Di ¼ 1) experiment.
+The study design implies the following conditional independence,
+fYi ðt,mÞ,Mi ðt0 Þg??Ti jDi ¼ 0,
+
+ð41Þ
+
+fYi ðt,mÞg??fTi ,Mi gjDi ¼ 1,
+
+ð42Þ
+
+for any t, t0 , m. Note that we do not assume independence between the mediator and the potential
+outcomes in the ﬁrst experiment. This means that while the manipulated values of the mediator
+must be random in the second experiment, the parallel design makes no exogeneity assumption on
+the mediator values that would naturally realize when only the treatment is manipulated as in the
+ﬁrst experiment. This contrasts with the scenarios depicted in Fig. 1 where observed mediators are
+assumed to be conditionally exogenous. The parallel design also diﬀers from Fig. 1 in that there is
+no need to determine whether there exist alternative mechanisms that are causally related to the
+mechanism of interest.
+Under the parallel design, the ﬁrst experiment identiﬁes the average eﬀects of the treatment on
+the mediator and the outcome. That is, both EfMi ðtÞg and EfYi ðt,Mi ðtÞÞg are identiﬁable for t ¼ 0, 1.
+The second experiment, on the other hand, identiﬁes EfYi ðt,mÞg for any t and m. Unfortunately, this
+is not suﬃcient to identify the ACME. Following Robins (2003), Imai, Tingley, and Yamamoto
+(2013) show that under the parallel design, the ACME is nonparametrically identiﬁed if the assumption of no-interaction eﬀect holds. This assumption, which is essentially the same as
+Assumption 3, can be formally written as
+Yi ð1,mÞ  Yi ð1,m0 Þ ¼ Yi ð0,mÞ  Yi ð0,m0 Þ,
+
+ð43Þ
+
+for any m 6¼ m0 . As is the case for Assumption 3, the equality must hold at the unit level rather than
+in expectation, which makes this assumption unveriﬁable and unrealistic in most cases. However,
+Imai, Tingley, and Yamamoto (2013) show that without the no-interaction assumption, the ACME
+cannot even be bounded under the parallel design unless the outcome variable has ﬁnite bounds.
+They also show that even when the outcome and the mediator are binary, the sharp bounds on
+the ACME may often contain zero, failing to identify its sign (see also Kaufman, Kaufman, and
+MacLehose 2009; Sjölander 2009). Thus, below, we develop a sensitivity analysis for the
+
+165
+
+Multiple Causal Mechanisms
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+no-interaction eﬀect assumption to assess the consequence of the violation of this key identiﬁcation
+assumption.
+
+7.2
+
+The Proposed Methodology for the Parallel Design
+
+Given the setup described above, we develop a sensitivity analysis for inference based upon the
+following system of linear equations with varying coeﬃcients,
+Mi ðtÞ ¼ 2 þ 2i t þ e2i
+
+ð44Þ
+
+Yi ðt,mÞ ¼ 3 þ 3i t þ i m þ i tm þ e3i ,
+
+ð45Þ
+
+for any t and m, where Eðe2i Þ ¼ Eðe3i Þ ¼ 0 without loss of generality. Like the one considered in
+Section 5, this model allows for arbitrary degrees of heterogeneity across units and does not make
+any distributional assumption about these eﬀects. Thus, despite the linearity assumption, equations
+(44) and (45) represent a general class of models that are suﬃciently ﬂexible to be useful in a variety
+of applied research settings.
+Under the parallel design, equations (44) and (45) can be ﬁtted separately to the data from the
+ﬁrst and the second experiments, respectively. The randomization of the treatment in the ﬁrst
+experiment (Di ¼ 0) and that of the treatment and the mediator in the second experiment (Di ¼ 1)
+guarantee that the following exogeneity assumptions are satisﬁed:
+Eðe2i jTi ,Di ¼ 0Þ ¼ Eðe3i jTi ,Mi ,Di ¼ 1Þ ¼ 0:
+
+ð46Þ
+
+In addition, due to the linearity and the binary nature of the treatment, the model implies the
+following linear relationship between the treatment and the outcome,
+Yi ðt,Mi ðtÞÞ ¼ 1 þ 1i t þ e1i ;
+where 1 þ e1i ¼ 3 þ ð2 þ e2i Þi þ e3i , 1i ¼ 3i þ 2i i þ ð2 þ 2i þ e2i Þ
+Now, we can rewrite the model given in equations (44) and (45) as
+
+ð47Þ
+2i ,
+
+Mi ðtÞ ¼ 2 þ 2 t þ 2i ðtÞ
+Yi ðt,mÞ ¼ 3 þ 3 t þ m þ tm þ 3i ðt,mÞ;
+
+and Eðe1i Þ ¼ 0.
+ð48Þ
+ð49Þ
+
+where 2 ¼ Eð2i Þ, 3 ¼ Eð3i Þ,  ¼ Eði Þ, ¼ Eð i Þ, and 2i ðtÞ ¼ ~2i t þ e2i , and 3i ðt,mÞ ¼ ~3i t þ ~i mþ
+~ i tm þ e3i with Eð~2i Þ ¼ Eð~3i Þ ¼ Eð~i Þ ¼ Eð ~ i Þ ¼ 0. Thus, under the parallel design, the exogeneity
+assumption given in equation (46) implies that among the parameters of equations (48) and (49),
+ð2 , 3 , 2 , 3 , , Þ are identiﬁed.
+To develop a sensitivity analysis, we follow the analytical strategy employed in Section 5 and
+write the ADE using the model parameters as follows:
+ ¼ 1  ð1
+  tÞ
+ðtÞ
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+ ¼ 3 þ ð2 þ 2 tÞ þ t  VðMi jTi ¼ t,Di ¼ 0Þ;
+ðtÞ
+
+ð50Þ
+
+ð51Þ
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+for t ¼ 0, 1, where the two sensitivity parameters are t ¼ CorrðMi ðtÞ, i Þ and  ¼ Vð i Þ, and other
+parameters can be consistently estimated from the observed data because other parameters are
+identiﬁable under this design. These sensitivity parameters, t and , represent the degree to which
+the individual-level treatment–mediator interaction eﬀect is correlated with the mediator of interest
+and the amount of heterogeneous interaction eﬀect, respectively. Researchers can vary these two
+sensitivity parameters within their plausible range to assess the sensitivity of their empirical results
+to the violation of the no-interaction eﬀect assumption under the parallel design.
+This sensitivity analysis under the parallel design is essentially identical to that of Section 5
+except that there is no need to consider alternative mediators W since M is randomized. Thus, most
+of the remarks made in Section 5 also apply here. First, the no-interaction eﬀect assumption given
+in equation (43) implies ki ¼ 0 for all i and thus ¼ t ¼  ¼ 0. In this case, both the ACME and the
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+166
+
+Kosuke Imai and Teppei Yamamoto
+
+ ¼ 1  3 ¼ 2  and ðtÞ
+ ¼ 3 , respectively, which equal the usual meADE are identiﬁed as ðtÞ
+diation procedure under sequential ignorability without the treatment–mediator interaction.
+Second, one can consider the following homogeneous interaction eﬀect assumption,
+Yi ð1,mÞ  Yi ð0,mÞ ¼ Bi þ Cm, where C does not vary across units. Under the linear models
+considered here, this assumption implies ~ i ¼ 0 for all i and thus  ¼ 0. Therefore, both the
+ ¼ 1  3  ð2 þ 2 ð1  tÞÞ ¼ 2 ð þ t Þ and
+ACME and the ADE are identiﬁed as ðtÞ
+ðtÞ ¼ 3 þ ð2 þ 2 tÞ , respectively. These formulas agree with the standard mediation procedure
+under the linear structural modeling with the treatment–mediator interaction term (e.g., Kraemer
+et al. 2008). Our analysis therefore highlights the implicit assumption made when researchers apply
+the standard mediation analysis procedure.
+Third, if neither of these assumptions holds, then the standard estimates of the ACME and the
+ADE will be biased even under the parallel design where Assumptions
+(41) and (42) areﬃ both
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+ is equal to t  VðMi jTi ¼ t,Di ¼ 0Þ. This
+satisﬁed. For example, the bias for the ADE ðtÞ
+ will be overestimated if the mediator positively interacts with the treatment for
+implies that ðtÞ
+those units that tend to have high mediator values when the treatment status is t (i.e., t > 0). The
+magnitude of such bias will be large when the degree of heterogeneity for the treatment–mediator
+interaction eﬀect is high (i.e.,  is large).
+Finally, as in Section 5, this sensitivity analysis can be conducted with respect to an alternative
+sensitivity parameter instead of  for easier interpretation. Speciﬁcally, we can use the proportion
+of the unexplained or original variance of the outcome that is additionally explained by including
+the heterogeneity in the treatment–mediator interaction. This quantity is represented by the following coeﬃcients of determination: R2 ¼ Vð i Ti Mi jDi ¼ 1Þ=Vð3i ðTi ,Mi ÞjDi ¼ 1Þ for the unexplained variance and R~ 2 ¼ Vð i Ti Mi jDi ¼ 1Þ=VðYi jDi ¼ 1Þ for the original variance. For
+example, R2* represents how much of the observed variance in Yi can be explained by the inclusion
+of the term i Ti Mi in the regression model. Then, it can be shown that  can be alternatively
+expressed as a function of each of these coeﬃcients of determination,
+sﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+sﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+Vð3i ðTi ,Mi ÞjDi ¼ 1ÞR2
+VðYi jDi ¼ 1ÞR~ 2
+¼
+¼
+:
+ð52Þ
+2
+EðTi Mi jDi ¼ 1Þ
+EðTi M2i jDi ¼ 1Þ
+
+Thus, we can conduct the sensitivity analysis with the sensitivity parameters R2 and R~ 2 .
+From this expression, it is immediate that the upper bound of  results when the heterogeneity
+inﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+the treatment–mediator interaction
+explains all the unexplained variance, i.e.,  
+ﬃ
+p
+Vð3i ðTi ,Mi ÞjDi ¼ 1Þ=EðTi M2i jDi ¼ 1Þ.
+
+7.3
+
+The Parallel Encouragement Design
+
+The sensitivity analysis developed above can be extended to the “parallel encouragement design” of
+Imai, Tingley, and Yamamoto (2013), where the manipulation of the mediator in the second experiment of the parallel design is imperfect. This situation is more realistic for psychological studies,
+such as framing experiments, because manipulating psychological mechanisms is likely to be imperfect at best even with clever use of intervention techniques.
+Under this design, it is assumed that the randomized manipulation of the mediator monotonically aﬀects the mediator and this manipulation aﬀects the outcome only through the realized
+value of the mediator. Then, the manipulation Zi can be used as an instrumental variable and we
+can ﬁt the two-stage least squares regression model. That is, equation (44) can be replaced with the
+following equation,
+Mi ðt,zÞ ¼ 2 þ 2i t þ
+
+iz
+
+þ i tz þ e2i ;
+
+ð53Þ
+
+whereas equation (45) remains identical. Implicit in this model is the assumption that all units in the
+study population can be thought of as following this structural equation as the true data-generating
+process. This contrasts with the nonparametric approach to encouragement designs recently developed in the methodological literature (Angrist, Imbens, and Rubin 1996) and applied to the
+causal mediation analysis (Imai, Tingley, and Yamamoto 2013).
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+Multiple Causal Mechanisms
+
+167
+
+Under
+ACME,
+equal the
+
+this two-stage least squares model, it is straightforward to show that the ADE and
+
+
+ðt,zÞ
+¼ EfYi ð1,Mi ðt,zÞÞ  Yi ð0,Mi ðt,zÞÞg and ðt,zÞ
+¼ EfYi ðt,Mi ð1,zÞÞ  Yi ðt,Mi ð0,zÞÞg,
+following expressions:
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+
+ðt,zÞ
+¼ 3 þ ð2 þ 2 t þ z þ tzÞ þ t,z  VðMi jTi ¼ t,Zi ¼ zÞ,
+ð54Þ
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+
+ðt,zÞ
+¼   3  ð2 þ 2 ð1  tÞ þ z þ tzÞ  1t,z  VðMi jTi ¼ 1  t,Zi ¼ zÞ,
+ð55Þ
+
+where ¼ Eð i Þ, ¼ Eð i Þ (which are both identiﬁed due to the exogeneity of Ti and Zi) and
+t,z ¼ CorrðMi ðt,zÞ, i Þ for t 2 f0,1g and z 2 Z (the support of Zi). The proof is provided in
+Appendix A5. The average total eﬀect,  in equation (55), can be consistently estimated by regressing
+Yi on Ti for the subsample that received the manipulation of the treatment alone, i.e., Zi ¼ 0. Then,
+the sensitivity and bounds analyses can be conducted by estimating the identiﬁable parameters via the
+two-stage least squares method and varying t,z and  within the ranges of plausible values.
+8
+
+Concluding Remarks and Suggestions for Applied Researchers
+
+In this article, we have shown how to conduct causal mediation analysis in the presence of
+multiple mediators. The proposed methodology can be applied even when alternative mechanisms
+are causally related to each other so long as both the treatment and the mediating variables can
+be assumed to be exogenous conditional on a set of observed confounders. However, this
+methodology is not applicable when there exist unobserved posttreatment confounders. Thus, we
+also show that our methodology can be applied to new experimental designs where these exogeneity
+conditions can be ensured by experimenters. Finally, we conclude this article by oﬀering a list of
+practical suggestions for applied researchers who wish to study multiple causal mechanisms.
+. Identify a list of alternative causal mechanisms that are causally prior to the mechanism of
+
+your interest and measure mediators that represent them.
+. Consider theoretically whether the identiﬁed alternative mechanisms are causally related to
+
+the causal mechanisms of interest and test empirically whether they are statistically dependent on each other even after adjusting for the treatment and pretreatment covariates.
+. If alternative mechanisms are causally independent of each other, apply the standard causal
+mediation analysis and conduct sensitivity analysis for the possible existence of unobserved
+pretreatment confounders.
+. If alternative mechanisms are causally related to each other, apply the mediation analysis
+that directly accounts for multiple mediators and conduct sensitivity analysis with respect to
+the existence of treatment–mediator interaction eﬀects.
+. Whenever possible, utilize research designs, experimental or observational, where the
+exogeneity of mediator is credible and apply sensitivity analysis for the no treatment–
+mediator interaction assumption.
+A Mathematical Appendix
+A.1 Proof of Nonparametric Identification of ACMEs under Assumption 1
+The proof is a straightforward extension of that of Theorem 1 in Imai, Keele, and Yamamoto
+(2010c). We ﬁrst consider the identiﬁcation of M
+i ðtÞ, the ACME with respect to Mi. Note that
+equation (16) implies the following conditional independence:
+Yi ðt,m,Wi ðtÞÞ??Ti j Mi ðt0 Þ ¼ m0 ,Xi ¼ x;
+
+ðA1Þ
+
+for all t, t0 ¼ 0, 1, m, m0 ; and x. Now, for any t,t0 , we have,
+EðYi ðt,Mi ðt0 Þ,Wi ðtÞÞjXi ¼ xÞ
+Z
+¼ EðYi ðt,m,Wi ðtÞÞjMi ðt0 Þ ¼ m,Xi ¼ xÞ dFMi ðt0 ÞjXi ¼x ðmÞ
+
+ðA2Þ
+
+168
+
+Kosuke Imai and Teppei Yamamoto
+
+Z
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+¼
+Z
+¼
+
+EðYi ðt,m,Wi ðtÞÞjMi ðt0 Þ ¼ m,Ti ¼ t0 ,Xi ¼ xÞ dFMi ðt0 ÞjXi ¼x ðmÞ
+
+ðA3Þ
+
+EðYi ðt,m,Wi ðtÞÞjTi ¼ t0 ,Xi ¼ xÞ dFMi ðt0 ÞjXi ¼x ðmÞ
+
+ðA4Þ
+
+EðYi ðt,m,Wi ðtÞÞjTi ¼ t,Xi ¼ xÞ dFMi ðt0 ÞjTi ¼t0 ,Xi ¼x ðmÞ
+
+ðA5Þ
+
+EðYi ðt,m,Wi ðtÞÞjMi ðtÞ ¼ m,Ti ¼ t,Xi ¼ xÞ dFMi ðt0 ÞjTi ¼t0 ,Xi ¼x ðmÞ
+
+ðA6Þ
+
+EðYi jMi ¼ m,Ti ¼ t,Xi ¼ xÞ dFMi ðt0 ÞjTi ¼t0 ,Xi ¼x ðmÞ
+
+ðA7Þ
+
+EðYi jMi ¼ m,Ti ¼ t,Xi ¼ xÞ dFMi jTi ¼t0 ,Xi ¼x ðmÞ,
+
+ðA8Þ
+
+Z
+¼
+Z
+¼
+Z
+¼
+Z
+¼
+
+where the second equality follows from equation (A1), equation (16) is used to establish the third
+and the ﬁfth equalities, equation (15) is used to establish the fourth and the last equalities, and the
+sixth equality follows from the fact that Mi ¼ Mi ðTi Þ and Yi ¼ Yi ðTi ,Mi ðTi Þ,Wi ðTi ÞÞ. This implies
+that M ðtÞ can be identiﬁed as
+Z Z
+
+
+M ðtÞ ¼
+EðYi jMi ¼ m,Ti ¼ t,Xi ¼ xÞ dFMi jTi ¼1,Xi ¼x ðmÞ  dFMi jTi ¼0,Xi ¼x ðmÞ dFXi ðxÞ,
+which is identical to the expression in Theorem 1 of Imai, Keele, and Yamamoto (2010c).
+Furthermore, the same proof applies to W ðtÞ by considering the identiﬁcation of
+ 0 Þ is also
+EðYi ðt,Mi ðtÞ,Wi ðt0 ÞÞjXi ¼ xÞ using equation (17) instead of equation (16). Finally, ðt,t
+0
+M
+0
+W
+
+
+ Þ ¼    ðt Þ   ðtÞ and  is identiﬁed under equation (15).
+identiﬁed because ðt,t
+
+A.2 Proof of the Parametric Identification of ACMEs with the Path Analysis under Assumption 1
+The proof follows a similar argument as Theorem 2 of Imai, Keele, and Yamamoto (2010c). First,
+note that the coeﬃcients in equations (18–20) are all identiﬁed under Assumption 1. Next, note that
+given this linear structural equations model, equation (A8) can be written as
+EðYi ðt; Mi ; ðt0 Þ; Wi ðtÞÞjXi ¼ xÞ
+Z
+¼ EðYi jMi ¼ m,Ti ¼ t,Xi ¼ xÞ dFMi jTi ¼t0 ,Xi ¼x ðmÞ
+Z Z
+¼
+Z Z
+¼
+
+ðA9Þ
+
+
+3 þ 3 t þ m þ
+
+>
+
+
+w þ 3> x dFWi jMi ¼m,Ti ¼t,Xi ¼x ðwÞ dFMi jTi ¼t0 ,Xi ¼x ðmÞ
+
+ðA10Þ
+
+
+3 þ 3 t þ m þ
+
+>
+
+
+w þ 3> x dFWi jTi ¼t,Xi ¼x ðwÞ dFMi jTi ¼t0 ,Xi ¼x ðmÞ
+
+ðA11Þ
+
+>
+xÞ þ
+¼ 3 þ 3 t þ ðM þ M t0 þ M
+
+>
+
+>
+ðW þ W t þ W
+xÞ þ 3> x;
+
+ðA12Þ
+
+where the third equality holds because equation (16) implies Mi ??Wi jTi ¼ t,Xi ¼ x under the linear
+structural equations model in equations (18–20). Finally, we also have
+>
+xÞ þ
+EðYi ðt,Mi ðtÞ,Wi ðtÞÞjXi ¼ xÞ ¼ 3 þ 3 t þ ðM þ M t þ M
+
+>
+
+>
+ðW þ W t þ W
+xÞ þ 3> x:
+ðA13Þ
+
+Therefore, M ðtÞ ¼ M . The same argument applies to W ðtÞ; and it is identiﬁed as W .
+
+«
+
+169
+
+Multiple Causal Mechanisms
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+A.3 Proof of the Identification of the ADE Given
+
+t
+
+and 
+
+We begin by expressing the ADE deﬁned in equation (22) using the parameters of the model given
+in equations (28) and (29),
+>
+>
+>
+ ¼ Ef3i þ i ð2 þ 2i t þ 2i
+ðtÞ
+Wi ðtÞ þ >
+2i tWi ðtÞ þ 2i x þ e2i Þ þ 3i ðWi ð1Þ  Wi ð0ÞÞ þ
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+>
+Wi ð0Þg,
+¼ 3 þ EðMi jTi ¼ tÞ þ t  VðMi jTi ¼ tÞ þ Efð3i þ 3i Þ> Wi ð1Þ  3i
+
+>
+3i Wi ð1Þg
+
+ðA14Þ
+
+where the two conditional moments of Mi, EðMi jTi ¼ tÞ and VðMi jTi ¼ tÞ can be consistently
+estimated using their sample counterparts. Now, note that the last term of equation (A14) can
+be written as
+Efð3i þ
+
+3i Þ
+
+>
+
+>
+Wi ð1Þ  3i
+Wi ð0Þg ¼ Efð3i þ
+
+>
+3i Þ Wi ð1ÞjTi
+>
+3i Þ jTi
+
+¼ Efð3i þ
+¼ ð3 þ
+
+3Þ
+
+>
+
+>
+¼ 1g  Eð3i
+Wi ð0ÞÞ
+
+>
+¼ 1gEðWi ð1ÞjTi ¼ 1Þ  Eð3i
+Wi ð0ÞÞ
+
+>
+EðWi jTi ¼ 1Þ  Eð3i
+Wi ð0ÞÞ,
+
+ðA15Þ
+ðA16Þ
+ðA17Þ
+
+where the equalities follow from equation (24) and the fact that each element of the coeﬃcient
+vector 3i þ 3i is conditionally independent of Wi(1) given Ti ¼ 1 under Assumption 2. The latter
+holds because for any j and m, 3ij þ 3ij ¼ Yi ð1,m,wÞ  Yi ð1,m,w0 Þ, where x3ij and 3ij denote the jth
+elements of x3i and 3i, respectively, w ¼ ðw1 ,:::,wj ,:::,wJ Þ> , and w0 ¼ ðw1 ,:::,wj  1,:::,wJ Þ> .
+Likewise, we have
+Efð3i þ
+
+>
+3i Þ Wi ð1Þ
+
+>
+3i Þ Wi ð1ÞÞ
+
+>
+ 3i
+Wi ð0Þg ¼ Eðð3i þ
+
+ 3> EðWi jTi ¼ 0Þ:
+
+ðA18Þ
+
+Since 3ij ¼ Yi ð0,m,wÞ  Yi ð0,m,w0 Þ for any m 2 M and j 2 f1,:::,Jg. Together with equation
+(A17), we obtain
+Efð3i þ
+
+>
+3i Þ Wi ð1Þ
+
+>
+ 3i
+Wi ð0Þg ¼ ð3 þ
+
+3Þ
+
+>
+
+EðWi jTi ¼ 1Þ  3> EðWi jTi ¼ 0Þ,
+
+ðA19Þ
+
+>
+
+which implies that the ﬁnal term of equation (A14), Efð3i þ 3i Þ Wi ð1Þ  3i Wi ð0Þg, is identiﬁed.
+Therefore, the ADE is identiﬁed given the two sensitivity parameters, t and , and so is the
+ACME, which can be obtained by subtracting the ADE from the average total eﬀect. «
+
+A.4 Proof of the Identification of the Causal Mediation Effect Specific to the Path T ! W ! Y
+First, note that the population average of the path-speciﬁc eﬀect in equation (39) can be written
+using the model parameters given in equations (28) and (29) as
+ ¼ Efð3i þ t
+ðtÞ
+
+>
+3i Þ ðWi ð1Þ
+
+ Wi ð0ÞÞg:
+
+ðA20Þ
+
+Now, following the same argument as in Appendix A3, we can show that under Assumption 2,
+this expectation can be written as a function of identiﬁed model parameters,
+
+
+Efð3i þ t 3i Þ> ðWi ð1Þ  Wi ð0ÞÞg ¼ ð3 þ t 3 Þ EðWi jTi ¼ 1Þ  EðWi jTi ¼ 0Þ :
+ðA21Þ
+
+A.5 Proof of the Identification of the ADE Given
+Design
+
+t,z
+
+and  under the Parallel Encouragement
+
+The expression for the ADE in equation (54) can be derived as follows:
+
+
+
+ðt,zÞ
+¼ E 3i þ i Mi ðt,zÞ
+¼ 3 þ Eð i ÞEðMi ðt,zÞÞ þ Covð i ,Mi ðt,zÞÞ
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ
+¼ 3 þ ð2 þ 2 t þ z þ tzÞ þ t,z  VðMi jTi ¼ t,Zi ¼ zÞ,
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+170
+
+Kosuke Imai and Teppei Yamamoto
+
+where the ﬁrst equality follows from equation (45) and the last equality from equation (53) and the
+fact that both Ti and Zi are randomized. Then, the expression for the ACME in equation (55) can
+
+  t,zÞ.«
+be derived by substituting the above expression into the following equality: ðt,zÞ
+¼   ð1
+Funding
+Financial support from the National Science Foundation (SES-0918968) is acknowledged.
+
+References
+Albert, J. M., and S. Nelson. 2011. Generalized causal mediation analysis. Biometrics 67(3):1028–38.
+Angrist, J. D., G. W. Imbens, and D. B. Rubin. 1996. Identification of causal effects using instrumental variables (with
+discussion). Journal of the American Statistical Association 91:434, 444–55.
+Avin, C., I. Shpitser, and J. Pearl. 2005. Identifiability of path-specific effects. In Proceedings of the nineteenth
+international joint conference on artificial intelligence, 357–63. Edinburgh: Morgan Kaufmann.
+Baron, R. M., and D. A. Kenny. 1986. The moderator-mediator variable distinction in social psychological research:
+Conceptual, strategic, and statistical considerations. Journal of Personality and Social Psychology 51(6):1173–82.
+Brader, T., N. Valentino, and E. Suhay. 2008. What triggers public opposition to immigration? Anxiety, group cues, and
+immigration threat. American Journal of Political Science 52(4):959–78.
+Bullock, J., D. Green, and S. Ha. 2010. Yes, but what’s the mechanism? (Don’t expect an easy answer). Journal of
+Personality and Social Psychology 98(4):550–8.
+Callaghan K., and F. Schnell, eds. 2005. Framing American politics. Pittsburgh, PA: University of Pittsburgh Press.
+Chong, D., and J. N. Druckman. 2007. A theory of framing and opinion formation in competitive elite environments.
+Journal of Communication 57:99–118.
+Druckman, J. N., and K. R. Nelson. 2003. Framing and deliberation: How citizens’ conversations limit elite influence.
+American Journal of Political Science 47(4):729–45.
+Glynn, A. N. 2012. The product and difference fallacies for indirect effects. American Journal of Political Science
+56(1):257–69.
+Hafeman, D. 2008. Opening the black box: A reassessment of mediation from a counterfactual perspective. PhD thesis,
+Columbia University.
+Holland, P. W. 1986. Statistics and causal inference (with discussion). Journal of the American Statistical Association
+81:945–60.
+Imai, K., and T. Yamamoto. 2012. Replication data for: Identification and sensitivity analysis for multiple causal
+mechanisms: Revisiting evidence from framing experiments. Dataverse Network, hdl:1902.1/19036.
+Imai, K., L. Keele, and D. Tingley. 2010a. A general approach to causal mediation analysis. Psychological Methods
+15(4):309–34.
+Imai, K., L. Keele, D. Tingley, and T. Yamamoto. 2010b. Advances in social science research using R. In Causal
+mediation analysis using R, ed. H. D. Vinod, 129–54. Lecture Notes in Statistics. New York: Springer-Verlag.
+———. 2011. Unpacking the black box of causality: Learning about causal mechanisms from experimental and observational studies. American Political Science Review 105(4):765–89.
+Imai, K., L. Keele, and T. Yamamoto. 2010c. Identification, inference, and sensitivity analysis for causal mediation
+effects. Statistical Science 25(1):51–71.
+Imai, K., D. Tingley, and T. Yamamoto. 2013. Experimental designs for identifying causal mechanisms. Journal of the
+Royal Statistical Society, Series A (Statistics in Society) 176(1):5–51.
+Imbens, G. W., and C. F. Manski. 2004. Confidence intervals for partially identified parameters. Econometrica
+72(6):1845–57.
+Isbell, L., and V. Ottati. 2002. The emotional voter: Effects of episodic affective reactions on candidate evaluation. In The
+social psychology of politics: Social psychological application to social issues, eds. V. Ottati, R. Tindale, J. Edwards,
+F. Bryant, L. Heath, D. O’Connell, Y. Suarez-Balcazar, and E. Posavac, Vol. 5, 55–74. New York: Kluwer.
+Iyengar, S. 1991. Is anyone responsible? Chicago: University of Chicago Press.
+Kaufman, S., J. S. Kaufman, and R. F. MacLehose. 2009. Analytic bounds on causal risk differences in directed acyclic
+graphs involving three observed binary variables. Journal of Statistical Planning and Inference 139:3473–87.
+Kinder, D. R., and L. M. Sanders. 1990. Mimicking political debate with survey questions: The case of white opinion on
+affirmative action for blacks. Social Cognition 8(1):73–103.
+Kraemer, H. C., M. Kiernan, M. Essex, and D. J. Kupfer. 2008. How and why criteria defining moderators and mediators differ between the Baron & Kenny and MacArthur approaches. Health Psychology 27(2):S101–8.
+Miller, J. M. 2007. Examining the mediators of agenda setting: A new experimental paradigm reveals the role of
+emotions. Political Psychology 28(6):689–717.
+Nelson, T. E., and D. R. Kinder. 1996. Issue framing and group-centrism in american public opinion. Journal of Politics
+58:1055–78.
+Nelson, T. E., R. A. Clawson, and Z. M. Oxley. 1997. Media framing of a civil liberties conflict and its effect on
+tolerance. American Political Science Review 91(3):567–83.
+
+Downloaded from https://www.cambridge.org/core. Harvard University, on 01 Mar 2019 at 23:04:39, subject to the Cambridge Core terms of use, available at https://www.cambridge.org/core/terms. https://doi.org/10.1093/pan/mps040
+
+Multiple Causal Mechanisms
+
+171
+
+Neyman, J. 1923. On the application of probability theory to agricultural experiments: Essay on principles, section 9
+(translated in 1990). Statistical Science 5:465–80.
+Pearl, J. 2001. Direct and indirect effects. In Proceedings of the seventeenth conference on uncertainty in artificial
+intelligence, 411–20. San Francisco: Morgan Kaufmann.
+Petersen, M. L., S. E. Sinisi, and M. J. van der Laan. 2006. Estimation of direct causal effects. Epidemiology 17(3):276–84.
+Robins, J. M. 1986. A new approach to causal inference in mortality studies with sustained exposure periods: Application
+to control of the healthy worker survivor effect. Mathematical Modeling 7:1393–512.
+———. 2003. Semantics of causal DAG models and the identification of direct and indirect effects. In Highly structured
+stochastic systems, eds. P. J. Green, N. L. Hjort, and S. Richardson, 70–81. Oxford, UK: Oxford University Press.
+Robins, J. M., and S. Greenland. 1992. Identifiability and exchangeability for direct and indirect effects. Epidemiology
+3(2):143–55.
+Robins, J. M., and T. Richardson. 2010. Alternative graphical causal models and the identification of direct effects.
+In Causality and psychopathology: Finding the determinants of disorders and their cures, eds. P. Shrout, K. Keyes, and
+K. Omstein, 103–59. Oxford, UK: Oxford University Press.
+Rubin, D. B. 1974. Estimating causal effects of treatments in randomized and non-randomized studies. Journal of
+Educational Psychology 66:688–701.
+———. 2004. Direct and indirect causal effects via potential outcomes (with discussions). Scandinavian Journal of
+Statistics 31(2):161–70.
+Sjölander, A. 2009. Bounds on natural direct effects in the presence of confounded intermediate variables. Statistics in
+Medicine 28(4):558–71.
+Slothuus, R. 2008. More than weighting cognitive importance: A dual-process model of issue framing effects. Political
+Psychology 29(1):1–28.
+Taylor, A. B., D. P. MacKinnon, and J.-Y. Tein. 2008. Tests of the three-path mediated effect. Organizational Research
+Methods 11(2):241–69.
+Tchetgen Tchetgen, E. J., and I. Shpitser. 2011. Semiparametric theory for causal mediation analysis: Efficiency bounds,
+multiple robustness, and sensitivity analysis. Technical report. Cambridge, MA: Harvard University School of Public
+Health.
+Tingley, D., T. Yamamoto, L. Keele, and K. Imai. 2012. Mediation: R package for causal mediation analysis. Available at
+the Comprehensive R Archive Network (CRAN), http://CRAN.R-project.org/package¼mediation.
+Tversky, A., and D. Kahneman. 1981. The framing of decisions and the psychology of choice. Science 211:453–8.
+VanderWeele, T. J. 2009. Marginal structural models for the estimation of direct and indirect effects. Epidemiology
+20(1):18–26.
+———. 2010. Bias formulas for sensitivity analysis for direct and indirect effects. Epidemiology 21(4):540–51.
+Zaller, J. 1992. The nature and origins of mass opinion. New York: Cambridge University Press.
+
+

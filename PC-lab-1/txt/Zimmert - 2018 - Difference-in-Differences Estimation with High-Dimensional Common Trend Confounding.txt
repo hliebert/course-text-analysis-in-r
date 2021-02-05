@@ -1,0 +1,2705 @@
+Difference-in-Differences Estimation with High-Dimensional
+Common Trend Confounding
+
+Michael Zimmert∗
+University of St. Gallen (HSG)
+
+arXiv:1809.01643v3 [econ.EM] 14 Dec 2018
+
+Abstract
+In this study, we consider difference-in-differences models with a common trend assumption that
+is only valid after conditioning on covariates. We suggest estimators that allow the covariates to
+enter the model in a very flexible form. In particular, we propose estimation procedures that involve
+supervised machine learning methods. We derive asymptotic results for new semiparametric and
+linear model based estimators for repeated cross-sections and panel data and show that they have
+desirable statistical properties like asymptotic normality and double robustness. Further, we establish a semiparametric efficiency bound for panel difference-in-differences estimation. The proposed
+semiparametric estimator attains this bound. The usability of the methods is assessed by replicating
+a study on an employment protection reform. We demonstrate that the notion of high-dimensional
+common trend confounding has implications for the economic interpretation of the policy evaluation
+results. Notably, measured reform effects are substantially decreased or even reversed when covariates
+are included in a data-driven manner.
+
+JEL classification: C14, C21, C23, J08
+Keywords: Semiparametric difference-in-differences, machine learning, semiparametric efficiency bound,
+high-dimensional data, employment protection.
+Acknowledgements: I want to thank Michael Lechner, Michael Knaus, Bryan Graham, Anthony
+Strittmatter and Petyo Bonev for competent advice and Franziska Zimmert for motivating the research
+question. I also thank Gabriel Okasa for some very useful pieces of R code and Daniel Goller and Carina
+Steckenleiter for helpful remarks and comments.
+∗ michael.zimmert@unisg.ch, Michael Zimmert is employed and funded by the Swiss Institute of Empirical Economic
+Research (SEW) of the University of St. Gallen (HSG), Varnbelstrasse 14, CH-9000 St.Gallen.
+
+1
+
+Introduction
+
+Difference-in-differences is often labelled ‘quasi-experimental’ coming from its roots in mean comparisons
+between treatment and control group before and after treatment in natural experiments. Indeed, in such
+settings identification is ensured by the fact that the two groups would have developed equally in the
+absence of treatment. In the social sciences such purely random designs are rare and effect identification
+often relies on the assumption that the common trend holds conditional on covariates. For example
+suppose a reform that only affects a specific subpopulation is introduced. Then any underlying factor
+shifting the potential outcomes under non-treatment for the subpopulation and the rest of the population
+differently needs to be controlled for.1
+However, even if the researcher can credibly identify the factors that may lead to common trend confounding, it is still unclear which covariates should ultimately enter the statistical model for two reasons.
+1. Model selection: There are many different covariates that are supposed to measure the same
+economic channel for common trend confounding.
+2. Functional form: It is unclear what polynomials or interaction of the covariates should be included
+in the model.
+The first issue might be especially prevalent in difference-in-differences models. Often covariates like geographic or industry dummies are available for different levels of aggregation – making covariate selection
+an even more tedious task.
+Both issues increase the dimensionality of the problem. For standard parametric models usually used
+for difference-in-differences estimation a dimension close to or larger than the sample size will cause the
+estimator to break down. Advances in the supervised machine learning literature2 allow to approach this
+problem by choosing a data-driven trade-off between the dimension and the sample size at hand.
+Our approach essentially combines semiparametric and parametric difference-in-differences models with
+machine learning estimation. We argue that we contribute to the evolving literature on causal machine
+learning in at least four aspects. Firstly, we allow for a data-driven approach to determine to what extent
+covariates that ensure the common trend condition should enter the model. By doing so we, secondly,
+propose new classes of parametric and semiparametric difference-in-differences estimators that are doubly
+robust in the sense that asymptotic properties of our estimators are unaffected if only one of the first
+stage parameters is biased. Therefore, the framework proposed is also useful in low-dimensional settings.
+Thirdly, we derive a semiparametric efficiency bound for panel difference-in-differences estimation under
+1 For
+2 For
+
+an introduction see for example Athey and Imbens (2017) or Imbens and Wooldridge (2009)
+an overview see e.g. Hastie, Tibshirani, and Friedman (2009).
+
+1
+
+the common trend assumption and show that our proposed estimator achieves this bound. Fourthly,
+we adopt the methods to a well-known application and investigate the value added when using causal
+machine learning instead of classical causal estimation methods. We argue that our proposed methods
+give more credible results.
+Despite its popularity for policy evaluation3 , difference-in-differences was for the first time investigated
+from a semiparametric angle by Heckman, Ichimura, and Todd (1997). They show that matching type estimators can identify average treatment effects on the treated (ATET) in difference-in-differences settings.
+Abadie (2005) investigates how inverse probability weighting (IPW) can be used to identify ATET with
+panel and cross-sectional data. Lechner (2010) proposes an alternative procedure that in principle allows
+to implement any selection-on-observables estimator for ATET in the context of difference-in-differences
+estimation. Some other important contributions that operate under different assumptions include the
+changes-in-changes model by Athey and Imbens (2006), the synthetic control group approach (Abadie,
+Diamond, and Hainmueller (2010, 2014)) and ‘fuzzy’ difference-in-differences designs (Chaisemartin and
+D’Haultfoeuille (2018)).
+Regarding other causal designs with high-dimensional covariate confounding some recent contributions
+use supervised machine learning techniques. Belloni, Chen, Chernozhukov, and Hansen (2012) use the
+Lasso for optimal instrument prediction. Zhang and Zhang (2014), van de Geer, Bühlmann, Ritov, and
+Dezeure (2014) and Athey, Imbens, and Wager (2018) concentrate on linear model based approaches.
+Belloni, Chernozhukov, and Hansen (2014) and Chernozhukov, Chetverikov, Demirer, Duflo, Hansen,
+Newey, and Robins (2018) develop treatment effects estimators using the efficient score structure that
+allows to incorporate first stage machine learning predictions. A major insight from this literature is the
+fact that inverse probability weighting (IPW) (see Horvitz and Thompson (1952) and Hirano, Imbens,
+and Ridder (2003)) is inappropriate with machine learning generated first stages while augmented IPW
+(AIPW) (Robins and Rotnitzky (1995), Scharfstein, Rotnitzky, and Robins (1999)) maintains good statistical properties. In related but independent work Sant’Anna and Zhao (2018) also consider the properties
+of the AIPW based difference-in-differences estimator in a low-dimensional setting. We combine this latter strand with the literature on parametric and semiparametric difference-in-differences estimation and
+allow covariates to enter the model very flexibly.
+By doing so, we will explicitly take the influence of first stage estimation steps on second stage inference
+into account. More broadly, we therefore contribute to the literature on semiparametric efficiency. Famous examples in the selection-on-observables design include Hahn (1998) and Firpo (2007) who derive
+efficiency bounds for semiparametric estimators. Such an analysis is typically based on the approach
+developed by Newey (1990, 1994) and Bickel, Klaassen, Ritov, and Wellner (1993, 1998). Chamberlain
+3 Famous,
+
+early contributions include Card (1990), Card and Krueger (1994) and Eissa and Liebman (1996).
+
+2
+
+(1987, 1992) contributes an alternative approach based on moment conditions. It is used by Graham
+(2011) for general missing data problems to derive semiparametric efficiency bounds. For difference-indifferences estimation the influence of first stage testing on second stage inference is recently investigated
+by Roth (2018).
+The rest of the paper is organized as follows. The next section discusses semiparametric and parametric
+identification and estimation of difference-in-differences models in the context of high-dimensional common trend confounding for cross-sectional data. These results are extended in Section 3 for panel data
+and multiple time period settings. To assess the usability of the proposed methods, they are applied to
+real world data in Section 4. The last section concludes. All technical proofs and some details on the
+empirical application are relegated to the appendix.
+
+2
+
+High-dimensional difference-in-differences estimation in repeated cross-sections
+
+2.1
+
+Nonparametric identification
+
+The causal analysis is built on the potential outcome framework of Rubin (1974). Assume time T and
+treatment group status D are binary, such that t, d ∈ {0, 1}. Hence, we only consider ‘sharp’ designs
+where treatment status is a binary variable.4 Then denote the potential outcome in a specific time
+t and for a specific treatment group d by Y d (t). In a difference-in-differences design, one is typically
+interested in identifying the average effect of the treatment on the outcome in period T = 1 for the
+treated population5
+
+
+
+ATET(1) = E Y 1 (1) − Y 0 (1)|D = 1 .
+
+(2.1)
+
+Achieving this goal requires the formulation of some standard assumptions.6
+
+N (0)
+
+Assumption 2.1 (Data Generating Process). Two iid samples with triples (Yi (0), Di (0), Xi (0))i=1
+N (1)
+
+and (Yj (1), Dj (1), Xj (1))j=1 and unknown distribution fY,D,X,T (Y = y, D = d, X = x, T = t) =
+fY,D,X (Y (t) = y, D = d, X = x|T = t)×fT (T = t) are observed. The covariates in both samples are points
+4 For
+
+a detailed treatment of ‘fuzzy’ designs see the discussion in Chaisemartin and D’Haultfoeuille (2018).
+(2010) explains why the identification of the unconditional average treatment effect is implausible in differencein-differences designs.
+6 For a exemplary discussions of these assumptions and their link to standard nonparametric identification of average
+treatment effects see Lechner (2010).
+5 Lechner
+
+3
+
+in the covariate space such that X(0), X(1) ∈ X ⊆ Rτ and τ → ∞ and potentially τ >> N (0) + N (1).
+Assumption 2.2 (SUTVA). The outcome process follows the observational rule
+
+Y (t) =
+
+
+
+
+Y 0 (t)
+
+if
+
+D(t) = 0
+
+
+
+Y 1 (t)
+
+if
+
+D(t) = 1.
+
+Assumption 2.3 (No anticipation). The treatment has no effect on the pre-treatment population
+
+
+
+ATET(0) = E Y 1 (0) − Y 0 (0)|D = 1 = 0.
+
+Assumption 2.4 (Common Trend). Conditional on X the average outcomes for treated and controls
+would have followed parallel trends in the absence of treatment
+
+
+
+
+
+E Y 0 (1) − Y 0 (0)|X, D = 0 = E Y 0 (1) − Y 0 (0)|X, D = 1 .
+
+Assumption 2.5 (Common Support). There is no perfect predictability for being treated
+
+P (D = 1|X = x) < 1
+
+where the P operator denotes probabilities.
+Assumption 2.1 essentially describes a repeated cross-section where the two samples realize with unknown
+distribution. In contrast to any previous study, the dimension of the covariate space τ can be very large –
+potentially much larger than the number of observations. Crucially, we assume that the treatment group
+status and the covariates are time-invariant.
+Heckman et al. (1997) show that given assumptions 2.2-2.4 one can identify (2.1) conditional on X as
+
+
+
+E Y 1 (1) − Y 0 (1)|X, D = 1 = E [Y (1) − Y (0)|X, D = 1] − E [Y (1) − Y (0)|X, D = 0] .
+
+(2.2)
+
+Thus, the role of the covariates in difference-in-differences is central as they have to ensure the common
+trend.
+Common support is a standard assumption in the treatment effects literature and is required to model
+the treatment process.
+Then, building on the approach of Abadie (2005) and using the elementary reasoning behind ideas in
+the double robustness literature (Scharfstein et al. (1999), Chernozhukov et al. (2018)) we can derive the
+following result.
+
+4
+
+Lemma 2.1. Given that assumptions 2.2-2.5 hold, statistic (2.1) can be written as
+
+
+
+ATET(1) =E Y 1 (1) − Y 0 (1)|D = 1
+
+
+T − P (T = 1)
+D − p(x)
+1
+E
+(Y − γ0 (x, t))
+=
+P (D = 1)
+P (T = 1)(1 − P (T = 1)) 1 − p(x)
+where p(x) = P (D = 1|X = x) and γ0 (x, t) = E [Y |X, T, D = 0].
+
+Lemma 2.1 is an extension of Abadie’s (2005) semiparametric difference-in-differences identification result. The ATET can be written as the expectation of the reweighted outcome differences adjusted for
+different sample sizes over time. However, we additionally introduce a projection of the outcome on the
+covariates and T in the sample of the untreated. Residualizing the outcome differences is not necessary
+for identification (as the proof in appendix A.1 shows), though it will turn out to be very useful in the
+context of high-dimensional estimation problems.
+
+2.2
+
+Estimation with Machine Learning
+
+The high-dimensional covariate space in assumption 2.1 requires that projections on the treatment group
+identifier and the outcome have to be estimated using methods labelled as supervised machine learning.
+These methods represent a trade-off between parametric and nonparametric approaches. In contrast to
+parametric methods, they can cope with situations where not only N → ∞ but also τ → ∞. Standard
+nonparametric methods are typically not applicable when the dimension is moderately large. While statistical properties for some very sophisticated machine learning methods remain unknown, there have
+been results on high-dimensional error bounds for others (for Lasso see Bhlmann and van de Geer (2011),
+for Post-Lasso see Belloni and Chernozhukov (2013), for Random Forests see Wager and Walther (2016),
+for L2 boosting see Luo and Spindler (2016)).
+Common to all these techniques are their decreased error convergence rates. Typically they do not achieve
+√
+N convergence but some lower rate. The major challenge when deriving results in high-dimensions is
+therefore to take this behaviour into account. In particular, assume the following on the prediction qualities of the machine learner.
+
+Assumption 2.6 (Nuisance prediction quality in semiparametric model). When predicting the nuisance
+parameters the machine learner for the propensity score p(x) = E[D|X = x] and a further outcome nui-
+
+5
+
+sance γ0 (x, t) = E[Y |X = x, T = t, D = 0] satisfy the convergence conditions
+
+kp̂(x) − p(x)kq = O(1)
+kp̂(x) − p(x)kqp
+
+kγ̂0 (x, t) − γ0 (x, t)kq = O(1)
+
+
+1
+× kγ̂0 (x, t) − γ0 (x, t)kqγ = o √
+N
+
+where k·kq denotes the Lq -norm, q ≥ 1 is any natural number and
+
+1
+qp
+
++
+
+1
+qγ
+
+= 1.
+
+The crucial point is that even though machine learners typically do not converge at
+
+√
+
+N rates, first stage
+
+nuisance parameter prediction can be neglected for the particular estimation structure if both prediction
+√
+rates together (coupled by Hlder’s inequality) achieve N convergence. Further, we need a technical assumption that restricts the ratio between the observations in the two periods from becoming too extreme.
+
+Assumption 2.7. The number of observations in T = t relative to T = 1 − t is bounded such that
+T − P (T = 1)
+P (T = 1)(1 − P (T = 1))
+
+≤C
+∞
+
+where C is any positive constant.
+
+Then following the reasoning in Chernozhukov et al. (2018) and the result in Lemma 2.1 suggest to use
+a two-stage estimation procedure.
+1. Split the sample in K subsamples.7
+2. Estimate the propensity score p(x) and the outcome projection γ0 (x, t) in K − 1 subsamples using
+any suitable machine learning method or an ensemble of them.
+3. Estimate
+Nk
+1 X
+θ̂k =
+Nk i=1
+
+Dik − p̂K−1 (xik )
+(Yik − γ̂0K−1 (xik , tik ))
+P̂k (D = 1) P̂k (T = 1)(1 − P̂k (T = 1)) 1 − p̂K−1 (xik )
+
+where P̂k (D = 1) =
+
+1
+
+Nk1
+Nk
+
+Tik − P̂k (T = 1)
+
+and P̂k (T = 1) =
+
+!
+
+Nk (1)
+Nk .
+
+4. Repeat steps 2 and 3 for all K subsamples and construct the final estimator as θ̂ =
+7 Sample
+
+1
+K
+
+PK
+
+k=1 θ̂k .
+
+splitting is necessary to decorrelate the error from machine learning from the estimation error. Sample splitting
+has been shown to be avoidable if Lasso or Post-Lasso is used (Belloni et al. (2012)). Its importance in the context of other
+causal problems is investigated in Chernozhukov et al. (2018).
+
+6
+
+One can then show the following asymptotic result.
+
+Theorem 1. Under the Assumptions 2.1-2.7 θ̂ as in the previous procedure satisfies the inferential result
+√
+
+2
+
+where θ0 = ATET(1) and σ = E
+
+
+
+N (θ̂ − θ0 ) → N (0, σ 2 )
+
+T −P (T =1)
+D−p(x)
+1
+P (D=1) P (T =1)(1−P (T =1)) 1−p(x)
+
+(Y − γ0 (x, t)) − θ0
+
+2 
+
+.
+
+Additionally, notice that when there is low-dimensional common trend confounding, the proposed estimation strategy is doubly robust in the sense that if either the outcome or the treatment projection is
+misspecified the estimator remains consistent. This result is a corollary of the proof of Theorem 1 under
+
+
+Assumption 2.6. To see that notice that whenever kγ̂0 (x, t) − γ0 (x, t)k2 = o √1N the propensity score
+can be biased (its prediction error has to converge in L2 against a constant) and the remaining estimator
+√
+will still be consistent and vice versa. Hence, if one of the nuisance parameters converges at a N rate
+then the other nuisance can be biased without distorting the properties of the estimator. For example
+pτ 
+ordinary least squares (OLS) is known to converge at a rate o
+N . In the low-dimensional setting τ
+√
+is fixed and the standard N rate is achieved. This form of robustness towards misspecification can be
+a major advantage over the estimator of Abadie (2005) which relies on the correct specification of the
+propensity score model.
+
+2.3
+
+Linear model specification
+
+Even though we argue for the nonparametric specification of the problem at hand, the linear model based
+difference-in-differences estimator is most popular. We therefore also derive an identification result and
+an estimator that is suitable to incorporate decreased first-stage convergence rates and hence can cope
+with the high-dimensional setting under a linear functional form assumption.
+
+Assumption 2.8 (Linearity in parameters). Every potential outcome can be written as
+
+Y d (t) = β0 + tβ1d + dβ2 + xβ3 + txβ4 + .
+
+While the linear model is relatively flexible, we do not allow for an interaction between treatment and
+time dummy as this would violate Assumption 2.4. In contrast to the nonparametric model in the
+previous section, Assumption 2.8 also does not allow for treatment heterogeneity in the sense that the
+
+7
+
+parameters of the model are the same across potential outcomes or that there is an interaction between
+treatment and the covariates. Although in the light of the previous findings this a unnecessary restrictive
+assumption that could be easily violated, we need it to derive the classical linear form representation of
+the difference-in-differences estimator.
+
+Lemma 2.2. Given that Assumptions 2.2-2.4 and 2.8 hold, statistic (2.1) can be written as
+
+
+
+ATET(1) =E Y 1 (1) − Y 0 (1)|D = 1 = β11 − β10 = β1 .
+
+If common trend confounding is low-dimensional the classical outcome model
+
+Y = β0 + tβ10 + tdβ1 + dβ2 + xβ3 + txβ4 + 
+
+(2.3)
+
+can be used to estimate β1 as the coefficient of the period treatment interaction term (Card and Ashenfelter (1985)). However, in the case of high-dimensional common trend confounding the parametric model
+(2.3) will not be useful since it does not allow for the case τ >> N .
+
+Assumption 2.9 (Nuisance prediction quality in linear model). When predicting the nuisance parameters the machine learner for the propensity score p(x) = E[D(t)|X = x] and a further outcome nuisance
+γ(x) = E[Y (t)|X = x] satisfy the convergence conditions
+
+kp̂(x) − p(x)kq = O(1)
+
+kγ̂(x) − γ(x)kq = O(1)
+
+kp̂(x) − p(x)k2 = o(1)
+kp̂(x) − p(x)kqp
+
+kγ̂(x) − γ(x)k2 = o(1)
+
+
+1
+× kγ̂(x) − γ(x)kqγ = o √
+N
+
+
+1
+2
+kp̂(x) − p(x)k2 = o √
+N
+
+where k·kq denotes the Lq -norm, q ≥ 1 is any natural number and
+
+1
+qp
+
++
+
+1
+qγ
+
+= 1.
+
+In parallel to our previous result, a model that can incorporate machine learning first stages should
+include the outcome and the treatment model. In particular, we suggest the estimation procedure is
+involving the following steps.
+
+8
+
+N (0)
+
+1. Split sample {(Yi (0), Di (0), Xi (0))}i=1 in K(0) different subsamples.
+2. Estimate E[D(0)|X = x] and E[Y (0)|X = x] in K(0) − 1 subsamples by any suitable machine
+learning method or an ensemble of them.
+3. Estimate the univariate OLS parameter
+−1
+N (0)k 
+2
+X
+1
+β̂1 (0)k = 
+Dik (0) − ÊK−1 [Dik (0)|Xik ] 
+N (0)k i=1
+
+
+N (0)k 
+
+
+X
+1
+×
+Dik (0) − ÊK−1 [Dik (0)|Xik ] Yik (0) − ÊK−1 [Yik (0)|Xik ]  .
+N (0)k i=1
+
+
+4. Redo the preceding steps for all K(0) subsamples and estimate β̂1 (0) =
+
+1
+K(0)
+
+PK(0)
+k=1
+
+β̂1 (0)k .
+
+N (1)
+
+5. Redo the preceding steps for subsample {(Yj (1), Dj (1), Xj (1))}j=1 .
+6. Estimate β̂1 = β̂1 (1) − β̂1 (0).
+
+Theorem 2. Under the Assumptions 2.1-2.4 and 2.8 and 2.9 β̂1 as in the previous procedure satisfies
+the inferential result
+√
+
+N (β̂1 − β1 ) → N (0, σ 2 )
+
+where β1 = ATET(1) and σ 2 = σ(0)2 +σ(1)2 with σ(t)2 = E[(D(t)−p(x))2 ]−1 E[(D(t)−p(x))2 2 ]E[(D(t)−
+p(x))2 ]−1 .
+
+For the low-dimensional case, this is a Frisch-Waugh (FW) estimator for the different subsamples T ∈ 0, 1.
+We then observe that the variance for the proposed estimator is equivalent to the classical OLS estimator
+under heteroscedasticity. This follows from the Frisch-Waugh Theorem and the fact that the result is
+unaffected by subsample estimation for the fully interacted model with respect to time. Under a further
+homoscedasticity assumption we achieve the efficiency bound for linear models.
+
+9
+
+3
+3.1
+
+Extensions
+Panel Data
+
+Suppose that we observe the same individual in both periods. Then we can replace Assumption 2.1 by
+its panel equivalent.
+
+Assumption 3.1 (Data Generating Process). An iid two-period panel with {(Yi (1), Yi (0), Di , Xi )}N
+i=1
+is observed. The covariates are points in the covariate space such that X ∈ X ⊆ Rτ and τ → ∞ and
+potentially τ >> N .
+
+The preceding analysis simplifies because first differencing between time periods becomes feasible. Abstracting from sample splitting, the semiparametric estimator in this case becomes
+
+θ̂ =
+
+N 
+
+1 X Di − p̂(xi ) 
+Y
+(1)
+−
+Y
+(0)
+−
+Ê
+[Y
+(1)
+−
+Y
+(0)|X
+,
+D
+=
+0]
+.
+i
+i
+i
+i
+i
+i
+N 1 i=1 1 − p̂(xi )
+
+(3.1)
+
+We can then derive a theorem similar to Theorem 1.
+
+Theorem 3. Under the Assumptions 3.1 and 2.2-2.5 a sample splitting version of θ̂ as in (3.1) satisfies
+the inferential result
+√
+
+where θ0 = ATET(1) and σ
+
+2
+
+= E
+
+
+
+N (θ̂ − θ0 ) → N (0, σ 2 )
+
+D−p(x)
+1
+P (D=1) 1−p(x)
+
+(Y (1) − Y (0) − E [Y (1) − Y (0)|X, D = 0]) − θ0
+
+2 
+
+denotes the semiparametric efficiency bound for the particular problem.
+
+The efficiency result merits some discussion. Firstly, notice that the common trend is a conditional mean
+independence assumption in first differences. In contrast to the selection-on-observables case, which
+requires a ‘strong’ independence assumption (for example studied by Hahn (1998)), we cannot apply the
+approach developed by Newey (1990, 1994) and Bickel et al. (1993, 1998, Section 3). Since Assumption
+2.4 is only informative about the first moment of the distribution of the statistical model, it is not possible
+to derive a parametric submodel for observed quantities. We therefore rely on the theoretical framework
+of Chamberlain (1987, 1992). Graham (2011) applies this framework to IPW estimation in the context
+
+10
+
+of missing data problems.
+Secondly, this allows to derive the difference-in-differences efficiency bound by specifying the problem in
+moment conditions involving
+
+E
+
+D
+−1 X
+p(x)
+
+
+
+
+=0
+
+and E
+
+(1 − D)(Y (1) − Y (0))
+−1 X
+(1 − p(x))E [Y (1) − Y (0)|X, D = 0]
+
+
+= 0.
+
+Notice that these moment restrictions represent nonparametric conditions on the estimation of the first
+stage nuisance parameters. Since our estimator with machine learning reaches the efficiency bound under
+nonparametric specifications, we conclude that for the particular problem machine learning is as good
+as nonparametric first stage estimation. At the same time our estimator avoids the usual problems of
+nonparametric estimation like extremely slow convergence rates in the presence of an even moderate
+number of covariates.
+The results of Theorems 1 and 3 allow to compare the repeated cross-section and the panel case. Since
+information on the individuals in the panel context is richer, it comes to no surprise that the asymptotic
+variance that is achieved by our estimators is lower for panel data. This result is driven by the fact
+that the variance of the first difference terms is generally lower than the sum of the variances in the
+two subsamples. Additionally, the cross-section estimator has a further random component concerning
+variable T . This particular feature enters the variance term quadratically such that it does not disappear
+when conditioning on the two subsamples. Rather, the variance terms for the two periods are scaled to
+compensate for the fact that they only represent statistics on subsamples N (0) and N (1) and not the
+whole sample N . Accordingly, the often cheaper cross-sectional sampling scheme comes at the price of
+lower asymptotic precision for semiparametric estimators.
+
+3.2
+
+Multiple time periods
+
+We now consider the case where a certain policy comes into force from a time period T = 1 onwards and
+where the researcher is interested in identifying effects like
+
+ATET(s) = E[Y 1 (s) − Y 0 (s)|D = 1, T ∈ {0, s}]
+
+(3.2)
+
+in periods T = 1, ..., s, ..., T̄ . The nonparametric identification result then follows in parallel to the two
+period case by adjusting the assumptions accordingly. Similarly, by specifying a flexible linear form with
+
+Y d (t) = β0 +
+
+T̄
+X
+
+d
+ts β1,s
++ dβ2 + xβ3 +
+
+s=1
+
+T̄
+X
+s=1
+
+11
+
+ts xβ4,s + 
+
+1
+0
+where ts = 1(T = s) it can be shown that ATET(s) = β1,s
+− β1,s
+= β1,s . When the dimension of the
+
+common trend confounding variables is small, a well-known estimation strategy follows from the fact that
+the pooled outcome model for this case is
+
+Y = β0 +
+
+T̄
+X
+s=1
+
+0
+ts β1,s
++
+
+T̄
+X
+
+ts dβ1,s + dβ2 + xβ3 +
+
+s=1
+
+T̄
+X
+
+ts xβ4,s + .
+
+(3.3)
+
+s=1
+
+For the high-dimensional case we cannot make use of estimating the time treatment interaction parameters
+in (3.3). Following previous reasoning, we apply the procedures in Sections 2.2 and 2.3 to every subsample
+with T ∈ (0, s). Equivalent asymptotic results apply.
+
+4
+
+Application to Angrist and Acemoglu (2001) data
+
+To illustrate the practical relevance of the proposed method, we revisit the difference-in-differences application of Angrist and Acemoglu (2001). The paper is concerned with the theoretically ambiguous effect of
+increased employment protection for disabled workers on weeks worked (for more details see the paper).
+An empirical evaluation of the Americans with Disabilities Act reform introduced in 1991 is used to test
+the theory using data from the Current Population Survey (CPS).
+Table 2 and Figure 1 show the results of the replication study. As in the paper, we define D as being
+disabled, Y indicates the weeks worked in the respective year and T indicates if the observation is in a
+period after 1988-1990. The variable set labelled as ‘original’ is constructed using age, gender, education,
+race and region as controls including two-way interactions and second order polynomials. In parallel to
+the results in the paper, our estimates suggest significant negative effects on weeks worked for employees
+which report a disability.8 In line with the result in Theorem 2, the Frisch-Waugh estimator on the
+original specification is roughly coherent with the OLS estimator.9 In contrast, the semiparametric estimators exhibit very different results – indicating a lack of robustness either with respect to the linearity
+assumption or the model specification used.
+We then apply an ensemble learner including Lasso, Ridge, Elastic Net and a Random Forest to estimate the nuisance parameters on the original data (for more details see the appendix). The weights
+for the different machine learners are chosen via cross-validation such that the out-of-sample predictive
+performance of the ensemble is optimized. The results are approximately similar to those obtained with
+standard parametric models for nuisance parameter estimation. This leads to the conclusion that in the
+8 We do not replicate the exact specification of the paper which only examines subsamples conditional on age and gender.
+As already stated we estimate the effect for the whole population of the treated and include age and gender as covariates.
+9 The difference comes from the fact that we use a logit specification for the propensity score model. If a linear probability
+model is used the results are equivalent.
+
+12
+
+Table 1: Results for different estimators
+specification
+
+data
+
+1991
+
+1992
+
+1993
+
+1994
+
+1995
+
+OLS
+
+original
+
+IPW
+
+original
+
+FW
+
+original
+
+AIPW
+
+original
+
+FW with ensemble learner
+
+original
+
+AIPW with ensemble learner
+
+original
+
+FW with ensemble learner
+
+baseline
+
+AIPW with ensemble learner
+
+baseline
+
+FW with ensemble learner
+
+extended
+
+AIPW with ensemble learner
+
+extended
+
+-0.9301***
+(0.3277)
+0.0621
+(0.6782)
+-0.8649***
+(0.3279)
+-1.5666**
+(0.7145)
+-0.8670***
+(0.3232)
+-1.5261**
+(0.7162)
+-0.5477**
+(0.2502)
+-0.8143*
+(0.4492)
+-0.3777**
+(0.1899)
+-0.2843
+(0.2415)
+
+-0.6149*
+(0.3259)
+1.3583*
+(0.6940)
+-0.5998*
+(0.3298)
+-1.8841***
+(0.7311)
+-0.6923**
+(0.3255)
+-1.9934***
+(0.7344)
+-0.5863**
+(0.2572)
+-0.5640
+(0.4586)
+-0.2042
+(0.1929)
+-0.1728
+(0.3070)
+
+-0.9512***
+(0.3219)
+2.1371***
+(0.7099)
+-0.9496***
+(0.3292)
+-3.4211***
+(0.7522)
+-0.9630***
+(0.3250)
+-3.5043***
+(0.7573)
+-0.6157**
+(0.2585)
+-1.1721**
+(0.4789)
+-0.1627
+(0.1914)
+-0.0696
+(0.2486)
+
+-2.0623***
+(0.3196)
+1.2818*
+(0.7456)
+-2.0681***
+(0.3294)
+-8.4974***
+(0.8417)
+-2.0415***
+(0.3253)
+-8.5153***
+(0.8463)
+2.1318***
+(0.2548)
+0.0738
+(0.4693)
+0.2104
+(0.1931)
+-0.2981
+(0.2776)
+
+-2.1284***
+(0.3139)
+1.8512**
+(0.7710)
+-2.0600***
+(0.3228)
+-8.0924***
+(0.8378)
+-2.1851***
+(0.3189)
+-8.2501***
+(0.8418)
+2.1934***
+(0.2452)
+0.8479*
+(0.4696)
+-0.1098
+(0.1908)
+-0.5045*
+(0.2811)
+
+Results for Ordinary Least Squares (OLS), Inverse Probability Weighting (IPW), Frisch-Waugh (FW) and Augmented
+IPW (AIPW). Asymptotic standard errors are in parenthesis. *** p-value < 0.01, ** p-value < 0.05, * p-value < 0.1.
+
+Figure 1: Effect dynamics for different estimators
+(a) Linear estimators
+
+(b) Semiparametric estimators
+
+0
+
+0
+
+−5
+
+−5
+
+91
+
+92
+
+OLS
+
+FW
+
+93
+year
+
+FW + ML
+
+FW + ML + base
+
+94
+
+95
+
+91
+
+FW + ML + extended
+
+IPW
+
+92
+
+AIPW
+
+AIPW + ML
+
+93
+year
+
+AIPW + ML + base
+
+94
+
+95
+
+AIPW + ML + extended
+
+Point estimates for different time periods for Ordinary Least Squares (OLS), Frisch-Waugh (FW), Inverse Probability Weighting (IPW) and Augmented IPW (AIPW). ‘ML’ indicates that the ensemble learner was used for
+first stage nuisance estimation.
+
+13
+
+original specification FW and AIPW are relatively robust to first stage functional form misspecification.
+The baseline specification disaggregates the region variable used in the original dataset to control for geographically different common trends. Instead, we include state dummies and dummies indicating whether
+the individual lives in a metropolitain area. Additional controls on marital status, class of worker, industry and occupation should help to control for non-parallel trends between disabled and non-disabled. For
+example, if people that report a disability self-select more often into a certain sector or industry then any
+underlying structural change in this sector needs to be controlled for in order to guarantee the common
+trend assumption to hold. This might be a point that is of more general interest in empirical economics.
+In labour market applications the common trend is often valid only after conditioning on variables that
+are available at different aggregation levels e.g. geographic or sector dummies. Using machine learning
+allows to include these variables at very low aggregation levels and therefore makes the common trend
+assumption more credible.
+Again the nuisance parameters are estimated flexibly using the same ensemble learner. A first observation
+is that asymptotic standard errors are strongly reduced when compared to the other specifications. This
+follows from the fact that the asymptotic variances for the estimators depend on the precision of the
+outcome nuisance estimation step. The results also demonstrate that with this large set of controls the
+effects for both – the linear as well as the semiparametric estimator – lose significance, but stay negative
+at smaller levels for periods 1991-1993. For 1994 and 1995 we even get strongly positive effects for the
+linear estimator. However, we consider these results with caution since (especially for the latter years)
+the identifying assumptions have to hold over an extensive period of time. The results mostly become
+not significantly different from zero if we include further covariates on employment history, social welfare
+payments and health insurance status (‘extended’ specification).
+Thus, in contrast to Angrist and Acemoglu (2001), if anything, we get an inconclusive result using a
+data-driven approach to model selection. Hence, we cannot find compelling evidence that increased
+employment protection has negative effects on labour market outcomes.
+
+5
+
+Conclusion
+
+This paper demonstrates that alternative difference-in-differences estimators that allow to incorporate
+flexible machine learning methods to control for high-dimensional common trend confounding have good
+statistical properties like double robustness. Further, they are shown to be semiparametrically efficient
+for panel data. Therefore our estimators are good alternatives to existing difference-in-differences methods in the low-dimensional case. Besides methodological advantages we have demonstrated that machine
+
+14
+
+learning based model selection in difference-in-differences designs can shift results in real applications.
+Hence, the notion of high-dimensional common trend confounding requiring machine learning methods
+indeed makes a difference – both statistically and regarding economic interpretation.
+Some questions raised in the paper have to be left for future research. While a semiparametric efficiency
+bound for the panel case could be derived, it seems to be much more complicated for the cross-sectional
+case since here two different samples are involved. A distinctive feature of the difference-in-differences
+approach is to link the two samples via the common trend assumption. To the knowledge of the author,
+no such theory exists, though, the framework used in this paper could turn out to be very useful since
+only assumptions about first moments are required.
+From a practical perspective it may be worthwhile to consider this point even more generally. For example
+the CPS dataset used for the application is a rotating panel sample. This aspect common to many survey
+samples is often neglected. Using the cross-sectional asymptotics as in this paper results in conservative
+standard errors, however, there could be room for improvement if the panel component of the sample
+could be taken into account.
+Moreover, this paper is devoted to average effect estimation only. Abadie (2005) showed that the semiparametric formulation of the difference-in-differences problem also allows to investigate effect heterogeneities. We notice that in principle our procedures can also be combined with nonparametric regression
+to estimate conditional treatment effects. Deriving the explicit asymptotic properties of such estimators
+is, however, beyond the scope of this paper.
+
+15
+
+References
+Abadie, A. (2005). Semiparametric difference-in-differences estimators. Review of Economic Studies 72 (1),
+1–19.
+Abadie, A., Diamond, A., & Hainmueller, J. (2010). Synthetic control methods for comparative case studies: estimating the effect of California’s tobacco control program. Journal of the American Statistical
+Association 105 (490), 493–505.
+— (2014). Comparative politics and the synthetic control method. American Journal of Political Science
+59 (2), 495–510.
+Angrist, J. D. & Acemoglu, D. (2001). Consequences of employment protection? The case of the Americans
+with Disabilities Act. Journal of Political Economy 109 (5), 915–957.
+Athey, S. & Imbens, G. W. (2006). Identification and inference in nonlinear difference-in-differences
+models. Econometrica 74 (2), 431–497.
+— (2017). The state of applied econometrics: causality and policy evaluation. The Journal of Economic
+Perspectives 31 (2), 3–32.
+Athey, S., Imbens, G. W., & Wager, S. (2018). Approximate residual balancing: debiased inference of average treatment effects in high dimensions. Journal of the Royal Statistical Society Series B Statistical
+Methodology 80 (4), 597–623.
+Belloni, A. & Chernozhukov, V. (2013). Least squares after model selection in high-dimensional sparse
+models. Bernouille 19 (2), 521–547.
+Belloni, A., Chen, D., Chernozhukov, V., & Hansen, C. (2012). Sparse models and methods for optimal
+instruments with an application to eminent domain. Econometrica 80 (6), 2369–2429.
+Belloni, A., Chernozhukov, V., & Hansen, C. (2014). Inference on treatment effects after selection among
+high-dimensional controls. Review of Economic Studies 81 (2), 608–650.
+Bhlmann, P. & van de Geer, S. (2011). Statistics for High-Dimensional Data: Methods, Theory and
+Applications. 1st ed. Springer series in Statistics. Springer.
+Bickel, P. J., Klaassen, C. A., Ritov, Y., & Wellner, J. A. (1993). Efficient and Adaptive Estimation for
+Semiparametric Models. 1st ed. Springer.
+— (1998). Efficient and Adaptive Estimation for Semiparametric Models. 2nd ed. Springer.
+Card, D. (1990). The impact of the mariel boatlift on the Miami labor market. Industrial and Labor
+Relations Review 43 (2), 245–247.
+Card, D. & Ashenfelter, O. (1985). Using the longitudinal structure of earnings to estimate the effect of
+training programs. The Review of Economics and Statistics 67 (4), 648–660.
+
+16
+
+Card, D. & Krueger, A. B. (1994). Minimum wages and employment: a case study of the fast-food industry
+in New Jersey and Pennsylvania. The American Economic Review 84 (4), 772–793.
+Chaisemartin, C. de & D’Haultfoeuille, X. (2018). Fuzzy differences-in-differences. Review of Economic
+Studies 85 (2), 999–1028.
+Chamberlain, G. (1987). Asymptotic efficiency in estimation with conditional moment restrictions. Journal of Econometrics 34 (3), 305–334.
+— (1992). Efficiency bounds for semiparametric regression. Econometrica 60 (3), 567–596.
+Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., & Robins, J. (2018).
+Double/debiased machine learning for treatment and structural parameters. The Econometrics Journal 21 (1), C1–C68.
+Eissa, N. & Liebman, J. B. (1996). Labor supply response to the earned income tax credit. The Quarterly
+Journal of Economics 111 (2), 605–637.
+Firpo, S. (2007). Efficient semiparametric estimation of quantile treatment effects. Econometrica 75 (1),
+259–276.
+Graham, B. S. (2011). Efficiency bounds for missing data models with semiparametric restrictions. Econometrica 79 (2), 437–452.
+Hahn, J. (1998). On the role of the propensity score in efficient semiparametric estimation of average
+treatment effects. Econometrica 66 (2), 315–331.
+Hastie, T., Tibshirani, R., & Friedman, J. (2009). The Elements of Statistical Learning: Data Mining,
+Inference, and Prediction. 2nd ed. Springer.
+Heckman, J. J., Ichimura, H., & Todd, P. E. (1997). Matching as an econometric evaluation estimator:
+evidence from evaluating a job training programme. Review of Economic Studies 94 (4), 605–654.
+Hirano, K., Imbens, G. W., & Ridder, G. (2003). Efficient estimation of average treatment effects using
+the estimated propensity score. Econometrica 71 (4), 1161–1189.
+Horvitz, D. G. & Thompson, D. J. (1952). A generalization of sampling without replacement from a finite
+universe. Journal of the American Statistical Association 47 (260), 663–685.
+Imbens, G. W. & Wooldridge, J. M. (2009). Recent developments in the econometrics of program evaluation. Journal of Economic Literature 47 (1), 5–86.
+Lechner, M. (2010). The estimation of causal effects by difference-in-difference methods. Foundations and
+Trends in Econometrics 4 (3), 165–224.
+Luo, Y. & Spindler, M. (2016). High-Dimensional L2 Boosting: Rate of Convergence. Version 2. arXiv:
+arXiv:1602.08927v2.
+Newey, W. K. (1990). Semiparametric efficiency bounds. Journal of Applied Econometrics 5 (2), 99–135.
+
+17
+
+Newey, W. K. (1994). The asymptotic variance of semiparametric estimators. Econometrica 62 (6), 1349–
+1382.
+Robins, J. M. & Rotnitzky, A. (1995). Semiparametric efficiency in multivariate regression models with
+missing data. Journal of the American Statistical Association 90 (429), 122–129.
+Roth, J. (2018). Should We Adjust for the Test for Pre-trends in Difference-in-Difference Designs? Version 2. arXiv: arXiv:1804.01208v2.
+Rubin, D. B. (1974). Estimating causal effects of treatments in randomized and nonrandomized studies.
+Journal of Educational Psychology 66 (5), 688–701.
+Sant’Anna, P. H. C. & Zhao, J. B. (2018). Doubly Robust Difference-in-Differences Estimators. Version 1.
+arXiv: arXiv:1812.01723v1.
+Scharfstein, D. O., Rotnitzky, A., & Robins, J. M. (1999). Adjusting for nonignorable drop-out using
+semiparametric nonresponse models. Journal of the American Statistical Association 94 (448), 1096–
+1120.
+van de Geer, S., Bühlmann, P., Ritov, Y., & Dezeure, R. (2014). On asymptotically optimal confidence
+regions and tests for high-dimensional models. The Annals of Statistics 42 (3), 1166–1202.
+Wager, S. & Walther, G. (2016). Adaptive Concentration of Regression Trees, with Application to Random
+Forests. Version 3. arXiv: arXiv:1503.06388v3.
+Zhang, C.-H. & Zhang, S. S. (2014). Confidence intervals for low dimensional parameters in high dimensional linear models. Journal of the Royal Statistical Society Series B Statistical Methodology 76 (1),
+217–242.
+
+18
+
+A
+A.1
+
+Proofs
+Proof of Lemma 2.1
+
+Using Assumption 2.1 we can write
+
+T − P (T = 1)
+D − p(x)
+E
+(Y (t) − E [Y |X, T, D = 0]) X
+P (T = 1)(1 − P (T = 1)) p(x)(1 − p(x))
+ 
+ 
+T − P (T = 1)
+D − p(x)
+=E E
+(Y (t) − E [Y |X, T, D = 0]) X, T X
+P (T = 1)(1 − P (T = 1)) p(x)(1 − p(x))
+ 
+
+T − P (T = 1)
+D − p(x)
+=E E
+(Y (t) − E [Y |X, T, D = 0]) X, T = 1 P (T = 1|X)
+P (T = 1)(1 − P (T = 1)) p(x)(1 − p(x))
+
+
+
+T − P (T = 1)
+D − p(x)
++E
+(Y (t) − E [Y |X, T, D = 0]) X, T = 0 (1 − P (T = 1|X)) X
+P (T = 1)(1 − P (T = 1)) p(x)(1 − p(x))
+
+
+D − p(x)
+=E
+(Y (1) − Y (0) − E [Y (1) − Y (0)|X, D = 0]) X
+p(x)(1 − p(x))
+
+
+
+
+D − p(x)
+D − p(x)
+=E
+(Y (1) − Y (0)) X − E
+E [Y (1) − Y (0)|X, D = 0] X
+p(x)(1 − p(x))
+p(x)(1 − p(x))
+
+
+
+
+D − p(x)
+D − p(x)
+=E
+(Y (1) − Y (0)) X, D = 1 p(x) + E
+(Y (1) − Y (0)) X, D = 0 (1 − p(x))
+p(x)(1 − p(x))
+p(x)(1 − p(x))
+E [Y (1) − Y (0)|X, D = 0]
+− E [D − p(x)|X]
+p(x)(1 − p(x))
+
+
+= E [Y (1) − Y (0)|X, D = 1] − E [Y (1) − Y (0)|X, D = 0] .
+
+Therefore by result (2.2)
+
+
+
+E Y 1 (1) − Y 0 (1)|X, D = 1 = E
+
+
+
+
+T − P (T = 1)
+D − p(x)
+(Y − E [Y |X, T, D = 0]) X .
+P (T = 1)(1 − P (T = 1)) p(x)(1 − p(x))
+
+Denote the conditional density function of X given D = 1 as fX|D=1 (x, d). Then using the previous
+finding and by the law of iterated expectations similar to Abadie (2005) it follows that
+
+
+
+ATET(1) = E Y 1 (1) − Y 0 (1)|D = 1
+Z
+
+
+= E Y 1 (1) − Y 0 (1)|X, D = 1 fX|D=1 (x, d)dx
+Z
+
+ p(x)
+= E Y 1 (1) − Y 0 (1)|X, D = 1
+fX (x)dx
+P (D = 1)
+
+
+1
+T − P (T = 1)
+D − p(x)
+=
+E
+(Y − E [Y |X, T, D = 0]) .
+P (D = 1)
+P (T = 1)(1 − P (T = 1)) 1 − p(x)
+q.e.d.
+
+19
+
+A.2
+
+Proof of Theorem 1
+
+For this part of the proof we heavily draw from Belloni et al. (2014) and Chernozhukov et al. (2018).
+Denote P (D = 1) = λD , P (T = 1) = λT , γ0 (x, t) = E[Y |X, T, D = 0] and
+1
+T − λT
+A(Wi , p, γ0 ) =
+λD λT (1 − λT )
+
+
+Di Yi −
+
+
+p(xi )
+p(xi )
+(1 − Di )Yi − Di γ0 (xi , ti ) +
+(1 − Di )γ0 (xi , ti ) .
+1 − p(xi )
+1 − p(xi )
+
+Using the estimator with sample splitting one can write for every subsample of size Nk
+Nk
+p
+1 X
+√
+Nk (θ̂k − θ0 ) =
+(A(Wik , p, γ0 ) − θ0 )
+Nk i=1
+p
++ Nk E [A(Wik , p̂K−1 , γ̂0K−1 ) − A(Wik , p, γ0 )]
+Nk
+1 X
++√
+(A(Wik , p̂K−1 , γ̂0K−1 ) − E [A(Wik , p̂K−1 , γ̂0K−1 )])
+Nk i=1
+Nk
+1 X
+−√
+(A(Wik , p, γ0 ) − E [Wik , p, γ0 ]) .
+Nk i=1
+
+By Lemma 2.1 and the Central Limit Theorem the first term will converge to zero. Mean-value expanding
+the second term for any random subsample Wik around the true nuisances (p(xi ), γ0 (xi , ti )) and assuming
+interchangeability between the expectation and the Gateaux derivative operator gives
+"
+p
+
+Nk E [A(Wik , p̂K−1 , γ̂0K−1 ) − θ0 ] =
+
+p
+
+Nk E
+
+∂A(Wik , p, γ0 )
+(p(xik ) − p̂K−1 (xik ))
+∂p
+
+∂A(Wik , p, γ0 )
+1 ∂ 2 A(Wik , p, γ0 )
+(γ0 (xik , tik ) − γ̂0K−1 (xik , tik )) +
+(p(xik ) − p̂K−1 (xik ))2
+∂γ0
+2
+∂p2
+1 ∂ 2 A(Wik , p, γ0 )
+∂ 2 A(Wik , p, γ0 )
+2
++
+(γ
+(x
+,
+t
+)
+−
+γ̂
+(x
+,
+t
+))
++
+(p(xik ) − p̂K−1 (xik ))
+0
+ik
+ik
+0K−1
+ik
+ik
+2
+∂γ02
+∂p∂γ0
+#
++
+
+(γ0 (xik , tik ) − γ̂0K−1 (xik , tik )) + R3
+
+with R3 as the Lagrange remainder. For the first and second order terms one gets
+"
+p
+1 Tik − λT
+Nk E
+λD λT (1 − λT )
+
+(1 − Dik )(γ0 (xik , tik ) − Yik )(p(xik ) − p̂K−1 (xik ))
+(1 − p(xik ))2
+
+(p(xik ) − Dik )(γ0 (xik , tik ) − γ̂0K−1 (xik , tik ))
+1 − p(xik )
+(1 − Dik )((γ0 (xik , tik ) − Yik ))(p(xik ) − p̂K−1 (xik ))2
++
+(1 − p(xik ))3
++
+
+20
+
+!#
+(1 − Dik )(p(xik ) − p̂K−1 (xik ))(γ0 (xik , tik ) − γ̂0K−1 (xik , tik ))
++
+(1 − p(xik ))2
+"
+#
+p
+1 Tik − λT (1 − Dik )(p(xik ) − p̂K−1 (xik ))(γ0 (xik , tik ) − γ̂0K−1 (xik , tik ))
+= Nk E
+λD λT (1 − λT )
+(1 − p(xik ))2
+p
+≤ Nk Ckp̂K−1 (xik ) − p(xik )k2 × kγ̂0K−1 (xik , tik ) − γ0 (xik , tik )k2
+=o(1)
+
+where the third line follows from Hlder’s inequality and the last line from Assumptions 2.7 and 2.6.
+Similarly, for the remainder
+
+R3 ≤
+
+p
+Nk Ckp̂K−1 (xik ) − p(xik )k∞ × kp̂K−1 (xik ) − p(xik )k2 × kγ̂0K−1 (xik , tik ) − γ0 (xik , tik )k2
+
+= o(1).
+
+For the last term we notice that the nuisance parameters for any k are non-stochastic because they are
+estimated using subsamples K − 1. Heuristically, the average over all subsamples should then converge
+towards the respective sample statistics. Hence, the last term vanishes under sample splitting (for more
+details see Chernozhukov et al. (2018)).
+It follows that
+√
+
+N (θ̂ − θ0 ) =
+
+√
+N
+
+1
+=√
+N
+
+Nk
+K
+1 X 1 X
+(A(Wik , p̂K−1 , γ̂0K−1 ) − θ0 )
+K
+Nk i=1
+k=1
+!
+Nk
+K X
+X
+(A(Wik , p, γ0 ) − θ0 ) + o(1)
+
+!
+
+k=1 i=1
+
+and therefore
+√
+
+2
+
+uniformly with σ = E
+
+
+
+N (θ̂ − θ0 ) → N (0, σ 2 )
+
+D−p(x)
+T −λT
+1
+λD λT (1−λT ) 1−p(x)
+
+(Y − E [Y |X, T, D = 0]) − θ0
+
+2 
+q.e.d.
+
+A.3
+
+Proof of Lemma 2.2
+
+By Assumptions 2.2 and 2.8 it follows that
+
+Y (1) = β0 + β10 + d(β1 + β2 ) + x(β3 + β4 ) + 
+
+21
+
+and
+
+Y (0) = β0 + dβ2 + xβ3 + .
+
+Then by result (2.2)
+
+
+
+E Y 1 (1) − Y 0 (1)|X, D = 1 = β1 .
+
+A.4
+
+Proof of Theorem 2
+
+We begin with the observation that given the specification in Assumption 2.8 we have
+
+Y (0) − γ(x, 0) = (D − p(x)) β2 +
+|{z}
+
+and
+
+=β1 (0)
+
+Y (1) − γ(x, 1) = (D − p(x)) (β1 + β2 ) +.
+| {z }
+=β1 (1)
+
+This motivates the estimation procedure as given in Section 2.3. We notice that both models are nested
+in the partially linear model considered by Chernozhukov et al. (2018). Under sample splitting and
+Assumption 2.9 we can therefore evoke their Theorem 4.1. Therefore
+
+p
+
+
+
+
+N (0) β̂1 (0) − β1 (0) → N 0, σ(0)2
+
+and
+
+p
+
+
+
+
+N (1) β̂1 (1) − β1 (1) → N 0, σ(1)2
+
+where σ(t)2 = E(δ(t)2 )−1 E((2 δ(t)2 ))E(δ(t)2 )−1 with δ(t) = D(t) − p(x). Therefore for the overall estimator β̂1 = β̂1 (1) − β̂1 (0) we have
+√
+
+N (β̂1 − β1 ) → N (0, σ 2 )
+
+with σ 2 = σ(0)2 + σ(1)2 .
+Finally, we notice that estimating β1 in the fully interacted or the subsample models does not affect the
+efficiency of the estimator. Then by the Frisch-Waugh Theorem σ 2 is equivalent to the variance for the
+traditional OLS difference-in-differences specification in the low-dimensional case.
+q.e.d.
+
+22
+
+A.5
+
+Proof of Theorem 3
+
+Similar to Lemma 2.1 one can derive the identification result
+
+ATET(1) = E
+
+
+1
+D − p(x)
+(Y (1) − Y (0) − E(Y (1) − Y (0)|X, D = 0)) .
+P (D = 1) 1 − p(x)
+
+The proof for the asymptotic behaviour of the estimator follows in parallel to Theorem 1 using nuisance
+parameter E(Y (1) − Y (0)|X, D = 0) instead of E(Y |X, T, D = 0) giving the first claim in the Theorem.
+It rests to derive the semiparametric efficiency bound for the panel difference-in-differences model. Here
+we apply the approach developed by Chamberlain (1987, 1992) and closely follow the proof structure in
+Graham (2011) for the missing data case.
+To ease the notational burden, denote P (D = 1) = λD and γd (x) = E [Y (1) − Y (0)|X, D = d]. Under the
+DGP as in Assumption 3.1 denote W = {(Yi (0), Yi (1), Di , Xi )}N
+i=1 . Then suppose that the observed data
+realize with unknown distribution f0 = fW (w, ·) and that there exists an alternative, multinomial density
+g0 with finite support that is in the neighbourhood of f0 . Since g0 has finite support, the finite set Xg0 ∈
+{x1 , ..., xL } has probabilities πl = P r(X = xl ) > 0. Similarly define pl = p(X = xl ), γdl = γd (X = xl )
+
+0
+
+0
+
+0
+and the vectors p = p1 · · · pL , γd = γd1 · · · γdL and B = 1(X = x1 ) · · · 1(X = xL )
+under the multinomial distribution.
+We proceed as follows. In a first step the semiparametric problem is reformulated using conditional
+and unconditional moment conditions. In a second step we use the multinomial distribution assumption
+to transfer the conditional into unconditional moment restrictions. Step 3 then evokes Lemma 2 in
+Chamberlain (1987). Step 4 derives an efficiency result under the multinomial distribution assumption.
+Lastly, step 5 uses Theorem 1 in Chamberlain (1987) to generalize the result to the unknown distribution
+case f0 .
+Step 1 : A natural moment condition for the semiparametric problem is
+
+E
+
+1
+λD
+
+
+
+
+
+p(x)
+p(x)
+D(Y (1) − Y (0)) −
+(1 − D)(Y (1) − Y (0)) − Dγ0 (x) +
+(1 − D)γ0 (x) − θ0 = 0.
+1 − p(x)
+1 − p(x)
+
+Additionally, the first stages shall satisfy the nonparametric conditional moment restrictions
+
+E
+
+D
+−1 X
+p(x)
+
+
+
+
+=0
+
+and E
+
+(1 − D)(Y (1) − Y (0))
+−1 X
+(1 − p(x))γ0 (x)
+
+23
+
+
+= 0.
+
+Step 2 : Under the multinomial distribution the conditional moment restrictions can be rewritten such
+
+
+ m1 (W, p) 
+that they are equivalent to E 
+ = 0 with m1 (W, p) = B BD0 p − 1 and m2 (W, p, γ0 ) =
+m2 (W, p, γ0 )
+
+
+(1−D)(Y (1)−Y (0))
+B
+. To see this by the law of iterated expectations write
+(1−B 0 p)B 0 γ0
+
+
+πl E
+
+h
+
+D
+p(x)
+
+− 1 X = x1
+..
+.
+
+i
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+i
+h
+
+
+D
+−
+1
+X
+=
+x
+π
+E
+m
+(W,
+p)
+
+
+L
+L
+1
+p(x)
+ 
+
+E
+h
+i
+=
+
+ π1 E (1−D)(Y (1)−Y (0)) − 1 X = x1 
+m2 (W, p, γ0 )
+(1−p(x))γ0 (x)
+
+
+
+
+..
+
+
+.
+
+
+
+h
+i
+(1)−Y (0))
+πL E (1−D)(Y
+− 1 X = xL
+(1−p(x))γ0 (x)
+which is zero if and only if E
+
+h
+
+D
+p(x)
+
+i
+h
+i
+(1)−Y (0))
+− 1 X = 0 and E (1−D)(Y
+− 1 X = 0 for all X ∈ Xg0 .
+(1−p(x))γ0 (x)
+
+Denoting m3 (W, p, γ0 , θ) for the unconditional moment restriction the problem is therefore characterized
+by
+
+
+
+m1 (W, p)
+
+
+
+
+
+
+E[m(W, p, γ0 , θ)] = E  m2 (W, p, γ0 ) 
+ = 0.
+
+
+m3 (W, p, γ0 , θ)
+Step 3 : Define the matrices
+
+Ω
+
+= E[m(W, p, γ0 , θ)m(W, p, γ0 , θ)0 ]
+
+Γ
+
+=E
+
+2L+1×2L+1
+
+
+2L+1×2L+1
+
+and
+
+
+∂m(W, p, γ0 , θ) ∂m(W, p, γ0 , θ) ∂m(W, p, γ0 , θ)
+,
+,
+.
+∂p0
+∂γ00
+∂θ0
+
+Now under the conditions that
+(i) Γ has full rank
+(ii) Ω is non-singular
+by Lemma 2 in Chamberlain (1987) the efficiency bound for θ under multinomial distributions for the
+moment conditions as defined above is given by
+
+σ2 =
+
+
+
+0
+
+
+
+Γ−1 ΩΓ−1
+
+.
+33
+
+24
+
+To check (i) and (ii) we write
+
+Γ1p
+
+Γ=
+Γ2p
+
+Γ3p
+
+
+Γ1γ0
+Γ2γ0
+Γ3γ0
+
+Γ1θ 
+
+Γ2θ 
+
+
+Γ3θ
+
+and
+
+
+
+
+Ω11
+
+0
+Ω=
+Ω12
+
+Ω013
+
+Ω12
+
+Ω13 
+
+Ω23 
+.
+
+Ω33
+
+Ω22
+Ω023
+
+Then
+
+∂
+∂p0 B
+
+Γ1p = E
+
+
+
+D
+B0 p
+
+
+
+
+−1
+
+
+1
+= −E BB 0 p(x)
+
+= −diag πp1 · · ·
+1
+
+
+∂
+∂p0 B
+
+Γ2p = E
+
+
+
+(1−D)(Y (1)−Y (0))
+(1−B 0 p)γ0 (x)
+
+
+
+
+(1)−Y (0))
+= E BB 0 (1−D)(Y
+(1−p(x))2 γ0 (x)
+
+
+
+1
+= E BB 0 1−p(x)
+
+
+πL
+π1
+= diag 1−p
+· · · 1−p
+
+
+πL
+pL
+
+1
+
+
+∂
+∂p0
+
+Γ3p = E
+
+
+
+1
+λD
+
+
+= E B 0 λ1
+D
+
+Γ2γ0
+
+
+B0 p
+1−B 0 p (1 − D)(γ0 (x) − (Y (1) − Y (0)))
+
+
+1
+1−p(x) (γ0 (x)
+
+L
+
+Γ1γ0 = 0
+
+L×L
+
+− γ0 (x))
+
+= 0
+1×L
+
+
+
+(1−D)(Y (1)−Y (0))
+∂
+= E ∂γ 0 B
+(1−p(x))γ0 (x)
+0
+
+
+(1−D)(Y
+(1)−Y
+(0))
+0
+= −E BB (1−p(x))γ (x)2
+0
+
+
+= −E BB 0 γ 1(x)
+0
+
+
+π
+π
+1
+L
+= −diag γ
+··· γ
+01
+
+−1
+
+
+
+
+
+Γ3γ0 = E
+
+
+= E B 0 λ1
+D
+= 0
+
+1×L
+
+0L
+
+Γ1θ = 0
+
+Γ2θ = 0
+
+L×1
+
+L×1
+
+Γ3θ = −1.
+
+Using rules on inverses of block matrices results in
+
+Γ−1
+
+p(x)
+∂ 1
+∂γ00 λD 1−p(x) (1
+
+
+
+Γ−1
+1p
+
+0
+
+
+
+
+= −Γ−1
+Γ Γ−1
+ 2γ0 2p 1p
+
+0
+1×L
+
+25
+
+L×L
+
+Γ−1
+2γ0
+0
+
+1×L
+
+0
+
+L×1 
+
+
+
+0 .
+L×1 
+
+Γ−1
+3θ
+
+
+
+
+0
+
+0
+
+− D)B γ0 − DB γ0
+
+
+p(x)
+1−p(x) (1
+
+− D) − D
+
+−1
+−1
+−1
+Since Γ−1
+exists which verifies condition (i).
+1p , Γ2γ0 and Γ3θ trivially exist, it follows that Γ
+
+For Ω we get
+ 
+
+ 
+D
+D
+Ω11 = E B p(x)
+− 1 p(x) − 1 B 0
+
+
+
+= E BB 0 1−p(x)
+p(x)
+
+
+1−pL
+1
+= diag π1 1−p
+· · · π L pL
+p1
+ 
+
+ 
+(1)−Y (0))
+D
+Ω12 = E B p(x)
+− 1 (1−D)(Y
+−
+1
+B0
+(1−p(x))γ0 (x)
+
+
+
+(1)−Y (0))
+D
+= E BB 0 1 − p(x)
+− (1−D)(Y
+(1−p(x))γ0 (x)
+
+
+= −diag π1 · · · πL
+
+
+
+
+p(x)
+D
+Ω13 = E B λ1 p(x)
+−
+1
+D((Y
+(1)
+−
+Y
+(0))
+−
+γ
+(x))
+−
+(1
+−
+D)((Y
+(1)
+−
+Y
+(0))
+−
+γ
+(x))
+0
+0
+1−p(x)
+D
+
+
+= E B λ1 (1 − p(x)) (γ1 (x) − γ0 (x))
+D
+
+
+π
+(1
+−
+p
+)(γ
+−
+γ
+)
+1
+1
+11
+01
+
+
+
+1 
+..
+
+
+=
+.
+
+λD 
+
+
+πL (1 − pL )(γ1L − γ0L )
+ 
+
+ 
+(1)−Y (0))
+(1−D)(Y (1)−Y (0))
+Ω22 = E B (1−D)(Y
+−1
+− 1 B0
+(1−p(x))γ0 (x)
+(1−p(x))γ0 (x)
+
+
+
+(0))2 |X,D=0]
+= E BB 0 E[(Y (1)−Y
+−1
+(1−p(x))γ0 (x)2
+
+
+
+
+Σ0 (x)+γ0 (x)2
+= E BB 0 (1−p(x))γ
+2 − 1
+(x)
+0
+
+
+
+Σ0 (x)
+p(x)
+= E BB 0 (1−p(x))γ
++
+2
+1−p(x)
+0 (x)
+
+
+p1
+pL
+Σ0L
+01
+= diag π1 (1−pΣ)γ
++ π1 1−p1 · · · πL (1−pL )γ0L γ 0 + πL 1−pL
+0
+1
+01 γ01
+0L
+
+
+
+
+(1)−Y (0))
+p(x)
+Ω23 = E B λ1 (1−D)(Y
+−
+1
+D(Y
+(1)
+−
+Y
+(0)
+−
+γ
+(x))
+−
+(1
+−
+D)(Y
+(1)
+−
+Y
+(0)
+−
+γ
+(x))
+0
+0
+(1−p(x))γ0 (x)
+1−p(x)
+D
+
+
+
+
+p(x) Σ0 (x)
+= E B λ1 p(x)γ0 (x) − p(x)γ1 (x) − 1−p(x)
+γ
+(x)
+0
+D
+
+
+p1 Σ01
+ π1 p1 γ01 − π1 p1 γ11 − π1 1−p1 γ01 
+
+1 
+..
+
+
+=
+.
+
+λD 
+
+
+pL Σ0L
+πL pL γ0L − πL pL γ1L − πL 1−pL γ0L
+
+
+2 
+p(x)
+p(x)
+Ω33 = E λ12 D(Y (1) − Y (0)) − 1−p(x)
+(1 − D)(Y (1) − Y (0)) − Dγ0 (x) + 1−p(x) (1 − D)γ0 (x)
+D
+
+
+1
+p(x)2
+2
+= 2 E p(x)(Σ1 (x) + γ1 (x)2 ) + 1−p(x)
+Σ0 (x) + p(x)γ0 (x) − 2p(x)γ1 (x)γ0 (x)
+λD
+
+26
+
+=
+
+
+
+1
+1 (x)
+E
+p(x)2 Σp(x)
++
+2
+λD
+
+Σ0 (x)
+1−p(x)
+
++
+
+1
+p(x)
+
+(γ1 (x) − γ0 (x))
+
+2
+
+
+
+The determinant of Ω is then given by
+
+
+
+
+
+
+0
+det(Ω) = det(Ω11 )det(Ω22 − Ω012 Ω−1
+11 Ω12 )det Ω33 − Ω13
+
+Ω023
+
+
+Ω11
+
+Ω012
+
+−1 
+
+Ω12  Ω13 
+ 
+ .
+Ω22
+Ω23
+
+Under Assumption 2.5 det(Ω11 ) 6= 0. Also
+
+det(Ω22 −
+
+Ω012 Ω−1
+11 Ω12 )
+
+
+
+
+
+
+
+= det diag
+
+01
+π1 (1−pΣ
+0
+1 )γ01 γ01
+
+6= 0
+
+0L
+πL (1−pLΣ)γ
+0
+0L γ0L
+
+···
+
+if Σ0 (x) > 0. Additionally some algebra shows that in general the scalar is also non-zero. Hence,
+det(Ω) 6= 0 which verifies condition (ii) and Lemma 2 is applicable.
+
+Step 4 : Using the results of the previous step, the efficiency bound can be calculated as
+
+
+2
+σ33
+
+0
+
+−1
+Γ−1
+1p Ω11 Γ1p
+
+
+
+ −1
+−10
+−Γ2γ Γ2p Γ−1
+1p Ω11 Γ1p
+0
+
+
+−10
+0
+=
++Γ−1
+
+2γ0 Ω12 Γ1p
+
+
+
+
+
+0
+−Ω013 Γ−1
+1p
+
+0
+
+0
+
+0
+
+−1 0
+−1
+−1
+−1
+−Γ−1
+1p Ω11 Γ1p Γ2p Γ2γ0 + Γ1p Ω12 Γ2γ0
+0
+
+0
+
+−1
+−1 0
+−1
+Γ−1
+2γ0 Γ2p Γ1p Ω11 Γ1p Γ2p Γ2γ0
+0
+
+0
+
+−1 0
+−1
+0
+−Γ−1
+2γ0 Ω12 Γ1p Γ2p Γ2γ0
+0
+
+0
+
+−1
+−1
+−1
+−1
+−Γ−1
+2γ0 Γ2p Γ1p Ω12 Γ2γ0 + Γ2γ0 Ω22 Γ2γ0
+0
+
+0
+
+0
+
+−1
+−1
+0
+0
+Ω013 Γ−1
+1p Γ2p Γ2γ0 − Ω23 Γ2γ0
+
+−Γ−1
+1p Ω13
+
+
+
+
+
+
+−1
+
+Γ
+Γ
+Ω
+Γ−1
+2p
+13
+1p
+2γ0
+
+
+−1
+−Γ2γ0 Ω23 
+
+
+
+
+
+
+Ω33
+
+33
+
+.
+
+Hence, the efficiency bound under the multinomial distribution is given by
+
+2
+σ33
+= Ω33 =
+
+
+
+1
+1 (x)
+E
+p(x)2 Σp(x)
++
+2
+λD
+
+Σ0 (x)
+1−p(x)
+
++
+
+1
+p(x)
+
+(γ1 (x) − γ0 (x))
+
+2
+
+
+
+.
+
+Step 5 : Any distribution f0 can be arbitrarily well approximated by a multinomial distribution g0 . By
+Theorem 1 in Chamberlain (1992) (under certain further regularity conditions) it follows that the result
+in the previous step represents a general efficiency result under the given moment restrictions in the sense
+2
+that the maximal asymptotic precision which can be achieved when estimating
+θ is 
+given by σ33
+. Since
+
+ m1 (W, p) 
+the moment restrictions were formulated such that the solution of E 
+ = 0 are nuisance
+m2 (W, p, γ0 )
+
+parameters in m3 (W, p, γ0 , θ), the efficiency bound can be interpreted as a semiparametric efficiency
+bound for the difference-in-differences problem.
+
+27
+
+q.e.d.
+
+B
+B.1
+
+Additional analysis for empirical example
+Covariate specifications
+Table 2: Covariate specifications
+specification
+
+covariates used
+
+original
+baseline
+
+sex, age, race group, education group, region
+sex, age, race group, education group, marital status, class of worker, major
+industry, major occupation, state, central city MSA status
+sex, age, race group, education group, marital status, class of worker, major
+industry, major occupation, state, central city MSA status, longest job class of
+worker, longest job major occupation, longest job major industry, number of
+employers, unemployment compensation benefit value, supplemental security
+income amount received, public assistance or welfare value received, social security payments received, veteran status, veterans payment income, survivor’s
+income received, value of other income, value of workers’ compensation for job
+related illness or injury, retirement income, health insurance group, medicare
+coverage, medicaid coverage, coverage by military health care
+
+extended
+
+All CPS data is retrieved from Joshua Angrist’s data archive10 also used for the original paper. We
+followed the available SAS programs to prepare our data.
+
+B.2
+
+Details on the ensemble learner
+Table 3: Weights in ensemble learner for ‘original’
+
+Random Forest
+Elastic Net
+Ridge
+Lasso
+
+p(x)
+
+E[Y |D = 0, X, T ]
+
+p(x, T = 0)
+
+p(x, T = 1)
+
+E[Y |X, T = 0]
+
+E[Y |X, T = 1]
+
+0.12
+0.17
+0.01
+0.71
+
+0.51
+0.39
+0.00
+0.10
+
+0.16
+0.06
+0.06
+0.72
+
+0.15
+0.21
+0.07
+0.57
+
+0.43
+0.16
+0.00
+0.40
+
+0.42
+0.27
+0.04
+0.27
+
+Table 4: Weights in ensemble learner for ‘baseline’
+
+Random Forest
+Elastic Net
+Ridge
+Lasso
+
+p(x)
+
+E[Y |D = 0, X, T ]
+
+p(x, T = 0)
+
+p(x, T = 1)
+
+E[Y |X, T = 0]
+
+E[Y |X, T = 1]
+
+0.57
+0.00
+0.00
+0.43
+
+0.52
+0.05
+0.05
+0.39
+
+0.61
+0.00
+0.00
+0.39
+
+0.67
+0.02
+0.00
+0.31
+
+0.52
+0.28
+0.02
+0.18
+
+0.54
+0.17
+0.00
+0.30
+
+10 https://economics.mit.edu/faculty/angrist/data1/data/aceang01
+
+28
+
+Table 5: Weights in ensemble learner for ‘extended’
+
+Random Forest
+Elastic Net
+Ridge
+Lasso
+
+p(x)
+
+E[Y |D = 0, X, T ]
+
+p(x, T = 0)
+
+p(x, T = 1)
+
+E[Y |X, T = 0]
+
+E[Y |X, T = 1]
+
+0.80
+0.02
+0.03
+0.15
+
+0.80
+0.07
+0.00
+0.13
+
+0.82
+0.09
+0.02
+0.07
+
+0.84
+0.02
+0.01
+0.13
+
+0.78
+0.09
+0.00
+0.14
+
+0.89
+0.04
+0.00
+0.07
+
+Lasso, Ridge and Elastic Net are estimated using the glmnet R package. The penalty terms are chosen via
+10-fold cross-validation. For Elastic Net weights between Ridge and Lasso penalties are equally shared.
+When predicting the propensity scores a logit version of the estimators is used. For all specifications
+we include all two-way interactions and all polynomials up to degree four for continuous variables. The
+Random Forest is estimated using the R package ranger not changing the standard specification.
+The ensemble is estimated using MSE optimal weights from an out-of-sample prediction. For the different
+specifications the average weight across years 1991-1995 and the out of sample predictions are depicted
+in Tables 3-5.
+Due to computational constraints, for all procedures we choose K = 2.
+
+29
+
+

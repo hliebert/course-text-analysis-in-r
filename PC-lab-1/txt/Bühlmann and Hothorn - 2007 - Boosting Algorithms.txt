@@ -1,0 +1,3817 @@
+Boosting Algorithms: Regularization, Prediction and Model Fitting
+Author(s): Peter Bühlmann and Torsten Hothorn
+Source: Statistical Science, Vol. 22, No. 4 (Nov., 2007), pp. 477-505
+Published by: Institute of Mathematical Statistics
+Stable URL: https://www.jstor.org/stable/27645854
+Accessed: 21-10-2019 14:59 UTC
+JSTOR is a not-for-profit service that helps scholars, researchers, and students discover, use, and build upon a wide
+range of content in a trusted digital archive. We use information technology and tools to increase productivity and
+facilitate new forms of scholarship. For more information about JSTOR, please contact support@jstor.org.
+Your use of the JSTOR archive indicates your acceptance of the Terms & Conditions of Use, available at
+https://about.jstor.org/terms
+
+Institute of Mathematical Statistics is collaborating with JSTOR to digitize, preserve and
+extend access to Statistical Science
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+Statistical Science
+2007, Vol. 22, No. 4, 477-505
+
+DOI: 10.1214/07-STS242
+
+? Institute of Mathematical Statistics, 2007
+
+Boosting Algorithms: Regularization,
+Prediction and Model Fitting
+Peter B?hlmann and Torsten Hothorn
+
+Abstract We present a statistical perspective on boosting. Special empha
+sis is given to estimating potentially complex parametric or nonparametric
+
+models, including generalized linear and additive models as well as regres
+sion models for survival analysis. Concepts of degrees of freedom and cor
+responding Akaike or Bayesian information criteria, particularly useful for
+regularization and variable selection in high-dimensional covariate spaces,
+
+are discussed as well.
+
+The practical aspects of boosting procedures for fitting statistical mod
+els are illustrated by means of the dedicated open-source software package
+mboost. This package implements functions which can be used for model fit
+ting, prediction and variable selection. It is flexible, allowing for the imple
+mentation of new boosting algorithms optimizing user-specified loss func
+
+tions.
+
+Key words and phrases: Generalized linear models, generalized additive
+models, gradient boosting, survival analysis, variable selection, software.
+
+1. INTRODUCTION
+Freund and Schapire's AdaBoost algorithm for clas
+sification [29-31] has attracted much attention in the
+machine learning community (cf. [76], and the refer
+ences therein) as well as in related areas in statistics
+[15, 16, 33]. Various versions of the AdaBoost algo
+rithm have proven to be very competitive in terms of
+prediction accuracy in a variety of applications. Boost
+ing methods have been originally proposed as ensem
+ble methods (see Section 1.1), which rely on the prin
+ciple of generating multiple predictions and majority
+voting (averaging) among the individual classifiers.
+Later, Breiman [15, 16] made a path-breaking obser
+vation that the AdaBoost algorithm can be viewed as a
+
+gradient descent algorithm in function space, inspired
+by numerical optimization and statistical estimation.
+
+Moreover, Friedman, Hastie and Tibshirani [33] laid
+out further important foundations which linked Ada
+Boost and other boosting algorithms to the framework
+of statistical estimation and additive basis expansion.
+In their terminology, boosting is represented as "stage
+wise, additive modeling": the word "additive" does not
+imply a model fit which is additive in the covariates
+(see our Section 4), but refers to the fact that boost
+
+ing is an additive (in fact, a linear) combination of
+"simple" (function) estimators. Also Mason et al. [62]
+
+and Ratsch, Onoda and M?ller [70] developed related
+ideas which were mainly acknowledged in the machine
+learning community. In Hastie, Tibshirani and Fried
+
+man [42], additional views on boosting are given; in
+
+Peter B?hlmann is Professor, Seminar f?r Statistik, ETE
+
+particular, the authors first pointed out the relation be
+
+Z?rich, CH-8092 Z?rich, Switzerland (e-mail:
+
+tween boosting and lx-penalized estimation. The in
+
+buhlmann@staLmath.ethz.ch). Torsten Hothorn is
+
+sights of Friedman, Hastie and Tibshirani [33] opened
+new perspectives, namely to use boosting methods in
+many other contexts than classification. We mention
+
+Professor, Institut f?r Statistik,
+
+Ludwig-Maximilians- Universit?t M?nchen, Ludwigstra?e
+
+33, D-80539 M?nchen, Germany
+
+here boosting methods for regression (including gen
+eralized regression) [22, 32, 71], for density estima
+tion [73], for survival analysis [45, 71] or for multi
+variate analysis [33, 59]. In quite a few of these pro
+posals, boosting is not only a black-box prediction tool
+
+(e-mail: Torsten.Hothorn@R-project.org). Torsten Hothorn
+wrote this paper while he was a lecturer at the Universit?t
+
+Erlangen-N?rnberg.
+
+Discussed in 10.1214/07-STS242A and 10.1214/07-STS242B;
+
+rejoinder at 10.1214/07-STS242REJ.
+
+477
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+478 P. B?HLMANN AND T. HOTHORN
+but also an estimation method for models with a spe
+cific structure such as linearity or additivity [18, 22,
+45]. Boosting can then be seen as an interesting regu
+larization scheme for estimating a model. This statisti
+
+First, we specify a base procedure which constructs a
+function estimate g(-) with values in E, based on some
+
+data(Xi,Fi),...,(Xn,yw):
+
+(Y V\ (Y V\ base Procedure
+
+cal perspective will drive the focus of our exposition of
+
+boosting.
+We present here some coherent explanations and il
+lustrations of concepts about boosting, some deriva
+tions which are novel, and we aim to increase the
+understanding of some methods and some selected
+known results. Besides giving an overview on theo
+
+For example, a very popular base procedure is a regres
+sion tree.
+
+Then, generating an ensemble from the base proce
+dures, that is, an ensemble of function estimates or pre
+
+dictions, works generally as follows:
+base procedure A[11/.
+
+retical concepts of boosting as an algorithm for fitting
+
+reweighted data 1 ?> gL J ( )
+base procedure ^1-9-.
+reweighted data 2 ?> gLZJ ( )
+
+statistical models, we look at the methodology from
+a practical point of view as well. The dedicated add
+on package mboost ("model-based boosting," [43]) to
+the R system for statistical computing [69] implements
+
+base procedure 4M1/.
+
+reweighted data M ^?> gL J ( )
+
+computational tools which enable the data analyst to
+compute on the theoretical concepts explained in this
+paper as closely as possible. The illustrations presented
+throughout the paper focus on three regression prob
+lems with continuous, binary and censored response
+variables, some of them having a large number of co
+variates. For each example, we only present the most
+important steps of the analysis. The complete analysis
+is contained in a vignette as part of the mboost pack
+
+age (see Appendix A.l) so that every result shown in
+this paper is reproducible.
+Unless stated differently, we assume that the data are
+realizations of random variables
+
+(Xi,Yi),...,(Xn,Yn)
+from a stationary process with p-dimensional predic
+
+tor variables X? and one-dimensional response vari
+ables Y i ; for the case of multivariate responses, some
+references are given in Section 9.1. In particular, the
+setting above includes independent, identically distrib
+uted (i.i.d.) observations. The generalization to station
+ary processes is fairly straightforward: the methods and
+algorithms are the same as in the i.i.d. framework, but
+the mathematical theory requires more elaborate tech
+niques. Essentially, one needs to ensure that some (uni
+form) laws of large numbers still hold, for example,
+assuming stationary, mixing sequences; some rigorous
+results are given in [57] and [59].
+
+1.1 Ensemble Schemes: Multiple Prediction and
+
+Aggregation
+
+m
+
+aggregation: fA( ) = E amg[m]0).
+
+What is termed here as "reweighted da
+
+we assign individual data weights to
+sample points. We have also implicitly
+the base procedure allows to do som
+ting, that is, estimation is based on a
+ple. Throughout the paper (except in
+assume that a base procedure estima
+valued (i.e., a regression procedure), m
+
+adequate for the "statistical perspective
+
+in particular for the generic FGD alg
+tion 2.1.
+The above description of an ensemble scheme is too
+general to be of any direct use. The specification of the
+data reweighting mechanism as well as the form of the
+
+linear combination coefficients {am}%=l are crucial,
+and various choices characterize different ensemble
+schemes. Most boosting methods are special kinds of
+sequential ensemble schemes, where the data weights
+in iteration m depend on the results from the previous
+iteration m ? 1 only {memoryless with respect to iter
+
+ations m ? 2,m ? 3,...). Examples of other ensemble
+schemes include bagging [14] or random forests [1,
+
+17].
+
+1.2 AdaBoost
+The AdaBoost algorithm for binary classification
+[31] is the most well-known boosting algorithm. The
+
+Ensemble schemes construct multiple function esti
+mates or predictions from reweighted data and use a
+linear (or sometimes convex) combination thereof for
+producing the final, aggregated estimator or prediction.
+
+base procedure is a classifier with values in {0, 1}
+(slightly different from a real-valued function estima
+
+tor as assumed above), for example, a classification
+tree.
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 479
+
+AdaBoost algorithm
+1. Initialize some weights for individual sample
+
+points: w\ J = l/n for / = 1,..., n. Set m = 0.
+2. Increase m by 1. Fit the base procedure to the
+weighted data, that is, do a weighted fitting using
+
+the weights w\m~ , yielding the classifier g[m](-)
+
+3. Compute the weighted in-sample misclassification
+rate
+
+OTi?] = ?;u,}'"-1]/(y/#?[?](X?))/t;?;?M-1],
+?=l
+1=1
+l-err[m]s
+
+a^=log( err[m]
+and update the weights
+
+wi = w\m-l]eMaMl(Yi?gM{X?))),
+
+wi =u>i/L,?>j
+4. Iterate steps 2 and 3 until m = mst0p and build the
+aggregated classifier by weighted majority voting:
+Wstop
+
+AdaBoost(x) = arg max J^ <x I(g[m](x) = y).
+
+^{0,1} m=l
+
+By using the terminology mst0p (instead of M as in the
+
+general description of ensemble schemes), we empha
+size here and later that the iteration process should be
+stopped to avoid overfitting. It is a tuning parameter
+of AdaBoost which may be selected using some cross
+validation scheme.
+
+1.3 Slow Overfitting Behavior
+
+It had been debated until about the year 2000
+whether the AdaBoost algorithm is immune to over
+fitting when running more iterations, that is, stopping
+would not be necessary. It is clear nowadays that Ada
+Boost and also other boosting algorithms are overfit
+ting eventually, and early stopping [using a value of
+
+^stop before convergence of the surrogate loss func
+tion, given in (3.3), takes place] is necessary [7, 51,
+64]. We emphasize that this is not in contradiction to
+the experimental results by [15] where the test set mis
+classification error still decreases after the training mis
+classification error is zero [because the training error
+of the surrogate loss function in (3.3) is not zero before
+numerical convergence].
+Nevertheless, the AdaBoost algorithm is quite resis
+tant to overfitting (slow overfitting behavior) when in
+creasing the number of iterations mst0p. This has been
+
+observed empirically, although some cases with clear
+overfitting do occur for some datasets [64]. A stream of
+work has been devoted to develop VC-type bounds for
+the generalization (out-of-sample) error to explain why
+boosting is overfitting very slowly only. Schapire et al.
+[77] proved a remarkable bound for the generalization
+misclassification error for classifiers in the convex hull
+
+of a base procedure. This bound for the misclassifi
+cation error has been improved by Koltchinskii and
+Panchenko [53], deriving also a generalization bound
+for AdaBoost which depends on the number of boost
+ing iterations.
+It has been argued in [33], rejoinder, and [21] that
+the overfitting resistance (slow overfitting behavior) is
+much stronger for the misclassification error than many
+other loss functions such as the (out-of-sample) nega
+tive log-likelihood (e.g., squared error in Gaussian re
+gression). Thus, boosting's resistance of overfitting is
+coupled with a general fact that overfitting is less an
+issue for classification (i.e., the 0-1 loss function). Fur
+thermore, it is proved in [6] that the misclassification
+risk can be bounded by the risk of the surrogate loss
+function: it demonstrates from a different perspective
+that the 0-1 loss can exhibit quite a different behavior
+than the surrogate loss.
+
+Finally, Section 5.1 develops the variance and bias
+for boosting when utilized to fit a one-dimensional
+curve. Figure 5 illustrates the difference between the
+boosting and the smoothing spline approach, and the
+eigen-analysis of the boosting method [see (5.2)] yields
+the following: boosting's variance increases with expo
+nentially small increments while its squared bias de
+creases exponentially fast as the number of iterations
+grows. This also explains why boosting's overfitting
+kicks in very slowly.
+
+1.4 Historical Remarks
+The idea of boosting as an ensemble method for im
+proving the predictive performance of a base procedure
+seems to have its roots in machine learning. Kearns and
+
+Valiant [52] proved that if individual classifiers per
+form at least slightly better than guessing at random,
+their predictions can be combined and averaged, yield
+ing much better predictions. Later, Schapire [75] pro
+posed a boosting algorithm with provable polynomial
+run-time to construct such a better ensemble of clas
+
+sifiers. The AdaBoost algorithm [29-31] is considered
+as a first path-breaking step toward practically feasible
+boosting algorithms.
+
+The results from Breiman [15, 16], showing that
+boosting can be interpreted as a functional gradient de
+scent algorithm, uncover older roots of boosting. In the
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+480 P. B?HLMANN AND T. HOTHORN
+context of regression, there is an immediate connec
+
+3. Fit the negative gradient vector U\,...,Un to
+
+tion to the Gauss-Southwell algorithm [79] for solving
+
+X\,..., Xn by the real-valued base procedure (e.g.,
+regression)
+
+a linear system of equations (see Section 4.1) and to
+Tukey's [83] method of "twicing" (see Section 5.1).
+
+2. FUNCTIONAL GRADIENT DESCENT
+Breiman [15, 16] showed that the AdaBoost algo
+rithm can be represented as a steepest descent algo
+rithm in function space which we call functional gra
+dient descent (FGD). Friedman, Hastie and Tibshirani
+[33] and Friedman [32] then developed a more general,
+statistical framework which yields a direct interpreta
+tion of boosting as a method for function estimation.
+In their terminology, it is a "stagewise, additive mod
+eling" approach (but the word "additive" does not im
+ply a model fit which is additive in the covariates; see
+Section 4). Consider the problem of estimating a real
+
+valued function
+
+(2.1) /*( ) = aigminE[p(r,/(X))],
+where p(-, ) is a loss function which is typically as
+sumed to be differentiable and convex with respect to
+the second argument. For example, the squared error
+
+loss p(y, f) = \y ? f\2 yields the well-known popula
+tion minimizer f*(x) = E[Y\X ? x].
+
+2.1 The Generic FGD or Boosting Algorithm
+In the sequel, FGD and boosting are used as equiva
+lent terminology for the same method or algorithm.
+
+Estimation of /*( ) in (2.1) with boosting can be
+done by considering the empirical risk n~~l ??=1 P(Yi>
+f(Xi)) and pursuing iterative steepest descent in func
+tion space. The following algorithm has been given by
+
+Friedman [32]:
+
+{x^u?U base^edure |i?](.).
+Thus, g^mH') can be viewed as an approximation of
+the negative gradient vector.
+
+4. Update f[m](-) = /[m-1](-) + v g[m3(0, where 0 <
+v < 1 is a step-length factor (see below), that is, pro
+ceed along an estimate of the negative gradient vec
+tor.
+
+5. Iterate steps 2 to 4 until m = rastop for some stop
+ping iteration wst0p.
+
+The stopping iteration, which is the main tuning
+parameter, can be determined via cross-validation or
+some information criterion; see Section 5.4. The choice
+of the step-length factor v in step 4 is of minor im
+portance, as long as it is "small," such as v = 0.1.
+A smaller value of v typically requires a larger num
+ber of boosting iterations and thus more computing
+time, while the predictive accuracy has been empiri
+cally found to be potentially better and almost never
+worse when choosing v "sufficiently small" (e.g., v =
+0.1) [32]. Friedman [32] suggests to use an additional
+line search between steps 3 and 4 (in case of other loss
+functions p(-, ) than squared error): it yields a slightly
+different algorithm but the additional line search seems
+
+unnecessary for achieving a good estimator /tmstoP]
+The latter statement is based on empirical evidence and
+
+some mathematical reasoning as described at the be
+ginning of Section 7.
+
+2.1.1 Alternative formulation in function space. In
+steps 2 and 3 of the generic FGD algorithm, we associ
+ated with U\,..., Un a negative gradient vector. A rea
+son for this can be seen from the following formulation
+in function space which is similar to the exposition in
+
+Mason et al. [62] and to the discussion in Ridgeway
+Generic FGD algorithm
+
+1. Initialize /^(-) with an offset value. Common
+choices are
+n
+
+[72].
+Consider the empirical risk functional C(f) =
+
+n~l Y!i=\ p(Yi, f(Xi)) and the usual inner product
+
+(/, g) = n~l ??=1 f(Xi)g(Xi). We can then calculate
+
+the negative G?teaux derivative dC(-) of the functional
+
+/[0](.) = argminn-,53/o(l'?.c)
+i=i
+
+-dC(f)(x) = ~C(fda
++ a8x)\a=Q,
+
+or/[?](.) = 0. Setm = 0.
+
+/:R^^R, xeRP,
+
+2. Increase m by 1. Compute the negative gradient
+
+~$fP(Y, f) and evaluate at f[m-l](Xi):
+
+U? ? ??p(Yi, f)\f=fim-i](x?)' i ? I, ,n.
+
+where 8X denotes the delta- (or indicator-) function
+x e M.p. In particular, when evaluating the derivativ
+
+-dC at /[m"1] and Xit we get
+
+-dC(flm-")(Xi) = n-lUi,
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 481
+
+with U\,..., JJn exactly as in steps 2 and 3 of the
+generic FGD algorithm. Thus, the negative gradient
+vector U\,..., Un can be interpreted as a functional
+(G?teaux) derivative evaluated at the data points.
+
+We point out that the algorithm in Mason et al.
+[62] is different from the generic FGD method above:
+while the latter is fitting the negative gradient vector
+
+by the base procedure, typically using (nonparamet
+ric) least squares, Mason et al. [62] fit the base pro
+cedure by maximizing ?(?/, g) = n~l Y!i=\ Uig(Xi).
+
+For certain base procedures, the two algorithms coin
+
+cide. For example, if g(-) is the componentwise lin
+ear least squares base procedure described in (4.1),
+
+it holds that n~l E?=i(i/? - g(Xi))2 = C- (U,g)9
+where C = n~x Xw=i U? is a constant.
+
+3. SOME LOSS FUNCTIONS AND BOOSTING
+
+ALGORITHMS
+
+Various boosting algorithms can be defined by spec
+ifying different (surrogate) loss functions p(-, ) The
+mboost package provides an environment for defining
+loss functions via boost Jamily objects, as exemplified
+
+We parametrize p ? exp(/)/(exp(/) + exp(?/)) so
+that / = log(/?/(l ? p))/2 equals half of the log-odds
+ratio; the factor 1/2 is a bit unusual but it will enable
+that the population minimizer of the loss in (3.1) is the
+same as for the exponential loss in (3.3) below. Then,
+the negative log-likelihood is
+
+log(l+exp(-2>i/)).
+By scaling, we prefer to use the equivalent loss func
+
+tion
+
+(3.1) piog-iik(y> /) = log2(! + exp(-2y/)),
+which then becomes an upper bound of the misclas
+sification error; see Figure 1. In mboost, the neg
+ative gradient of this loss function is implemented
+
+in a function Binomial ( ) returning an object of
+class boost Jamily which contains the negative gradi
+ent function as a slot (assuming a binary response vari
+
+able y g {-1,+1}).
+
+The population minimizer can be shown to be (cf.
+
+[33])
+
+below.
+
+3.1 Binary Classification
+For binary classification, the response variable is Y e
+{0, 1} with P[F = 1] = p. Often, it is notationally more
+
+convenient to encode the response by Y ? 2Y ? I e
+{?1, +1} (this coding is used in mboost as well). We
+consider the negative binomial log-likelihood as loss
+
+p(x) = F[Y = l\X=x].
+The loss function in (3.1) is a function of yf, the so
+called margin value, where the function / induces the
+following classifier for Y:
+
+1, if/(*)>0,
+
+function:
+
+e(jc)=|o,
+tf/(*)<o
+undetermined, if f(x) = 0.
+
+-(ylog(p) + (l-;y)log(l-/>)).
+monotone
+
+non-monotone
+
+- PO-1
+
+- Po-1
+
+- - Pl2
+.... pLl
+
+-PSVM
+Pexp
+Plog-lik
+
+o co
+
+o <*>
+
+i-1-1-1-1-r
+
+-2-10123
+
+(2y-1)f
+
+n-1-1-1-1-1-r
+
+-3-2-10
+
+1
+
+2
+
+3
+
+(2y-1)f
+
+FlG. 1. Losses, as functions of the margin yf = (2y ? l)f,for binary classification. Left panel with monotone loss functions: 0-1 loss,
+exponential loss, negative log-likelihood, hinge loss (SVM)\ right panel with nonmonotone loss functions: squared error (L2) and absolute
+error {L\) as in (3.5).
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+482 P. B?HLMANN AND T. HOTHORN
+Therefore, a misclassification (including the undeter
+mined case) happens if and only if Y f(X) < 0. Hence,
+the misclassification loss is
+
+chines:
+
+Psvm()>,/) = [1 -yf]+,
+
+(3.2) Po-\(y,f) = I{yf<0}>
+whose population minimizer is equivalent to the Bayes
+
+classifier (for Y e { ?1, +1})
+
+/o-i(*) = {?};
+
+Very popular in machine learning is the hinge func
+tion, the standard loss function for support vector ma
+
+ifp(x)> 1/2,
+
+where [x]+ = xI{x>o) denotes the positive part. It is
+also an upper convex bound of the misclassification er
+ror; see Figure 1. Its population minimizer is
+
+/svm W = sign(pto - 1/2),
+
+ifp(x)<l/2,
+
+where p(x) = ?[Y = l\X = x]. Note that the 0-1 loss
+in (3.2) cannot be used for boosting or FGD: it is non
+differentiable and also nonconvex as a function of the
+
+margin value yf. The negative log-likelihood loss in
+(3.1) can be viewed as a convex upper approximation
+of the (computationally intractable) nonconvex 0-1
+loss; see Figure 1. We will describe in Section 3.3
+the BinomialBoosting algorithm (similar to LogitBoost
+
+[33]) which uses the negative log-likelihood as loss
+function (i.e., the surrogate loss which is the imple
+menting loss function for the algorithm).
+Another upper convex approximation of the 0-1 loss
+function in (3.2) is the exponential loss
+
+(3.3) Pexp(y>/)=exp(-;y/),
+implemented (with notation y e {?1, +1}) in mboost
+as AdaExp ( ) family.
+The population minimizer can be shown to be the
+same as for the log-likelihood loss (cf. [33]):
+
+r* < ^ 1 i ( P(x) \
+
+which is the Bayes classifier for Y e {?1, +1}. Since
+/svm(') *s a classifier and noninvertible function of
+p(x), there is no direct way to obtain conditional class
+probability estimates.
+
+3.2 Regression
+For regression with response F G 1, we use most of
+ten the squared error loss (scaled by the factor 1/2 such
+that the negative gradient vector equals the residuals;
+
+see Section 3.3 below),
+
+(3.4) PL2(y./) = ?ly-/l2
+with population minimizer
+
+fl2(x)=E[Y\X = x].
+The corresponding boosting algorithm is /^Boosting;
+see Friedman [32] and B?hlmann and Yu [22]. It is de
+scribed in more detail in Section 3.3. This loss function
+
+is available in mboost as family GaussReg ( ).
+Alternative loss functions which have some robust
+ness properties (with respect to the error distribution,
+
+i.e., in "Y-space") include the Li- and Huber-loss. The
+former is
+
+p(x) = F[Y = l\X = x].
+Using functional gradient descent with different
+(surrogate) loss functions yields different boosting al
+gorithms. When using the log-likelihood loss in (3.1),
+
+we obtain LogitBoost [33] or BinomialBoosting from
+Section 3.3; and with the exponential loss in (3.3), we
+essentially get AdaBoost [30] from Section 1.2.
+
+We interpret the boosting estimate f^(-) as an esti
+mate of the population minimizer /*( ) Thus, the out
+
+put from AdaBoost, Logit- or BinomialBoosting are
+estimates of half of the log-odds ratio. In particular, we
+define probability estimates via
+
+pv \x) ?
+
+exp(/^00) + exp(-/M(x))
+
+The reason for constructing these probability estimates
+is based on the fact that boosting with a suitable stop
+ping iteration is consistent [7, 51]. Some cautionary re
+marks about this line of argumentation are presented
+
+by Mease, Wyner and Buja [64].
+
+PL,(y,f) = \y-f\
+with population minimizer
+
+/*(*) = median(F|X = x)
+and is implemented in mboost as Laplace ( ).
+Although the L \ -loss is not differentiable at the point
+
+y = f, we can compute partial derivatives since the
+single point y ? f (usually) has probability zero to be
+
+realized by the data. A compromise between the L\
+and L2-I0SS is the Huber-loss function from robust sta
+
+tistics:
+
+PHuber()>, f)
+
+= (ly-/l2/2, if|y-/l<a,
+
+\8(\y-f\-8/2), if|y-/|>?,
+
+which is available in mboost as Huber ( ). A strategy
+for choosing (a changing) S adaptively has been pro
+posed by Friedman [32]:
+
+Sm = median({|F; - /[m-1](X/)|; / = 1,..., ?}),
+where the previous fit f^m~l\-) is used.
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 483
+
+3.2.1 Connections to binary classification. Moti
+vated from the population point of view, the L2- or
+Lj-loss can also be used for binary classification. For
+Y e {0,1}, the population minimizers are
+
+fl2(x)=E[Y\X = x]
+= p(x) = F[Y = l\X = x],
+fli(x) = medi<m(Y\X = x)
+
+?1, ifp(x)>l/2,
+
+in (3.3). The third point reflects a robustness aspect: it
+is similar to Huber's loss function which also penalizes
+large values linearly (instead of quadratically as with
+
+the L2-I0SS).
+
+3.3 Two Important Boosting Algorithms
+Table 1 summarizes the most popular loss functions
+and their corresponding boosting algorithms. We now
+describe the two algorithms appearing in the last two
+rows of Table 1 in more detail.
+
+JO, ifp(x)<\/2.
+
+Thus, the population minimizer of the Li-loss is the
+Bayes classifier.
+Moreover, both the Li- and L2-I0SS functions can be
+parametrized as functions of the margin value yf(ye
+
+{-1,+1}):
+
+\y-f\ = \t-yfl
+
+3.3.1 L2Boosting. /^Boosting is the simplest and
+perhaps most instructive boosting algorithm. It is very
+useful for regression, in particular in presence of very
+
+many predictor variables. Applying the general de
+scription of the FGD algorithm from Section 2.1 to the
+
+squared error loss function PL2(y^ f) ~\y ~ /l2/2, we
+obtain the following algorithm:
+
+(3.5) |y-/|2 = |l-y/|2
+= (l-2yf + (yf)2).
+The L\- and L2-I0SS functions are nonmonotone func
+
+tions of the margin value yf; see Figure 1. A nega
+tive aspect is that they penalize margin values which
+are greater than 1: penalizing large margin values can
+
+/^Boosting algorithm
+1. Initialize f^(-) with an offset value. The default
+value is /[0](-) = Y. Set m = 0.
+2. Increase m by 1. Compute the residuals U? = Y i ?
+
+f[m-l](Xi)foYi = l,...,n.
+
+3. Fit the residual vector U\,..., Un to X\,..., Xn by
+the real-valued base procedure (e.g., regression):
+
+be seen as a way to encourage solutions / e [? 1,1]
+which is the range of the population minimizers f?
+and fl (for F e {?1, +1}), respectively. However, as
+
+discussed below, we prefer to use monotone loss func
+
+4. Update /[m](-) = /[m~1](0 + v g[m](0, where 0 <
+v < 1 is a step-length factor (as in the general FGD
+
+tions.
+
+The L2-I0SS for classification (with response
+
+variable y e {?1,+1}) is implemented in Gauss
+
+Class ().
+
+algorithm).
+5. Iterate steps 2 to 4 until m = mstop for some stop
+ping iteration mst0p.
+
+All loss functions mentioned for binary classification The stopping iteration mst0p is the main tuning para
+(displayed in Figure 1) can be viewed and interpretedmeter which can be selected using cross-validation or
+from the perspective of proper scoring rules; cf. Buja, some information criterion as described in Section 5.4.
+Stuetzle and Shen [24]. We usually prefer the negative The derivation from the generic FGD algorithm
+log-likelihood loss in (3.1) because: (i) it yields probin Section 2.1 is straightforward. Note that the neg
+ability estimates; (ii) it is a monotone loss function ofative gradient vector becomes the residual vector.
+the margin value yf; (iii) it grows linearly as the marThus, /^Boosting amounts to refitting residuals mul
+gin value yf tends to ?00, unlike the exponential loss tiple times. Tukey [83] recognized this to be useful
+
+Table 1
+Various loss functions p(y, /), population minimizers f*(x) and names of corresponding boosting algorithms; p(x) = ?[Y = \\X = x]
+
+Range spaces P(j>/) /*(*) Algorithm
+y e {0,1}, / R exp(-(2y-l)/)
+
+y e {0,1}, /el log2(l + e"2^-1)/)
+
+yeR, feR ?\y-f\2
+
+Il0^T^k^> AdaBoost
+
+_ log( j^*/\ ) LogitBoost / BinomialBoosting
+
+E[Y\X=x] L2Boosting
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+484 P. B?HLMANN AND T. HOTHORN
+and proposed "twicing," which is nothing else than
+L2Boosting using mstop = 2 (and v = 1).
+
+3.3.2 BinomialBoosting: the FGD version ofLogit
+Boost. We already gave some reasons at the end of
+Section 3.2.1 why the negative log-likelihood loss
+function in (3.1) is very useful for binary classifica
+tion problems. Friedman, Hastie and Tibshirani [33]
+were first in advocating this, and they proposed Logit
+
+Boost, which is very similar to the generic FGD al
+gorithm when using the loss from (3.1): the deviation
+from FGD is the use of Newton's method involving the
+Hessian matrix (instead of a step-length for the gradi
+
+ent).
+For the sake of coherence with the generic functional
+
+gradient descent algorithm in Section 2.1, we describe
+here a version of LogitBoost; to avoid conflicting ter
+minology, we name it BinomialBoosting:
+
+BinomialBoosting algorithm
+Apply the generic FGD algorithm from Section 2.1
+using the loss function piog-iik from (3.1). The default
+
+offset value is f^(-) = log(/3/(l ? p))/2, where p is
+the relative frequency of Y = 1.
+
+With BinomialBoosting, there is no need that the
+base procedure is able to do weighted fitting; this con
+stitutes a slight difference to the requirement for Logit
+
+Boost [33].
+3.4 Other Data Structures and Models
+Due to the generic nature of boosting or functional
+
+gradient descent, we can use the technique in very
+many other settings. For data with univariate responses
+and loss functions which are differentiable with respect
+
+to the second argument, the boosting algorithm is de
+scribed in Section 2.1. Survival analysis is an important
+
+area of application with censored observations; we de
+scribe in Section 8 how to deal with it.
+
+4. CHOOSING THE BASE PROCEDURE
+Every boosting algorithm requires the specification
+of a base procedure. This choice can be driven by the
+aim of optimizing the predictive capacity only or by
+considering some structural properties of the boosting
+estimate in addition. We find the latter usually more
+interesting as it allows for better interpretation of the
+
+resulting model.
+
+We recall that the generic boosting estimator is a sum
+of base procedure estimates
+m
+
+/[wlO = v?g[*](-).
+k=l
+
+Therefore, structural properties of the boosting func
+tion estimator are induced by a linear combination of
+structural characteristics of the base procedure.
+
+The following important examples of base proce
+dures yield useful structures for the boosting estima
+
+tor f^m\-). The notation is as follows: g(-) is an
+estimate from a base procedure which is based on
+
+data (Xi,C/i),...,(Xn,i/w) where (Uu ..., Un) de
+
+notes the current negative gradient. In the sequel, the
+jth component of a vector c will be denoted by c^\
+
+4.1 Componentwise Linear Least Squares for
+
+Linear Models
+
+Boosting can be very useful for fitting potentially
+high-dimensional generalized linear models. Consider
+the base procedure
+
+g(x) = ?(hx{i\
+
+(4.1) ?U^tx^Ui/tiX?)2,
+i = \ i = \
+n
+
+i = argmin?(?// - ?{j)x\j)f.
+i<J<P ?=i
+
+It selects the best variable in a simple linear model in
+the sense of ordinary least squares fitting.
+
+When using /^Boosting with this base procedure,
+we select in every iteration one predictor variable, not
+necessarily a different one for each iteration, and we
+update the function linearly:
+
+fW(x) = f[m-l\x) + v^-VH
+where 4m denotes the index of the selected predictor
+variable in iteration m. Alternatively, the update of the
+coefficient estimates is
+
+?[m] _ o[m-\] _j_ v m o(im)^
+The notation should be read that only the 4mth com
+ponent of the coefficient estimate /3M (in iteration m)
+has been updated. For every iteration m, we obtain a
+linear model fit. As m tends to infinity, f^m\-) con
+verges to a least squares solution which is unique if the
+design matrix has full rank p <n. The method is also
+known as matching pursuit in signal processing [60],
+weak greedy algorithm in computational mathematics
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 485
+
+[81], and it is a Gauss-Southwell algorithm [79] for
+solving a linear system of equations. We will discuss
+more properties of /^Boosting with componentwise
+linear least squares in Section 5.2.
+
+When using BinomialBoosting with componentwise
+linear least squares from (4.1), we obtain a fit, includ
+
+ing variable selection, of a linear logistic regression
+
+model.
+
+As will be discussed in more detail in Section 5.2,
+boosting typically shrinks the (logistic) regression co
+
+efficients toward zero. Usually, we do not want to
+shrink the intercept term. In addition, we advocate
+to use boosting on mean centered predictor variables
+
+X?J ? x\J ? X J . In case of a linear model, when
+centering also the response Y? = y? ? F, this becomes
+p
+
+Yi = J2?U)X(iJ) +noise?
+7=1
+
+which forces the regression surface through the cen
+
+ter (x(1),..., x(p\ y) = (0, 0,..., 0) as with ordinary
+least squares. Note that it is not necessary to cen
+ter the response variables when using the default off
+
+set value f^ = Y in /^Boosting. [For Binomial
+
+Boosting, we would center the predictor variables only
+
+but never the response, and we would use f^ =
+argmin^"1 J%=1 p(F?, c).]
+Illustration: Prediction of total body fat. Garcia et
+
+al. [34] report on the development of predictive re
+gression equations for body fat content by means of
+
+p = 9 common anthropom?trie measurements which
+were obtained for n = 71 healthy German women. In
+addition, the women's body composition was measured
+by dual energy X-ray absorptiometry (DXA). This ref
+erence method is very accurate in measuring body fat
+but finds little applicability in practical environments,
+mainly because of high costs and the methodological
+
+efforts needed. Therefore, a simple regression equa
+tion for predicting DXA measurements of body fat
+is of special interest for the practitioner. Backward
+elimination was applied to select important variables
+from the available anthropometrical measurements and
+Garcia et al. [34] report a final linear model utilizing
+hip circumference, knee breadth and a compound co
+variate which is defined as the sum of log chin skin
+
+fold, log triceps skinfold and log subscapular skin
+
+fold:
+
+R> bf_lm <- lm(DEXfat ~ hipcirc
+
++ kneebreadth
+
++ anthro3a,
+
+data = bodyfat)
+
+R> coef (bf__lm)
+
+(Intercept) hipcirc kneebreadth anthro3a
+-75.23478 0.51153 1.90199 8.90964
+
+A simple regression formula which is easy t
+
+municate, such as a linear combination of
+few covariates, is of special interest in this
+
+cation: we employ the glmboost function
+
+package mboost to fit a linear regression mo
+means of /^Boosting with componentwise linear
+
+squares. By default, the function glmboost
+linear model (with initial mstop = 100 and s
+age parameter v ? 0.1) by minimizing squa
+
+ror (argument family = GaussRegO is t
+
+fault):
+
+R> bf_glm <- glmboost(DEXfat ~ .,
+data = bodyfat,
+control= boost_control
+(center = TRUE))
+Note that, by default, the mean of the response vari
+
+able is used as an offset in the first step of the
+boosting algorithm. We center the covariates prior
+to model fitting in addition. As mentioned above,
+the special form of the base learner, that is, compo
+nentwise linear least squares, allows for a reformu
+lation of the boosting fit in terms of a linear com
+
+bination of the covariates which can be assessed
+
+via
+
+R> coef(bf_glm)
+
+(Intercept) age waistcirc hipcirc
+
+0.000000 0.013602 0.189716 0.351626
+elbowbreadth kneebreadth anthro3a anthro3b
+-0.384140 1.736589 3.326860 3.656524
+anthro3c anthro4
+0.595363 0.000000
+
+attr(,"offset")
+[1] 30.783
+
+We notice that most covariates have been used for
+fitting and thus no extensive variable selection was
+performed in the above model. Thus, we need to in
+vestigate how many boosting iterations are appropri
+ate. Resampling methods such as cross-validation or
+the bootstrap can be used to estimate the out-of-sample
+error for a varying number of boosting iterations. The
+out-of-bootstrap mean squared error for 100 bootstrap
+samples is depicted in the upper part of Figure 2. The
+plot leads to the impression that approximately rast0p =
+44 would be a sufficient number of boosting iterations.
+In Section 5.4, a corrected version of the Akaike infor
+
+mation criterion (AIC) is proposed for determining the
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+486 P. B?HLMANN AND T. HOTHORN
+attr(,"offset")
+
+[1] 30.783
+
+and thus seven covariates have been selected for the
+
+final model (intercept equal to zero occurs here for
+mean centered response and predictors and hence,
+
+n~l Z^=i Y i = 30.783 is the intercept in the un
+centered model). Note that the variables hipcirc,
+kneebreadth and anthro3a, which we have used
+for fitting a linear model at the beginning of this para
+graph, have been selected by the boosting algorithm as
+
+well.
+?""J il m i lift i y n i it ri i li in n 111 ri m 11 i i n 11 hi i i i
+
+2 6 16 24 32 40 48 56 64 72 80 88 96
+
+i?
+IO
+
+4.2 Componentwise Smoothing Spline for Additive
+
+Models
+
+Number of boosting
+
+Additive and generalized additive models, intro
+duced by Hastie and Tibshirani [40] (see also [41]),
+have become very popular for adding more flexibil
+
+o
+
+ity to the linear structure in generalized linear models.
+
+33
+
+Such flexibility can also be added in boosting (whose
+framework is especially useful for high-dimensional
+
+problems).
+We can choose to use a nonparametric base proce
+dure for function estimation. Suppose that
+
+to
+CO
+
+/^( ) is a least squares cubic smoothing
+
+o '
+CO
+
+(4.2) spline estimate based on U\,..., Un against
+
+x[J ,..., Xn with fixed degrees of freedom df.
+
+40 60 80
+
+That is,
+
+iMumoer or ooosong iterations
+
+FIG. 2. body f a t data: Out-of-bootstrap squared error for vary
+ing number of boosting iterations m stop (top). The dashed hori
+
+(4.3)
+
+/?>(-) = arg min?(?/?-/(X?0)))2
+
+zontal line depicts the average out-of-bootstrap error of the linear
+
+model for the preselected variables hipe i re, kneebreadth
+
++ kj(f"(x))2dx,
+
+and an thro 3 a fitted via ordinary least squares. The lower par
+shows the corrected AIC criterion.
+
+where ? > 0 is a tuning parameter such that the trace
+of the corresponding hat matrix equals df. For further
+optimal number of boosting iterations. This criterion
+details,
+we refer to Green and Silverman [36]. As a note
+attains its minimum for
+of caution, we use in the sequel the terminology of "hat
+
+matrix" in a broad sense: it is a linear operator but not
+R> mstop(aic <- AIC(bf_glm))
+
+[1] 45
+
+a projection in general.
+
+boosting iterations; see the bottom part of Figure 2
+
+The base procedure is then
+
+in addition. The coefficients of the linear model with
+
+?(X) = /<*(*<*),
+
+mst0p = 45 boosting iterations are
+
+f^\-) as above and
+
+R> coef(bf_glm[mstop(aic)])
+
+(Intercept) age waistcirc hipcirc
+
+^argmmf^iUi-fWixW))2,
+
+0.0000000 0.0023271 0.1893046 0.3488781
+
+elbowbreadth kneebreadth anthro3a anthro3b
+0.0000000
+anthro3c
+0.5043133
+
+1.5217686 3.3268603 3.6051548
+anthro4
+0.0000000
+
+where the degrees of freedom df are the same for all
+
+/0)(-).
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 487
+L2Boosting with componentwise smoothing splines
+yields an additive model, including variable selection,
+that is, a fit which is additive in the predictor variables.
+
+This can be seen immediately since /^Boosting pro
+ceeds additively for updating the function f^m\-); see
+Section 3.3. We can normalize to obtain the following
+additive model estimator:
+
+/i?]w = a + 7?/[-.].o-)(x?))>
+=1
+
+R> mstop(aic <- AIC(bf_gam))
+[1] 46
+
+Similarly to the linear regression model, the partial
+contributions of the covariates can be extracted from
+the boosting fit. For the most important variables, the
+partial fits are given in Figure 3 showing some slight
+
+nonlinearity, mainly for kneebreadth.
+
+4.3 Trees
+In the machine learning community, regression trees
+
+n
+
+n-\ J2 fM>W(X?j)) =0 for
+i=l
+
+As with the componentwise linear least squares base
+procedure, we can use componentwise smoothing
+splines also in BinomialBoosting, yielding an additive
+logistic regression fit.
+The degrees of freedom in the smoothing spline base
+
+are the most popular base procedures. They have the
+all
+j = 1,..., p.
+advantage to be invariant under monotone transforma
+tions of predictor variables, that is, we do not need
+to search for good data transformations. Moreover, re
+gression trees handle covariates measured at different
+
+scales (continuous, ordinal or nominal variables) in a
+
+but high bias has been analyzed in B?hlmann and Yu
+[22]; see also Section 4.4.
+Componentwise smoothing splines can be general
+ized to pairwise smoothing splines which search for
+
+unified way; unbiased split or variable selection in the
+context of different scales is proposed in [47].
+When using stumps, that is, a tree with two termi
+nal nodes only, the boosting estimate will be an addi
+tive model in the original predictor variables, because
+every stump-estimate is a function of a single predictor
+variable only. Similarly, boosting trees with (at most)
+d terminal nodes result in a nonparametric model hav
+ing at most interactions of order d ? 2. Therefore, if
+
+and fit the best pairs of predictor variables such that
+
+we want to constrain the degree of interactions, we can
+
+smoothing of U\,..., Un against this pair of predic
+tors reduces the residual sum of squares most. With
+
+easily do this by constraining the (maximal) number of
+
+procedure should be chosen "small" such as df = 4.
+This yields low variance but typically large bias of the
+base procedure. The bias can then be reduced by addi
+tional boosting iterations. This choice of low variance
+
+nodes in the base procedure.
+
+L2Boosting, this yields a nonparametric model fit with
+first-order interaction terms. The procedure has been
+empirically demonstrated to be often much better than
+fitting with MARS [23].
+
+Illustration: Prediction of total body fat (cont.).
+Both the gbm package [74] and the mboost package
+
+Illustration: Prediction of total body fat (cont.). Be
+ing more flexible than the linear model which we fit
+
+implements boosting for fitting such classical black
+box models:
+
+ted to the bodyf at data in Section 4.1, we estimate
+an additive model using the gamboost function from
+mboost (first with prespecified rast0p = 100 boosting
+iterations, v = 0.1 and squared error loss):
+
+R> bf_gam
+<- gamboost(DEXfat ~ . ,
+
+are helpful when decision trees are to be used as base
+
+procedures. In mboost, the function blackboost
+
+R> bf_black
+<- blackboost(DEXfat ~ .,
+
+data = bodyfat,
+control
+
+= boost_control
+(mstop = 500))
+
+data = bodyfat)
+
+The degrees of freedom in the componentwise smooth
+
+ing spline base procedure can be defined by the
+df base argument, defaulting to 4.
+We can estimate the number of boosting iterations
+m stop using the corrected AIC criterion described in
+
+Section 5.4 via
+
+Conditional inference trees [47] as available fr
+the party package [46] are utilized as base pro
+dures. Here, the function boost_control defin
+
+the number of boosting iterations mstop.
+Alternatively, we can use the function gbm from t
+gbm package which yields roughly the same fit as c
+be seen from Figure 4.
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+488
+
+P. B?HLMANN AND T. HOTHORN
+
+i
+
+i
+
+i-1-r
+
+90 100 110 120
+
+i-1-r
+
+130
+
+70
+
+waistcirc
+
+hipcirc
+
+i
+
+80 90 100 110
+
+i
+
+i-r
+
+i-1-1-r
+
+8 9 10 11
+
+2.5 3.0 3.5 4.0 4.5 5.0
+
+kneebreadth
+
+anthro3b
+
+FlG. 3. bodyf at data: Partial contributions of four covariates in an additive model (without centering of estimated functions to mean
+
+zero).
+
+4.4 The Low-Variance Principle
+
+o
+CD
+
+if)
+
+We have seen above that the struct
+a boosting estimate are determined
+base procedure. In our opinion, the
+tion should come first. After having
+
+O
+LO
+
+O
+O
+O O
+
+question becomes how "complex"
+should be. For example, how sho
+
+_CD
+
+-Q
+C
+
+O
+T3
+
+degrees of freedom for the compon
+
+O
+CO
+
+spline in (4.2)? A general answer
+
+0
+
+procedure (having the desired struc
+ance at the price of larger estimatio
+
+O
+
+T
+
+30 40
+Prediction gbm
+
+ponentwise smoothing splines, this
+number of degrees of freedom, for
+
+We give some reasons for the lo
+ple in Section 5.1 (Replica 1). Mo
+demonstrated in Friedman [32] th
+
+factor v can be often beneficial and
+FlG. 4. body fat data: Fitted values of both the gbm and
+predictive perfo
+mboost implementations of L2Boostingsubstantially
+with differentworse
+regression
+trees as base learners.
+
+estimates. Note that a small step-siz
+
+as a shrinkage of the base procedur
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 489
+implying low variance but potentially large estimation
+
+bias.
+
+where X\ > ? 2 > > Xn denote the (ordered) eigen
+values of Jf. It then follows with (5.1) that
+
+?m = UDmUT,
+
+5. L2BOOSTING
+
+Dm =diag(di,m, ...,dnim),
+
+?^Boosting is functional gradient descent using the
+squared error loss which amounts to repeated fitting
+
+of ordinary residuals, as described already in Sec
+tion 3.3.1. Here, we aim at increasing the understand
+ing of the simple ?^Boosting algorithm. We first start
+with a toy problem of curve estimation, and we will
+then illustrate concepts and results which are especially
+
+useful for high-dimensional data. These can serve as
+heuristics for boosting algorithms with other convex
+loss functions for problems in for example, classifica
+tion or survival analysis.
+
+5.1 Nonparametric Curve Estimation: From Basics
+to Asymptotic Optimality
+Consider the toy problem of estimating a regression
+
+function E[F|X = x] with one-dimensional predictor
+
+IgR and a continuous response 7gR.
+Consider the case with a linear base procedure
+having a hat matrix M :Rn -> Rn, mapping the re
+sponse variables Y = (Y\,..., Yn)T to their fitted val
+
+ues (f(X\),..., f(Xn))T. Examples include nonpara
+
+metric kernel smoothers or smoothing splines. It is
+easy to show that the hat matrix of the /^Boosting
+fit (for simplicity, with f^ = 0 and v = 1) in iteration
+
+m equals
+
+(5.1)
+
+di,m = \-(\-\i)m.
+It is well known that a smoothing spline satisfies
+
+X\ ? ?2 = 1, 0 < Xi < 1 (/ = 3,..., n).
+Therefore, the eigenvalues of the boosting hat operator
+(matrix) in iteration m satisfy
+
+(5.2) d\,m = d2,m = 1 for all m,
+
+(5.3)
+
+0<ditm = l-a-ki)m<l (i = 3,...,?),
+di^m -> 1 (m -? 00).
+
+When comparing the spectrum, that is, the set of eigen
+values, of a smoothing spline with its boosted version,
+we have the following. For both cases, the largest two
+
+eigenvalues are equal to 1. Moreover, all other eigen
+values can be changed either by varying the degrees
+of freedom df = Xw=i ^i iR a single smoothing spline,
+or by varying the boosting iteration m with some fixed
+
+(low-variance) smoothing spline base procedure hav
+ing fixed (low) values A?. In Figure 5 we demonstrate
+the difference between the two approaches for chang
+ing "complexity" of the estimated curve fit by means
+
+of a toy example first shown in [22]. Both methods
+
+fi? = fiw-i + W-5w-i)
+
+= I-{I-M)m.
+
+Formula (5.1) allows for several insights. First, if the
+
+base procedure satisfies \\I ? M\\ < 1 for a suitable
+norm, that is, has a "learning capacity" such that the
+residual vector is shorter than the input-response vec
+
+have about the same minimum mean squared error, but
+
+L2Boosting overfits much more slowly than a single
+smoothing spline.
+By careful inspection of the eigenanalysis for this
+simple case of boosting a smoothing spline, B?hlmann
+and Yu [22] proved an asymptotic minimax rate result:
+
+REPLICA 1 ([22]). When stopping the boosting it
+
+erations appropriately, that is, mst0p ? mn ?
+
+tor, we see that <Sm converges to the identity / as
+m ?> 00, and BmY converges to the fully saturated
+
+0(rc4/(2^+1)), mn -> 00 (n -> 00) with f > 2 as be
+
+model Y, interpolating the response variables exactly.
+Thus, we see here explicitly that we have to stop early
+with the boosting iterations in order to prevent overfit
+
+low, LiBoosting with cubic smoothing splines having
+fixed degrees of freedom achieves the minimax conver
+gence rate over Sobolev function classes of smoothness
+
+ting.
+When specializing to the case of a cubic smoothing
+spline base procedure [cf. (4.3)], it is useful to invoke
+some eigenanalysis. The spectral representation is
+
+M = UDUT,
+uTu = UUT = /,
+
+?> = diag(?i,...,??),
+
+degree ? > 2, as n -? 00.
+Two items are interesting. First, minimax rates are
+achieved by using a base procedure with fixed degrees
+
+of freedom which means low variance from an as
+
+ymptotic perspective. Second, /^Boosting with cubic
+smoothing splines has the capability to adapt to higher
+order smoothness of the true underlying function; thus,
+
+with the stopping iteration as the one and only tuning
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+490
+
+P. BUHLMANN AND T. HOTHORN
+
+Boosting
+
+00
+
+Smoothing Splines
+
+oo
+CD
+
+?
+
+CD
+O
+
+CD
+
+d
+
+CD
+m ^1"
+
+d
+
+d
+CM
+
+CO
+
+d
+
+(D
+o
+
+o
+
+d
+
+d
+
+"T
+
+0 200 400 600 800 1000
+
+10 20 30
+
+40
+
+Degrees of freedom
+
+Number of boosting iterations
+
+FIG. 5. Mean squared prediction error E[(/(X) ? f(X)) ] /or f/z<? regression model Y? = 0.SX? + sin(6Xz) + s? (i = 1,..., n = 100),
+
+with s ~ jV(0, 2), X/ ~ *U(?1/2, 1/2), averaged over 100 simulation runs. Left: L2Boosting with smoothing spline base procedure (havin
+fixed degrees of freedom df - 4) and using v ? 0.1, for varying number of boosting iterations. Right: single smoothing spline with varyin
+degrees of freedom.
+
+where
+parameter, we can nevertheless adapt to any higher
+
+n
+order degree of smoothness (without the need of choos
+ing a higher-order spline base procedure).
+Kh * Kh(u) = n~~l Y^Kh(u -xr)K
+r=\
+Recently, asymptotic convergence and minimax rate
+results have been established for early-stopped boost
+For fixed design points x? = i/n, the
+ing in more general settings [10, 91].
+is asymptotically equivalent to a higher
+
+5.1.1 LiBoosting using kernel estimators. As we (which can take negative values) yield
+have pointed out in Replica 1, /^Boosting of smooth
+bias term of order 0(/z8), assuming
+ing splines can achieve faster mean squared error conregression function is four times conti
+vergence rates than the classical 0(n~4^5), assumingentiable. Thus, twicing or /^Boosting
+
+that the true underlying function is sufficiently smooth. erations amounts to a Nadaraya-Wats
+We illustrate here a related phenomenon with kernel
+mator with a higher-order kernel. This
+estimators.
+another angle why boosting is able t
+We consider fixed, univariate design points x? ?
+mean squared error rate of the base p
+i/n (i = 1,..., n) and the Nadaraya-Watson kernel
+details including also nonequispaced desi
+estimator for the nonparametric regression function
+in DiMarzio and Taylor [27].
+
+E[F|X = jc]:
+
+5.2 ?^Boosting for High-Dimensional
+
+g(x; h) = (nhylJ2K(^~)Yi
+n
+
+= n-lJ2Kh(x-xl)Yl,
+i=l
+
+Models
+
+Consider a potentially high-dimensio
+
+del
+
+p
+
++ J2?U)x(iJ) + ?i' i = h-where h > 0 is the bandwidth, K(-) is a kernel in (5.4) Yi=?o
+7=1
+the form of a probability density which is symmetric
+
+around zero and Kh(x) ? h~~lK(x/h). It is straight
+
+where s\,..., sn are i.i.d. with E[?;] = 0 and indepen
+
+forward to derive the form of /^Boosting using m? 2 dent from all X? 's. We allow for the number of predic
+iterations (with /^ = 0 and v = 1), that is, twicing tors p to be much larger than the sample size n. The
+
+model encompasses the representation of a noisy sig
+nal by an expansion with an overcomplete dictionary
+of functions {g^(0 ' j ? 1,..., /?}; for example, for
+f[2\x) = {nh)~x J2KT(X - x<)Yi>
+
+[83], with the Nadaraya-Watson kernel estimator:
+n
+
+i=\
+
+KJ?(u) = 2Kh(u)-Kh*Kh(u),
+
+surface modeling with design points in Z? e E2,
+
+Yi = f(Zi) + eh
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 491
+
+f(z) = J2?U)SU\z) (zeR2).
+j
+
+R> rho <- function(y, f, w = 1) {
+
+p <- pmax(pmin(l - le-05, f ) ,
+le-05)
+
+Fitting the model (5.4) can be done using
+
+/^Boosting with the componentwise linear least
+squares base procedure from Section 4.1 which fits in
+every iteration the best predictor variable reducing the
+residual sum of squares most. This method has the fol
+
+}
+
+-y * log(p) - (1 - y)
+* log(l - p)
+
+R> ngradient
+<- function(y, f, w = 1) y - f
+R> offset
+
+lowing basic properties:
+1. As the number m of boosting iterations increases,
+the L2Boosting estimate f^ ( ) converges to a least
+squares solution. This solution is unique if the de
+sign matrix has full rank p <n.
+
+2. When stopping early, which is usually needed to
+avoid overfitting, the /^Boosting method often does
+
+variable selection.
+
+3. The coefficient estimates /3M are (typically)
+shrunken versions of a least squares estimate /3ols,
+related to the Lasso as described in Section 5.2.1.
+
+Illustration: Breast cancer subtypes. Variable selec
+tion is especially important in high-dimensional situa
+tions. As an example, we study a binary classification
+problem involving p ? 7129 gene expression levels in
+n = 49 breast cancer tumor samples (data taken from
+[90]). For each sample, a binary response variable de
+scribes the lymph node status (25 negative and 24 pos
+itive).
+The data are stored in form of an exprSet object
+westbc (see [35]) and we first extract the matrix of
+expression levels and the response variable:
+
+R> x <- t(exprs(westbc))
+
+R> y <- pData(westbc)$nodal.y
+
+We aim at using /^Boosting for classification (see
+Section 3.2.1), with classical AIC based on the bi
+nomial log-likelihood for stopping the boosting itera
+tions. Thus, we first transform the factor y to a numeric
+
+variable with 0/1 coding:
+
+R> yfit <- as.numeric(y) - 1
+The general framework implemented in mboost allows
+
+us to specify the negative gradient (the ngradient
+argument) corresponding to the surrogate loss func
+tion, here the squared error loss implemented as a
+function rho, and a different evaluating loss function
+
+(the loss argument), here the negative binomial log
+likelihood, with the Family function as follows:
+
+<- function(y, w)
+
+weighted.mean(y, w)
+R> L2fm <- Family(ngradient =
+ngradient,
+loss = rho,
+offset = offset)
+The resulting object (called L2 f m), bundling the nega
+tive gradient, the loss function and a function for com
+
+puting an offset term (offset), can now be passed
+to the glmboost function for boosting with compo
+nentwise linear least squares (here initial mst0p = 200
+iterations are used):
+
+R> ctrl <- boost_control
+(mstop = 200,
+
+center = TRUE)
+
+R> west_glm <- glmboost
+
+(x, yfit,
+
+family = L2fm,
+control = ctrl)
+
+Fitting such a linear model to p = 7129 covariates
+for n = 49 observations takes about 3.6 seconds on a
+medium-scale desktop computer (Intel Pentium 4, 2.8
+GHz). Thus, this form of estimation and variable selec
+tion is computationally very efficient. As a comparison,
+computing all Lasso solutions, using package lars [28,
+
+39] in R (with use .Gram=FALSE), takes about 6.7
+seconds.
+
+The question how to choose mst0p can be addressed
+by the classical AIC criterion as follows:
+
+R> aie <- AIC(west_glm,
+method = "classical")
+R> mstop(aie)
+[1] 100
+
+where the AIC is computed as ? 2(log-likelihood) +
+
+2(degrees of freedom) = 2(evaluating loss) +
+
+2(degrees of freedom); see (5.8). The notion of degrees
+of freedom is discussed in Section 5.3.
+
+Figure 6 shows the AIC curve depending on the
+number of boosting iterations. When we stop after
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+492
+
+P. B?HLMANN AND T. HOTHORN
+o
+c
+
+CD
+
+'o
+
+it
+
+<D
+O
+
+O
+
+O
+<
+
+o
+CD
+
+N
+TD
+i_
+
+o
+
+co
+
+C?
+
+"O
+c
+
+03
+
+-4?*
+
+CO
+
+ID
+CM
+
+0 5 10 15 20 25 30
+Index
+
+i
+
+r
+
+0 50 100 150 200
+Number of boosting iterations
+
+Fig. 6. westbc data: Standardized regression coefficients ?^J Var(XO')) (left panel) for mst0p = 100 determined from the classical AIC
+criterion shown in the right panel.
+
+mst0p = 100 boosting iterations, we obtain 33 genes
+with nonzero regression coefficients whose standard
+
+ized values )8^y Var(X^) are depicted in the left
+
+panel of Figure 6.
+
+Of course, we could also use BinomialBoosting for
+analyzing the data; the computational CPU time would
+be of the same order of magnitude, that is, only a few
+
+seconds.
+
+5.2.1 Connections to the Lasso. Hastie, Tibshirani
+and Friedman [42] pointed out first an intriguing con
+nection between ?^Boosting with componentwise lin
+
+ear least squares and the Lasso [82] which is the fol
+lowing lx-penalty method:
+
+latter is very similar to the algorithm proposed ear
+lier by Osborne, Presnell and Turlach [67]. In spe
+cial cases where the design matrix satisfies a "positive
+cone condition," FSLR, Lasso and LARS all coincide
+([28], page 425). For more general situations, when
+adding some backward steps to boosting, such modi
+fied L2Boosting coincides with the Lasso (Zhao and
+
+Yu [93]).
+
+Despite the fact that /^Boosting and Lasso are not
+equivalent methods in general, it may be useful to in
+terpret boosting as being "related" to lx-penalty based
+
+methods.
+
+5.2.2 Asymptotic consistency in high dimensions.
+We review here a result establishing asymptotic con
+
+n / p \2
+sistency for very high-dimensional but sparse linear
+models
+(5.4). To
+notion of high
+?{X) = argminrc-1 ?1as inY,
+-capture
+?othe-J^?^X^
+? i=\\ j=\ !
+dimensionality, we equip the model with a dimension
+(5.5)
+ality p ? pn which is allowed to grow with sample
+size n; moreover, the coefficients ?^ = ?n are now
+7=1
+
+Efron et al. [28] made the connection rigorous and ex
+plicit: they considered a version of /^Boosting, called
+forward stagewise linear regression (FSLR), and they
+showed that FSLR with infinitesimally small step-sizes
+(i.e., the value v in step 4 of the /^Boosting algorithm
+
+in Section 3.3.1) produces a set of solutions which
+is approximately equivalent to the set of Lasso solu
+tions when varying the regularization parameter ? in
+
+Lasso [see (5.5)]. The approximate equivalence is de
+rived by representing FSLR and Lasso as two differ
+ent modifications of the computationally efficient least
+
+angle regression (LARS) algorithm from Efron et al.
+[28] (see also [68] for generalized linear models). The
+
+potentially depending on n and the regression function
+is denoted by fn{-).
+
+REPLICA 2 ([18]). Consider the linear model in
+(5.4). Assume that pn ? 0(exp(rc1-^)) for some 0 <
+
+? < 1 (high-dimensionality) and supneNJ2Pj'Li \?n I <
+
+oo (spars ene s s of the true regression function w.r.t. the
+
+?l-norm); moreover, the variables X? are bounded
+and E[|?/14^] < oo. Then: when stopping the boosting
+iterations appropriately, that is, m ? mn ?> oo (n ->
+oo) sufficiently slowly, L^Boosting with component
+wise linear least squares satisfies
+
+Exnew[(/lm"](Xnew) - /n(Xnew))2] ~> 0
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+in probability (n ?> oo),
+
+BOOSTING ALGORITHMS AND MODEL FITTING 493
+
+where Xnew denotes new predictor variables, inde
+pendent of and with the same distribution as the
+X-component of the data (X;, Y?) (i ? 1, ..., n).
+The result holds for almost arbitrary designs and no
+assumptions about collinearity or correlations are re
+quired. Replica 2 identifies boosting as a method which
+
+R> Ctrl <- boost_control
+(mstop = 5000)
+R> bf_bs <- glmboost
+(bsfm, data = bodyfat,
+control = Ctrl)
+R> mstop(aie <- AIC(bf_bs))
+[1] 2891
+
+is able to consistently estimate a very high-dimensional
+
+but sparse linear model; for the Lasso in (5.5), a simi
+lar result holds as well [37]. In terms of empirical per
+formance, there seems to be no overall superiority of
+/^Boosting over Lasso or vice versa.
+
+5.2.3 Transforming predictor variables. In view of
+Replica 2, we may enrich the design matrix in model
+(5.4) with many transformed predictors: if the true re
+
+gression function can be represented as a sparse lin
+ear combination of original or transformed predictors,
+
+consistency is still guaranteed. It should be noted,
+though, that the inclusion of noneffective variables in
+the design matrix does degrade the finite-sample per
+formance to a certain extent.
+
+For example, higher-order interactions can be speci
+fied in generalized AN(C)OVA models and /^Boosting
+with componentwise linear least squares can be used to
+select a small number out of potentially many interac
+tion terms.
+
+As an option for continuously measured covariates,
+we may utilize a B-spline basis as illustrated in the next
+
+paragraph. We emphasize that during the process of
+L2Boosting with componentwise linear least squares,
+individual spline basis functions from various predic
+tor variables are selected and fitted one at a time; in
+contrast, /^Boosting with componentwise smoothing
+splines fits a whole smoothing spline function (for a
+selected predictor variable) at a time.
+
+Illustration: Prediction of total body fat (cont.).
+Such transformations and estimation of a correspond
+
+ing linear model can be done with the glmboost
+function, where the model formula performs the com
+putations of all transformations by means of the bs (B
+spline basis) function from the package splines. First,
+we set up a formula transforming each covariate:
+
+R> bsfm
+
+DEXfat ~ bs(age) + bs(waistcirc) +
+bs(hipcirc) + bs(elbowbreadth) +
+bs(kneebreadth) + bs(anthro3a) +
+bs(anthro3b) + bs(anthro3c) +
+bs(anthro4)
+
+The corrected AIC criterion (see Section 5.4) suggests
+to stop after rast0p = 2891 boosting iterations and the
+final model selects 21 (transformed) predictor vari
+ables. Again, the partial contributions of each of the
+nine original covariates can be computed easily and are
+shown in Figure 7 (for the same variables as in Fig
+ure 3). Note that the depicted functional relationship
+derived from the model fitted above (Figure 7) is qual
+itatively the same as the one derived from the additive
+
+model (Figure 3).
+
+5.3 Degrees of Freedom for /^Boosting
+A notion of degrees of freedom will be useful for
+estimating the stopping iteration of boosting (Sec
+tion 5.4).
+
+5.3.1 Componentwise linear least squares. We con
+sider L2Boosting with componentwise linear least
+squares. Denote by
+
+M^ = X(^(X(^)T/||X(^ ||2, j = l,...,p,
+the n x n hat matrix for the linear least squares fit
+ting operator using the jih predictor variable X^ =
+
+(x[j\...,X{nj))T only; ||x||2 = xTx denotes the
+
+Euclidean norm for a vector x e M.n. The hat matrix
+of the componentwise linear least squares base proce
+dure [see (4.1)] is then
+
+e?(i):(?/i,...,?/w)h^C/i,...,?7n,
+where S is as in (4.1). Similarly to (5.1), we then obtain
+the hat matrix of /^Boosting in iteration m:
+
+(5.6) = /-(/- vJfi4m))
+
+\I -vM^m-x))'"(I -vM^x)),
+where $r e {1,..., p} denotes the component which is
+selected in the componentwise least squares base pro
+cedure in the rth boosting iteration. We emphasize that
+
+and then fit the complex linear model by using the <Sm is depending on the response variable Y via the
+glmboost function with initial mst0p = 5000 boost selected components Sr, r ? 1,..., m. Due to this de
+pendence on Y, <Sm should be viewed as an approxi
+ing iterations:
+mate hat matrix only. Neglecting the selection effect of
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+494
+
+P. BUHLMANN AND T. HOTHORN
+
+ID
+I
+
+i
+
+o
+
+i-1-r
+
+90
+
+100 110 120 130
+hipcirc
+
+i
+
+i-1-r
+
+70 80 90 100 110
+waistcirc
+
+2.5 3.0 3.5 4.0 4.5 5.0
+anthro3b
+FIG. 7. body fat data: Partial fits for a linear model fitted to transformed covariates using B-splines {without centering of estimated
+functions to mean zero).
+
+<$r (r = 1,..., m), we define the degrees of freedom of
+the boosting fit in iteration m as
+
+df(m) = trace (<Bm).
+Even with v = 1, df(m) is very different from counting
+the number of variables which have been selected until
+iteration m.
+
+Having some notion of degrees of freedom at hand,
+
+we can estimate the error variance a^ = E[sf] in the
+linear model (5.4) by
+
+B^Y = X(^{m]. Note that the B{Jhs can be easily
+computed in an iterative way by updating as follows:
+
+Bifm) = #??-? + v ^(4)(7 - ?m-l),
+
+^ = ^1, for all; #4
+Thus, we have a decomposition of the total degrees of
+freedom into p terms:
+p
+
+df(m) = ^df0)(m),
+7=1
+
+a" = n?-???
+?(y' fz[
+- /[mstop](x<))2
+- df(mstop)
+Moreover, we can represent
+p
+
+(5.7) .?my=i= ?>?/\
+where Bm is tne (approximate) hat matrix which
+yields the fitted values for the jth predictor, that is,
+
+df?')(m) = trace(s4j)).
+The individual degrees of freedom df^(m) are a use
+ful measure to quantify the "complexity" of the indi
+vidual coefficient estimate M .
+
+5.4 Internal Stopping Criteria for /^Boosting
+Having some degrees of freedom at hand, we can
+now use information criteria for estimating a good
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 495
+stopping iteration, without pursuing some sort of cross
+
+validation.
+
+We can use the corrected AIC [49]:
+
+^ 1+df (m)/n
+
+AICc(m) = log(?2) + "
+
+(l-df(m) + 2)/n
+
+n
+
+1=1
+
+In mboost, the corrected AIC criterion can be com
+
+puted via AIC(x, method = "corrected")
+(with x being an object returned by glmboost or
+
+gamboost called with family = GaussReg ( ) ).
+
+Alternatively, we may employ the gMDL criterion
+(Hansen and Yu [38]):
+
+6.1 ?^Boosting
+When borrowing from the analogy of /^Boosting
+with the Lasso (see Section 5.2.1), the following is
+relevant. Consider a linear model as in (5.4), allow
+ing for p y>> n but being sparse. Then, there is a suf
+ficient and "almost" necessary neighborhood stability
+condition (the word "almost" refers to a strict inequal
+
+ity "<" whereas "<" suffices for sufficiency) such
+that for some suitable penalty parameter ? in (5.5),
+the Lasso finds the true underlying submodel (the pre
+dictor variables with corresponding regression coeffi
+
+cients ^ 0) with probability tending quickly to 1 as
+n -> oo [65]. It is important to note the role of the suf
+
+ficient and "almost" necessary condition of the Lasso
+for model selection: Zhao and Yu [94] call it the "imp
+df(m)
+resentable condition" which has (mainly) implications
+gMDL(m) = log(S) + ?--nlog(F),
+on the "degree of collinearity" of the design (predic
+tor variables), and they give examples where it holds
+and where it fails to be true. A further complication
+n ? df(m) df(m)5
+is the fact that when tuning the Lasso for prediction
+The gMDL criterion bridges the AIC and BIC in a data optimality, that is, choosing the penalty parameter X
+driven way: it is an attempt to adaptively select the bet in (5.5) such that the mean squared error is minimal,
+ter among the two.
+the probability for estimating the true submodel con
+When using /^Boosting for binary classification verges to a number which is less than 1 or even zero if
+(see also the end of Section 3.2 and the illustration in the problem is high-dimensional [65]. In fact, the pre
+Section 5.2), we prefer to work with the binomial log diction optimal tuned Lasso selects asymptotically too
+likelihood in AIC,
+large models.
+
+no1
+TH^yf-n?2
+S =-,F
+= ^l~l
+l-.
+
+The bias of the Lasso mainly causes the difficul
+ties mentioned above. We often would like to con
+
+n
+
+A\C(m) = -2j^Yilog((3mY)i)
+
+struct estimators which are less biased. It is instructive
+
+;=i
+
+(5.8) +(l-y?)log(l-(SwY)f)
++ 2df(m),
+or for BIC(m) with the penalty term log(n)df(ra). (If
+(cBmY)z- ^ [0, 1], we truncate by max(min((<SmY)/,
+
+1 ? 8), S) for some small 8 > 0, for example, 8 =
+
+10~5.)
+
+6. BOOSTING FOR VARIABLE SELECTION
+We address here the question whether boosting is
+a good variable selection scheme. For problems with
+many predictor variables, boosting is computationally
+much more efficient than classical all subset selection
+schemes. The mathematical properties of boosting for
+
+variable selection are still open questions, for exam
+ple, whether it leads to a consistent model selection
+
+method.
+
+to look at regression with orthonormal design, that is,
+
+the model (5.4) with Y!?=\ X?j)X?k) = Sjk. Then, the
+
+Lasso and also /^Boosting with componentwise lin
+ear least squares and using very small v (in step 4 of
+/^Boosting; see Section 3.3.1) yield the soft-threshold
+
+estimator [23, 28]; see Figure 8. It exhibits the same
+amount of bias regardless by how much the observa
+tion (the variable z in Figure 8) exceeds the threshold.
+This is in contrast to the hard-threshold estimator and
+
+the adaptive Lasso in (6.1) which are much better in
+terms of bias.
+
+Nevertheless, the (computationally efficient) Lasso
+seems to be a very useful method for variable filtering:
+
+for many cases, the prediction optimal tuned Lasso se
+lects a submodel which contains the true model with
+
+high probability. A nice proposal to correct Lasso's
+overestimation behavior is the adaptive Lasso, given
+by Zou [96]. It is based on reweighting the penalty
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+496 P. B?HLMANN AND T. HOTHORN
+
+in (6.1), that is, $? = 0 enforces ?^ = 0. More
+
+Adaptive Lasso
+
+Hard-thresholding
+Soft-thresholding
+
+over, Twin Boosting with componentwise linear least
+
+squares is proved to be equivalent to the adaptive
+Lasso for the case of an orthonormal linear model
+and it is empirically shown, in general and for vari
+ous base procedures and models, that it has much bet
+ter variable selection properties than the corresponding
+boosting algorithm [19]. In special settings, similar re
+
+sults can be obtained with Sparse Boosting [23]; how
+ever, Twin Boosting is much more generically applica
+
+CM
+I
+
+ble.
+
+CO
+I
+
+7. BOOSTING FOR EXPONENTIAL FAMILY
+
+MODELS
+
+For exponential family models with general loss
+functions, we can use the generic FGD algorithm as
+described in Section 2.1.
+
+Fig. 8. Hard-threshold (dotted-dashed), soft-threshold (dotted)
+and adaptive Lasso (solid) estimator in a linear model with ortho
+normal design. For this design, the adaptive Lasso coincides with
+the nonnegative garrote [13]. The value on the x-abscissa, denoted
+by z, is a single component o/X Y.
+
+First, we address the issue about omitting a line
+search between steps 3 and 4 of the generic FGD al
+gorithm. Consider the empirical risk at iteration m,
+
+function. Instead of (5.5), the adaptive Lasso estima
+tor is
+
+n / P \2
+j8(X) = argminrc-1 ? y? - ft - ? ?{j)x\])
+
+(6.1)
+
+? i = l\ 7 = 1 /
+
+?-'?Xr,,;^/))
+i=i
+
+(7.1) ??-'?p^/f-"^))
+i=\
+
+-Vn-lJ2ui8lm](Xi),
+i=\
+
+7 = 1 IPinitl
+
+where ?-mit is an initial estimator, for example, the
+Lasso (from a first stage of Lasso estimation). Con
+sistency of the adaptive Lasso for variable selection
+has been proved for the case with fixed predictor
+dimension p [96] and also for the high-dimensional
+case with p = pn^> n [48].
+We do not expect that boosting is free from the diffi
+
+culties which occur when using the Lasso for variable
+selection. The hope is, though, that also boosting would
+produce an interesting set of submodels when varying
+the number of iterations.
+
+6.2 Twin Boosting
+Twin Boosting [19] is the boosting analogue to the
+adaptive Lasso. It consists of two stages of boosting:
+the first stage is as usual, and the second stage is en
+forced to resemble the first boosting round. For ex
+ample, if a variable has not been selected in the first
+round of boosting, it will not be selected in the sec
+
+ond; this property also holds for the adaptive Lasso
+
+using a first-order Taylor expansion and the definition
+
+of Uj. Consider the case with the componentwise lin
+ear least squares base procedure and without loss of
+generality with standardized predictor variables [i.e.,
+
+n~X E?=i iX\J))2 = 1 for all j]. Then,
+n
+
+?m\x)=n-xY^UiX\*m)x{*m\
+i=i
+
+and the expression in (7.1) becomes
+
+n-'fx^;1"^))
+1=1
+(7.2) *n-lJ2p(Yi>flm~l](*i))
+;=1
+
+-v(n^?U,xfA .
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 497
+
+In case of the squared error loss PL2(y> f) ? \y~
+/|2/2, we obtain the exact identity:
+
+and they can be used for information criteria, for ex
+
+ample,
+n
+
+AIC(m)--2^[^log(^[m](^))
+/=i
+
+*-I?PL2(ri,/['B](Xi))
+1=1
+
++ (i-y/)iog(i-p[m](x/))
+
+= ?"1?PL2(l'?,/[m-11(X/))
+!=1
+
++ 2df(m),
+or for BlC(ra) with the penalty term log(ft)df(m).
+In mboost, this AIC criterion can be computed via
+
+-v(l-v/2)L-1 J2UiXfm))
+
+AIC(x, method = "classical") (with x be
+ing an object returned by glmboost or gamboost
+
+Comparing this with (7.2), we see that functional gra
+
+called with family = Binomial ( ) ).
+
+dient descent with a general loss function and with
+out additional line-search behaves very similarly to
+L2Boosting (since v is small) with respect to opti
+
+Illustration: Wisconsin prognostic breast cancer.
+
+Prediction models for recurrence events in breast can
+cer patients based on covariates which have been com
+puted from a digitized image of a fine needle aspirate
+of breast tissue (those measurements describe charac
+teristics of the cell nuclei present in the image) have
+been studied by Street, Mangasarian and Wolberg [80]
+(the data are part of the UCI repository [11]).
+
+mizing the empirical risk; for /^Boosting, the numeri
+
+cal convergence rate is n~x Y!?=\ Pl2(Y?, f^m\X?)) =
+0(m~1/6) (m ?> oo) [81]. This completes our reason
+ing why the line-search in the general functional gra
+dient descent algorithm can be omitted, of course at
+the price of doing more iterations but not necessarily
+more computing time (since the line-search is omitted
+in every iteration).
+
+We first analyze these data as a binary prediction
+problem (recurrence vs. nonrecurrence) and later in
+Section 8 by means of survival models. We are faced
+with many covariates {p ? 32) for a limited number
+of observations without missing values (n ? 194), and
+
+7.1 BinomialBoosting
+For binary classification with Y e {0, 1}, Binomi
+alBoosting uses the negative binomial log-likelihood
+
+variable selection is an important issue. We can choose
+a classical logistic regression model via AIC in a step
+wise algorithm as follows:
+
+from (3.1) as loss function. The algorithm is described
+
+in Section 3.3.2. Since the population minimizer is
+
+f*(x) ? \og[p(x)/(\ ? p(x))]/2, estimates from Bi
+
+nomialBoosting are on half of the logit-scale: the com
+ponentwise linear least squares base procedure yields
+
+a logistic linear model fit while using component
+wise smoothing splines fits a logistic additive model.
+Many of the concepts and facts from Section 5 about
+
+L2Boosting become useful heuristics for Binomial
+
+Boosting.
+
+One principal difference is the derivation of the
+boosting hat matrix. Instead of (5.6), a linearization
+argument leads to the following recursion [assuming
+/^( ) = 0] for an approximate hat matrix Bm\
+
+R> cc <- complete.cases(wpbc)
+R> wpbc2
+<- wpbc[cc,
+colnames(wpbc) != "time"]
+R> wpbc_step
+<- step(glm(status ~ . ,
+data = wpbc2,
+family = binomial()),
+trace = 0)
+
+The final model consists of 16 parameters with
+
+R> logLik(wpbc_step)
+'log Lik.' -80.13 (df=16)
+
+R> AIC(wpbc_step)
+(7.3)
+
+?m = ?m-i +4vW[m-1]etf(4?)(/ - ?m-i)
+
+(m>2),
+
+W[m] = diag(p[m](X?)(l - p[m\Xi)- \<i< n)).
+A derivation is given in Appendix A.2. Degrees of free
+dom are then defined as in Section 5.3,
+df(m) = trace (<Sm),
+
+[1] 192.26
+
+and we want to compare this model to a logistic re
+gression model fitted via gradient boosting. We sim
+ply select the Binomial family [with default offset of
+l/21og(/3/(l ? p)), where p is the empirical propor
+tion of recurrences] and we initially use mst0p = 500
+boosting iterations:
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+498 P. B?HLMANN AND T. HOTHORN
+
+R> Ctrl <- boost_control
+(mstop = 500,
+R> wpbc_glm
+
+center = TRUE)
+
+depicted in Figure 9 indicating a remarkable degree of
+nonlinearity.
+
+7.2 PoissonBoosting
+
+<- glmboost(status ~ . ,
+data = wpbc2,
+family = Binomial(),
+control = Ctrl)
+
+For count data with Y e {0, 1, 2,...}, we can use
+Poisson regression: we assume that Y\X = x has a
+Poisson(?(x)) distribution and the goal is to esti
+mate the function f(x) = \og(X(x)). The negative log
+
+The classical AIC criterion (?21og-likelihood + 2df)
+
+likelihood yields then the loss function
+
+p(y,/) = -y/ + exp(/), / = log(?),
+
+suggests to stop after
+
+R> aie <- AIC(wpbc_glm, "classical")
+R> aie
+
+[1] 199.54
+
+Optimal number of boosting iterations: 465
+Degrees of freedom (for mstop = 465): 9.147
+
+which can be used in the functional gradient descent
+
+algorithm in Section 2.1, and it is implemented in
+
+mboost as Poisson ( ) family.
+Similarly to (7.3), the approximate boosting hat ma
+trix is computed by the following recursion:
+
+boosting iterations. We now restrict the number of
+boosting iterations to mst0p = 465 and then obtain the
+estimated coefficients via
+
+R> wpbc_glm <- wpbc_glm[mstop(aie)]
+R> coef(wpbc_glm)
+
+[abs(coef(wpbc_glm)) > 0]
+
+(Intercept) mean_radius mean_texture
+
+-1.2 511e-01 -5.8453e-03 -2.450 5e-02
+
+S1 = yW[0]Jf(il),
+
+(7.4) <Bm = Bm-\ + vflw-1]#?(/ - Bm-\)
+
+(m>2),
+W[m]=diag(?[m](X,); \<i<n).
+7.3 Initialization of Boosting
+
+mean_smoothness mean_symmetry mean_fractaldim
+2.8513e+00 -3.9307e+00 -2.8253e+01
+We have briefly described in Sections 2.1 and 4.1 the
+
+SE_texture SE_perimeter SE_compactness
+
+issue of choosing an initial value f^(-) for boosting.
+SE_concavity SE_concavepointsThis
+SE_symmetry
+can be quite important for applications where we
+-8.7553e-02 5.4917e-02 1.1463e+01
+
+-6.9238e+00 -2.0454e+01 5.2125e+00
+
+would like to estimate some parts of a model in an un
+penalized (nonregularized) fashion, with others being
+5.2187e+00 1.3468e-02 1.2108e-03
+worst_area worst_smoothness worst_compactness
+subject to regularization.
+1.8646e-04 9.9560e+00 -1.9469e-01
+For example, we may think of a parametric form of
+tsize pnodes
+
+SE_fractaldim worst_radius worst_perimeter
+
+4.1561e-02 2.4445e-02
+
+/^( ), estimated by maximum likelihood, and devi
+ations from the parametric model would be built in
+
+(Because of using the offset-value f^?\by
+we
+have
+to add
+pursuing
+boosting
+iterations (with a nonparametric
+the value f^ to the reported intercept estimate
+above
+base procedure). A concrete example would be: f^ ( )
+for the logistic regression model.)
+is the maximum likelihood estimate in a generalized
+A generalized additive model adds more
+flexibility
+to would be done with com
+linear
+model and boosting
+the regression function but is still interpretable.
+We
+fit
+ponentwise smoothing splines to model additive de
+a logistic additive model to the wpbc data
+as from
+follows:
+viations
+a generalized linear model. A related
+strategy has been
+used in [4] for modeling multivari
+R> wpbc_gam <- gamboost(status
+~ .,
+ate
+volatility
+in
+financial
+time series.
+data = wpbc2,
+family = Binomial()) Another example would be a linear model Y = X? +
+
+s as in (5.4) where some of the predictor variables,
+R> mopt <- mstop(aie <
+say the first q predictor variables X^l\ ..., X^q\ en
+AIC(wpbc_gam, "classical"))
+
+R> aie
+
+[1] 199.76
+
+Optimal number of boosting iterations: 99
+Degrees of freedom (for mstop =99): 14.583
+
+ter the estimated linear model in an unpenalized way.
+We propose to do ordinary least squares regression on
+
+X^l\ ..., X^: consider the projection Pq onto the lin
+
+ear span of X^\ ..., X^ and use Z^Boosting with
+
+This model selected 16 out of 32 covariates. The partial componentwise linear least squares on the new re
+contributions of the four most important variables are sponse (I ? Pq)Y and the new (p ? q)-dimensional
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+499
+
+BOOSTING ALGORITHMS AND MODEL FITTING
+
+?
+
+?
+
+?
+?
+
+i-1-1-1-1-1-r
+0.08 0.12 0.16 0.20
+worst smoothness
+
+i-r
+
+15 20 25 30
+worst radius
+
+i-1-r
+
+35
+
+0.5
+
+1.0 1.5 2.0 2.5 3.0 3.5
+SE texture
+
+FlG. 9. wpbc data: Partial contributions of four selected covariates in an additive logistic model (without centering of estim
+to mean zero).
+
+predictor (7 ? Pq)X. The final model estimateity
+iscensoring.
+then We sketch this approach in the sequel;
+details are given in [45]. We assume complete data
+E?=i ?oLSjx^ + Ef^+i ?f*?v]~x{j\ where the lat
+of the following form: survival times T? e R+ (some
+ter part is from /^Boosting and x^ is the resid
+of them right-censored) and predictors X? eRp, i =
+ual when linearly regressing x^ to x^]\ ..., x^q\
+1,..., n. We transform the survival times to the log
+A special case which is used in most applications is
+scale, but this step is not crucial for what follows:
+with q ? 1 and X^ = 1 encoding for an intercept.
+Y i = \og(Tj). What we observe is
+
+Then, (/ - Pi)Y = Y - Y and (/ - PX)X^ = X(^ n~l Y%=\ Xi This is exactly the proposal at the end
+of Section 4.1. For generalized linear models, analo
+gous concepts can be used.
+
+8. SURVIVAL ANALYSIS
+The negative gradient of Cox's partial likelihood can
+be used to fit proportional hazards models to censored
+response variables with boosting algorithms [71]. Of
+course, all types of base procedures can be utilized; for
+example, componentwise linear least squares fits a Cox
+model with a linear predictor.
+Alternatively, we can use the weighted least squares
+framework with weights arising from inverse probabil
+
+Ol = (Yl,XhAi),
+
+Yi=log(fi),
+fi =min(7},C/),
+where A/ = 7(7? < C?) is a censoring indicator and
+Ci is the censoring time. Here, we make a restrictive
+assumption that Q is conditionally independent of 7?
+given X[ (and we assume independence among differ
+ent indices i); this implies that the coarsening at ran
+
+dom assumption holds [89].
+We consider the squared error loss for the complete
+
+data, p(y, f) = \y ? f\2 (without the irrelevant fac
+tor 1/2). For the observed data, the following weighted
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+500 P. B?HLMANN AND T. HOTHORN
+version turns out to be useful:
+
+Pobs(o, f) = (y- /)zA?^-,
+G{t\x)
+G(c\x)=?[C>c\X = x].
+Thus, the observed data loss function is weighted by
+
+the inverse probability for censoring AG(?|jc)~ (the
+weights are inverse probabilities of censoring; IPC).
+Under the coarsening at random assumption, it then
+holds that
+
+Ey,x[(r f(X))2] = E0[Pobs(0, f(XM
+see van der Laan and Robins [89].
+The strategy is then to estimate G(-|x), for exam
+ple, by the Kaplan-Meier estimator, and do weighted
+/^Boosting using the weighted squared error loss:
+
+i-1-r
+
+0
+
+?Af?-(iW(*/))2,
+
+where the weights are of the form A/G(7'/|X/)~1 (the
+specification of the estimator G(t\x) may play a sub
+stantial role in the whole procedure). As demonstrated
+in the previous sections, we can use various base proce
+dures as long as they allow for weighted least squares
+fitting. Furthermore, the concepts of degrees of free
+
+3
+
+Time
+FIG.
+
+tl G(7-|X/)V
+
+12
+10.
+
+4
+to
+
+wpbc
+
+5
+
+recur
+data:
+
+model, taking both ti
+into account. The rad
+weight of the corres
+with IPC weight zero
+
+[1] 122
+
+R> wpbc_surv <- wpbc_surv[
+
+mstop(aie)]
+
+dom and information criteria are analogous to Sec
+
+The following variables have been selected for fitting:
+
+tions 5.3 and 5.4. Details are given in [45].
+
+R> names(coef(wpbc_surv)
+
+Illustration: Wisconsin prognostic breast cancer
+(cont). Instead of the binary response variable de
+scribing the recurrence status, we make use of the ad
+ditionally available time information for modeling the
+time to recurrence; that is, all observations with nonre
+currence are censored. First, we calculate IPC weights:
+
+R> censored <- wpbc$status == "R"
+R> iw <- IPCweights(Surv(wpbc$time,
+
+censored))
+
+R> wpbc3 <- wpbc[, names(wpbc) !=
+"status"]
+
+and fit a weighted linear model by boosting with com
+
+ponentwise linear weighted least squares as base pro
+cedure:
+
+R> Ctrl <- boost_control(
+mstop = 500, center = TRUE)
+R> wpbc_surv <- glmboost(
+
+log(time) - ., data = wpbc3,
+control = Ctrl, weights = iw)
+
+R> mstop(aie <- AIC(wpbc_surv))
+
+[abs(coef(wpbc_surv)) > 0])
+
+[1] "mean_radius " "mean__texture"
+[3] "mean_perimeter" "mean_smoothness"
+[5] "mean_symmetry" "SE_texture"
+[7] "SE__smoothness" "SE_concavepoints"
+[9] "SE_symmetry" "worst_concavepoints"
+
+and the fitted values are depicted in Figure 10, showing
+a reasonable model fit.
+
+Alternatively, a Cox model with linear predictor can
+be fitted using /^Boosting by implementing the nega
+tive gradient of the partial likelihood (see [71]) via
+
+R> Ctrl <- boost_control
+(center = TRUE)
+R> glmboost
+(Surv(wpbc $ t ime,
+
+wpbc$status == "N") ~ . ,
+data = wpbc,
+family = CoxPH(),
+control = Ctrl)
+
+For more examples, such as fitting an additive Cox
+model using mboost, see [44].
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 501
+
+9. OTHER WORKS
+We briefly summarize here some other works which
+have not been mentioned in the earlier sections. A very
+different exposition than ours is the overview of boost
+ing by Meir and Ratsch [66].
+
+9.1 Methodology and Applications
+Boosting methodology has been used for various
+other statistical models than what we have discussed
+in the previous sections. Models for multivariate re
+sponses are studied in [20, 59]; some multiclass boost
+
+ing methods are discussed in [33, 95]. Other works
+deal with boosting approaches for generalized linear
+and nonparametric models [55, 56, 85, 86], for flexi
+ble semiparametric mixed models [88] or for nonpara
+metric models with quality constraints [54, 87]. Boost
+ing methods for estimating propensity scores, a special
+weighting scheme for modeling observational data, are
+
+proposed in [63].
+There are numerous applications of boosting meth
+ods to real data problems. We mention here classifi
+cation of tumor types from gene expressions [25, 26],
+multivariate financial time series [2-4], text classifica
+
+The
+
+estimator
+
+dividual
+
+a
+
+function
+
+sues a linear com
+essary in practic
+
+ally look at this
+whose coefficien
+resents an ?1-co
+
+we have already s
+tion 5.2.1. Consis
+lx-regularized "b
+Lugosi and Vayat
+and Blanchard, L
+for rates of conv
+
+bination
+
+scheme
+
+APPENDIX
+
+A
+
+The data analyse
+performed using
+system of statist
+dients of boostin
+and their negativ
+stopping criteria,
+
+in
+
+the
+
+mboost
+
+p
+
+tion [78], document routing [50] or survival analysis
+[8] (different from the approach in Section 8).
+
+interface reflect
+as a tool for estim
+
+9.2 Asymptotic Theory
+
+ample,
+
+The asymptotic analysis of boosting algorithms in
+cludes consistency and minimax rate results. The first
+consistency result for AdaBoost has been given by
+Jiang [51], and a different constructive proof with a
+range for the stopping value mstop = ^stop,? is given
+in [7]. Later, Zhang and Yu [92] generalized the re
+sults for a functional gradient descent with an addi
+tional relaxation scheme, and their theory covers also
+more general loss functions than the exponential loss
+in AdaBoost. For /^Boosting, the first minimax rate
+result has been established by B?hlmann and Yu [22].
+This has been extended to much more general settings
+by Yao, Rosasco and Caponnetto [91] and Bissantz et
+
+[74],
+
+al. [10].
+
+In the machine learning community, there has been
+a substantial focus on estimation in the convex hull of
+function classes (cf. [5, 6, 58]). For example, one may
+want to estimate a regression or probability function by
+
+using
+
+oo
+
+oo
+
+and
+
+exten
+
+tree-based
+
+gradi
+
+mboost
+
+allow
+
+linear
+ods to
+
+or smoot
+compute
+
+BIC
+
+for
+
+low
+
+for
+
+or
+
+the
+
+use
+
+estim
+
+dimensional
+mentation
+mension
+
+of
+
+o
+
+is
+
+(ge
+
+very
+
+the
+
+p
+
+The Fami ly fun
+ate an object of c
+
+negative gradient
+Such an object ca
+dure of a linear o
+
+corresponding e
+Section 5.2). The
+
+implemented boo
+our own boosting
+ative
+
+gradient
+
+Both
+
+the
+
+of
+
+t
+
+sourc
+
+several operatin
+age are freely a
+k=\ k=l
+Archive Networ
+reader
+can
+insta
+where the g^l(.)'s
+belong
+to
+a f
+stumps or trees with
+prompt
+a fixed
+via
+numb
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+502 R B?HLMANN AND T. HOTHORN
+
+R> install.packages("mboost",
+dependencies =
+R> library("mboost")
+
+negative gradient is
+
+3
+
+TRUE)
+
+All analyses presented in this paper are contained in a
+package vignette. The rendered output of the analyses
+is available by the R-command
+
+-77P(y. /) = y - ?> x = exp(/).
+When linearizing i[m] = (i[m\X{),... ,i[m](Xn))T
+we get, analogously to (A.l),
+
+?[m] % ?[m-1] , ^ / f[m] _ f[m-l]\
+
+df f=fm-lKJ J )
+
+R> vignette("mboost_illustrations",
+package = "mboost")
+whereas the R code for reproducibility of our analyses
+
+can be assessed by
+
+= ^N-1] + wlm-l]vje{*m)(Y - i[m~l]),
+where W[m] = diag(A(X?)); 1 < / < n. We then com
+plete the derivation of (7.4) as in the binomial case
+
+above.
+
+R> edit(vignette
+("mboost_illustrations",
+package = "mboost"))
+There are several alternative implementations of
+boosting techniques available as R add-on packages.
+The reference implementation for tree-based gradient
+
+boosting is gbm [74]. Boosting for additive models
+based on penalized B-splines is implemented in GAM
+
+Boost [9, 84].
+
+ACKNOWLEDGMENTS
+We would like to thank Axel Benner, Florian Leiten
+storfer, Roman Lutz and Lukas Meier for discussions
+
+and detailed remarks. Moreover, we thank four ref
+erees, the editor and the executive editor Ed George
+for constructive comments. The work of T. Hothorn
+
+was supported by Deutsche Forschungsgemeinschaft
+(DFG) under grant HO 3242/1-3.
+
+REFERENCES
+
+APPENDIX A.2: DERIVATION OF BOOSTING HAT
+
+MATRICES
+
+Derivation of (7.3). The negative gradient is
+
+3
+
+[1] Amit, Y. and Gem an, D. (1997). Shape quantization and
+recognition with randomized trees. Neural Computation 9
+
+1545-1588.
+
+[2] Audrino, F. and Barone-Adesi, G. (2005). Functional
+
+--w7P(y,f) = 2(y-p),
+exp(/)
+exp(/) + exp(-/)
+
+p ?-<
+
+gradient descent for financial time series with an application
+to the measurement of market risk. J. Banking and Finance
+
+29 959-977.
+
+[3] Audrino, F. and Barone-Adesi, G. (2005). A multivari
+ate FGD technique to improve VaR computation in equity
+markets. Comput. Management Sei. 2 87-106.
+
+Next, we linearize p^: we denote pM = (p^m\X\),
+..., p[m](Xn))T and analogously for f[m]. Then,
+(f[m\ _ P[ra-1]\
+
+(A.l)
+
+df f ? fm ? 1 \ ^ ^ /
+
+= ^[?-U + 2W[m-l]vM{Sm)2(Y - p[m~l]),
+
+where W[m] = diag(p(X/)(l - p(X?)); 1 < i < n).
+Since for the hat matrix, 33mY = pim\ we obtain from
+
+(A.l)
+
+[4] Audrino, F. and B?hlmann, P. (2003). Volatility es
+timation with functional gradient descent for very high
+dimensional financial time series. /. Comput. Finance 6 65
+
+89.
+
+[5] Bartlett, P. (2003). Prediction algorithms: Complexity,
+concentration and convexity. In Proceedings of the 13th IFAC
+Symp. on System Identification.
+
+[6] Bartlett, P. L., Jordan, M. and McAuliffe, J. (2006).
+Convexity, classification, and risk bounds. J. Amer. Statist. As
+
+soc. 101 138-156. MR2268032
+
+[7] Bartlett, P. and Traskin, M. (2007). AdaBoost is con
+sistent. J. Mach. Learn. Res. 8 2347-2368.
+
+?m ?s Bm-\ + v4Wlm-l]MS?'(I - 3m-i) (m > 2),
+which shows that (7.3) is approximately true.
+Derivation of formula (7.4). The arguments are anal
+ogous to those for the binomial case above. Here, the
+
+[8] Benner, A. (2002). Application of "aggregated classifiers"
+in survival time studies. In Proceedings in Computational
+Statistics (COMPSTAT) (W. Hardie and B. R?nz, eds.) 171
+176. Physica-Verlag, Heidelberg. MR!973489
+[9] Binder, H. (2006). GAMBoost: Generalized additive mod
+els by likelihood based boosting. R package version 0.9-3.
+Available at http://CRAN.R-project.org.
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 503
+[10] BiSSANTZ, N., HOHAGE, T., MUNK, A. and RUYMGAART,
+F. (2007). Convergence rates of general regularization meth
+ods for statistical inverse problems and applications. SIAM J.
+
+Numen Anal. 45 2610-2636.
+
+[11] Blake, C. L. and Merz, C. J. (1998). UCI repository of
+machine learning databases. Available at http://www.ics.uci.
+edu/~mlearn/MLRepository .html.
+
+[12] Blanchard, G., Lugosi, G. and Vayatis, N. (2003). On
+the rate of convergence of regularized boosting classifiers. J.
+
+Machine Learning Research 4 861-894. MR2076000
+[13] Breiman, L. (1995). Better subset regression using the non
+negative garrote. Technometrics 37 373-384. MR1365720
+
+[14] Breiman, L. (1996). Bagging predictors. Machine Learning
+
+24 123-140.
+
+[15] Breiman, L. (1998). Arcing classifiers (with discussion).
+Ann. Statist. 26 801-849. MR1635406
+
+[16] Breiman, L. (1999). Prediction games and arcing algo
+rithms. Neural Computation 11 1493-1517.
+[17] BREIMAN, L. (2001). Random forests. Machine Learning 45
+
+5-32.
+
+[18] B?HLMANN, R (2006). Boosting for high-dimensional linear
+
+models. Ann. Statist. 34 559-583. MR2281878
+
+[19] B?HLMANN, R (2007). Twin boosting: Improved feature
+selection and prediction. Technical report, ETH Z?rich.
+Available at ftp://ftp.stat.math.ethz.ch/Research-Reports/
+Other-Manuscripts/buhlmann/TwinBoosting 1 .pdf.
+
+[20] B?HLMANN, P. and Lutz, R. (2006). Boosting algorithms:
+With an application to bootstrapping multivariate time series.
+
+In The Frontiers in Statistics (J. Fan and H. Koul, eds.) 209
+
+230. Imperial College Press, London. MR2326003
+[21] B?HLMANN, P. and Yu, B. (2000). Discussion on 'Addi
+tive logistic regression: A statistical view," by J. Friedman, T.
+
+Hastie and R. Tibshirani. Ann. Statist. 28 377-386.
+
+[22] B?HLMANN, P. and Yu, B. (2003). Boosting with the L2
+loss: Regression and classification. J. Amer. Statist. Assoc. 98
+
+324-339. MR1995709
+
+[23] B?HLMANN, P. and Yu, B. (2006). Sparse boosting. J. Ma
+chine Learning Research 7 1001-1024. MR2274395
+
+[24] Buja, A., Stuetzle, W. and Shen, Y. (2005). Loss
+functions for binary class probability estimation: Struc
+
+ture and applications. Technical report, Univ. Wash
+ington. Available at http://www.stat.washington.edu/wxs/
+Learning-papers/paper-proper-scoring.pdf.
+
+[25] Dettling, M. (2004). BagBoosting for tumor classification
+with gene expression data. Bioinformatics 20 3583-3593.
+
+[26] Dettling, M. and B?hlmann, P. (2003). Boosting for tu
+mor classification with gene expression data. Bioinformatics
+
+19 1061-1069.
+
+[27] DiMarzio, M. and Taylor, C. (2008). On boosting kernel
+regression. /. Statist. Plann. Inference. To appear.
+
+[28] Efron, B., Hastie, T., Johnstone, I. and Tibshirani,
+R. (2004). Least angle regression (with discussion). Ann. Sta
+
+tist. 32 407-499. MR2060166
+[29] Freund, Y. and Schapire, R. (1995). A decision-theoretic
+generalization of on-line learning and an application to boost
+
+ing. In Proceedings of the Second European Conference on
+Computational Learning Theory. Springer, Berlin.
+
+[30] Freund, Y. and Schapire, R. (1996). Experiments with a
+new boosting algorithm. In Proceedings of the Thirteenth In
+ternational Conference on Machine Learning. Morgan Kauf
+
+mann, San Francisco, CA.
+
+[31] Freund, Y. and Schapire, R. (1997). A decision-theoretic
+generalization of on-line learning and an application to boost
+
+ing. J. Comput. System Sei. 55 119-139. MR1473055
+
+[32] Friedman, J. (2001). Greedy function approximation: A
+gradient boosting machine. Ann. Statist. 29 1189-1232.
+
+MR1873328
+
+[33] Friedman, J., Hastie, T. and Tibshirani, R. (2000). Ad
+ditive logistic regression: A statistical view of boosting (with
+
+discussion). Ann. Statist. 28 337-407. MR1790002
+
+[34] Garcia, A. L., Wagner, K., Hothorn, T., Koebnick,
+C, Zunft, H. J. and Trippo, U. (2005). Improved predic
+tion of body fat by measuring skinfold thickness, circumfer
+
+ences, and bone breadths. Obesity Research 13 626-634.
+
+[35] Gentleman, R. C, Carey, V. J., Bates, D. M., Bol
+stad, B., Dettling, M., Dudoit, S., Ellis, B., Gau
+tier, L., Ge, Y., Gentry, J., Hornik, K., Hothorn,
+T., Huber, M., Iacus, S., Irizarry, R., Leisch, F., Li,
+C, M?chler, M., Rossini, A. J., Sawitzki, G., Smith,
+C, Smyth, G., Tierney, L., Yang, J. Y. and Zhang, J.
+
+(2004). Bioconductor: Open software development for com
+putational biology and bioinformatics. Genome Biology 5
+
+R80.
+[36] Green, P. and Silverman, B. (1994). Nonparamet
+
+ric Regression and Generalized Linear Models: A Rough
+ness Penalty Approach. Chapman and Hall, New York.
+
+MR 1270012
+[37] Greenshtein, E. and RlTOV, Y. (2004). Persistence in
+
+high-dimensional predictor selection and the virtue of over
+
+parametrization. Bernoulli 10 971-988. MR2108039
+[38] HANSEN, M. and Yu, B. (2001). Model selection and mini
+mum description length principle. J. Amer. Statist. Assoc. 96
+
+746-774. MR1939352
+
+[39] HASTIE, T. and Efron, B. (2004). Lars: Least angle regres
+sion, lasso and forward stagewise. R package version 0.9-7.
+Available at http://CRAN.R-project.org.
+
+[40] Hastie, T. and Tibshirani, R. (1986). Generalized ad
+ditive models (with discussion). Statist. Sei. 1 297-318.
+
+MR0858512
+
+[41] Hastie, T. and Tibshirani, R. (1990). Generalized Addi
+tive Models. Chapman and Hall, London. MR1082147
+[42] Hastie, T., Tibshirani, R. and Friedman, J. (2001). The
+Elements of Statistical Learning: Data Mining, Inference and
+Prediction. Springer, New York. MR1851606
+
+[43] Hothorn, T. and B?hlmann, P. (2007). Mboost: Model
+based boosting. R package version 0.5-8. Available at http:
+//CRAN.R-project.org/.
+
+[44] Hothorn, T. and B?hlmann, P. (2006). Model-based
+boosting in high dimensions. Bioinformatics 22 2828-2829.
+
+[45] Hothorn, T., B?hlmann, P., Dudoit, S., Molinaro,
+
+A. and VAN DER Laan, M. (2006). Survival ensembles. Bio
+statistics 7 355-373.
+
+[46] Hothorn, T., Hornik, K. and Zeileis, A. (2006). Party:
+A laboratory for recursive part(y)itioning. R package version
+0.9-11. Available at http://CRAN.R-project.org/.
+
+[47] Hothorn, T., Hornik, K. and Zeileis, A. (2006). Un
+
+biased recursive partitioning: A conditional inference frame
+work. J. Comput. Graph. Statist. 15 651-674. MR2291267
+
+[48] Huang, J., Ma, S. and Zhang, C.-H. (2008). Adaptive
+Lasso for sparse high-dimensional regression. Statist. S?nica.
+
+To appear.
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+504 P B?HLMANN AND T. HOTHORN
+[49] Hurvich, C., Simonoff, J. and Tsai, C.-L. (1998).
+Smoothing parameter selection in nonparametric regression
+using an improved Akaike information criterion. J. Roy. Sta
+tist. Soc. Ser. B 60 271-293. MR1616041
+
+[50] Iyer, R., Lewis, D., Schapire, R., Singer, Y. and Sing
+hal, A. (2000). Boosting for document routing. In Proceed
+ings of C1KM-00, 9th ACM Int. Conf. on Information and
+Knowledge Management (A. Agah, J. Callan and E. Runden
+steiner, eds.). ACM Press, New York.
+[51] Jiang, W. (2004). Process consistency for AdaBoost (with
+discussion). Ann. Statist. 32 13-29, 85-134. MR2050999
+
+[52] Kearns, M. and Valiant, L. (1994). Cryptographic limi
+tations on learning Boolean formulae and finite automata. /.
+
+Assoc. Comput. Machinery 41 67-95. MR 1369194
+[53] KOLTCHINSKII, V. and Panchenko, D. (2002). Empirical
+margin distributions and bounding the generalization error of
+
+combined classifiers. Ann. Statist. 30 1-50. MR 1892654
+
+[54] Leitenstorfer, F. and Tutz, G. (2006). Smoothing with
+curvature constraints based on boosting techniques. In Pro
+ceedings in Computational Statistics (COMPSTAT) (A. Rizzi
+and M. Vichi, eds.). Physica-Verlag, Heidelberg.
+
+[55] Leitenstorfer, F. and Tutz, G. (2007). Generalized
+
+monotonie regression based on B-splines with an application
+to air pollution data. Biostatistics 8 654-673.
+
+[56] Leitenstorfer, F. and Tutz, G. (2007). Knot selection
+by boosting techniques. Comput. Statist. Data Anal. 514605
+
+4621.
+[57] Lozano, A., Kulkarni, S. and Schapire, R. (2006).
+
+Convergence and consistency of regularized boosting al
+gorithms with stationary ?-mixing observations. In Ad
+vances in Neural Information Processing Systems (Y. Weiss,
+B. Sch?lkopf and J. Platt, eds.) 18. MIT Press.
+[58] LUGOSI, G. and VAYATIS, N. (2004). On the Bayes-risk con
+sistency of regularized boosting methods (with discussion).
+
+Ann. Statist. 32 30-55, 85-134. MR2051000
+
+[59] Lutz, R. and B?hlmann, P. (2006). Boosting for high
+multivariate responses in high-dimensional linear regression.
+
+Statist. Sinica 16 471-494. MR2267246
+
+[60] Mallat, S. and Zhang, Z. (1993). Matching pursuits with
+time-frequency dictionaries. IEEE Transactions on Signal
+Processing 41 3397-3415.
+
+[61] Mannor, S., Meir, R. and Zhang, T. (2003). Greedy
+algorithms for classification-consistency, convergence rates,
+
+and adaptivity. J. Machine Learning Research 4 713-741.
+
+MR2072266
+
+[62] Mason, L., Baxter, J., Bartlett, P. and Frean, M.
+(2000). Functional gradient techniques for combining hy
+potheses. In Advances in Large Margin Classifiers (A. Smola,
+P. Bartlett, B. Sch?lkopf and D. Schuurmans, eds.) 221-246.
+
+MIT Press, Cambridge.
+[63] McCaffrey, D. F., Ridgeway, G. and Morral, A. R. G.
+(2004). Propensity score estimation with boosted regression
+for evaluating causal effects in observational studies. Psycho
+logical Methods 9 403-425.
+
+[64] Mease, D., Wyner, A. and Buja, A. (2007). Cost
+
+weighted boosting with jittering and over/under-sampling:
+JOUS-boost. J. Machine Learning Research 8 409-439.
+
+[65] Meinshausen, N. and B?hlmann, P. (2006). High
+dimensional graphs and variable selection with the Lasso.
+Ann. Statist. 34 1436-1462. MR2278363
+
+[66] Meir, R. and Ratsch, G. (2003). An introduction to boost
+ing and leveraging. In Advanced Lectures on Machine Learn
+ing (S. Mendelson and A. Smola, eds.). Springer, Berlin.
+
+[67] Osborne, M., Presnell, B. and Turlach, B. (2000). A
+
+new approach to variable selection in least squares problems.
+
+IMA J. Numer. Anal. 20 389-403. MR1773265
+
+[68] Park, M.-Y. and Hastie, T. (2007). An LI regularization
+path algorithm for generalized linear models. J. Roy. Statist.
+
+Soc. Ser. B 69 659-677.
+
+[69] R Development Core Team (2006). R: A language and
+environment for statistical computing. R Foundation for Sta
+tistical Computing, Vienna, Austria. Available at http://www.
+
+R-project.org.
+[70] Ratsch, G., Onoda, T. and M?ller, K. (2001). Soft mar
+gins for AdaBoost. Machine Learning 42 287-320.
+[71] Ridgeway, G. (1999). The state of boosting. Comput. Sei.
+Statistics 31 172-181.
+
+[72] Ridgeway, G. (2000). Discussion on "Additive logistic re
+gression: A statistical view of boosting," by J. Friedman, T.
+Hastie, R. Tibshirani. Ann. Statist. 28 393-400.
+
+[73] Ridgeway, G. (2002). Looking for lumps: Boosting and
+bagging for density estimation. Comput. Statist. Data Anal.
+
+38 379-392. MR1884870
+
+[74] Ridgeway, G. (2006). Gbm: Generalized boosted regres
+sion models. R package version 1.5-7. Available at http://
+www.i-pensieri.com/gregr/gbm.shtml.
+
+[75] SCHAPIRE, R. (1990). The strength of weak learnability. Ma
+chine Learning 5 197-227.
+
+[76] SCHAPIRE, R. (2002). The boosting approach to machine
+learning: An overview. Nonlinear Estimation and Classifica
+
+tion. Lecture Notes in Statist. Ill 149-171. Springer, New
+
+York. MR2005788
+[77] Schapire, R., Freund, Y., Bartlett, P. and Lee, W.
+
+(1998). Boosting the margin: A new explanation for the ef
+fectiveness of voting methods. Ann. Statist. 26 1651-1686.
+
+MR 1673273
+
+[78] Schapire, R. and Singer, Y. (2000). Boostexter: A
+boosting-based system for text categorization. Machine
+Learning 39 135-168.
+[79] Southwell, R. (1946). Relaxation Methods in Theoretical
+Physics. Oxford, at the Clarendon Press. MR0018983
+
+[80] Street, W. N., Mangasarian, O. L., and Wolberg,
+W. H. (1995). An inductive learning approach to prognostic
+prediction. In Proceedings of the Twelfth International Con
+ference on Machine Learning. Morgan Kaufmann, San Fran
+cisco, CA.
+[81] TEMLYAKOV, V. (2000). Weak greedy algorithms. Adv. Corn
+
+put. Math. 12 213-227. MR 1745113
+
+[82] Tibshirani, R. (1996). Regression shrinkage and selec
+tion via the Lasso. J. Roy. Statist. Soc. Ser. B 58 267-288.
+
+MR 1379242
+
+[83] Tukey, J. (1977). Exploratory Data Analysis. Addison
+Wesley, Reading, MA.
+
+[84] Tutz, G. and Binder, H. (2006). Generalized additive
+modelling with implicit variable selection by likelihood based
+
+boosting. Biometrics 62 961-971. MR2297666
+[85] Tutz, G. and Binder, H. (2007). Boosting Ridge regres
+sion. Comput. Statist. Data Anal. 51 6044-6059.
+
+[86] Tutz, G. and Hechenbichler, K. (2005). Aggregating
+classifiers with ordinal response structure. /. Statist. Comput.
+
+Simul. 75 391-408. MR2136546
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+BOOSTING ALGORITHMS AND MODEL FITTING 505
+[87] Tutz, G. and Leitenstorfer, F. (2007). Generalized
+smooth monotonie regression in additive modelling. J. Com
+
+early stopping in gradient descent learning. Constr. Approx.
+
+26 289-315. MR2327601
+
+[88] Tutz, G. and Reithinger, F. (2007). Flexible semipara
+
+[92] Zhang, T. and Yu, B. (2005). Boosting with early stop
+ping: Convergence and consistency. Ann. Statist. 33 1538?
+1579. MR2166555
+
+[89] van der Laan, M. and Robins, J. (2003). Unified Meth
+
+[93] ZHAO, P. and Yu, B. (2007). Stagewise Lasso. J. Mach.
+Learn. Res. 8 2701-2726.
+
+put. Graph. Statist. 16 165-188.
+metric mixed models. Statistics in Medicine 26 2872-2900.
+
+ods for Censored Longitudinal Data and Causality. Springer,
+
+New York. MR 1958123
+
+[90] West, M., Blanchette, C, Dressman, H., Huang, E.,
+Ishida, S., Spang, R., Zuzan, H., Olson, J., Marks,
+J. and Ne vins, J. (2001). Predicting the clinical status of
+human breast cancer by using gene expression profiles. Proc.
+
+Nati. Acad. Sei. USA 98 11462-11467.
+
+[91] Yao, Y., Rosasco, L. and Caponnetto, A. (2007). On
+
+[94] Zhao, P. and Yu, B. (2006). On model selection consis
+tency of Lasso. J. Machine Learning Research 7 2541-2563.
+
+MR2274449
+
+[95] Zhu, J., Rosset, S., Zou, H. and Hastie, T. (2005). Mul
+ticlass AdaBoost. Technical report, Stanford Univ. Available
+at http://www-stat.stanford.edu/~hastie/Papers/samme.pdf.
+
+[96] Zou, H. (2006). The adaptive Lasso and its oracle properties.
+J. Amer. Statist. Assoc. 101 1418-1429. MR2279469
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:01 UTC
+All use subject to https://about.jstor.org/terms
+
+

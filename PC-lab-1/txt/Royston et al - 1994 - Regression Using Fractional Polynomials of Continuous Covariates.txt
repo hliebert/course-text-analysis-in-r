@@ -1,0 +1,3837 @@
+Regression Using Fractional Polynomials of Continuous Covariates: Parsimonious
+Parametric Modelling
+Author(s): Patrick Royston and Douglas G. Altman
+Source: Journal of the Royal Statistical Society. Series C (Applied Statistics), Vol. 43, No. 3
+(1994), pp. 429-467
+Published by: Wiley for the Royal Statistical Society
+Stable URL: https://www.jstor.org/stable/2986270
+Accessed: 16-10-2018 13:27 UTC
+JSTOR is a not-for-profit service that helps scholars, researchers, and students discover, use, and build upon a wide
+range of content in a trusted digital archive. We use information technology and tools to increase productivity and
+facilitate new forms of scholarship. For more information about JSTOR, please contact support@jstor.org.
+Your use of the JSTOR archive indicates your acceptance of the Terms & Conditions of Use, available at
+https://about.jstor.org/terms
+
+Royal Statistical Society, Wiley are collaborating with JSTOR to digitize, preserve and
+extend access to Journal of the Royal Statistical Society. Series C (Applied Statistics)
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+Appl. Statist. (1 994)
+43, No. 3, pp. 429-467
+
+Regression using Fractional Polynomials of
+
+Continuous Covariates: Parsimonious
+Parametric Modelling
+By PATRICK ROYSTONt
+Royal Postgraduate Medical School, London, UK
+
+and DOUGLAS G. ALTMAN
+Imperial Cancer Research Fund, London, UK
+
+[Read before The Royal Statistical Society at a meeting at Rothamsted Experimental Station on
+Wednesday, November 24th, 1993, the President, Professor D. J. Bartholomew, in the Chair]
+
+SUMMARY
+The relationship between a response variable and one or more continuous covariates is often curved.
+Attempts to represent curvature in single- or multiple-regression models are usually made by means
+of polynomials of the covariates, typically quadratics. However, low order polynomials offer a limited
+family of shapes, and high order polynomials may fit poorly at the extreme values of the covariates.
+We propose an extended family of curves, which we call fractional polynomials, whose power terms
+are restricted to a small predefined set of integer and non-integer values. The powers are selected
+
+so that conventional polynomials are a subset of the family. Regression models using fractional
+polynomials of the covariates have appeared in the literature in an ad hoc fashion over a long period;
+we provide a unified description and a degree of formalization for them. They are shown to have
+considerable flexibility and are straightforward to fit using standard methods. We suggest an iterative
+algorithm for covariate selection and model fitting when several covariates are available. We give
+six examples of the use of fractional polynomial models in three types of regression analysis: normal
+errors, logistic and Cox regression. The examples all relate to medical data: fetal measurements,
+immunoglobulin concentrations in children, diabetes in children, infertility in women, myelomatosis
+(a type of leukaemia) and leg ulcers.
+
+Keywords: Curvature; Non-local models; Polynomials; Power transformations; Regression; Smoothing
+
+1. Introduction
+
+Applied statisticians and research workers make widespread, even routine, use of linear
+models. Many research studies include the collection and analysis of data on one or
+more continuous covariates. It is our impression that most users of multiple regression
+or analysis of covariance with such data sets include only linear terms in the
+covariate(s). In other words, each covariate X appears in the model as a term of the
+
+form OX. If curvature in the relationship between the outcome variable and a
+
+is suspected, the model may be extended to include a quadratic term. In most
+
+applications the choice is made between linear and quadratic, with cubic or higher
+order polynomials being used or useful only rarely.
+It has long been recognized that conventional low order polynomials (which offer
+
+only a few curve shapes) do not always fit the data well. High order polynomials
+tAddress for correspondence: Medical Statistics Unit, Department of Medical Physics, Royal Postgraduate Medical
+School, Ducane Road, London, W12 ONN, UK.
+
+E-mail: proyston@rpms.ac.uk
+?C1994 Royal Statistical Society 0035-9254/94/43429
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+430
+
+ROYSTON
+
+AND
+
+ALTMAN
+
+(sometimes even cubics) follow the data more closely but often fit badly at the extremes
+of the observed range of X. A further disadvantage is that polynomials do not have
+asymptotes and cannot fit data where limiting behaviour is expected (McCullagh and
+Nelder, 1989). Various attempts have been made to devise more acceptable models.
+Box and Tidwell (1962) developed an approximate linearization of each variable in
+
+a multiple-regression model giving E 3,if(Xi), e.g. 25+51nX1 + 100X71 + 6X3/
+They concentrated on power transformations of the Xs and showed how to estimate
+the powers iteratively. However, for models with more than one X-variable there
+are considerable difficulties in estimating the powers reliably. We believe that estimation
+of the precise power(s) is unnecessary because the likelihood surface is usually nearly
+flat near the maximum, but in any case Y may not be linear in XP.
+Most of the curves used in the description of human growth are non-linear, but
+a few are linear. For example, in influential early papers on the analysis of longitudinal
+growth studies, Count (1942, 1943) modelled skull growth in white American children
+and the stature of Chinese children from 3 months to 7 years using f% +
+
+f31X+ (2lnX, where X is age. Wingerd (1970) compared the Count model with
+a conventional quadratic and with Y= 1% + f1X+ 32X12, concluding that models
+with more than two terms are required for such data (Berkey and Reed, 1987). Nelder
+
+(1966) suggested a system of inverse polynomials of the form X/Y=E23iXi. For
+example, a quadratic model gives X/Y= f% + f1X+ 02X2, which leads to 1/Y=
+,yo + ylyX+ y2X- 1. Nelder (1966) used the model to describe the relationship between
+
+plant yield and fertilizer concentration.
+The cubic spline may be seen as the link between conventional polynomials and
+
+the modern methods of nonparametric smoothing. Splines were originally developed
+in the 1920s for interpolation (Whittaker, 1923). Much later, the smoothing spline
+was developed as a method for fitting curves to data (Reinsch, 1967; Silverman, 1985).
+A knot is placed at each data point and a parameter is used to control the degree
+of smoothing. A simpler variant is the regression spline (Poirer, 1973), which has
+no smoothing parameter and which uses a small number of knots, typically 3-7, whose
+placement is determined either manually or according to a rule of thumb (e.g. that
+of Durrleman and Simon (1989)). Nonparametric scatterplot smoothers are an attempt
+to 'let the data show us the appropriate functional form' (Hastie and Tibshirani (1990),
+p. 1) rather than imposing a limited range of forms on the data. Typically, the smoother
+is constructed at each data point in turn by weighted regression within a neighbourhood
+of the corresponding covariate value. Cheema and Moussa (1992) review the field
+and give example analyses. Perhaps the best known such smoother is Cleveland's
+(1979) lowess (locally weighted scatterplot smoother).
+Nonparametric and spline smoothers are powerful and flexible tools which indeed
+impose few limitations on the functional form. However, the fitting process can be
+computationally intensive and suitable software is not at present widely available.
+Although the methods are successful for describing data, a major drawback is that,
+since they use local models, they do not yield simple equations for prediction. Also,
+we feel that many users do not require such sophistication but do need models which
+are reasonably flexible, easy to understand, parsimonious and, perhaps above all,
+are simple and quick to fit using standard multiple-regression software. The main
+aim of this paper is to suggest and explore such models.
+The plan of the paper is as follows. In Section 2, we describe briefly the types of
+model and the example data that we are considering. In Section 3, we introduce a
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 431
+
+family of curves, which we call fractional polynomials, whose power terms are
+restricted to a small predefined set of integer and non-integer values. The powers
+are selected so that conventional polynomials are a subset of the family (as also are
+the models of Count, Nelder and Wingerd). We show how to select the required powers
+and discuss model choice. Extensions of the method are considered, particularly to
+the case of multiple predictors. Sections 4-6 describe examples based on six real data
+sets which illustrate the use of the method in three types of regression analysis (normal
+errors, logistic and Cox proportional hazards). Section 7 describes certain plots of
+deviance, which are useful when assessing competing fractional polynomial models.
+Section 8 gives some simulation and bootstrap analyses. Section 9 is an extensive
+discussion.
+
+2. Context
+
+2. 1. Models
+We aim to model a trend in a response variable Y in terms of covariate(s) X = (X1,
+
+Xk). (For notational simplicity, we assume that all the covariates are
+continuous, but this restriction is not necessary and is dropped in Section 3.5.) In
+our examples, we restrict ourselves to generalized linear models (GLMs) and
+proportional hazards regression models (Cox models). Crudely stated, a GLM
+
+comprises a random variable Y with mean A, a model function -q = 77(X, g3)
+
+X and on a vector g3 of parameters, and a link function g such that g(,t
+
+GLM examples are of normal and binomial error models, where the link functions
+
+are taken as g(ju) = It and g(,t) = ln It/(I - It) respectively. For Cox models, we use th
+standard formulation whereby the hazard function X(t; X) is factored as XO(t) exp 7
+X0(t) being the base-line hazard function.
+
+A flexible but tractable model function is the additive predictor- =fo +Efj(X
+wherefo is a constant term andfj (>0) is a function of Xj and a set of paramet
+
+(Stone, 1985). For example, Hastie and Tibshirani (1986, 1990) use locally linear
+
+smoothers such as lowess as the functions fj(Xj). The linear predictor in
+
+an additive predictor with fj(Xj)= fjXj for each j. A model incorporat
+
+quadratic polynomial in Xj has fj(Xj) = fj1IXj + fj2Xj - If each of the com
+fj(Xj) can be written in the form Ei40ijhi(Xj) (as can all conventional poly
+for example), the model function q is then a linear predictor over the extended set
+of covariates hi(Xj). In this paper, we suggest the use of fractional polynomials,
+
+which are simple non-local functions, as fj(Xj). These functions produce models
+
+whose additive predictor is linear in the sense just described.
+Fractional polynomials are defined and described in Section 3. Initially we
+
+concentrate on the case k= 1, that covered by traditional polynomial regression,
+
+f (X) instead of f1 (XI). We deal with the multiple-regression case k> 1 in Sect
+2.2. Data
+
+Our analyses of our six example data sets (see Sections 4-6) generally extend those
+of the original researchers. The response variable in the first three data sets is
+(approximately) normally distributed given the covariate(s) and its variance is
+(approximately) independent of the covariate(s), obviating the need for variance
+modelling. The first two data sets are taken from studies to develop X-specific ref
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+432 ROYSTON AND ALTMAN
+
+centiles for certain physical measurements in humans, X being gestational age in the
+first and age since birth in the second data set. In the third data set, the concentration
+of C-peptide (an insulin-related protein) is predicted from two continuous covariates
+in a study of childhood diabetes. The fourth and fifth data sets exemplify logistic
+regression. The fourth is from a study of in vitro fertilization (IVF) which aimed
+to estimate the serum oestrogen concentration X at which the probability of pregnancy
+was maximal. The fifth is from a clinical trial of two treatments for bone marrow
+cancer; the probability of patient survival is related to several continuous and
+categorical covariates. The final data set (illustrating Cox regression) arises from a
+randomized clinical trial of two treatments for leg ulcers in which one aim was to
+construct a predictive score for the healing time as a function of several covariates.
+Thus examples 1, 2 and 4 have k = 1, whereas examples 3, 5 and 6 have k> 1.
+3. Fractional Polynomials
+
+3. 1. Definition
+We now describe a family of model functions of a single covariate X, subject to
+the restriction X> 0. We consider non-positive covariates at the end of the section.
+We provisionally define a fractional polynomial of degree m to be the function
+m
+
+Om (X; ti P) = t + E t;X(pi), 1
+j=1
+
+where m is a positive integer, p = (Pl, . . Pm) is a real-valued vector of powers with
+Pi < ... <Pm and t = Q01 I, I ..., (m) are real-valued coefficients. The round bracket
+notation signifies the Box-Tidwell transformation,
+
+X(j =Xpi if pj O,
+
+IlnX if pj=0,
+
+as distinct from the more familiar Box-Cox transformation of a response variable
+
+(Box and Cox, 1964), namely Y(l) = (Y- 1)/X for X ?0, y(O) = ln Y. A conventional
+
+polynomial of degree m has pj=j for j= 1, . . ., m and im? 0.
+
+Definition (1) may be extended to the case of equal powers, i.e. m > 1 and pi =pj
+
+for at least one pair of distinct indices (i, j), 1 < i, j < m. For m = 2, (i, j) = (1, 2) and
+
+P = (Pl, pl), we have
+
+?2(X; t, P) = O + (1 + 2)XCDi), (2)
+a fractional polynomial of degree 1, not 2. However, the limit as P2 tends to Pi of
+
+o + I1X(P) + 2X(P)(X(P2P) - 1)/(P2 -PI) (3)
+is easily shown to be
+
+to + 41X(Pl) + t2X(Pi) lnX, (4)
+a three-parameter family of curves. Expression (3) is
+
+02(X; t*, p) = t0* + X(Pl) + ?2*X(P2) by writing t0
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 433
+
+For m >2 and Pi = . expression (4) may be generalized in an obvious
+
+way to
+m
+
+40 + lX1pi) + E (jX(Pd (In X)j-l (5)
+j=2
+
+For arbitrary powers Pi 6... 6Pm we set Ho(X) = 1, po =0 and combine
+
+(1) with expresssion (5) to obtain an extended definition
+m
+
+Om(X; t, p)= E tjHj(X), (6)
+j=O
+
+where for j= 1, . . ., m
+
+H (X)=
+XCDj)
+if pi?XPj-i, (7)
+J Hj-1(X)lnX
+if pj=p-11.
+
+The recurrence relation in equation (7) for Hj(X) in terms of Hj- 1(X) when pj =p1-1
+
+is a representation of the functional part of expression (5) and makes computer
+
+evaluation of fractional polynomials straightforward. We may write the
+
+a vector function H(X) = (Ho, H1, . . ., Hm).
+
+Expressions (6) and (7) are our full (and most concise) definition of a fractional
+polynomial of degree m. Depending on the context, for simplicity we shall sometimes
+
+write Om(X; t, p) as Om(X; p) or as Om(X). Similarly we shall often drop the
+parentheses around numerical values of p, writing for example f1 (X; 0) and
+
+02(X; 0, 1) rather than the strictly correct but fussy fr1 (X; (0)) and c2(X; (0, 1)
+As an example of equation (7), k5 (X; 0, 1, 2, 2, 2) has component functions Ho=
+H1 = lnX, H2=-X, H3=X2, H4 =X2 lnX and H5 =X2(In X)2.
+If non-positive values of X can occur, a preliminary transformation of X to ensure
+positivity is needed. One solution is to choose a non-zero origin r <X and to rewrite
+definition (6) as
+m
+
+Om (X; ti p)= E (jHj (X -. (8)
+j=0
+
+A common case is when X is a positive random variable (such as a physical quantity),
+but owing to imprecise measurement observed values of X can be 0. A simple choice
+of r is minus the rounding interval of sample values of X.
+3.2. Fractional Polynomials of Degree I and Degree 2
+
+It is worth considering the families c1 (X; p) and c2(X; p) specifically, f
+so far found that models with degree higher than 2 are rarely required in practice.
+Fractional polynomials with m 6 2 offer many potential improvements in fit compared
+with conventional polynomials, and all the examples in this paper have m < 2.
+Although rather simple (a set of straight lines in XP or in ln X), the family
+
+/1 (X; p), an approximation to the Box-Tidwell transformation, is often u
+
+However, c2(X; p) is much richer. It may be shown that the curves representing
+
++2(X; p) can assume four basic shapes, depending on the sign of t,/22 and on
+
+whether Pi and P2 have the same or different sign. (Zero values of Pi and P2 are
+taken to have positive sign here.) Fig. 1(a) shows examples of each of the four shapes,
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+434
+
+ROYSTON
+
+(-2,
+
+1)
+
+(-2,
+
+AND
+
+ALTMAN
+
+2)
+
+(-2, 2)
+
+(a)
+
+(b)
+
+Fig. 1. Examples Of +2(X; p), (a) for p = (-2, 1), (- 2, 2), (- 2, -2) and (- 2, - 1); (b) a selection
+of 10 curves with p = (- 2, 2) using different coefficient vectors t
+
+chosen to give some idea of the variety available with only one value of p, (- 2)
+
+four values of P2 ( ? 1, ? 2).
+
+The curves illustrate the region around the minimum or maximum and/or the turning
+point and represent only a portion of the whole curve for X> 0. In Fig. 1(a),
+
+02(X; -2, 1) resembles an asymmetric quadratic and 02(X; -2, 2) an asymmetric
+cubic; 02(X; -2, -2) and 02(X; -2, - 1) have asymptotes at X= oo with the
+
+former rising steeply to a maximum and gradually decreasing. Fig. l(b) shows a
+selection of 10 curves available with m = 2 and p = ( - 2, 2), using different values
+
+of t. The ability to generate a variety of curves some of which have asymptotes or
+which have both a sharply rising or falling portion and a nearly flat part is a particularly
+
+useful feature of +2(X; p).
+3.3. Fractional Polynomials as Model Functions
+
+Conditional on given values of m and p, ckm(X; p) in definition (6) has the form
+of a linear predictor (see Section 2.1) in terms of the covariate vector H(X) and of
+
+the parameter vector t. Viewed thus, ckm(X; p) is a particularly suitable candid
+for the model functionf(X) of Section 2.1, the statistical properties of linear models
+being of course better than those of non-linear models.
+For modelling a data set of size n using fractional polynomials, we propose to
+determine the 'best' value of m and of the power vector p by criteria to be discussed
+in Section 3.4. Candidate values of p are all possible m-tuples selected with replacement
+
+from a fixed set Y. Experience so far suggests that Y =t - 2, - 1, - 0.5, 0, 0.5, 1,
+
+2, .. ., max(3, m)J, which includes all conventional polynomials of degree less than
+or equal to m, is sufficiently rich to cover many practical cases adequately. For m = 2,
+use of this Y generates four quadratics in powers of X, namely with p = (- 2, - 1),
+
+( - 1, - 0.5), (0.5, 1) and (1, 2), a quadratic in lnXwhen p = (O, 0), and other curves
+which have shapes different from those of conventional low degree polynomials (see
+Fig. 1).
+As with conventional polynomials, the degree m is selected either informally on
+a priori grounds or by increasing m until no worthwhile improvement in the fit of
+
+the best fitting fractional polynomial is judged to have occurred (see below).
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 435
+
+3.4. Deviance and Model Choice
+We assume that all models are to be fitted by maximum likelihood. For given m,
+
+the best power vector - = (p1, . .*, -m) is that associated with the model with the
+highest likelihood or equivalently with the lowest deviance D. Thus -p may be
+regarded as the maximum likelihood estimate (MLE) of p over the restricted parameter
+space based on Y. We use the simple definition D = - 2 x log-likelihood, which does
+not include a term representing the log-likelihood of the saturated model. Suppose
+that the elements of p are allowed to vary continuously, rather than being restricted
+
+to Y. Then 4im(X; p) is a non-linear model with parameters p and t. Let p be the
+full MLE of p. Using an obvious notation, the quantity D(m, p) -D(m, p)
+asymptotically has a x2-distribution on m degrees of freedom (DF). Since
+D(m, j) >D(m, p), the statistic D(m, p) -D(m, p) provides an (asymptotically
+
+conservative) test of a given value of p. It may be used as a guide to the adequacy
+of the conventional polynomial of degree m against fractional polynomial alternatives
+
+of the same degree. Specifically, when m = 1, the criterion D(1, 1) - D(1, P)> X ;.IO
+
+(the 90th percentile of x2 with 1 DF, i.e. 2.7) furnishes a test with a significance level
+
+of about lOWo for p = 1 (linearity) against p ? 1 (monotonic alternatives) which may
+be used in an initial investigation of non-linearity.
+
+In practice, for general m the likelihood surface is often flat near (and sometimes
+far from) the MLE p, so there are likely to be several fractional polynomial models
+with similar deviances. As a working rule, we suggest choosing models with values of
+p such that D(m, p) -D(m, p) < as the best fitting among those of degree m.
+When deciding whether model(s) with degree m are adequate or whether degree
+m + 1 is required, we note that two extra parameters (a power and a regression
+coefficient) are estimated when m is increased by 1. Therefore D(m, p) - D(m + 1, p)
+
+is asymptotically distributed as x2 on 2 DF when the degree m model is adequate.
+(p refers implicitly to degree m or to degree m + 1 as appropriate.) We therefore suggest
+
+the criterion D(m, p) - D(m + 1, p)> X2.0.9o (= 4.7) as a rule for preferring models
+
+with degree m + 1 to those with degree m. We expect the probability of a type I error
+associated with this rule to be near (but not exactly) 100/o; it is investigated by using
+simulation in Section 8.1.
+For normal error models with small samples (n < 100, say), we suggest using
+
+appropriate critical points from the F,^ 2-distribution instead of those of t
+
+x2-distribution for both criteria. For comparing models with degree m, each wi
+a constant (Q), the DF for F are vP = m and V2= n - 2m - 1; for comparing degre
+m with m+1, we take PI1=2 and v2=n-2m-3.
+When working with fractional polynomial models, it is convenient to use the deviance
+
+D(1, 1) associated with the straight line model c1 (X; 1) (i.e. m = 1, p = 1) as a base-
+
+line for reporting the deviances of other models. Thus we define the gain G for a
+model on a given data set as the deviance for +1(X; 1) minus that for the model in
+question:
+
+G=G(m, p)=D(1, 1)-D(m, p).
+
+Since G moves in the opposite direction to D, a larger gain indicates a better fit.
+Once m and acceptable models of degree m have been selected as just described,
+the final choice must depend mainly on the appearance of the curves in relation to
+the data, especially at the extremes of X, and, where relevant, the plausibility of the
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+436
+
+ROYSTON
+
+AND
+
+ALTMAN
+
+curve when extrapolated beyond the observed range of X. Non-statistical considerations
+(mainly, the science of the problem) may also need to be taken into account.
+
+3.5. Multiple Covariates
+
+First, suppose that prior reasoning and/or preliminary modelling have identified
+a set of k continuous covariates X and c categoric (without loss of generality, binary)
+covariates Z that are wanted in a final model. We wish to find a satisfactory
+
+combination of power vectors Pi, . *, Pk and degrees ml, . . ., mk. The proposed
+procedure is iterative and is closely related to backfitting (see, for example, Breiman
+
+and Friedman (1985)). The ordering of the covariates is arbitrary. First we fit the
+multiple-regression model whose linear predictor is
+ml
+
+k
+
+c
+
+711=:o+ E (IjHjj(Xj)+ E f3Xj+ EyjZjl
+j=1
+
+choosing
+
+j=2
+
+ml,
+
+j=1
+
+-I
+
+and
+
+HI
+
+(X,)
+
+between Y and the covariates are initially taken as straight line, except possibly that
+
+between Y and X1.) At step 2, we fix the functions Hlj(X1) (but not the coefficien
+* iml) and fit the model
+m2
+
+ml
+
+_q2
+j=1
+
+j=1
+
+k
+
+c
+
+=to
+j=3
+
+j=1
+
+re-estimating
+
++
+
+E
+
+the
+
+Continuing in this way, the first iteration is complete when we reach flk. The model
+
+comprises fractional polynomial terms only; it no longer includes the term E f3Xj.
+The second iteration is similar. At the first step, the model contains the constant 40
+
+and terms in H2(X2), . . ., Hk(Xk) and Z, and a new HI (X,) is determined as
+
+described above. Subsequent steps are analogous. Convergence is attained when the
+
+fractional polynomial functions HI (X,), . . ., Hk(Xk) do not change from
+
+iteration to the next.
+
+We suggest the following variant of the above algorithm as a strategy for
+simultaneous selection of covariates and fractional polynomial powers. It is based
+
+on our experience that the conditional relationships between Y and the Xs in multipl
+covariate models are not often sufficiently complex to require fractional polynomials
+with m > 2. This is probably due to the low signal-to-noise ratio typically found in
+
+such data sets. The algorithm is a type of stepwise regression, much like that described
+by Hastie and Tibshirani (1990), pages 260-261. When considering variable Xi at
+each iteration, we only consider mi < 2. We choose min= 2 if the fit of the pi-model
+for min= 2 is significantly better than the pi-model for mi = 1. Similarly for mi = 1, we
+only choose pi =pi in preference to pi= 1 if Pi is a significantly better fit according
+to the criterion described in Section 3.4. Finally, if pi = 1 is obtained, we omit Xi (at
+this iteration) if the resulting increase in deviance is not statistically significant.
+Likewise, at each step we omit Zi if the increase in deviance is not significant. Any
+omitted variables are retested at the next iteration. (Of course, if variable selection
+is not required, the last step may be skipped.) Convergence is achieved when the set
+
+of fractional polynomial functions (and omitted variables) does not change. Greater
+stringency may be introduced by adopting a lower significance level for the tests.
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 437
+
+4. Examples for Normal Errors Models
+4.1. Mandible Length
+
+In a study of fetal size (Chitty et al., 1993), a large number of ultrasonographic
+fetal measurements were made from the 15th week of gestation onwards. Our data
+set comprises measurements of mandible length and gestational age X in n = 158 fetuses
+of gestational age 28 weeks or less (see Table 1 and Fig. 2). Nine measurements were
+made with X> 28, but at the request of the clinicians they were not included in the
+analysis for two reasons. First, the technique was difficult to perform and excessive
+measurement error was suspected. Second, such fetuses were regarded as a highly
+selected group.
+There is a strong relationship between mandible length and X with evidence that
+the variance increases with X (see Fig. 2). Investigation showed that, for Y=
+ln(mandible length), Y given X is approximately homoscedastic and normally
+distributed. Table 2 shows the gains G for various fractional polynomial models with
+m < 2; for m = 2, the insensitivity of G to the choice of model is marked. The best
+model with m = 1 has - = - 1. It has a gain of 77.51 and fits almost as well as the
+
+best model with m =2, namely p=(-2, 1) for which G = 78.07. The preferred
+
+model is obviously 01(X; - 1), i.e. Y seems linear in 1/X. Judging by the la
+
+systematic patterns among the residuals, the fit of the model is good. The MLE of
+
+the origin parameter v in equation (8) is 0.8 with an approximate 95Wo confidence
+interval of (- 3.0, 3.7), so the choice t = 0 is satisfactory.
+It is interesting that, among conventional polynomials, a cubic (for which G = 78.81)
+
+is required to produce a fit as good as that of k1 (X; - 1). A quartic (with G = 78.95) is
+not significantly better. Fig. 3 shows what happens when the two models c1 (X; - 1)
+and a cubic in X are extrapolated to X= 34 weeks. The nine excluded fetuses with
+X> 28 weeks are indicated by the symbol + . The cubic model, whose fit is almost
+
+indistinguishable from that of +1 (X; - 1) for X? 28, behaves wildly for X> 2
+whereas the fractional polynomial gives sensible results, fitting the additional points
+reasonably well. Fig. 3 also confirms the approximate homoscedasticity of Y.
+
+We also used the method of Altman (1993) to model the standard deviation (SD)
+of mandible length as a straight line function of X, taking (fitted SD)-2 as weights
+in fractional polynomial regression. The best m = 1 power was 0.5. The gains for
+
+40
+E
+
+E
+
+E.
+
+c
+
+0
+
+00
+
+0
+H
+
+0
+
+o0
+
+0
+
+ogo
+
+~00
+
+oO~~~~00
+om
+0
+
+00
+
+0
+0
+
+0
+
+00
+
+o
+?8
+000 00
+
+0
+
+c~~~~~~~0 OD O00
+
+n
+
+0
+
+2 0 0- XO XOO XaD 0
+00
+
+0
+
+0
+
+0- _____________OD____ CM___
+
+12
+
+16 20 24
+Gestational age (weeks)
+
+28
+
+Fig. 2. Mandible length and gestational age for 158 fetuses
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+438
+
+ROYSTON
+
+AND
+
+ALTMAN
+
+TABLE 1
+
+Mandible length L and gestational age X for n = 167 fetusest
+X
+
+L
+
+X
+
+L
+
+X
+
+L
+
+X
+
+L
+
+X
+
+L
+
+X
+
+L
+
+(weeks) (mm) (weeks) (mm) (weeks) (mm) (weeks) (mm) (weeks) (mm) (weeks) (mm)
+12.3
+
+25.0
+
+32
+
+12.4 9 16.3 15 18.3 20 20.4 24 23.0 27 25.1
+12.7 11 16.4 15 18.4 19 20.4 26 23.0 30 25.3
+12.7 11 16.4 18 18.6 21 20.6 27 23.0 31 25.4
+
+8
+
+16.3
+
+33
+37
+33
+
+12.9
+
+28
+
+10
+
+15
+
+16.4
+
+19
+
+18.3
+
+18.6
+
+20
+
+20.3
+
+23
+
+20.6
+
+28
+
+31
+
+22.9
+
+23.1
+
+28
+
+29
+
+25.9
+
+13.1 11 16.6 17 18.6 24 20.7 23 23.3 29 25.9 28
+13.3 9 16.6 19 19.0 19 20.7 23 23.3 29 26.0 31
+
+13.3
+13.6
+14.0
+14.0
+14.0
+14.3
+14.4
+14.6
+14.7
+
+11
+12
+11
+11
+13
+16
+16
+13
+14
+
+16.7
+16.7
+16.7
+16.9
+17.0
+17.0
+17.1
+17.1
+17.3
+
+17
+18
+19
+19
+17
+21
+20
+21
+18
+
+19.0
+19.0
+19.1
+19.3
+19.3
+19.3
+19.3
+19.4
+19.6
+
+20
+23
+20
+19
+21
+22
+23
+21
+21
+
+20.7
+20.7
+20.7
+21.0
+21.0
+21.1
+21.3
+21.4
+21.4
+
+25
+25
+27
+24
+27
+24
+29
+26
+27
+
+23.3
+23.4
+23.6
+23.6
+23.6
+23.7
+23.9
+23.9
+24.0
+
+31
+33
+28
+30
+31
+28
+28
+28
+30
+
+26.0 34
+26.6 26
+26.7 40
+26.9 37
+27.0 39
+27.0 41
+27.1 32
+27.6 40
+27.7 35
+
+14.7 15 17.4 18 19.6 24 21.4 31 24.0 34 27.7 40
+15.0 13 17.4 19 19.7 23 21.6 28 24.1 31 27.9 37
+15.0 15 17.4 19 19.9 23 21.6 29 24.3 29 28.4 38
+15.1 12 17.6 17 20.0 22 21.9 30 24.4 28 28.4 44
+15.1 13 17.6 23 20.0 23 22.0 25 24.4 36 29.0 41
+15.3 13 17.7 25 20.0 23 22.1 28 24.7 28 29.4 38
+15.3 14 17.9 19 20.0 23 22.3 31 24.7 33 29.7 45
+15.6 17 18.0 21 20.1 23 22.6 24 24.7 35 32.0 41
+15.9 17 18.1 21 20.1 25 22.7 28 24.7 35 32.1 32
+16.1 17 18.1 21 20.3 23 22.7 30 24.9 31 32.9 35
+16.1 18 18.1 24 20.3 24 22.9 25 25.0 28 33.6 42
+16.3 14 18.3 18 20.3 24 22.9 27 25.0 29
+
+tData in italics (nine values for which X> 28) are considered unreliable.
+
+TABLE 2
+
+Gain values for fractional polynomial models for the mandible data
+m=l
+
+p
+
+G
+
+m=2
+
+P
+
+m=2
+
+p2
+
+G
+
+(continued)
+
+Pi
+
+p2
+
+G
+
+- 2 60.20 - 2 - 1 77.83 0 0.5 76.73
+1
+77.51
+-0.5
+77.95
+1
+76.23
+-0.5
+69.13
+0
+78.02
+2
+75.03
+0
+51.07
+0.5
+78.06
+3
+73.62
+0.5
+26.87
+1
+78.07
+0.5
+1
+75.08
+1
+0.00t
+2
+77.96
+2
+72.88
+2
+52.97
+3
+77.74
+3
+70.27
+3 - 98.69 - 1 -0.5 77.78 1 2 70.24
+0
+77.76
+3
+66.17
+0.5 77.74 2 3 56.19
+1 77.71
+2 77.67
+3 77.63
+
+-0.5 0 77.50
+0.5 77.32
+1 77.11
+2 76.64
+3 76.10
+
+tBy definition.
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 439
+
+w
+U,
+
+CD 50-
+
+~ 0
+
+120
+
+C
+
+1
+
+0
+
+12
+
+16
+
+20
+
+24
+
+28
+
+32
+
+Gestational
+
+Fig.
+
+3.
+
+Extrapolated
+
+fit
+
+age
+
+for
+
+(weeks)
+
+the
+
+mandible
+
+d
+
+polynomial Xl (X; - 1); --------- cubic polyno
+4.2.
+Immunoglobulin-G
+
++(X;
+
+0.
+
+better
+
+5)
+
+and
+
+fit
+
+than
+
+02
+a
+
+(X;
+
+p-)
+
+straight
+
+were
+line
+
+4.04
+
+and
+
+a
+
+m
+
+4.2. Immunoglobulin-G
+Isaacs et al. (1983) aimed to establish re
+of certain immunoglobulins in children aged from 6 months to 6 years. We consider
+immunoglobulin-G (IgG). Fig. 4 is a plot of IgG concentration in grams per litre against
+age in years (X) for n = 298 children. The relationship of IgG with age is rather
+weak, with some visual evidence of positive skewness (see Fig. 4). We follow Isaacs
+et al. (1983) and take the response variable Y to be the square root of IgG
+concentration, a transformation which appears to eliminate the skewness. A small
+amount of heteroscedasticity is present (the variance of Y is somewhat smaller in the
+centre of the range of X than at the extremes) but we judged it insufficient to have
+much effect on the estimation of the trend in Y.
+
+The best fractional polynomial for m = 1 is q51 (X; 0), its gain of 10.13 indicati
+a significantly better fit than that of the straight line model k1 (X; 1). For m =2, the
+15 0
+
+0
+
+0 0
+
+10
+
+0
+
+0
+
+CD0008
+
+0
+
+0
+
+00
+
+0 080 0 000
+00-o
+00080000~~~~0
+00
+08
+
+o0
+
+Oc
+
+0 0 0 0 8 080
+o~~0 0 0800
+00o
+0) ~~~~00000
+
+Ag0 00e 0 0 00 08a
+Fig. 40.oo
+8 a a fo
+2 00
+080000
+0000
+0
+
+0
+
+0
+
+00
+
+0
+
+0
+
+246
+
+Age
+
+Fig. 4. IgG and age for 298 children
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+(yea
+
+440
+
+ROYSTON
+
+15
+
+A
+
+10
+
+ALTMAN
+
+e
+
+15
+
+?O
+
+?10
+
+o
+
+0
+
+AND
+
+o
+
+2
+4_6
+Age
+(years)
+
+(a)
+
+0
+Age
+
+2
+4_6
+(years)
+
+(b)
+
+Fig. 5. Fits for IgG data: (a) 02(X; 2, 2) ( ), quartic (-------); (b) +2(X; 2, 1) ( ), cubic
+(-)
+
+best fractional polynomial has p( 2, 2) and G = 18.11. Among conventional
+polynomials, a quartic (for which G= 19.87) is required to give a fit that is comparable
+
+with that of 02(X2; p) (see Fig. 5(a)). The quartic shows the usual waviness and 'end
+
+effects' that are often associated with high degree polynomials. The fractional
+
+polynomial model is clearly preferable. The MLE of the shift parameter r is 0.10
+
+with a 95Wo confidence interval of (- 0.70, 0.38), so t =0 is acceptable.
+For comparison, the full curve in Fig. 5(b) depicts the model used by Isaacs et al.
+
+(1983), a quadratic in X12 or (in our notation) +2(X; 0.5, 1). The broken curve
+shows the cubic model +3(X; 1, 2, 3), considered by Isaacs et al. (1983) as an
+alternative but rejected by them because of the clinically implausible rise near X= 6
+
+years. The gains for these two models are 8.08 and 9.87 respectively, so c2(X; p)
+is preferable. We believe that the apparent end effect (the sharp increase in Y) for
+low values of Xis real; a plot of Y against ln X shows a smooth trend from the earliest
+
+ages, and a lowess fit shows a similar pattern. However, the plausibility of any final
+model requires non-statistical (clinical) confirmation.
+4.3. Two Continuous Covariates: Diabetes Data
+
+The diabetes data come from a study of 84 children (Sochett et al., 1987). Data
+on an unspecified subset of 43 children are given in full by Hastie and Tibshirani
+(1990), p. 304. They used the data to exemplify generalized additive modelling. The
+aim was to investigate the dependence of Y, the logarithm of C-peptide concentration
+
+(a protein secreted together with insulin), on age (XI) and base deficit (a measure
+
+of acidity). Base deficit is always negative, so for fractional polynomial modelling we
+take X2 to be minus base deficit. Other predictors were studied by Sochett et al.
+(1987) but they were not given by Hastie and Tibshirani and are not considered here.
+The stepwise algorithm of Section 3.5 converged after two iterations. The initial
+
+and final deviances were 73.05 and 62.25. The model selected was c/ (XI; - 1)
+
+X, (X2; 0) with gains of 8.62 and 3.06 for each term respectively. Increasing the
+
+degree to m = 2 for each covariate would have reduced the deviance of the overall
+model by only 2.89. Fig. 6 shows partial residual plots for each covariate, before
+(i.e. using m = 1 and p = 1) and after transformation. The partial residuals for age
+(top left-hand plot) show clear curvature, which is corrected by the reciprocal
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 441
+
+2
+0
+2
+2-2
+
+c
+C?
+
+o
+
+m
+
+c
+
+0
+
+0
+
+0
+
+En
+
+Mflq
+'D
+0
+0
+
+%0
+00
+
+0
+0
+0(b
+0
+
+4
+
+4
+
+-
+
+2
+
+_
+
+_
+
+_
+
+_
+
+_
+
+4J
+_
+
+_
+
+_
+
+0
+
+0o
+
+,
+0O0
+o
+
+0
+
+C_D
+0
+-i0
+Cu
+M
+
+0
+
+000
+00
+
+0
+
+0
+00
+0
+
+0
+
+0
+_8
+0
+
+0~~~~~~~~~~~~~~~~~~~~~
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_-
+
+0
+
+m
+
+CL
+
+C_
+e
+2
+-21~~0
+
+a
+
+0
+
+1
+0c
+
+02
+
+0~~~~
+
+0
+
+(a) ge (3 = 0) b bas deict(j0 0 fo0iu aedfct
+5.1.EIn Vitro Fertilzatio
+reidul for 00edfct(o ih-an lt sls ovnin,a ol eepce
+fro th rahe smllain(306 asoiae 00 t 0o-rnfomto (p0 0). Hsti
+
+Y 9 wa biay(rgato o) w oarae eemaue ntedyo
+adminitratio
+ofhmncoincgndtohn
+edmtiltikesadpam
+fro
+the
+small garina()
+associated
+w ith l trasdb
+0). Hase
+The ratero
+data
+et compAges=6
+payrent
+Base de Vfrifericity
+
+Fig.le6. Parial rhesiduFalplotsifo thedibets dAfata (0, al, partial rhesiul aepndsited funcionse
+forinstraigtlione
+(in he csemodel
+f a (upper
+inge ovriat)
+plots)ondcaBltoaagsswthtefte
+frtonalotpolyinomnomtial
+de (m
+linesueimosd
+hicpknmoels (lowe plots)):
+
+oetransformatonce(raion
+1,2) botto
+left-hnsde for
+pot). 'ploteesdta(,
+Evidenche fovricratueo
+inthrest
+suggeste Pathaesiusofal
+pscatrltsote
+ating prersiuas
+x'd fi
+Gresdalshrcase
+deficit
+(top
+righot-and
+plot)e
+isslessmn
+convnig
+asde
+wi,ould
+beaexpctedy
+Roy stongh (1992 roecommupendedts an mrtodifie versnoion of= =owes (omittin
+treweighmting)
+wih
+anwit
+andotishiran
+(1990)
+p.fiul
+87,ofo0.8mforfproducingoreasonablycsmoothcplotsuof
+alonsgivetpartial residual plot fonry tsherdat. Their inarye
+fitted
+curvese
+forbae eii
+dsefii
+(bsefo alt
+two-termltsote
+addiplotive moel vrises ati thes nextreelet
+rsdata.sfrbs
+tprgthn
+i escnicn,a oleepce
+handside; the9dat theomselvesdee to providied virtuall nevdeof suchs aoitn iterend.e
+5.eghig Exaple fo Logdistic Regression Mrodellingresnbymotplsofiay
+5at.1.I iretlzto
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+442
+
+ROYSTON
+
+AND
+
+1.0
+
+.
+
+ALTMAN
+
+0.6
+
+0.8
+C(--
+
+ci-
+
+0.6
+
+0.4
+
+L_
+
+oo
+
+Ca_
+
+c-
+
+0.2
+
+0.2
+
+Fig 7.IFdt:()lws siaewt adit 0.84oehrwt rgnl X 1pisrnol
+0
+
+.
+
+0
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+_
+
+0 50b0 10d00 isob5000 0 odoo000 isoo
+E2
+
+(pmol/l)
+(a)
+
+E2
+
+(pmol/D)
+
+(b)
+
+Fig.
+7.
+IY
+'j
+ittered
+
+--- -) and on a quadratic polynomial in X (-----)
+
+The relationship between the lowess-estimated probability of pregnancy and the
+E2 concentration X is non-monotonic (see Fig. 7(a)). The best powers for m = 1 and
+m = 2 in a logistic regression analysis are - 2 and - = (- 1, - 1), with G= 2.25 and
+7.12 respectively, favouring m =2. As expected from the plot, the base-line model
+
+k1 (X; 1) is a poor fit, with a deviance equalling (to two decimal places) that of the
+grand mean model. Arguing from the properties of the distribution of X in the two
+response groups (Y= 0 and Y= 1), Royston (1992) obtained a model which was a
+quadratic in lnX, in our notation +2(X; 0, 0). The gain for this model is 6.60, close
+
+to that of +2(X; p). Despite having G only 2.83 lower than that of q2(X; p), the
+conventional quadratic model +2(X; 1, 2) is not a good fit, as may be seen in Fig.
+
+7(b), which includes the fitted curves for k2 (X; 1, 2) and for +2 (X; p).
+The curve for the latter model is very close to lowess. The curve (not shown) for
+
+02(X; 0, 0) is near to that for +2(X; p) but is a slightly less good fit visually. Th
+estimated values of X (pmol-1') for which the probability of pregnancy is
+
+maximized are about 6600 for lowess, 6150 for +2(X; p), 6750 for O2(X; 0, 0)
+
+7750 for +2(X; 1, 2). We have not attempted to calculate confidence intervals for
+these estimates.
+
+5.2. Myelomatosis Trial
+MacLennan et al. (1988) described the fifth Medical Research Council trial of
+
+treatments for myelomatosis, a type of leukaemia. Patients were randomly allocated
+to receive a new four-drug regimen (ABCM) or conventional therapy (M7). The main
+outcome variable was the survival time (in days) from randomization to death. The
+following continuous covariates were measured at randomization: age (X1),
+haemoglobin (X2), creatinine (X3), serum fl2-microglobulin or SB2 (X4), calcium
+(X5), albumin (X6) and immunoglobulin-M (IgM) (X7). For reasons stated in Section
+3.1, we took = -0.1 for X7 and analysed IgM+0.1 rather than IgM. A threecategory disease severity index was also calculated. Each patient received one of two
+treatments at random. Some survival times were censored; however, each patient was
+followed up for at least 2.5 years (913 days). We define Y= 1 if the patient died between
+0 and 913 days, Y= 0 otherwise. We build a logistic regression model for the probability
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 443
+20 -
+
+Cc
+
++
+
+j4-
+
+4-J
+
+m
+
+10
+
+2
+
+5 10 20 50 100
+Serum beta-2 microglobulin
+
+Fig. 8. Partial residual plots for the SB2 data: 0, +, partial residuals; , fitted function of X4
+for the six-covariate logistic regression model including +2(X4; -2, 3) fitted to the complete sample;
+
+--------, fitted function +1 (X4; - 1) omitting the 15 cases (marked with +) for which X4>40
+
+of death, Pr(Y= lIX), in terms of X1, . . ., X7 and three categorical (binary)
+covariates: treatment (Z1), severity index ?2 (Z2) and severity index > 3 (Z3).
+After exclusion of missing data on covariates (mainly albumin), 544 of the original
+592 patients remain, of whom 283 died (Y= 1). The stepwise procedure described
+in Section 3.5 converges after two iterations. The deviances of the current model at
+
+the start of each iteration are 666.81 (10 terms), 655.08 (six terms) and 656.58 (five
+terms) respectively, 666.81 corresponding to the initial model
+7
+
+3
+
+E ojXj+ E jZj.
+1
+
+1
+
+The final model comprises 42(X4; -2, 3), X5, X6, Z1 and Z2; the remaining
+variables are omitted by stepwise elimination. The gain associated with the model
+
+n4 = 2, p4 = (-2, 3), compared with m4 = 1, p4 = 1, is substantial (14.14); the gai
+the model m4 = 1, p4 = - 1, is 9.14.
+High values of SB2 (X4) are known to be associated with poor prognosis, and in
+fact all patients with values above 40mgl-1 died. We therefore investigated the
+possible presence of bias which may occur in fitted logistic regression models when
+
+regions of covariate values are associated with Y-values of 0 or 1 only (see, for example
+Hastie and Tibshirani (1990), pages 164-165). Fig. 8 shows a partial residual plot
+for SB2. The residuals are calculated as r = (y - )/fjt(1 - j4), where ,u is the estimate
+of Pr(Y= lIX, Z) for an observation y of Y. The (partial) fitted values are i=
+
+t^ + ^4 + 1 42A94 and the plotted points are r+ 71. In the pure region of Y= 1
+
+SB2 > 40), the residuals (here shown as + ) are all positive and track the fitted funct
+In fact, further investigation showed that the M4 =3 model k3 (X4; 0, 3, 3) is
+apparently a better fit than +2(X4; -2, 3). However, this model has even more
+abrupt behaviour, turning upwards rapidly when SB2>40.
+
+We were concerned about the end effects shown in Fig. 8, so we repeated the step
+analysis omitting the 15 patients with SB2 > 40. The procedure again converges after
+three iterations, selecting the same variables as before, except that SB2 now appears
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+444
+
+ROYSTON
+
+AND
+
+ALTMAN
+
+as c/1(X4; - 1), with an associated gain of 15.10. The broken curve in Fig. 8 shows
+the fitted function of X4. It follows the m4 =2 function closely for X4 ?40 but is
+much flatter for higher values. A larger sample would be needed to settle the question
+of which fractional polynomial is the more appropriate; the true function may lie
+between the two. However, the possible effects of pure regions of Y= 1 or Y= 0 at
+the extremes of covariate ranges must be borne in mind when fitting flexible functions
+such as fractional polynomials. The partial residual plot is a useful tool for diagnosing
+such problems.
+
+6. Example for Cox Regression Modelling: Leg Ulcer Trial
+In a clinical trial of two treatments of leg ulcer (Smith et al., 1992), the response
+variable Ywas the number of days from diagnosis to complete healing. Nine covariates
+out of an initial 24 were considered to be biologically plausible candidates for inclusion
+in a final model: these were initial ulcerated area (X1), number of months since
+onset of the ulcer (X2), age (X3), diastolic blood pressure (X4), height (X5), ankle
+pressure (X6), body weight (X7), presence or absence of deep vein involvement
+(Z1) and treatment difference (Z2). Thus there were seven continuous covariates
+(k= 7) and two categorical covariates (c = 2). A secondary aim of the study was to
+develop a prognostic index for estimating healing time for the individual patient
+(Skene et al., 1992), so prediction of Y in terms of the patient's values of X and Z
+was required. The sample size was 200; 17 cases were excluded because covariate
+information was missing, leaving n = 183 cases for analysis. 91 of the healing times
+were censored.
+The number of months since onset (X2) has several values of 0. To permit the use
+of fractional polynomials, we adopt the suggestion of Section 3.1 and shift X2 by
+
+1 ( = - 1), redefining X2 as the number of months plus 1. The reductions in
+deviance compared with the no-covariate model on fitting each continuous covariate
+separately are 66.30, 18.70, 9.31, 7.40, 2.99, 2.42 and 0.04, so X1 (ulcerated area)
+appears to offer the greatest scope for fractional polynomial modelling. The stepwise
+procedure of Section 3.5 converges after one iteration. The final model comprises
+
+c1(X1; 0.5), k1(X2; 0), +1(X3; -2), X4 and Z1; the remaining four variables are
+
+rejected by stepwise elimination. The initial and final deviances are 730.64 and 718.39.
+The gains for X1, X2 and X3 are 3.69, 13.20 and 2.94 respectively, so the greatest
+improvement in fit occurs through X2 rather than X1. Although there is little to be
+
+gained by using / J(XI; p) with p ?1, use of p = 0.5 has some justification as
+
+changes the dimension of X1 from that of an area to that of a linear measurement
+and reduces the deviance by over 3 for no increase in the complexity of the model.
+However, for X3 use of p= -2 has no apparent biological meaning and only
+marginally improves the fit compared with p = 1, so may not be worthwhile. When
+the model is refitted using only the five covariates selected, an additional nine cases
+
+are included and the gains for X1, X2 and X3 become 3.95, 14.61 and 2.85,
+reinforcing the above conclusions.
+Examination of the profile deviance function for the origin parameter r with respect
+
+to the five-parameter model including +1 (X2; ?, t, 0) gives P = - 1.1 and a 95 Wo
+
+confidence interval for r of (- 16, - 0.011). So, although a negative value of r (i.e.
+a positive shift) is required for X2, the actual value is not critical.
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 445
+100
+
+8
+
+~~~~ i -- ~ ~ ~ ~ ~ ~ - - -- - w
+
+50
+
+0
+
+-50_500
+
+5
+
+\N
+
+\\
+
+2
+
+6
+
+2-
+
+\None
+
+0
+
+4
+
+a
+
+~
+
+\\
+~
+
+~
+
+2
+
+3
+
+None
+2
+
+-50
+
+K2~
+-None
+
+-lo
+
+"'
+
+1N
+
+-2
+
+one
+
+Q
+
+_
+
+_
+
+_
+
+_
+
+_
+
+-1-0.500.51
+
+_
+
+2
+
+_
+
+_
+
+3
+
+pl
+
+(a)
+
+_
+
+_
+
+-2
+
+_
+
+_
+
+_
+
+_
+
+_
+
+-1-0.500.51
+
+2
+
+3
+
+pl
+
+(b)
+
+Fig. 9. Gain plotted againstpl for the fractional polynomial model (X) (- -) and for +2(X) with
+eight values of P2 ( , P2 ?; -----P2 < 0): (a) mandible length data (P2-labels for P < 0. 5 have
+
+been suppressed for clarity); (b) IVF data
+
+7. Plots of Gain
+
+When assessing competing fractional polynomial models of degree 1 or 2, it
+informative to plot G against the chosen powers for m = 1, here denoted Pi rather
+than p. For the m = 2 models, G may be plotted against Pi on the same graph as a
+sheaf of curves indexed by the chosen values of P2. For m= 1, the plotted curve
+(assuming suitable interpolation) essentially depicts the profile deviance function
+for Pi when Pi is regarded as an adjustable parameter of the non-linear model
+
+40 + (IXP1. If the curve has a peak, the value of PI corresponding to the maxim
+G is the MLE 61, so the plot gives an idea of how close -1 is to AI. For m = 2,
+
+family of curves indexed by P2 illustrates graphically the power vectors (PI, P2)
+which give high values of G (indicating a good fit) and those which are associated
+with a less good fit. Often the pattern of curves is complex, indicating, as would be
+expected in many cases, that the underlying likelihood surface is far from the parabolic
+shape associated with, for example, the parameters of linear models with normal errors.
+Fig. 9 gives examples of gain plots for the mandible length data (Section 4.1) and
+for the IVF data (Section 5). The curves in Fig. 9 have been created by cubic spline
+interpolation between the values of G corresponding to the eight chosen values of
+
+p, and are therefore only approximations to the true curves. Fig. 9(a) clearly shows
+that 41 (X; p) with - = - 1 is as good a fit (in terms of G) as any of the degree 2
+models. Many of the latter fit about equally well (see also Table 2). For the IVF data,
+
+Fig. 9(b) shows that 41 (X) is a poor fit compared with +2(X), at least over the range
+[ -2, 3] for p1. The G-curve for m= 1 has no peak in [-2, 3] and rises as p
+
+becomes increasingly negative; in fact, the MLE 'I -- 6.
+8. Simulation and Bootstrapping
+8. 1. Simulation
+
+We investigated the type I error rates associated with the model selection rules
+described in Section 3.4. Data were simulated from the straight line model
+Y=X+
+
+e-
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+(9)
+
+446
+
+ROYSTON
+
+AND
+
+ALTMAN
+
+TABLE 3
+
+Estimated type I error rates for model selection rules based on the F-distribution
+
+Distribution of X a HA: m=J, p=J HB: m=J
+
+20
+Uniform
+
+n
+50 100
+
+n
+20 50 100
+
+0.1
+
+Exponential
+
+0.000 0.000 0.000 0.112 0.108 0.106
+0.5 0.086 0.038 0.008 0.076 0.090 0.120
+1.0 0.108 0.078 0.078 0.050 0.056 0.084
+0.1 0.000 0.000 0.000 0.078 0.102 0.092
+0.5
+
+0.070
+
+0.028
+
+0.012
+
+0.080
+
+0.110
+
+0.116
+
+1.0 0.104 0.088 0.072 0.044 0.046 0.094
+
+with independent errors c N(O, a2). Fractional polynomial models with m = 1 and
+m = 2 were fitted. Type I errors were considered in relation to two null hypotheses:
+
+HA: m = 1, p = 1 (the alternative being m = 1, p ? 1), and HB: m = 1 (as opposed to
+m=2). In each case, p was estimated by p. 90th percentiles of the F1n3- and
+F2, -5-distributions were used as critical values to test HA and HB respectively.
+For each run, we fixed a and standardized the realization of Xto have unit variance
+as follows. To make the distribution of X either symmetric or positively skewed, values
+were chosen to be equally spaced on either a uniform or an exponential scale. Writing
+
+qi= i/n (i=, ..., n) and E=qiI/n=I(n+ 1)/n, we took xi=(1/12)"-1/2qi for the
+uniform case and xi* = expf4(qi - q)j, xi = xi* var(x*) - 1/2, for the exponential case. For
+each combination of n=20, 50, 100, u=0.1, 0.5, 1.0 and distribution of X, we
+
+simulated 500 realizations of Yi, . . *, Yn from model (9) by using pseudo
+normally distributed residuals. The rejection rates of HA and HB were noted. The
+results are given in Table 3.
+For hypothesis HA, the type I error increases sharply with a, apparently
+approaching the nominal level (0.1) for noisy data. For HB, the type I error rates
+
+are generally fairly close to nominal, presumably because in this case -p is a
+reasonable approximation to p for models with m = 2. For the models examined here,
+both tests tend, as expected, to be conservative.
+
+8.2. Bootstrapping
+We investigated the reliability of fractional polynomial modelling in one instance
+
+by bootstrap analysis of the IgG data set (see Section 4.2). We wished to quantify
+the variations in p, and consequently in fitted curve shapes and in estimated
+confidence intervals, that would occur with resampling. Fitted values ii and residua
+
+e were computed after fitting the model 02(X; - 2, 2) to the original data. Boot
+
+samples y* were obtained by randomly selecting (with replacement) a vector e* of
+n residuals from e and forming y* = j1 + e*. Power vectors 1p* and fitted values ^ *
+were found by fitting fractional polynomial models with m = 2 to (y*, x) in the usual
+
+way. We also calculated 9070 confidence intervals for 9 in two ways: in standard
+
+fashion from the original data (ignoring the estimation of p) and by using the empirical
+
+5th and 95th centiles of the bootstrap estimates '9
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 447
+TABLE 4
+
+Frequencies of bootstrap estimates p * = (Pi, P2 )
+for the IgG data
+
+P2 Frequencies for the following
+values of P1:
+
+-2 -J -0.5
+-0.5
+0
+
+1
+
+2
+
+0.5
+1
+
+13
+
+29
+
+2
+
+59
+
+3
+
+0
+
+0
+
+61
+
+0
+0
+
+0
+
+0
+
+0
+
+0
+
+2
+
+0
+
+26
+
+7
+
+200 bootstrap samples were taken. Table 4 gives the resulting frequencies of p*.
+Models with p* - (-2, 2) and (-2, 3) were chosen most often (in 60Wo of cases).
+
+Pi was always negative, reflecting the apparent dip in Y at the lowest ages
+
+10(a) shows the curves for the five most common models in Table 4, obtained by
+fitting the models to the original data. The differences between the curves are minor
+and are greatest when X> 5. This is reflected by the confidence intervals for 27 (see
+Fig. 10(b)). The bootstrap intervals are very similar to the conventional intervals,
+except for a slight widening at the extreme right of the range of X.
+9. Discussion
+9. 1. Introduction
+
+The use of regression models which include continuous covariates is widespread,
+but it has long been recognized that conventional polynomials often fit poorly.
+However, it seems that few low dimensional parametric alternatives to, or extensions
+of, conventional polynomials have been suggested. Existing alternatives such as cubic
+splines and nonparametric smoothers often work well but have drawbacks: they are
+computationally intensive, they do not yield compact expressions for prediction, they
+cannot be fitted by using standard regression software and they may be difficult to
+
+15
+
+-
+
+0
+
+8
+
+0
+
+0 0
+
+10
+
+0
+
+0
+
+0 0 00
+0
+2
+
+8
+
+4
+
+0
+
+0 0
+0 o? 0
+~~~~o~~o0~
+011
+06b
+
+0 000
+
+0
+
+5~~~~~~~~0Q
+oo8oo
+
+?
+
+aS
+0
+
+_
+
+_
+
+_
+
+_
+
+0
+
+00
+
+~o 00 o 0
+
+0
+
+0
+
+_
+
+_
+
+_
+
+_
+
+Age
+
+_
+
+_2
+
+_
+
+_
+
+_
+
+(years)
+
+(a)
+
+_
+
+_
+
+_
+
+Age
+
+_
+
+_
+
+_
+
+_
+
+(years)
+
+(b)
+
+Fig. 10. Bootstrap analysis of the IgG data: (a) raw data and the five most common fractional
+polynomial models selected in 200 bootstrap samples and fitted to the original data; (b) 90/o pointwise
+confidence limits for ', calculated by conventional ( ) and empirical bootstrap (--------) methods
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+448
+
+ROYSTON
+
+AND
+
+ALTMAN
+
+explain to the non-expert user. The absence of a simple method that gives a good
+representation of curved relationships may be one reason for the common practice,
+especially in medical statistics, of converting continuous variables into ordinal variables
+with two or more categories.
+Although fractional polynomials have been used by various researchers on an ad
+hoc basis (e.g. Isaacs et al. (1983) and Guo et al. (1988)), we have found only indirect
+mention of them in standard text-books on regression. For example, Snedecor and
+Cochran (1967) mention the addition of 'terms in >X, logX or 1/X . .. if the data
+had required it', but elaborate no further. Draper and Smith (1981) discuss briefly
+reciprocal, logarithmic and square-root transformation of covariates but do not pursue
+the topic. Atkinson (1985) describes how constructed variables may be used to detect
+the need for transformation of covariates but does not consider fractional polynomials
+as such. Although describing a transform both sides methodology, Carroll and Ruppert
+(1988) do not discuss fractional polynomials.
+
+9.2. Discussion Issues
+9.2.1. Choice of model
+It is reasonably straightforward to test between non-nested fractional polynomial
+models of the same or of different degree, e.g. by constructing an encompassing model
+(Mizon and Richard, 1986). We have not done so, preferring the simpler heuristic
+approach of comparing deviances. In practice, by either approach, several models
+
+may be formally indistinguishable, particularly when R2 (the index of determinat
+and the signal-to-noise ratio are small. In Section 3.4, we outlined other criteria for
+choosing one model from a set of contenders. When several models fit equally well,
+
+our main considerations are parsimony, the visual acceptability of the curve in relation
+to the data and the scientific appropriateness of the model (see Section 1). We avoid
+black box approaches wherein the algorithm (or software) takes the major modelling
+decisions on behalf of the user.
+
+9.2.2. Choice of powers
+
+The set L? of powers for fractional polynomials that we have suggested is
+There may be a case for including or substituting others, probably in the range
+
+[ - 1, 1] and particularly for m = 1 models. For example a cube root (3) transformation may make sense if the variable has the dimensions of a volume. We do not
+
+think that non-integer powers outside [ - 1, 1] will be found useful. One reason
+that we have included 3 in ? is because we have found that the linear-cubic curve
+
+02(X; 1, 3) sometimes improves on a quadratic (Altman, 1993). If Y changes rapidly
+
+near X= 0, the power - 3 might be useful.
+
+As noted in Section 3.1, when m > 1 equal powers give rise to models which includ
+products of powers and log-terms. For reasons that are unclear, the best models include
+
+equal powers more often than might be expected. Several examples appear in Sections
+4 and 5, such as - = (- 1, - 1) for the IVF data.
+9.2.3. End effects and extrapolation
+Conventional polynomials often generate artefacts at the extremes of X. Our
+experience indicates that such end effects are less common and less marked with
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 449
+
+fractional polynomials, though models with negative powers, which have a singularity
+at X= 0, may have inappropriately large slopes for X near 0. The absence of end
+effects in the fitted curve is one of the criteria guiding preference among several models
+that fit about equally well (for example, see Table 2 and Fig. 3). The bootstrap analysis
+of the IgG data is reassuring in that all the models selected by resampling give similar
+
+curve shapes, and in particular confirm the behaviour of k2(X; p) at the extremes
+of X.
+We would not extrapolate any curve beyond the observed range except in special
+circumstances such as short-term forecasting. However, such things are sometimes
+done. The dramatically poor performance of the cubic polynomial in this role is
+illustrated in Fig. 3, where the fractional polynomial does much better. A fractional
+
+polynomial with only negative powers (as in Fig. 3) has asymptote 40 as X-+ oo and
+is potentially suitable for modelling data in which limiting behaviour is expected.
+9.2.4. Heterogeneity of variance
+
+The examples of models with normal errors described in Section 4 were chosen
+because the response variable Y was reasonably homoscedastic. If heteroscedasticity
+is present but is not allowed for, estimates of standard errors are inflated. If the
+
+distribution of Y is skewed, a transformation of Y may both stabilize the variance
+and remove the skewness (Box and Cox, 1964). If the errors are believed to be normally
+distributed, the variance or SD may be modelled explicitly. However, model fitting
+and selection are complicated by the interplay between the weights needed for the
+
+modelling of E(Y) and the estimation of the variance function. Modelling the varianc
+(or SD) is critical for obtaining valid normal-based quantile estimates, such as reference
+intervals in medicine (Royston, 1991; Altman, 1993). We shall describe elsewhere the
+use of fractional polynomials for constructing such intervals.
+9.2.5. Multiple covariates
+
+We have suggested a stepwise procedure for selecting fractional polynomial models
+when several candidate covariates are available. Two issues still await formal proof:
+convergence of the algorithm and independence of the final model on the order of
+fitting of each covariate. On all the data sets that we have tried, the algorithm has
+converged in at most three iterations irrespective of the order of fitting. We believe
+the reason for the rapid convergence is that only the functional forms of the covariates,
+not the individual regression coefficients, are required to converge.
+In some cases, our procedure may result in models that are more parsimonious
+(and arguably more valid) than those produced by standard stepwise approaches. If
+the true relationship between Y (conditional on other Xs) and an X is non-linear but
+a straight line model is fitted, some of the non-linearity may be carried by other Xs,
+causing them to be selected. In our approach, those Xs may not be required. An
+example occurs in the leg ulcer data (Section 6). A conventional stepwise Cox regression
+
+analysis on the original covariates produces a six-term model X1, X2, X3, X4, ZI,
+
+Z2, with a deviance of 737.15. Here Z2 is a binary covariate representing a treatment
+effect; the deviance reduction on omitting it from the model is 4.05 (P=
+
+0.04). The chosen fractional polynomial model comprises c/ (X,; 0.
+41 (X3; -2), X4, Z1, and has a deviance of 718.39, a reduction of 18.76 for the loss
+of one term. The inclusion of treatment (Z2) reduces the deviance by 1.99 (P= 0.16).
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+450
+
+ROYSTON
+
+AND
+
+ALTMAN
+
+Thus in this example the clinical conclusions from the study could be radically altered
+
+by the modelling approach adopted.
+A further use of the stepwise procedure is to check the variables in multiple-regression
+models for non-linearities. For example, Fentiman et al. (1994) studied predictors
+of bone mineral content in 1849 naturally or artificially post-menopausal women,
+some receiving hormone replacement therapy (HRT). A conventional stepwise
+regression model comprises four continuous covariates (age, height, weight and months
+of HRT), one ordered categorical covariate (number of children, modelled as
+continuous) and one binary covariate (whether currently on HRT). After adding 1
+to both parity and months of HRT to avoid Os, the stepwise fractional polynomial
+procedure resulted in the same model. This finding increases confidence in the model,
+in that the power to detect non-linearities (if present) is likely to be high owing to
+the large sample size.
+9.2.6. Non-positive covariates and choice of origin
+A large class of variables, including most physical measurements and many other
+types as well, are intrinsically positive and may be used directly in fractional polynomials. Examples of non-positive variables include estimated regression slopes and
+differences (such as post-treatment minus pre-treatment values of a prognostic variable
+in a clinical trial). Our experience suggests that, provided that X- v > 0, the precise
+value of v chosen is not critical to the fit of the resulting fractional polynomial model
+in X- ?, presumably because p and v are highly correlated. A general rule for selecting
+reasonable (or initial) values of t would be useful and is a topic for further research.
+9.2.7. Fractional polynomials with m >2
+Although no example data set which requires m >2 has been given, we have
+encountered several data sets with k= 1 which need m = 3. An obvious strategy for
+finding satisfactory power vectors when m > 2 is to enumerate all m-tuples from Y
+and to select the model(s) with the lowest deviance. Although this approach is feasible
+for m = 3, the amount of computation is somewhat prohibitive for m> 3. An alternative
+approach is to augment the m-tuples which correspond to a few 'best' fractional
+polynomial model(s) of degree m with each power in 9 in turn, choosing the resulting
+best model(s) of degree m + 1 in the usual way. We know that this approach is
+
+unsatisfactory for m = 2; for example, our experience is that the best power with
+rarely appears as a component of p for m =2. However, we hypothesize that the
+likelihood surface (with respect to p) will often be very flat for m >2, making the
+
+choice of p less critical than with m S 2. An alternative strategy is to fix some of t
+m powers and to vary the others systematically until a good fit is obtained. Another
+approach is to enumerate all m-tuples for m >2 from a smaller set of powers than
+
+before, e.g. from 9 = f - 2, - 1, 0, 1, 2}. In each case the computational burden and
+the potential overfitting would be reduced, but possibly at the cost of a significant
+loss of model flexibility in some cases.
+9.3. Further Points
+9.3.1. General modelling problems
+Certain general considerations apply to most modelling strategies and are not specific
+to the use of fractional polynomials. These issues include the selection of covariates
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 451
+
+by stepwise or other methods, avoidance of overfitting by use of penalized likelihoods
+or deviances and the assessment of model performance (especially goodness of fit
+and expected prediction error). Each of these topics has its own literature and requires
+no particular comment with respect to fractional polynomial models.
+9.3.2. Relation to non-linear models
+If for given m the parameter vector p is treated as continuously varying in
+some or all of its components and its MLE is determined from the data, equation
+
+(6) becomes a non-linear model. For example, if we write X* = ln X then '1 (X) give
+
+the exponential regression model E(Y) = O + j exp(piX*) often used to represe
+growth or decay, whereas 02(X) yields the double-exponential curve E(Y)=
+40 + 4j exp(p,X*) + 42 exp(P2X*).
+9.3.3. Extensions of fractional polynomial models
+Extensions of model (6) could involve other transformations X* of X. For example,
+X* = exp X could be used in place of X. However, although the family (6) using X*
+is location invariant for X, it is highly scale dependent. Investigation so far suggests
+that the use of X* = exp(X/s) or of X* = exp(- X/s), where s is the SD of sample
+
+values xl, . . ., xn, can generate useful models, particularly when Y is believed to
+tend to some lower or upper bound for large X. The possibilities are limitless. For
+example, models containing a mixture of fractional polynomials in X and in X* might
+be considered. We have occasionally found uses for fractional polynomials in lnX
+or in ln(X+ 1), especially for the former when Y rises or falls steeply at small values
+of X. As always, the choice must be guided by the known or postulated characteristics
+of the data and by the quality of the fit.
+9.4. Final Comments
+Statistical models approximate relationships between variables. In general the terms
+in the model, and their coefficients, lack a specific meaning. Rather, it is understood
+that the model is simply a convenient formula that gives a good description of the
+
+relationship within the space of the observed data. There is no particular reason, other
+than convention, why regression models should include only positive integer powers
+of the covariate(s). As we have shown, the use of fractional polynomials can give
+a better fit with fewer terms in the model. We have applied these models to many
+data sets in addition to the six examples considered in this paper. We usually find
+a model that is an improved fit in comparison with the conventional polynomial with
+the same number of terms. Because we include conventional polynomials within our
+
+family, we cannot obtain a worse fit. We do not suggest that fractional polynomial
+models should supplant existing methods; rather, they should be seen as a convenient
+addition to the applied statistician's toolbox.
+
+Copies of the raw data for examples 1-4 are available from the first author on
+request. Either send him a formatted PC-compatible floppy disc (any capacity) or
+
+send an e-mail message to him at proyston@rpms.ac.uk.
+Acknowledgements
+
+We thank L. Chitty, I. Fentiman, D. Isaacs, J. Lewis and I. MacLennan for the
+mandible, bone density, IgG, leg ulcer and myelomatosis data respectively. We are
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+452
+
+ROYSTON
+
+AND
+
+ALTMAN
+
+grateful to Tim Cole and particularly to Peter Sasieni for helpful discussion, insight
+and clarification.
+References
+Afnan, M., Mastrominas, M., Dimitry, E. S., Davis, S. and Winston, R. M. L. (1993) The relationship
+
+between endometrial thickness and implantation rate following in-vitro fertilization and embryo
+transfer. Unpublished.
+Altman, D. G. (1993) Construction of age-related reference centiles using absolute residuals. Statist.
+Med., 12, 917-924.
+Atkinson, A. C. (1985) Plots, Transformations and Regression, pp. 177-180. Oxford: Oxford Scientific.
+Berkey, C. S. and Reed, R. B. (1987) A model for describing normal and abnormal growth in early
+childhood. Hum. Biol., 59, 973-987.
+Box, G. E. P. and Cox, D. R. (1964) An analysis of transformations (with discussion). J. R. Statist.
+Soc. B, 26, 211-252.
+Box, G. E. P. and Tidwell, P. W. (1962) Transformation of the independent variables. Technometrics,
+4, 531-550.
+Breiman, L. and Friedman, J. H. (1985) Estimating optimal transformations for multiple regression
+
+and correlation (with discussion). J. Am. Statist. Ass., 80, 580-619.
+Carroll, R. J. and Ruppert, D. (1988) Transformation and Weighting in Regression. London: Chapman
+and Hall.
+Cheema, M. A. A. and Moussa, M. Y. (1992) Non-parametric regression in curve fitting. Statistician,
+41, 209-225.
+Chitty, L. S., Campbell, S. and Altman, D. G. (1993) Measurement of the fetal mandible-feasibility
+and construction of a centile chart. Prenat. Diag., 13, 749-756.
+Cleveland, W. S. (1979) Robust locally-weighted regression and smoothing scatterplots. J. Am. Statist.
+Ass., 74, 829-836.
+
+Copas, J. B. (1983) Plotting p against x. Appl. Statist., 32, 25-3 1.
+Count, E. W. (1942) A quantitative analysis of growth in certain human skull dimensions. Hum. Biol.,
+14, 143-165.
+(1943) Growth patterns of human physique: an approach to kinetic anthropometry. Hum. Biol.,
+15, 1-32.
+Draper, N. R. and Smith, H. (1981) Applied Regression Analysis, 2nd edn, pp. 221-222. New York:
+
+Wiley.
+Durrleman, S. and Simon, R. (1989) Flexible regression models with cubic splines. Statist. Med., 8,
+551-561.
+Fentiman, I. S., Wang, D. R., Allen, D. S., De Stavola, B. L., Moore, J. W., Fogelman, I. and Reed,
+
+M. J. (1994) Bone density of normal women in relation to endogenous and exogenous oestrogen.
+To be published.
+Guo, S., Roche, A. F. and Moore, W. M. (1988) Reference data for head circumference and 1-month
+increments from 1 to 12 months of age. J. Pediatr., 113, 490-494.
+Hastie, T. J. and Tibshirani, R. J. (1986) Generalized additive models (with discussion). Statist. Sci.,
+1, 297-318.
+(1990) Generalized Additive Models. London: Chapman and Hall.
+Isaacs, D., Altman, D. G., Tidmarsh, C. E., Valman, H. B. and Webster, A. D, B. (1983) Serum
+immunoglobulin concentrations in preschool children measured by laser nephelometry: reference ranges
+for IgG, IgA, IgM. J. Clin. Pathol., 36, 1193-1196.
+MacLennan, I. C. M., Kelly, K., Crockson, R. A., Cooper, E. H., Cuzick, J. and Chapman, C. (1988)
+Results of the MRC myelomatosis trials for patients entered since 1980. Hematol. Oncol., 6, 145-158.
+McCullagh, P. and Nelder, J. A. (1989) Generalized Linear Models, 2nd edn, p. 16. London: Chapman
+and Hall.
+Mizon, G. E. and Richard, J. (1986) The encompassing principle and its application to testing nonnested hypotheses. Econometrica, 54, 657-678.
+Nelder, J. A. (1966) Inverse polynomials, a useful group of multi-factor response functions. Biometrics,
+22, 128-141.
+Poirer, D. J. (1973) Piecewise regression using cubic splines. J. Am. Statist. Ass., 68, 515-524.
+Reinsch, C. H. (1967) Smoothing by spline functions. Numer. Math., 10, 177-183.
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+FRACTIONAL POLYNOMIALS OF CONTINUOUS COVARIATES 453
+
+Royston, P. (1991) Constructing time-specific reference ranges. Statist. Med., 10, 675-690.
+(1992) The use of cusums and other techniques in modelling continuous covariates in logistic
+regression. Statist. Med., 11, 1115-1129.
+Silverman, B. W. (1985) Some aspects of the spline smoothing approach to non-parametric regression
+
+curve fitting (with discussion). J. R. Statist. Soc. B, 47, 1-52.
+Skene, A. I., Smith, J. M., Dore, C. J., Charlett, A. and Lewis, J. D. (1992) Venous leg ulcers: a
+prognostic index to predict time to healing. Br. Med. J., 305, 1119-1121.
+Smith, J. M., Dore, C. J., Charlett, A. and Lewis, J. D. (1992) A randomized trial of Biofilm dressing
+for venous leg ulcers. Phlebology, 7, 108-113.
+Snedecor, G. W. and Cochran, W. G. (1967) Statistical Methods, 6th edn. Iowa: Iowa State University
+Press.
+Sochett, E. B., Daneman, D., Clarson, C. and Ehrich, R. M. (1987) Factors affecting and patterns
+
+of residual insulin secretion during the first year of type I (insulin dependent) diabetes mellitus in
+children. Diabetology, 30, 453-459.
+Stone, C. J. (1985) Additive regression and other nonparametric models. Ann. Statist., 13, 689-705.
+Whittaker, E. T. (1923) On a new method of graduation. Proc. Edinb. Math. Soc., 41, 63-75.
+Wingerd, J. (1970) The relation of growth from birth to two years to sex, parental size and other factors,
+using Rao's method of the transformed time scale. Hum. Biol., 42, 105-131.
+
+Discussion of the Paper by Royston and Altman
+A. W. Bowman (University of Glasgow): It is a real pleasure to propose the vote of thanks for this
+paper, doubly so because I am also able to congratulate Rothamsted on its 150th birthday. In both
+cases there is a strong history of effective, innovative and applied statistical modelling, and these are
+histories worthy of congratulations.
+
+I find the historical perspective useful. The traditional origins, and much of the current practice,
+of statistics lie firmly in parametric models and their interpretation. The systematic framework for
+inference, and where appropriate the scientific basis for the model itself, are extremely important. At
+the other end of the spectrum, the fully nonparametric approach seeks to abandon all unnecessary
+constraints. In the best British tradition, the authors have sought to occupy the middle ground.
+From the perspective of the middle ground there is an admirable honesty in recognizing that the
+parametric shape of a model does not always have complete scientific validity. It is often simply a helpful
+approximation. The view presented by the paper of the difficulties with models at the nonparametric
+end of the spectrum is that we require computationally intensive, and non-standard, calculations. This
+view may be a little overstated since it is possible to write simple smoothing routines even in short
+MINITAB macros. Another view is that nonparametric approaches are difficult to explain. However,
+a local average is quite a simple concept. In comparing this with some of the fractional polynomial
+models used in the paper, where we have transformations of x and perhaps also a backfitting algorithm,
+the contrast is not quite so stark.
+The examples are helpful in exploring the essential differences between these approaches. The mandible
+growth data involve a high signal-to-noise ratio. There is also sensible information to build on, such
+as monotonicity, strong smoothness and a slowing of the rate of growth with age. The fractional
+polynomial result is not far from a traditional parametric model. However, a spline estimator with 5
+
+degrees of freedom is almost indistinguishable from this. Extrapolation highlights one essential difference.
+The local nature of the spline estimator gives it no guidance on how to proceed, whereas the fractional
+
+polynomial makes use of its in-built global structure. Of course, this global structure may or may not
+be correct. I would be interested to know from the authors' experience what the effects of perturbations
+of the data at one end of the design space can have on the model at the other end. It is clear from
+their examples that fractional polynomials are less subject to this than ordinary polynomials, but the
+effect must still be there in some form.
+With any models which we use, inference is one of the most important issues. There are two concerns
+about this which I would like to raise. The first is that the model selection algorithm proposed involves
+a choice of indices, a choice of polynomial degree and possibly also some iteration where more than
+one covariate is involved. This is in addition to the usual issues of selection of variables. I wonder whether
+the parametric origins of fractional polynomials may lead us into a false sense of security in thinking
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+454 DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN
+that parametric forms of inference will easily apply. There is a large multiple-testing problem here. The
+authors have begun to address this issue through some simulations presented in the paper but it would
+be interesting to hear more about the stability of this kind of inference.
+A final small comment refers to the bootstrapping approach, which I find helpful. The stability of
+the shapes produced in Fig. 10 is reassuring. However, resampling is taking place from the fitted model,
+which has this shape embodied within it. That in itself is not a guarantee that this shape is reliably
+and correctly identified from the original data. In other words, there are issues of bias here, just as
+there are with nonparametric approaches.
+There is no intention here to champion one particular approach against another, but in considering
+the uses of each there is at least one possible guideline. Where we cannot easily see what the structure
+of the relationship between the response and a covariate is, there are strong attractions in at least starting
+at the nonparametric end of the spectrum. In the immunoglobulin example centiles can be estimated
+directly. (Eileen Wright, University of Glasgow, is developing smoothing techniques for this situation.)
+With logistic regression and survival data, smoothing can be helpful in displaying features of the regression
+structure. With survival data a running median can be constructed from a running Kaplan-Meier
+estimator.
+However, where there is strong prior indication of a high degree of structure, such as the monotonic
+or asymptotic behaviour of some of the examples, the middle ground for which the authors have argued
+does indeed give very useful extensions to the tools at our disposal.
+I propose the vote of thanks with great pleasure.
+D. R. Appleton (University of Newcastle upon Tyne): I am pleased to add my thanks to the authors
+
+for their paper, which I am sure many of the more applied statisticians among us will welcome as providi
+a useful framework for our analyses, but there are some aspects with which I take issue-less what
+the authors do than what they leave out of their modelling process.
+I came to medical statistics from mathematics via numerical analysis and computing. As a result I
+had modelled systems by differential and integral equations, and I had run Monte Carlo simulations
+before fitting my first linear model. Indeed, I found it difficult to accept the word 'modelling' as a
+description of what was being done in large areas of my new subject. Was polynomial regression any
+more than an exercise in matrix algebra? Did an autoregressive model really provide any insight into
+the mechanisms underlying the data? And what relationship to statistical modelling did 'exploratory
+data analysis' have?
+All that was 20 years ago, but I still retain a different view of modelling from many of my colleagues
+Let me try to explain by turning from conceptual to physical models. We probably all know people
+who make models of steam-engines: indeed one of my friends is building a working scale model of
+a locomotive. It is most impressive, but if I want to explain to someone what a steam locomotive looks
+like or how it works I would be as well to show him a real one, because the model offers no simplification,
+no short-cuts to understanding. It is not parsimonious.
+However, there are beautifully made little models which look wonderful but which lack the most
+important feature of a locomotive-locomotion.
+Somewhere in the middle comes the model railway; the trains might run by electricity rather than
+steam, but they do go. This is the kind of model that I aim to build, but some of my colleagues seem
+to prefer those where the wheels do not go round. Those who smooth data rather than fit genuine models
+seem to have even less sophisticated tastes.
+Let me return to the paper under discussion. I shall take two of the examples and try to show how
+I would approach an analysis of the data. The mandible data are about growth, and so I see the model
+in terms of cell proliferation. Suppose that when a cell divides it produces two daughter cells which
+are either proliferative (P) cells or differentiated (Q) cells, and that the probability that they are
+proliferative decreases through a negative feed-back system dependent on the number of differentiated
+cells. I would like to take into account in my model the density of cells in the mandible and whether
+it changes shape during growth, but for the present let me just plot the cube root of the number of
+P + Q cells against time. My model is
+
+dP - 2a P, dtQ = 2a(l - 7) P, n = exp( - pQ)b, L = k(P+ Q)1'3.
+Apart from initial conditions there are four parameters, so I do not claim to be as parsimonious as
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN 455
+
+Altman and Royston, but I think that the modelling process gives more insight than L = exp(4.69 - 30.4/t).
+
+My fit is satisfactory, though I do not claim that it is the best for this model in any sense: I was more
+concerned to show that a good fit was available than to estimate parameters, and in any case I do not
+necessarily believe the form of the feed-back mechanism. (This is what I mean about my models running
+by electricity rather than steam.)
+
+An investigation of how variability in a parameter of the system would express itself in the observed
+data explains quite reasonably where the increasing variance might come from.
+
+For my second example I have constructed some simulated data which in general form are like the
+authors' oestradiol data, and which like theirs can be fitted apparently satisfactorily by relating the
+logit of the probability of success to a quadratic in another variable. But the probability of pregnancy
+in my system depends on not one but two hormones, increasing as the concentration of each increases;
+these two concentrations are negatively correlated in the population, often a consequence of negative
+feed-back. I believe that using the method of fractional polynomials on these data would lead us to
+draw (at least by implication) a qualitatively erroneous conclusion, namely that the probability of success
+was maximal when a variable was near some 'target value'.
+I would like to say more about assessing the adequacy of a model by comparing it with the results
+of different models, and indeed to go on at length about what kind of models we as statisticians should
+be building, but my real task is to thank the speakers for giving me both opportunity and motivation
+to express some of my views on modelling, and I gladly second the vote of thanks.
+The vote of thanks was passed by acclamation.
+A. C. Atkinson (London School of Economics and Political Science): This stimulating paper provides
+a nice mix of theory and data analysis. I shall discuss transformations and diagnostics for the example
+on mandible length.
+Fig. 11(a) is a plot of the data with a fitted straight line. The line seems to describe well the relationship
+between y and x but the variance increases with y. Taking logarithms of the response, as do the authors,
+produces homoscedastic errors but destroys linearity. However, these two can be achieved by transforming
+both sides of the model, a technique of Carroll and Ruppert (1988) mentioned in Section 9.1.
+
+Let the linear predictor be t7 = a + Ox. If the normalized power transformation of Box and Cox (1964)
+
+is applied to response and model we have to fit
+
+yX-l _ +
+
+where y is the geometric mean of the observations. Let the residual sum of squares from fitting this
+model for fixed X be R (X). The profile log-likelihood is
+
+Lm;Dx(X) = - (n/2) log R (X) + constant,
+
+0
+0D
+
+0
+
++
+
+~00
+
++
+
+O
+
+.0~~~~~~~~~~~~~~~~~~~
+
+DV)
+
+C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C
+
+1 2
+Cu0
+
+0 cm25 30 -10 -.
+.0 05 1015 2 5 3
+L
+
+0(a
+
+15
+
+2b
+
+25
+
+30
+
+(b)(c
+
+-1.0
+
+-d.5
+
+0.0
+
+0.5
+
+1.0
+
+15
+
+20
+
+25
+
+30
+
+gestational age lambda gestational age
+(a)
+(b)
+(C)
+
+Fig.
+age
+
+11.
+and
+
+Transf
+fitted
+
+(c) log(length) against age and fitted linear relationship
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+456 DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN
+
+which is maximized by X. This is equivalent to fitting by least squares the model
+
+yx= nx+ X-1 C.
+If this model has residual sum of squares S(X), R (X) = S(X)/(Xfi- 1)2.
+
+Fig. 11(b) is a plot of Lm.ax(X) for the first 158 observations of the mandible data. The valu
+
+is 0.110, with 95 % confidence interval for X (- 0.186, 0.419). Taking logarithms of both sides is therefore
+
+justified. The fitted model is plotted in Fig. 11(c) on the log-scale for y, showing the properties that
+the authors laud in their Fig. 3. Fig. 1(a) shows the fit on the original y-scale. A query for the authors
+is whether, in this case, their incorrect transformation of just the response has led to the need for an
+
+unnecessarily complicated model.
+The transform both sides model is readily fitted by using non-linear least squares. The Gauss-Newton
+method converges rapidly since the parameter estimates change by less than 20% over the range of X
+in Fig. 11(b). Diagnostics for the transform both sides model are an extension of those for response
+
+transformation. Atkinson (1994) derives the constructed variable for the transformation parameter and
+gives examples of constructed variable plots and of the use of deletion statistics similar to those of Atkinson
+
+(1986).
+
+A last point on transformations is just to caution against the uncritical use of the shifted power
+transformation of the response. As Atkinson et al. (1991) showed, unbounded likelihoods can result,
+although the recommendation in Section 3.1 of a shift of half the rounding interval of the observed
+values will often be sensible. However, these problems do not apply to shifted power transformations
+of the explanatory variables.
+G. J. S. Ross (Rothamsted Experimental Station, Harpenden): The family of curves here called
+'fractional polynomials' may be transformed to the familiar sums of exponentials by choosing x = log X
+
+as the independent variable. The special cases p1= 0 and Pi =pj correspond to terms in x and in x exp(Ox)
+
+respectively. Models of order (not 'degree', surely?) up to 2 with unknown values of the pj may be
+
+fitted by standard software (Ross, 1987; Payne et al., 1993) or by optimization of the residual sum
+of squares (Richards, 1961; Lipton and McGilchrist, 1963). Solutions with asymptotes are preferred,
+since mixtures of positive and negative exponentials do not extrapolate well. The models are only a
+subset of possible solutions of linear ordinary differential equations, and some data are better fitted
+
+by complex solutions equivalent to including terms in exp(0lx) cos(02x) and exp(0lx) sin(02x). The
+
+complete solution space is best studied via the coefficients of the differential equations, using stable
+parameterizations (Ross, 1990).
+The restriction to positive X causes problems if X has no natural origin, and if data are observed
+close to the assumed origin (where gradients may become infinite). Unlike ordinary polynomials and
+the commonly used non-linear models (exponentials, rational functions, logistic curves) power functions
+are functionally altered by a change in origin. If we transform X to X+ c, terms in XP generate a series
+of terms in XP- 1, XP-2, etc. which is finite in the ordinary polynomial case, but not in the fractional
+or negative case. A change of origin therefore changes the family being fitted.
+The authors do not attempt to estimate the p-values exactly but rely instead on searching a discrete
+grid of favoured values. This does not really reduce the numbers of parameters estimated, as they claim,
+but produces a suboptimal solution with a deviance difference whose distribution cannot be assumed
+to be x2.
+Section 3.4 misapplies the likelihood ratio test criterion by failing to allow for the re-estimated values
+
+of (j associated with pj. The estimation of u2 in the normal distribution case is not discussed, and ideally
+this should come from replicated observations, as in Table 1.
+Power laws have a long history, as in allometry (Brody, 1945) and fertilizer response (Nelson and
+Anderson, 1975; Turner et al., 1961). They cannot, however, produce a sigmoid curve similar to the
+logistic, which must seriously limit their applicability as general empirical functions.
+
+J. T. Kent (University of Leeds): One name which has been neglected in the paper is that of John
+Tukey and his work on exploratory data analysis. For example, Tukey emphasizes the importance of
+transformations, both on x and y, in regression analysis. The authors recognize the use of transformations
+in their examples, but the topic deserves greater prominence in their general methodology. A second
+point emphasized by Tukey, and already raised by some of the other discussants, is the use of a shift
+in origin. For example, it can make a difference whether log x or log(x + c) is used. The introduction
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN 457
+of a shift in origin affects the whole modelling approach with fractional polynomials and deserves more
+attention.
+
+A separate issue concerns the interpretation of gain. If there are models Ho and H1, with the
+maximized log-likelihoods given by 10 and 11, then the gain is defined in the paper to be twice the
+difference in the log-likelihoods. It is interesting to note that the gain is related to the squared multiple
+partial correlation coefficient, at least under a regression model with normal errors, by the formula
+
+p2 = 1 - exp[ - 2(l1 - lo)J. Further, this formula can be used to define a measure of correlation in mo
+general regression models (Kent, 1983; Kent and O'Quigley, 1988).
+
+M. J. R. Healy (Harpenden): This is a particularly suitable paper to be read at Rothamsted Experime
+Station. Much of modern statistical development has consisted in escaping from under the gigantic shadow
+cast by R. A. Fisher. Fisher's first statistical adventure at Rothamsted was the crop-weather study of
+1921 which involved the fitting of a large number of quintic polynomials. He must have been the first
+to undertake such an exercise and his example surely explains why polynomials have dominated the
+curve fitting scene ever since. The fact that they commonly fit the data very badly (this was certainly
+the case in Fisher's study, though this is not apparent from the published paper) has seldom seemed
+to be of concern. Fractional polynomials promise to provide a far wider repertory of curve shapes,
+and for the pragmatic uses that the authors propose their lack of explanatory power does not seem
+to be a disadvantage.
+Peter J. Diggle (Lancaster University): I feel that some of the connections between this paper and
+Hastie and Tibshirani's work on generalized additive models could have been given greater emphasis.
+In particular, for a nonparametric smoother there is a well-established concept of 'equivalent degrees
+of freedom' (Hastie and Tibshirani (1990), chapter 3). I suggest that a fractional polynomial model
+
+of degree m should be considered as having 2m + 1 parameters (including the pi, i= 1, . . ., m). Could
+
+the authors compare the deviances for their selected models with the corresponding deviances for a
+generalized additive model with equivalent degrees of freedom 2m + 1? My guess is that on this criterion
+the generalized additive model would do at least as well as the fractional polynomial.
+On a more general point, one advantage which the authors claim for their methods over nonparametric
+smoothing is that the latter 'may be difficult to explain to the non-expert user'. I find this a common,
+but depressingly faint-hearted attitude for a statistician to take. If I am ill, I expect my doctor to treat
+me with the best treatment available, rather than to use only treatments whose precise biochemical mode
+of action she can explain to me. By the same token, if my doctor seeks my help as a statistician, I would
+wish to use the best available statistical methodology to answer her questions. And, if I am answering
+her questions, as opposed to 'analysing the data' for unspecified purposes, I should be able to explain
+the answers to her in the same terms that she posed the questions. To take a specific example, consider
+the immunoglobulin-G investigation. Given the stated clinical objectives, it would seem that a set of
+smooth reference curves fitted to the data would answer the doctor's question, and it then becomes
+a proper matter for statisticians to debate (and, we hope, one day to resolve) the matter of how to
+fit such curves to data. The doctor then needs to understand how to plot an individual child's data
+against these reference curves, and to interpret the results. I do not see why the doctor needs to understand
+or even to be told, the algebraic formulae for the curves.
+
+C. A. Glasbey (Scottish Agricultural Statistics Service, Edinburgh): I thank the authors for a stimulating
+paper, and for making available some of the data. I would like to make several points.
+
+(a) There is a danger in using a standard computer package to fit these models because standard
+errors will be too small if no account is taken of the uncertainty in p. Ross (1990), section 5.4.1,
+for example, considered this problem briefly. What would the authors recommend if standard
+errors (SEs) or confidence envelopes are required?
+(b) Isotonic regression provides another way of smoothing data, if the underlying relationship is
+monotonic. The isotonic fits to the first two data sets show good agreement with the fractional
+polynomial models. In particular, the initial trend in the fit of +2(X; -2, 2) to the immunoglobulin-G (IgG) data is confirmed (Fig. 12).
+(c) Where X-values are replicated (either exactly or approximately), as in the first two data sets, mod
+free estimates of the error variance can be obtained, against which the fit of any model can be
+tested. Interestingly, for the mandible length data, the within-replicate mean-square error of 0.0065
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+458 DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN
+
+14-
+
+12
+
+10
+
+6
+
+4-
+
+0
+Ae(Yeos)
+
+Fig. 12. IgG data and regression models data; ---- isotonic regression, , (X; -2, 2);..
+a2(X; 0.5, 1)
+
+is significantly less than the mean-square error of 0.0093 for 41 (X; -1). Moreover, no other
+
+smooth curve seems to do any better. Why is this; are there positive associations between fetuses
+measured at the same age?
+(d) I have a suggestion for why equal powers occur. The model
+f
+
+2
+
+j
+
+4
+
+2
+
+2
+
+Y = ~0 + ~I Xt"') + ~2XCP2)
+
+is a solution of the second-order differential equation
+
+2d2 y d Y
+d21 dX
+
+where
+PI,P2
+
+With
+
+this
+
+1-
+
+alternative
+
+isand ltino the rersintrsecod-rderX cs Iifrntial eqatindX sn22IX
+conjugate pair. In the latter case the model is
+
+parame
+
+y= ~0 + Xql t ~ cos(q2 In X) + ~2 sin(q2 In X),
+
+where qs and q2 are the real and imaginary parts of p and P2 ( If the differential equation is fitted
+
+to the in vitro fertilization data, for which the authors obtained l il =P2 1, we find that
+as tm e X o2nX) a1 sn22X
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN 459
+(e) It is not true, as stated in Section 9.2.4, that heteroscedasticity always inflates SEs. Ordinary least
+squares estimation is no longer fully efficient, but the SEs can be biased either upwards or
+downwards, as is equally the case if observations are autocorrelated (Glasbey, 1988).
+The following contributions were received in writing after the meeting.
+
+J. C. Bishop, F. D. J. Dunstan and B. J. Nix (University of Wales, Cardiff): This is a very interesting
+paper which provides a clear framework for fitting more general models than the conventional polynomials
+to time-dependent data. We would like to raise three points. Firstly we felt that one of the main
+advantages, cited by the authors, would be in producing models with asymptotes. We have tried the
+method on a considerable number of data sets and have been surprised to find that in most cases the
+
+models produced were still dominated by polynomial functions, so that the asymptotic behaviour did
+not materialize.
+
+Secondly, the authors made the valid point that polynomials can give unusual shapes at the end of
+the data set. On some data sets we found that this was true of fractional polynomials at the start of
+the data set. For example, Fig. 13 shows a set of data, provided by Health Promotion Wales, on cholesterol
+
+in women. The optimal model had m = 2 and pi = (- 2, - 0.5) and is shown by the broken curve. The
+gain over a model with m = 1 was significant. Here there is an apparent effect at young ages which
+does not accord with clinical experience; the model was too sensitive to the few slightly raised values
+at low ages. The model with greatest gain which gave a 'sensible' fit included quadratic and cubic terms
+and is shown by the full curve, the best of degree 1 is shown with a dotted curve. As the authors say,
+a careful study of the fitted model is required; it is not enough simply to regard a technique of this
+type as a black box method.
+Finally the example involving gestational age assumed that the gestational age is known exactly. In
+practice all methods currently used for estimating it are subject to error and estimates of the model
+parameters which do not take this into account might be biased. We have analysed a set of over 5000
+measurements of maternal serum alpha-fetoprotein (MSAFP) collected in a screening programme for
+Down syndrome when the estimated gestational age is between 15 and 20 weeks. During that period
+MSAFP is increasing rapidly and in Bishop et al. (1994) we show that substantial biases can arise if
+the possible errors in gestational age are not taken into account. There we propose a method for
+incorporating an error structure into the model fitting which we believe to be of value in such cases.
+T. J. Cole (Medical Reseach Council Dunn Nutrition Centre, Cambridge): Like all good ideas, the
+concept of fractional polynomial regression looks very obvious in retrospect, and also very familiar.
+12 .~~ ~ ~ ~ ~ ~ ~ ~ ~ _
+
+10
+
+0
+
+0
+
+zl- ~~~~~0
+0 0 0 0800
+O0
+
+_
+
+E
+
+8
+
+6
+
+0
+
+8
+
+0
+
+E 8 0 o0 00 60 0 8 8 0
+oi
+
+6
+
+0
+
+060;6 0~o00
+>o 6o0;o6
+0680 0 00 o6008?
+00
+
+Q) 4 0~~~~0 6 0 0 00 00
+
+o ~~~~~~~~~~00
+0
+0
+
+O
+
+20
+0
+
+1
+
+5
+
+.
+
+30
+
+l
+
+45
+
+l
+
+60
+
+75
+
+Age (years)
+
+Fig. 13. Serum cholesterol in adult women against age: -- -, model of degree 2 with greatest g
+model of degree 1; , model with greatest gain giving a 'sensible fit'
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+460 DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN
+As the authors show, the method has been mentioned often in the literature, but only on an ad hoc
+basis. It is also striking that many previous applications of the method (and the authors' own first example)
+have been to infant and child anthropometry.
+Throughout early life up to the start of puberty, growth velocity falls monotonically with age, so
+
+that age trends in anthropometry during this period are well modelled by a second-degree fractional
+polynomial. Extending the age range to include puberty tends to be more difficult, owing to the pubertal
+growth spurt, but it could perhaps be achieved by using a higher degree model. However, this would
+involve a substantial computing cost. Either way, the method is certain to be very valuable for deriving
+
+age-related reference ranges, particularly if combined (in the normal case) with the method described
+by Altman (1993) for modelling the standard deviation.
+The authors do not state explicitly how they identify the best fractional polynomial model of a given
+degree, but it is presumably by grid search. This could be made more efficient by recognizing for example
+that the best two powers for m = 2 are usually on either side of the best power for m = 1, which would
+restrict the search space considerably. This is so for all but one of the examples in the paper. Extending
+this principle to higher degree models might make the fitting more tractable.
+Arising from this, if the optimal model uses powers at the extremes of those available (i.e. - 2 or
+3), this ought to be a sign that the set of powers should be extended. I encountered this when fitting
+a degree 2 model to the essentially deterministic relationship between smoothing spline parameter a
+and equivalent degrees of freedom edf. The data appear in Fig. 3 of Cole and Green (1992) and were
+fitted there as a linear function of log et on log edf. However, the best model for m = 1 uses p = - 0.5
+(i.e. /Iedf) rather than p = 0, and for degree 2 with the conventional set of powers gives p =(-2,
+0.5), providing a gain of 34.9 over m 1. However, widening the set of powers leads to the solution
+p = ( - 5, 0), with a gain of 57.1 over m =1 and 22.2 over the restricted set solution for m = 2. The optimal
+solution provides an effectively perfect fit to the data.
+Trevor Hastie (AT&T Bell Laboratories, Murray Hill) and Robert Tibshirani (University of Toronto):
+We appreciate the authors' efforts and their scholarly paper but wonder whether their proposed methods
+will find much use by modern data analysts. It was the shortcomings of polynomial modelling that
+led us and others to focus instead on nonparametric smoothers.
+A major drawback of polynomials is their non-localness. Since the authors' procedure is not linear
+in the response values, it is a little difficult to measure the influence of individual data values.
+Fig. 14 shows one possible influence measure for the data of Section 4.3 (we ignore age for this illustration)
+and compares the authors' procedure (Figs 14(a)-14(c)) with smoothing splines (Figs 14(d)-14(f)).
+In Fig. 14(a), the largest influence for the fit at the left-hand end comes from the data point at the
+far right! In Figs 14(d)-14(f) the influences are largest near the target point x0 and smaller far away.
+Part of the point of this example is to show that nonparametric smoothers such as smoothing splines,
+with fixed (and even low) degrees of freedom, can cover a large range of functions without getting into
+the difficulties that we see here.
+Another drawback of polynomials is the need to choose an origin for each predictor x: xP is only
+
+defined in general for x) 0. If min(x) < 0, the authors seem to suggest transforming x to x - min(x) + p
+where p has a small positive value. Otherwise x is used as it is. But this procedure does not work well
+in general, as the example described in Fig. 15 shows. In this simple example the fit improves if we
+take more terms, i.e. take m > 1, but then we could offset this effect with a more complicated underlying
+function. This becomes more serious with multiple predictors, since the analyst might have to choose
+an origin for each predictor. For nonparametric smoothers this issue does not arise: there is no need
+to translate predictor values, and any reasonable smoother is invariant under such translations.
+Finally, we disagree with the apparent motivation for the authors' proposals: that nonparametric
+
+smoothers are local and hence do not yield simple prediction equations and that they are computationally
+intensive with suitable software not yet generally available. They are local, but as demonstrated above:
+that is their virtue. Smoothing software is now available in many packages, and fitting and predictions
+can be done quickly and easily on personal computers. Some major packages do not yet offer
+nonparametric regression, but that should not be the major concern of researchers. We must develop
+the best solutions to problems and lead (rather than follow) the developers of statistical software.
+Peter Sasieni (Imperial Cancer Research Fund, London): What functions can be approximated by
+fractional polynomials (FPs) (Section 3.2)? Further insight comes from the analytical properties of FPs.
+Although an FP of degree m has 2m + 1 degrees of freedom (one per parameter), it is constrained in
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN 461
+0
+
+Ci
+
+a)
+
+o
+
+0
+
+*
+
+a)
+
+0
+
+0
+
+0
+
+-
+
+0(
+
+0
+
+0
+
+0
+
+E
+
+0
+
+W
+
+wt=
+
+0
+
+C~~~~~~~~~~~~~ C 0 O0c .
+
+6
+
+0 51a
+15 _
+0 25 ......
+30 0 00 10
+
+0
+
+*
+
+6
+~~~~00
+0
+o
+0r
+0
+
+90 ~~~~~~~~~~~9 0
+
+0
+
+5
+
+10
+
+1520
+
+base
+
+25
+
+30
+
+0
+
+deficit
+
+5
+
+10
+
+base
+
+152025
+
+0
+30
+
+deficit
+
+(a)
+(b)
+O~~~~~~~~~~~~~~~
+*
+o
+
+0
+
+5
+
+base
+
+10
+
+152025
+
+30
+
+deficit
+
+(C)
+6
+
+~~~6
+
+~~~~~~~~~~t)0
+
+0~~~~~
+
+v
+
+n0
+
+0.,0
+
+0
+
+0
+
+1,
+
+2
+
+9 . . . 6~~~~~~~~~~~~~~~~~~~~~0O-k-,0......
+.0
+30
+0
+0
+0
+
+5
+
+10
+
+15
+
+20
+
+base
+
+25
+
+30
+
+0
+
+deficit
+
+5
+
+(d)
+
+Fig.
+the
+
+2,.
+
+10
+
+15
+
+base
+
+20
+
+25
+
+30
+
+deficit
+
+(e)
+
+14.
+
+0
+
+5
+
+base
+
+10
+
+15
+
+25
+
+30
+
+(f)
+
+For
+
+fitted
+
+,43,
+
+value
+
+20
+
+deficit
+
+in
+
+a
+
+valu
+
+and
+
+the
+
+selected p = 0 when fitted to all the data with RSS 15.12); (d)-(f cubic smoothing spline with 3 effective degrees
+of freedom, with RSS= 15.18
+
+0
+0
+
+~~~~~~~~~~~~~~~~~~'
+
+3.0 3.5 4.0 45 50~~~~~~~~~~~~~~~~~~~~ol
+x~~~~~~~~~~~o"
+
+Fig 15 5 obervtins re imlatd fomthemodl = xp(- )2 O.E ithx uifrm n [, ] ad
+N(0 1) ,Royto an Alma prceure(ituss xasthepreicor,sice ll ales f ar poitve,an
+
+resltsina porfit;. sae rocdue uin x 3 s te pedcto (nd he grphng hefitagins x
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+x
+
+th
+
+462 DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN
+
+the number of points with zero first derivative (proposition 1, below
+monotone on x> 0, but any three points (xi, y1) with 0 <x1 <x2<x3 and (Y3 -Y )/(Y2 -Yi)>1 lie on
+such a curve. Similarly, any non-constant function in +2(X; M, p) has at most one stationary point in
+
+X> 0. Thus FPs are not recommended for approximating functions with multiple turning points.
+Exploratory investigation of the number of turning points before using the authors' methodology is
+recommended, since even two turning points (requiring m > 3) could be problematic in small samples.
+Intuitively approximation of an FP with powers Pi and P2 by an FP with similar powers q1 and q2
+will be reasonable and the constraints described above may contribute to this: hence the observed flat
+likelihoods, which in turn partly explain why artefacts at the extremes of X may be avoided. Suppose
+that we force a curve through three points determined by a local fit to the data around the quartiles
+
+of X. Then, subject to at most one turning point, some curve from +2(X; M, p) (with p E 2) pas
+
+through any two additional points, one at each end of the X-range. Our perception of how well a curve
+may be extrapolated depends on the difference between the curve and the extension along its tangent.
+Formally, compare f(x+ 6) with f(x) + 6 f' (x): for small 6, this is dominated by 6(2 f"(x)/2. My
+perception is in angles rather than slopes. Thus instead of f " consider the derivative
+
+tan f ' (x) - (X)
+
+dx 1+fI()
+
+The authors' candidate solution set #consists of functions whose deviance is within 2.7 of the minimum.
+
+Choose f to minimize the curvature, I f"(x) I (or the change in angle I f"(x)/[ 1 +f f (X)2 II), over 3r,
+
+where x is the maximum and/or the minimum of the X-range depending on the direction(s) of
+extrapolation. Formally, maximize a penalized likelihood.
+Proposition 1.
+
+(a) A non-constant FP of degree m is constrained to have at most m - 1 stationary points in x> 0.
+(b) Given any 2m + 1 points in the half-plane x> 0 that can be joined by a (differentiable) mapping
+of x with at most m - 1 stationary points, there exists a unique FP of degree m (with p E Wm)
+passing through them.
+C. B. Stride (University of Warwick, Coventry):
+
+Comment on example 4.1-relationship between gestational age X and mandible length Y
+The authors have given us a valuable and thoroughly practical method. What a pity it is that the
+first example (Section 4.1) seems a perfect example of a case where we should not use non-linear regression!
+
+0
+
+CE
+0)
+
+C
+
+C4
+
+15
+
+20
+
+X
+
+25
+
+=Gestation
+
+Fig. 16. Relationship between gestational age and mandible length.: linear model Y= a + bX+ +E,
+log a= e +fX; - . -, fractional polynomial model Y= exp(a + bX)
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN 463
+The plot in Fig. 2 gives a very good fit to a straight line, so why upset the linearity by taking the logarithm
+
+of mandible length, and then by trying to approximate the resulting exponential curve by fractional
+polynomials? Surely this is far too high a price to pay for stabilizing the variance. The proposed model
+Y= exp(a + bX'-), for what looks like a straight line, appears bizarre.
+The residuals obtained when fitting a normal linear model Y= a + bX increase with X, which suggests
+
+that the standard deviation a of Y should be modelled as an increasing function of X-this is quite
+natural since Y is a growth phenomenon. Thus the model Y= a+ bX+ Ea, with E a standard normal
+residual, gives a convincing fit with a log-linear variance log a= e +fX. The fitted residuals E give a
+normal Q-Q plot, which is just as good as that obtained by the authors' residuals on the log-scale.
+Y may be log-normal, but this is not evident from the data. Admittedly, we need more than ordinary
+least squares to fit the model, but it was performed quickly and simply on a widely available statistical
+computer package.
+The principal difference between the two models occurs at large X (see Fig. 16). The only way to
+justify the curve of the fractional polynomial model is by using data, which were, for good reason,
+omitted at the model fitting stage. If the results for X> 28 were initially discarded owing to their supposed
+unreliability and inaccuracy, it is surely a fallacy to use them to vindicate a model created without them.
+Such a model could be sensible if a horizontal asymptote is needed, but do we want growth essentially
+to stop at around 40 weeks? For neither model would extrapolation outside the range of the data be
+justified.
+Keming Yu (The Open University, Milton Keynes): A good estimate should be optimal or approximately
+optimal for a given method. The cubic spline, for example, minimizes the weighted sum
+n
+
+Sx (g) = E [yi - g(xi)2 + X g (X)2 dx
+where the true g is defined by the usual model yi = g(xi) + Ei. The kernel estimator g, another alternative
+estimator of g above that also has arg mina[E(Y- a)), is defined as
+
+g = arg min K
+Now, regarding fractional polynomials, as good and convenient alternative estimators of g, what is
+the method to make them optimal or approximately optimal? Is there such a method? If the estimator
+is just a conventional polynomial, i.e. the power of the fractional polynomials is restricted to the set
+of integers, the question is easy to answer. However, according to the authors, a good fit, sometimes,
+is given by a fractional polynomial with a power term of non-integer value. My general impression,
+
+both from the examples in the paper and other experience, is that if the distribution of errors E
+symmetric a polynomial fit g with all terms integer powers always satisfies or approximately satisfies
+
+g= arg mina [E[p(Y- a))] for the model above, where p() is a convex function. However, the
+fractional polynomial estimator should be a better fit if the distribution of Ei is non-symmetric, and
+this is just the situation often met in practice in spite of the theoretical assumption. The reason that
+a fractional polynomial is sometimes a better alternative in practice could be explained by considering
+this. For a good method to receive wider application, the question should be addressed further.
+The authors replied later, in writing, as follows.
+
+We thank all those who have contributed to the discussion, both verbally and in writing. Unfortunately
+we do not have space to respond to all their points. We consider comments on our paper under the
+next three headings.
+
+Methodological points
+Dr Bowman is concerned about possible effects of outliers and of overfitting with fractional polynomi
+(FP) models, especially in multiple regression. Essentially, these aspects are a potential problem with
+all modelling exercises, not specific to FPs. One possible approach (which we have not yet explored)
+is the use of robust regression. Also, the effects of outliers in Y will differ from those of outliers in
+X; the latter could be looked at by using suitable regression diagnostics, though it is not clear at present
+
+how to accommodate the implicit 'extra' estimation of the power vector p. Further work is required.
+Regarding overfitting, in practice multiple-regression data sets often have considerable 'noise', leading
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+464 DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN
+to little power to detect slight curvature. When fitting FP models it might be useful to restrict fits with
+
+k> 1 to second- or even first-degree (m = 1) models. Also the set -? of powers could be reduced.
+Both Mr Ross and Dr Glasbey point out that our m = 2 models are subsets of possible solutions to
+ordinary differential equations. Although we do not dispute their algebra, we are not clear that this
+
+is a useful insight into FP models. Dr Glasbey's imaginary roots solution, which takes the form
+
+Y= 40 + Xql t fJ cos(q2 ln X) + t, sin(q2 ln X)1,
+only resembles an m = 2 model with repeated powers in regions of X-space in which the cosine and sine
+functions are approximately linear.
+Mr Ross, Professor Kent and Dr Hastie and Dr Tibshirani are concerned about the necessity to choose
+an origin for X, particularly when X is not positive. Unlike conventional polynomials or most
+nonparametric methods, FP functions do depend on the origin. This can be an advantage in that it
+extends the types of model that can be fitted. In particular, when the minimum of X is close to the
+origin of X, models which include negative powers give considerable flexibility to fit data whose slope
+changes rapidly in that region of X. The immunoglobulin-G (IgG) data set is an example of such
+behaviour. The most common case in our experience is when min(X) = 0, in which case our suggestion
+of adding the rounding interval before analysis seems to work well in cases that we have tried. In general
+there is high correlation between the choice of origin and choice of fractional powers. Altering the origin
+slightly affects the fit very little.
+
+Mr Ross notes that using a grid of powers does not reduce the number of parameters estimated;
+however, we do not claim a reduction. He also states that in Section 3.4 we have misapplied the likelihood
+ratio test. We do not think so, since the {s are estimated both for fixed p and for p models. Thus m
+extra parameters are estimated, one per power.
+Dr Glasbey is concerned that standard errors of regression coefficients are too small since estimation
+of p has not been allowed for. We agree, but the residual degrees of freedom (DF) could be adjusted
+to allow for this. Generally the effect on confidence intervals (CIs) etc. will be small, unless the residual
+DF are very small. We are somewhat more concerned about the effect of estimation of p on the precision
+of the fitted values rather than on the regression coefficients, since the latter depend on the powers
+anyway. Bootstrap analysis of IgG showed that the CI for the fitted values was only very slightly narrower
+than it would be if estimation of the powers was taken into account. This may not hold in other cases,
+but resort can be made to bootstrapping to check.
+Dr Bowman and Dr Hastie and Dr Tibshirani note that one of the implications of FP models being
+global rather than local is that the fit at a given value of X will be influenced by points far away. This
+is a general characteristic of many non-local parametric models. In the example chosen by Dr Hastie
+and Dr Tibshirani (base deficit in the diabetes data), which shows the 'distant influence' effect, the
+
+FP model 41 (0) is only weakly supported by the data; a straight line is almost as good a fit. In
+case, as already noted, the development of diagnostics appropriate to FP models is desirable to warn
+the user about influential values.
+
+When several FP models fit about equally well (a common finding discussed further below), Dr Sasieni
+suggests selecting that which minimizes the curvature in order to maximize the performance of the model
+in extrapolation. If extrapolation is the main aim, this may be sensible, but we think it unlikely that
+this will often be the case.
+
+Ms Bishop and colleagues note 'end effects' in the best m = 2 model which they fitted-to their cholestero
+data. We would emphasize that the choice of model is not a 'black box' affair, and that often (as in
+this case) there will be other models with similar deviances whose shape is much more plausible. It is
+vital to appraise the fit critically. Although negative powers are very useful when the data show marked
+curvature near to the origin, their use may be inappropriate otherwise, as this example shows.
+Mr Yu asks whether FP functions represent the optimal solution to a mathematically posed fitting
+problem. We do not know the answer to this (but see 'Further points' below).
+Example-specific points
+
+We are surprised at how many discussants chose to reanalyse the mandible data, ignoring the other
+available data sets that have more complex curve shapes. Professor Atkinson and Mr Stride find our
+FP model for mandible length unnecessarily complicated, claiming that a straight line will suffice. In
+fact, there is significant, though slight, curvature in the relation, so (depending on the aim of the analysis)
+a straight line can be improved on. Thus we do not agree with Professor Atkinson's suggestion that
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN 465
+we have used an incorrect transformation. Because of the heteroscedasticity, we need to model both
+the mean and the variance of mandible length, which is not necessarily straightforward. In the paper,
+we transformed Y to allow us to concentrate on modelling the mean. In the published analysis (Chitty
+
+et al., 1994), we modelled the mean by using 41 (0.5) and the standard deviation as a straight
+adopting the absolute residuals method (Altman, 1993) mentioned by Dr Cole. These two models give
+virtually identical results.
+Dr Glasbey wonders why the within-replicate variance for log-mandible-length is significantly lower
+than the residual variance from the FP regression analysis. We have no explanation, though we note
+that the P-value is 0.006, so could conceivably be a chance effect. No such effect is found in the IgG data.
+Ms Bishop and colleagues suggest that bias in estimating the gestational age in the mandible length
+example may affect the results. We think that this bias is not germane to practical use, since actual
+data will have similar gestational errors to the trial data.
+General points
+We agree with Dr Bowman and Dr Hastie and Dr Tibshirani that software for nonparametric model
+fitting is now reasonably widely available, and that nonparametric regression methods are likely to be
+implemented in other packages in time. However, we cannot agree that the complicated prediction
+
+equation which arises from nonparametric models is not a problem. A prediction equation may be needed
+for use by others, for example, for comparing the fits of rival models on new or simulated data. Another
+example is use of a prognostic index for a disease or use of a clinical reference interval, where low
+dimensional parametric methods allow a centile to be calculated from the prediction equation for any
+given individual. For clinical use the underlying equations of reference centiles for fetal size, similar
+to those derived for mandible length but for measurements such as abdominal circumference (Chitty
+et al., 1994), are commonly programmed into ultrasound machines, allowing a centile to be specified
+for new observations. Nonparametric regression methods do not give a concise prediction equation.
+Dr Bowman and Professor Diggle ask what advantage an m = 2 FP model has over a spline smooth
+with the same DF. Although we do not claim global preference for our approach, we can see two
+advantages (in addition to the availability of an explicit prediction equation, as just discussed). First,
+our fitted curves are very smooth, which may not be so for nonparametric fits (nor for isotonic regression
+as shown by Dr Glasbey). Second, there may be several models of the same degree which fit almost
+equally well, which allows us to choose the one which appeals most according to non-statistical criteria.
+Once the equivalent DF have been chosen, the generalized additive model (GAM) approach yields only
+a single model. Thus for example there is no way of customizing the fit to accord with prior knowledge
+of how the model should behave (e.g. presence of asymptotes). We have begun to explore the comparison
+of the two approaches to the same data sets, but it is too soon to make any general comments.
+Dr Bowman prefers to start with nonparametric models and to work towards parametric models.
+We entirely agree with this approach, and in fact used it with the in vitro fertilization (IVF) data. Again
+the approach taken depends on the purpose of the analysis. Dr Appleton prefers scientific (e.g. biological)
+to statistical models. We understand this point, but in many cases no scientific rationale is available,
+or time may limit what can be done. Statistical models are at best convenient approximations to reality,
+and obviously where strong prior knowledge about the likely functional form is available, it should
+be used. Nevertheless statistical models still have a role in checking the predictions of scientific theories
+by teasing out (albeit approximately) the information present in the data.
+
+Mr Ross notes that FP models cannot generate sigmoid curves, which he says limits their usefulness.
+They can be extended to do so (work in progress), though we are not necessarily suggesting that that
+would always be the best approach.
+We have nothing to add to Dr Cole's comments; we agree with them. We have also found that low
+
+degree FPs can give an excellent fit to deterministic relationships and we shall present our findings
+elsewhere (Altman and Royston, 1994). Regarding the observation of Ms Bishop and colleagues that
+expected asymptotic behaviour in real data sets was not reflected in the FP models chosen, we can only
+say that we have not seen any of the data; we would be happy to look at selected data sets if these
+authors would supply them to us.
+Dr Sasieni suggests that one should explore the number of turning points before fitting FP models,
+to anticipate the necessary degree. That seems sensible, but we are not clear how to do it, especially
+when there are several covariates in the model; the use of GAMs might be one way.
+Mr Stride criticizes a perceived attempt to vindicate the model for mandible length by reference to
+data known to be unreliable. This is a logical point, but the extrapolation produced by the FP model
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+466 DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN
+
+41 (X; - 1) is consistent with known characteristics of growth of oth
+
+available throughout pregnancy. As we say in the paper, we would not in general attempt to extrapolate
+beyond the range of the data unless there were strong prior reasons for believing it to be valid.
+In Fig. 15, Dr Hastie and Dr Tibshirani present some simulated data and show how altering the origin
+affects the fit of a simple model with m = 1. We do not see this as a valid criticism of FP models, as
+a model with m = 2 gives an excellent fit to these data (and is virtually indistinguishable from the fit
+of a GAM with the same DF). They remark that 'the fit improves if we take more terms, i.e. take m > 1,
+but then we could offset this effect with a more complicated underlying function' applies to any smoother.
+As noted above, the ability to change the origin is an advantage of the FP approach. We think that
+Hastie and Tibshirani overstate the problem of needing to specify the origin. We are most concerned
+
+with reflecting the behaviour of real (as opposed to artificial) data; in practice, we usually need to move
+the origin only when zero values of X occur, and then our simple suggestion to increase X by the rounding
+or counting interval works well.
+Further points
+
+We are surprised that no discussant mentioned models with m > 2. We now have several examples
+
+of data requiring such models, including one with k> 1 covariates; we shall discuss these elsewhere
+(Royston and Altman, 1994a).
+Excluding the constant an FP model of degree m has 2m DF. Since preparing our paper we have
+realized that we can also specify FP models with odd DF by mixing specified and floating powers of
+X. Specifically we have been exploring models which are forced to include a term in X. Thus the
+constrained second-degree model has Pi = 1 and P2 determined in the usual way by comparing deviances;
+this model has 3 DF. These models are frequently not significantly worse than the unconstrained m = 2
+models, which have 4 DF. For example, in the IgG example in the paper, the gain G for the best m = 2
+model p = (- 2, 2) is 18.11, whereas the best 3 DF model with p ( - 2, 1) has G= 16.54; similarly, the
+best 3-DF model for the IVF data, also p = (- 2, 1), has G = 6.96, only 0.15 lower than that of the best
+4-DF model. In each case, the fitted functions change little with the addition of 1 DF to the model.
+A key issue in discussing the relative merits of various models is the purpose of the analysis. In some
+cases we require a close fit to the data to make reliable predictions (such as for the mandible data).
+In other cases, notably in most multiple-regression analyses, the aim is often more of adjustment and
+so a close fit is not as crucial. Also, such data often have considerable noise, and so constrained modelling
+of (possibly) curved relationships may be appropriate, perhaps with a limit of 3 DF. This may be especially
+true when the data are less visible (see Dr Bowman's comments), i.e. in logistic and Cox regression.
+Our motivation for developing FP models was the poor fit often obtained with conventional
+polynomials, as noted by Professor Healy. We were careful in the paper not to claim or suggest that
+FP models should replace nonparametric methods-see the last sentence of the penultimate paragraph
+of Section 9. We see them as an adjunct to other methods; in particular, we like the idea of proceeding
+from an exploratory fit (e.g. using lowess or a GAM) to a parsimonious parametric fit. We accept that
+FP models are less flexible than nonparametric models, but we do not think that they are less valuable;
+they simply have different strengths and weaknesses.
+A somewhat more general test of curvature than that of Section 3.4, one that is sensitive to non-
+
+monotonic relationships, is to fit the model 02(X; 1, 1) and to test the term in Xln X (Hosmer a
+
+Lemeshow, 1989).
+
+We welcome the interest shown in the mathematical properties of our models, and hope that others
+(Glasbey, Yu and Sasieni) will explore them further.
+Lastly, we agree with Dr Hastie and Dr Tibshirani that we need to develop the 'best' solutions to
+statistical problems, but there are many criteria for judging what is best. As we have indicated, the
+choice will depend on the context. We also agree that software is crucial; we have developed a set of
+routines for fitting FP models in Stata, which in due course will be published in Royston and Altman
+
+(1994b).
+References in the Discussion
+Altman, D. G.
+Altman, D. G.
+Atkinson, A.
+(1994)
+
+(1993) Construction of age-related reference centiles using absolute residuals. Statist. Med., 12, 917-924.
+and Royston, P. (1994) Approximating smooth functions using fractional polynomials. To be published.
+C. (1986) Diagnostic tests for transformations. Technometrics, 28, 29-37.
+Transforming both sides of a tree. To be published.
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+DISCUSSION OF THE PAPER BY ROYSTON AND ALTMAN 467
+
+Atkinson, A. C., Pericchi, L. R. and Smith, R. L. (1991) Grouped likelihood for the shifted power transformation.
+J. R. Statist. Soc. B, 53, 473-482.
+
+Bishop, J. C., Dunstan, F. D. J., Nix, B. J., Reynolds, T. M. and Swift, A. (1993) The influence of gestation dating
+on Down Syndrome patient specific risk calculations. To be published.
+Box, G. E. P. and Cox, D. R. (1964) An analysis of transformations (with discussion). J. R. Statist. Soc. B, 26, 211-252.
+Brody, S. (1945) Bioenergetics and Growth. New York: Reinhold.
+
+Carroll, R. J. and Ruppert, D. (1988) Transformation and Weighting in Regression. London: Chapman and Hall.
+Chitty, L. S., Altman, D. G., Henderson, A. and Campbell, S. (1994) Charts of fetal size: 3, Abdominal measurements.
+Br. J. Obstet. Gynaecol., 101, 125-131.
+
+Cole, T. J. and Green, P. J. (1992) Smoothing reference centile curves: the LMS method and penalized likelihood.
+Statist. Med., 11, 1305-1319.
+
+Glasbey, C. A. (1988) Standard errors resilient to error variance misspecification. Biometrika, 75, 201-206.
+
+Hastie, T. J. and Tibshirani, R. J. (1990) Generalized Additive Models. London: Chapman and Hall.
+Hosmer, D. W. and Lemeshow, S. (1989) Applied Logistic Regression, p. 90. New York: Wiley.
+Kent, J. T. (1983) Information gain and a general measure of correlation. Biometrika, 70, 163-173.
+Kent, J. T. and O'Quigley, J. (1988) Measures of dependence for censored survival data. Biometrika, 75, 525-534.
+
+Lipton, S. and McGilchrist, C. A. (1963) Maximum likelihood estimation of parameters in double exponential
+regression. Biometrics, 19, 144-151.
+Nelson, L. A. and Anderson, R. L. (1975) A family of models and experimental designs for evaluating response
+to fertilizer nutrients when the true model is not known. In Proc. 8th Int. Biometric Conf., Constanta
+(eds L. C. A. Corsten and T. Postelnicu), pp. 183-196. Bucharest: Romanian Academy.
+Payne, R. W. (ed.) (1993) Genstat 5 Release 3 Reference Manual. Oxford: Oxford Science.
+
+Richards, F. S. G. (1961) A method of maximum-likelihood estimation. J. R. Statist. Soc. B, 23, 469-475.
+Ross, G. J. S. (1987) Maximum Likelihood Program. Oxford: Numerical Algorithms Group.
+(1990) Nonlinear Estimation. New York: Springer.
+Royston, P. and Altman, D. G. (1994a) Uses of high-degree fractional polynomials in data analysis. To be published.
+(1994b) Improved regression modelling of curvature using fractional polynomials. Submitted to Stata Tech. Bull.
+Turner, M. E., Monroe, R. J. and Lucas, H. L. (1961) Generalised asymptotic regression and non-linear path analysis.
+Biometrics, 17, 120-143.
+
+This content downloaded from 130.82.27.59 on Tue, 16 Oct 2018 13:27:38 UTC
+All use subject to https://about.jstor.org/terms
+
+

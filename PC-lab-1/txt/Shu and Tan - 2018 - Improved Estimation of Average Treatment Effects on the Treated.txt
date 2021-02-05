@@ -1,0 +1,5685 @@
+Improved Estimation of Average Treatment Effects on the Treated:
+Local Efficiency, Double Robustness, and Beyond
+Heng Shu & Zhiqiang Tan1
+
+arXiv:1808.01408v1 [stat.ME] 4 Aug 2018
+
+Abstract. Estimation of average treatment effects on the treated (ATT) is an important topic of causal inference in econometrics and statistics. This problem seems
+to be often treated as a simple modification or extension of that of estimating overall
+average treatment effects (ATE). However, the propensity score is no longer ancillary
+for estimation of ATT, in contrast with estimation of ATE. In this article, we review
+semiparametric theory for estimation of ATT and the use of efficient influence functions to derive augmented inverse probability weighted (AIPW) estimators that are
+locally efficient and doubly robust. Moreover, we discuss improved estimation over
+AIPW by developing calibrated regression and likelihood estimators that are not only
+locally efficient and doubly robust, but also intrinsically efficient in achieving smaller
+variances than AIPW estimators when a propensity score model is correctly specified
+but an outcome regression model may be misspecified. Finally, we present two simulation studies and an econometric application to demonstrate the advantage of the
+proposed methods when compared with existing methods.
+Key words and phrases. Average treatment effect; Average treatment effect on
+the treated; Causal inference; Double robustness; Inverse probability weighting; Intrinsic efficiency; Local efficiency; Semiparametric estimation.
+
+1
+
+Heng Shu is with JPMorgan Chase, New York, NY 10017 and Zhiqiang Tan is Professor, De-
+
+partment of Statistics, Rutgers University, Piscataway, NJ 08854 (E-mail: ztan@stat.rutgers.edu).
+An earlier version of this work was completed as part of the PhD thesis of Heng Shu at Rutgers
+University.
+
+1
+
+Introduction
+
+A central problem in various social and behavioral studies is to evaluate average effects of treatments and actions ceteris paribus (with all other things being equal).
+Such problems can be addressed by introducing potential outcomes that would be
+observed for each subject under different treatments (Neyman 1923; Rubin 1974).
+Average causal effects are then defined as statistical comparisons (e.g., mean differences) of potential outcomes over a population or subpopulation. Two causal parameters commonly studied are the average treatment effect (ATE) and the average
+treatment effect on the treated (ATT). The ATE is defined as the mean difference
+of two potential outcomes under the active treatment and the control over the entire
+population, whereas ATT is defined as the mean difference of two potential outcomes
+over the subpopulation of individuals who received the active treatment. As argued
+by Heckman & Robb (1985) and Heckman et al. (1997) in the context of evaluating
+training programs, the ATT answers the question “How much did persons participating in the programme benefit compared to what they would have experienced without
+participating in the programme?” The ATT is relevant in making forecasts when the
+same selection rule operates in the future as has operated in the past.
+Drawing inferences about ATE and ATT is challenging because, in reality, all
+but one potential outcome are missing for each subject. Nevertheless, under unconfoundedness (i.e., exogeneity) and overlap assumptions, the ATE and ATT are point
+identifiable from observed data (e.g., Imbens 2004). There is an extensive collection
+of theory and methods developed for statistical estimation of ATE and ATT under
+exogeneity. Let Y be an observed outcome, T a treatment indicator, and X a vector
+of covariates. Semiparametric efficiency bounds for estimation of both ATE and ATT
+are obtained by Hahn (1998), and can be seen as special cases of semiparametric theory in Robins et al. (1994) and Chen et al. (2008) for moment restriction models with
+missing data. Asymptotically globally efficient estimators for ATE and ATT are studied by Hahn (1998), Hirano et al. (2003), and Chen et al. (2008) among others, using
+nonparametric series/sieve estimation on the propensity score, π(X) = P (T = 1|X),
+or the outcome regression function, mt (X) = E(Y |T = t, X), or both. But various
+smoothness conditions are assumed for such methods and can sometimes be problem1
+
+atic with a high-dimensional covariate vector X (Robins & Ritov 1997).
+Alternatively, various methods are developed by using parametric working models
+on the propensity score π(X) or the outcome regression function mt (X) or both, to
+achieve desirable properties such as local efficiency, double robustness, and beyond.
+This line of research has been well pursued for estimation of ATE (e.g., Robins et al.
+1994; Tan 2006, 2010; Cao et al. 2009). See also Kang & Schafer (2007) and its discussion. For an estimator of ATE, double robustness means that the estimator remains
+consistent if either the propensity score model or the outcome regression model is
+correctly specified. Local efficiency means that if both the propensity score model
+and the outcome regression model are correctly specified, then the estimator achieves
+the semiparametric efficiency bound, which is the same whether the propensity score
+is known, paramtrically modeled, or completely unknown due to the ancillarity of
+the propensity score for estimation of ATE (Hahn 1998). To our knowledge, there
+seems to be limited work explicitly dealing with locally efficient and doubly robust
+estimation of ATT (e.g., Graham et al. 2016; Zhao & Percival 2017).
+There are two possible reasons why ATT estimation has been studied much less extensively than ATE estimation. On one hand, ATT can often be estimated by a simple
+modification or extension of estimators of ATE. On the other hand, semiparametric
+theory for estimation of ATT is complicated by the fact that the propensity score is
+no longer ancillary (Hahn 1998). The purpose of this article is twofold: (i) we review
+semiparametric theory for ATT estimation and the use of efficient influence functions
+to derive augmented inverse probability weighted (AIPW) estimators of ATT, and (ii)
+we discuss the extension of related techniques for improved estimation of ATE (Tan
+2006, 2010; Cao et al. 2009) to develop calibrated estimators of ATT that achieve
+desirable properties beyond local efficiency and double robustness. Demonstration of
+these ideas can also facilitate their applications to other missing-data problems, for
+example, data combination discussed in Graham et al. (2016).
+There are several interesting phenomena clarified from our work, all different from
+familiar results for estimation of ATE. First, there are two AIPW estimators achieving local efficiency of different types. If the propensity score and outcome regression
+models are correctly specified, the first estimator achieves the semiparametric effi-
+
+2
+
+ciency bound, VNP , calculated when the propensity score is unknown, whereas the
+second estimator achieves the semiparametric efficiency bound, VSP (≤ VNP ), calculated under the parametric propensity score model used. These two estimators are
+then referred to as locally nonparametric or, respectively, semiparametric efficient.
+Second, the locally nonparametric efficient estimator AIPW of ATT is doubly
+robust, but the locally semiparametric efficient AIPW estimator is generally not.
+Therefore, it is the efficient influence function calculated under the nonparametric
+model (i.e., when the propensity score as well as the outcome regression function is
+unknown) that leads to doubly robust estimation. Incidentally, it can be shown that
+the doubly robust estimators of ATT in Graham et al. (2016) and Zhao & Percival
+(2017) are also locally nonparametric efficient.
+Third, due to the discrepancy between the locally nonparametric and semiparametric AIPW estimators, a direct application of the techniques in Tan (2006, 2010)
+and Cao et al. (2009) would fail to yield an improved estimator of ATT that is not
+only doubly robust and locally nonparametric efficient, but also intrinsically efficient
+in achieving smaller variances than AIPW estimators when the propensity score model
+is correctly specified but the outcome regression model may be misspecified. We show
+that such improved estimators can still be developed by introducing a simple idea,
+namely, working with an augmented propensity score model which includes the fitted
+outcome regression functions as additional regressors.
+To illustrate the advantage of the improved estimators, we present two simulation
+studies and an econometric application related to LaLonde (1986) and subsequent
+analyses (e.g., Dehejia & Wahba 2002; Smith & Todd 2005a). In contrast with these
+previous works, we compare the performance of different methods by examining not
+only the effect or bias estimates (where the experimental treatment or, respectively,
+control group is compared with a non-experimental comparison group), but also how
+well the differences between the effect and bias estimates agree with the benchmark
+estimate (where the experimental control and treatment groups are compared). The
+latter comparisons are relevant even if the non-experimental group might inherently
+differ from the cohort on which the experiment was conducted.
+
+3
+
+2
+
+Setup
+
+To introduce the setup, suppose that a simple random sample of n subjects is available from a population under study. The observed data consist of independent and
+identically distributed observations {(Yi , Ti , Xi ) : i = 1, . . . , n} of (Y, T, X), where Y
+is an outcome variable, T is a dichotomous treatment variable (T = 1 if treated or
+T = 0 otherwise), and X is a vector of measured covariates. In the potential outcomes
+framework for causal inference (Neyman 1923; Rubin 1974), two potential outcomes
+(Y 0 , Y 1 ) are defined to indicate what would be the response under treatment 0 or 1
+respectively. By consistency, the observed outcome Y is assumed to be either Y 0 or
+Y 1 , depending on whether T = 0 or T = 1. Two causal parameters commonly of
+interest are the average treatment effect (ATE), defined as E(Y 1 − Y 0 ) = µ1 − µ0
+with µt = E(Y t ), and the average treatment effect on the treated (ATT), defined as
+E(Y 1 − Y 0 |T = 1) = ν 1 − ν 0 with ν t = E(Y t |T = 1). In this article, we are concerned
+with estimation of the ATT. See, for example, Imbens (2004) for a review and Tan
+(2006, 2010) for related works on estimation of ATE.
+While the parameter ν 1 is directly identifiable as E(T Y )/E(T ), a fundamental
+difficulty in identification of ν 0 is that Y 0 is missing for treated subjects with T =
+1. Nevertheless, it is known (e.g., Imbens 2004) that the ν 0 and hence ATT are
+identifiable from observed data under the two assumptions:
+(A1) Unconfoundedness for controls: T ⊥ Y 0 |X, i.e., T and Y 0 are conditionally
+independent given X;
+(A2) Weak overlap: 0 ≤ P (T = 1|X = x) < 1 for all x.
+Assumption (A2) allows that P (T = 1|X = x) is 0 for some values x, i.e., subjects
+with certain covariate values will always take treatment 0.
+By the fact that ν 1 = E(T Y )/E(T ), a consistent, nonparametric estimator of ν 1
+Pn
+Pn
+1
+is ν̂NP
+= n−1
+1
+i=1 Ti and n0 = n − n1 are the sizes of treated
+i=1 Ti Yi , where n1 =
+and untreated groups respectively in the sample. However, modeling (or dimension-
+
+reduction) assumptions, in addition to (A1)–(A2), are, in general, needed to obtain
+consistent estimation of ν 0 and ATT from finite samples with high-dimensional X.
+There are broadly two modelling approaches as follows (e.g., Tan 2007).
+4
+
+One approach is to build a (parametric) regression model for the outcome regression (OR) function, mt (X) = E(Y |T = t, X):
+E(Y |T = t, X) = mt (X; αt ) = Ψ{αtT gt (X)},
+
+t = 0 or 1,
+
+(1)
+
+where Ψ(·) is an inverse link function, gt (X) is a vector of known functions of X
+including 1, and αt is a vector of unknown parameters. For t = 0 or 1, let α̂t
+be the maximum quasi-likelihood estimate of αt , and let m̂t (X) = mt (X; α̂t ). If
+model (1) is correctly specified for t = 0 or 1, then a consistent estimator for ν t is
+Pn
+1
+0
+t
+ν̂OR
+= n−1
+1
+i=1 Ti m̂t (Xi ). The ATT can be estimated by ν̂OR − ν̂OR . In the special
+case where Ψ(·) is the identity link and parallel regression functions are assumed
+
+T
+for the two treatment groups, i.e., E(Y |T = t, X) = α1,t + α(1)
+g(1) (X) with g(1) (X)
+
+excluding 1, the ATT can be directly estimated as α1,1 − α1,0 .
+An alternative approach is to build a (parametric) regression model for the propensity score (PS) (Rosenbaum & Rubin 1983), π(X) = P (T = 1|X):
+P (T = 1|X) = π(X; γ) = Π{γ T f (X)},
+
+(2)
+
+where Π(·) is an inverse link function, f (x) is a vector of known functions including
+1, and γ is a vector of unknown parameters. The score function for γ is
+
+
+T
+∂π(X; γ)
+1−T
+sγ (T, X) =
+−
+.
+π(X; γ) 1 − π(X; γ)
+∂γ
+Typically, logistic regression is used: π(X; γ) = [1 + exp{−γ T f (X)}]−1 , and the score
+function is sγ (T, X) = {T − π(X; γ)}f (X). Let γ̂ be the maximum likelihood estimator (MLE) of γ and π̂(X) = π(X; γ̂), satisfying the score equation Ẽ{Sγ (T, X)} = 0,
+which for logistic regression reduces to
+Ẽ [{T − π(X; γ)}f (X)] = 0,
+
+(3)
+
+where Ẽ(·) denotes a sample average, for example, Ẽ(T ) = n1 /n. Then ν 0 and ATT
+can be estimated by matching, stratification, or weighting on the fitted propensity
+score π̂(X) (e.g., Imbens 2004). We focus on inverse probability weighting (IPW),
+which is central to rigorous theory of statistical estimation in missing-data problems
+(e.g., Tsiatis 2006). Two standard IPW estimators for ν 0 are (e.g., McCaffrey et al.
+5
+
+2004; Abadie 2005)
+
+(1 − T )π̂(X)Y .
+Ẽ(T ),
+= Ẽ
+1 − π̂(X)
+
+
+
+
+(1 − T )π̂(X)
+(1 − T )π̂(X)Y .
+0
+Ẽ
+.
+ν̂IPW,ratio (π̂) = Ẽ
+1 − π̂(X)
+1 − π̂(X)
+0
+ν̂IPW
+(π̂)
+
+
+
+0
+1
+The estimator of ATT based on ν̂IPW
+(π̂) and ν̂NP
+is then
+
+.
+T − π̂(X)
+1
+0
+ν̂NP − ν̂IPW (π̂) = Ẽ
+Y
+Ẽ(T ).
+1 − π̂(X)
+
+If model (2) is correctly specified, then the IPW estimators are consistent. However,
+if model (2) is misspecified or even mildly so, these estimators can perform poorly,
+especially due to the instability of inverse weighting to fitted propensity scores π̂(Xi )
+near 1 for some untreated subjects (e.g., Kang & Schafer 2007).
+
+3
+
+Semiparametric theory and AIPW estimation
+
+0
+For consistency, the estimator νOR
+requires a correctly specified OR model (1) for t =
+0
+0
+0, whereas νIPW
+and νIPW,ratio
+require a correctly specified PS model (2). Alternatively,
+
+it is desirable to develop estimators of ν 0 and ATT using both OR model (1) and PS
+model (2) to gain efficiency and robustness, similarly as in estimation of ATE. We
+review semiparametric theory and derive locally efficient and doubly robust estimators
+of ν 0 and ATT in the form of augmented IPW (AIPW). Understanding of these
+estimators facilitates our development of improved estimators in Section 4.
+First, Proposition 1 restates the efficient influence functions for estimation of ν 0
+under three different settings, based on Hahn (1998) and Chen et al. (2008).
+Proposition 1 (Hahn 1998; Chen et al. 2008) Let q = E(T ) and define
+
+
+1−T
+1−T
+0
+τ (π, h) =
+π(X)Y −
+− 1 h(X).
+1 − π(X)
+1 − π(X)
+The efficient influence function for estimation of ν 0 is as follows, depending on assumptions on the propensity score.
+(i) The efficient influence function is
+.
+
+ϕ0NP (Y, T, X) = τ 0 (π, m0 ) − T ν 0
+q.
+6
+
+(ii) If the propensity score π(X) is known, then the efficient influence function is
+.
+
+q
+ϕ0SP* (Y, T, X) = τ 0 (π, πm0 ) − π(X)ν 0
+
+= ϕ0NP (Y, T, X) − {T − π(X)}
+
+m0 (X) − ν 0
+.
+q
+
+(iii) If the propensity score π(X) is unknown but assumed to belong to a correctly
+specified parametric family π(X; γ), then the efficient influence function is
+
+
+m0 (X) − ν 0
+0
+0
+sγ (T, X) ,
+ϕSP (Y, T, X) = ϕSP* (Y, T, X) + Proj {T − π(X)}
+q
+where for two random vectors Z1 and Z2 , Proj(Z2 |Z1 ) = cov(Z2 , Z1 )var−1 (Z1 )Z1 , i.e.,
+the linear projection of Z2 onto Z1 .
+As discussed in Hahn (1998) and Chen et al. (2008), the semiparamtric efficiency
+0
+0
+0
+bounds satisfy the following order: VNP
+≥ VSP
+≥ VSP*
+, with strict inequalities holding
+0
+0
+0
+in general, where VNP
+, VSP
+, and VSP*
+are respectively the variances of ϕ0NP , ϕ0SP , and
+
+ϕ0SP* . In fact, the efficient influence functions ϕ0NP , ϕ0SP , and ϕ0SP* can all be expressed
+as the following functional with suitable choices of h(X):
+.
+
+q.
+ϕ0h (Y, T, X) = τ 0 (π, h) − T ν 0
+
+(4)
+
+0
+The minimum variance of ϕ0h (Y, T, X) over possible choices of h(X) is exactly VSP*
+,
+
+corresponding to the choice h(X) = π(X)m0 (X) + {1 − π(X)}ν 0 .
+This ordering of efficiency bounds agrees with the usual comparison that the efficiency bound under a more restrictive model is no greater than under a less restrictive
+model. But this relationship differs from the result that the semiparametric efficiency
+bounds for estimation of µt = E(Y t ) are the same whether under the nonparametric
+model for π(X), or under a parametric model for π(X), or with exact knowledge of
+π(X). Conceptually, these differences reflect the fact the propensity score is ancillary
+for estimation of ATE, but not ancillary for estimation of ATT (Hahn 1998).
+We now derive two estimators of ν 0 that depend on both fitted outcome regression function m̂0 (X) and fitted propensity score π̂(X), by directly taking the efficient
+influence functions in Proposition 1 as estimating functions, with m̂0 (X) and π̂(X)
+in place of the unknown truth m0 (X) and π(X). Proposition 2 shows that only one
+7
+
+estimator is doubly robust, whereas both estimators possess local efficiency but of
+different types according to the semiparametric efficiency bounds achieved when the
+OR and PS models are correctly specified. For clarity, the semiparametric efficiency
+0
+bound VNP
+under the nonparametric model is hereafter referred to as the nonpara-
+
+metric efficiency bound. See, for example, Newey (1990), Robins & Rotnitzky (2001),
+and Tsiatis (2006) for general discussions on local efficiency and double robustness.
+Proposition 2 Under suitable regularity conditions (see Appendix I in the Supplementary Material), the following results hold.
+(i) Define an estimator of ν 0 as
+0
+ν̂NP
+(π̂, m̂0 )
+
+.
+ 0
+= Ẽ τ (π̂, m̂0 )
+Ẽ(T ).
+
+0
+Then ν̂NP
+(π̂, m̂0 ) is locally nonparametric efficient: it achieves the nonpara0
+metric efficiency bound VNP
+when both model (1) for t = 0 and model (2) are
+0
+correctly specified. Moreover, ν̂NP
+(π̂, m̂0 ) is doubly robust: it remains consistent
+
+when either model (1) for t = 0 or model (2) is correctly specified.
+(ii) Define an estimator of ν 0 as
+0
+ν̂SP
+(π̂, m̂0 )
+
+.
+ 0
+Ẽ{π̂(X)}.
+= Ẽ τ (π̂, π̂ m̂0 )
+
+0
+For logistic PS model (2), ν̂SP
+(π̂, m̂0 ) can be equivalently expressed as
+
+.
+
+0
+Ẽ(T ),
+ν̂SP
+(π̂, m̂0 ) = Ẽ τ 0 (π̂, π̂m̂0 )
+
+0
+because Ẽ(T ) = Ẽ{π̂(X)} by Eq. (3) with f (X) including 1. Then ν̂SP
+(π̂, m̂0 ) is
+
+locally semiparametric efficient: it achieves the semiparametric efficiency bound
+0
+VSP
+when both model (1) for t = 0 and model (2) are correctly specified. But
+0
+ν̂SP
+(π̂, m̂0 ) is, generally, not doubly robust.
+0
+0
+The estimators ν̂NP
+(π̂, m̂0 ) and, for a logistic PS model, ν̂SP
+(π̂, m̂0 ) belong to the
+
+following class of AIPW estimators, with the choice h = m̂0 or h = π̂ m̂0 respectively:
+.
+ 0
+ν̂ (π̂, h) = Ẽ τ (π̂, h)
+Ẽ(T )
+
+
+.
+
+1−T
+1−T
+π̂(X)Y −
+− 1 h(X)
+Ẽ(T ),
+= Ẽ
+1 − π̂(X)
+1 − π̂(X)
+0
+
+8
+
+which are defined by directly taking (4) as the estimating function with the fitted
+propensity score π̂(X) in place of the unknown truth π(X). Setting h(X) ≡ 0 leads
+0
+to the simple estimator ν̂IPW
+. Although related estimators of ν 0 may be implicit
+
+in previous works (e.g., Stoczynski & Wooldridge 2014) and the idea of constructing
+estimators from influence functions is generally known (e.g., Tsiatis 2006), our appli0
+0
+cation of this idea to derive the estimators ν̂NP
+(π̂, m̂0 ) and ν̂SP
+(π̂, m̂0 ) for ν 0 seems
+
+new and sheds light on subtle differences between the two estimators as discussed
+below. Such differences lead to new challenges to be addressed in our development of
+improved estimators in Section 4; see the remarks after Proposition 5.
+0
+0
+By local semiparametric efficiency, the estimator ν̂SP
+(π̂, m̂0 ), but not ν̂NP
+(π̂, m̂0 ),
+
+achieves the minimum asymptotic variance among all regular estimators under PS
+model (2), including AIPW estimators ν̂h0 (π̂, m̂0 ) over possible choices of h(X), when
+0
+both model (1) for t = 0 and model (2) are correctly specified. However, ν̂SP
+(π̂, m̂0 )
+0
+is not doubly robust, and ν̂NP
+(π̂, m̂0 ) is doubly robust. This situation differs from the
+
+case where among the class of AIPW estimators of µ0 , the estimator
+
+
+
+
+1−T
+1−T
+0
+µ̂AIPW = Ẽ
+Y −
+− 1 m̂0 (X) ,
+1 − π̂(X)
+1 − π̂(X)
+is doubly robust, i.e., consistent when either OR model (1) for t = 0 or PS model
+(2) is correctly specified, and locally semiparamtric and nonparametric efficient, i.e.,
+achieving the minimum asymptotic variance among all regular estimators under parametric PS model (2) and, respectively, under the nonparametric model when model
+(1) for t = 0 and model (2) are correctly specified. As discussed after Proposition 1,
+the semiparametric efficient bound for estimation of µ0 under a parametric PS model
+coincides with that under the nonparametric model.
+Next, we restate the efficient influence functions in Proposition 3 for estimation of
+ν 1 , based on Hahn (1998) and Chen et al. (2008). Similarly as for estimation of ν 0 ,
+1
+1
+1
+the efficiency bounds satisfy VNP
+≥ VSP
+≥ VSP*
+, with strict inequalities in general.
+
+Proposition 3 (Hahn 1998; Chen et al. 2008) The efficient influence function
+for estimation of ν 1 is as follows, depending on assumptions on the propensity score.
+(i) The efficient influence function is
+ϕ1NP (Y, T, X) = T Y − T ν 1
+9
+
+.
+
+q.
+
+(ii) If the propensity score π(X) is known, then the efficient influence function is
+ϕ1SP* (Y, T, X)
+
+
+
+= T Y − {T − π(X)}m1 (X) − π(X)ν
+= ϕ1NP (Y, T, X) − {T − π(X)}
+
+1
+
+.
+
+q
+
+m1 (X) − ν 1
+.
+q
+
+(iii) If the propensity score π(X) is unknown but assumed to belong to a correctly
+specified parametric family π(X; γ), then the efficient influence function is
+
+
+m1 (X) − ν 1
+1
+1
+ϕSP (Y, T, X) = ϕSP* (Y, T, X) + Proj {T − π(X)}
+sγ (T, X) .
+q
+
+1
+The estimator ν̂NP
+= Ẽ(T Y ) Ẽ(T ) is always consistent and has the efficient influ-
+
+1
+ence function ϕ1NP (Y, T, X). Therefore, ν̂NP
+is fully robust to model misspecification,
+
+and globally nonparametric efficient. Alternatively, taking ϕ1SP* (Y, T, X) as an estimating function with m̂1 (X) and π̂(X) in place of m1 (X) and π(X) gives an estimator
+of ν 1 that is locally semiparametric efficient, but not doubly robust.
+Proposition 4 Under suitable regularity conditions (see Appendix I in the Supplementary Material), the following results hold.
+
+1
+(i) The estimator ν̂NP
+= Ẽ(T Y ) Ẽ(T ) is consistent and achieves the nonparamet1
+ric efficiency bound VNP
+, independently of model (1) for t = 1 and model (2).
+
+(ii) Define an estimator of ν 1 as
+
+1
+ν̂SP
+(π̂, m̂1 ) = Ẽ [T Y − {T − π̂(X)}m̂1 (X)] Ẽ{π̂(X)}.
+
+1
+For logistic PS model (2), ν̂SP
+(π̂, m̂1 ) can be equivalently expressed as
+
+
+1
+ν̂SP
+(π̂, m̂1 ) = Ẽ [T Y − {T − π̂(X)}m̂1 (X)] Ẽ(T ).
+
+1
+Then ν̂SP
+(π̂, m̂1 ) is locally semiparametric efficient: it attains the semipara1
+metric efficiency bound VSP
+when both model (1) for t = 1 and model (2) are
+1
+correctly specified. But νSP
+(π̂, m̂1 ) is not doubly robust.
+
+Finally, for estimation of ATT = ν 1 − ν 0 , the efficient influence function is the
+difference of the efficient influence functions for estimation of ν 1 and ν 0 under each
+of the three settings in Propositions 1 and 3. Combining the estimators of ν 0 and ν 1
+in Propositions 2 and 4 leads to the following results.
+10
+
+Corollary 1 Under suitable regularity conditions (see Appendix I in the Supplementary Material), the following results hold.
+1
+0
+(i) The estimator ν̂NP
+− ν̂NP
+(π̂, m̂0 ) for ATT is locally nonparametric efficient: it
+
+achieves the nonparametric efficiency bound, var{ϕ1NP (Y, T, X)−ϕ0NP (Y, T, X)},
+when both model (1) for t = 0 and model (2) are correctly specified. Moreover,
+this estimator is doubly robust: it remains consistent when either model (1) for
+t = 0 or model (2) is correctly specified.
+1
+0
+(ii) The estimator ν̂SP
+(π̂, m̂0 ) − ν̂SP
+(π̂, m̂0 ) for ATT is locally semiparametric ef-
+
+ficient: it achieves the semiparametric efficiency bound, var{ϕ1SP (Y, T, X) −
+ϕ0SP (Y, T, X)}, when both model (1) for t = 0, 1 and model (2) are correctly
+specified. But this estimator is, generally, not doubly robust.
+
+4
+
+Improved estimation
+
+We develop estimators of ν 0 that are not only locally nonparametric efficient and
+doubly robust, but also intrinsically efficient: when the PS model (2) is correctly
+specified but the OR model (1) for t = 0 may be misspecified, these estimators
+achieve at least as small asymptotic variances among a class of AIPW estimators,
+0
+including ν̂NP
+(π̂, m̂0 ) but only with π̂(X) replaced by the fitted value from a slightly
+
+augmented PS model as defined later in (5). The new estimators are then similar to
+0
+ν̂NP
+(π̂, m̂0 ), in being consistent when either the PS model or the OR model is correctly
+0
+specified and achieving the nonparametric efficiency bound VNP
+when both models
+0
+are correctly specified, but often achieve smaller variances over ν̂NP
+(π̂, m̂0 ) when the
+
+PS model is correctly specified but the OR model is misspecified.
+Similarly, we develop estimators of ATT that are not only locally nonparametric ef1
+0
+ficient and doubly robust, but also often provide efficiency gains over ν̂NP
+− ν̂NP
+(π̂, m̂0 )
+
+when the PS model is correctly specified but the OR model is misspecified.
+Before proceeding, we point out that although, by symmetry, it also seems desirable
+to construct estimators of ν 0 or ATT that are not only locally nonparametric efficient
+0
+and doubly robust, but also achieve efficiency gains approximately over ν̂NP
+(π̂, m̂0 )
+1
+0
+or ν̂NP
+− ν̂NP
+(π̂, m̂0 ) when the OR model is correctly specified but the PS model is
+
+11
+
+misspecified, such estimators have not been obtained so far.
+
+4.1
+
+Regression estimators
+
+We derive regression estimators for ν 0 and ATT to achieve the desired properties,
+similarly to regression estimators for ATE (Tan 2006) but with an important new idea
+as follows. For simplicity, assume in Sections 4.1–4.2 that PS model (2) is logistic
+regression. See Appendix I.6 for an extension when PS model (2) is non-logistic
+regression. Consider an augmented logistic PS model
+P (T = 1|X) = πaug (X; γ, δ, α̂)
+= expit {γ T f (X) + δ0 m̂0 (X) + δ1 m̂1 (X)} ,
+
+(5)
+
+where expit(c) = {1 + exp(−c)}−1 , α̂ = (α̂0T , α̂1T )T are estimates of α = (α0T , α1T )T from
+OR model (1), and δ = (δ0 , δ1 )T are unknown coefficients for additional regressors
+m̂0 (X) and m̂1 (X). Let (γ̃, δ̃) be the MLE of (γ, δ) and π̃(X) = πaug (X; γ̃, δ̃, α̂). An
+important consequence of including the additional regressors is that, by Eq. (3), we
+have, in addition to Ẽ[{T − π̃(X)}f (X)] = 0,
+Ẽ [{T − π̃(X)}m̂t (X)] = 0,
+
+t = 0, 1.
+
+(6)
+
+For the augmented PS model, there may be linear redundancy in the variables, {f (X),
+m̂0 (X), m̂1 (X)}, in which case the regressors need to be redefined accordingly. In
+particular, consider the following condition:
+(L) m̂t (X) is a linear combination of variables in f (X) for t = 0, 1,
+which is satisfied when all variables in gt (X) are included as components of f (X),
+and Ψ(·) is the identity link corresponding to linear regression in (1). If Condition
+(L) holds, then the augmented model (5) reduces to (2) and hence π̃(X) = π̂(X)
+subsequently. Otherwise, π̃(X) and π̂(X) generally differ from each other.
+With π̃(X) the fitted value from the augmented PS model (5), we define the
+regression estimator of ν t = E(Y t |T = 1) as
+
+
+t
+ν̃reg
+= Ẽ η̃t − β̃tT ξ˜t Ẽ(T ),
+12
+
+t = 0 or 1,
+
+where β̃t = Ẽ −1 (ξ˜t ζ̃tT )Ẽ(ξ˜t η̃t ) with
+1−T
+π̃(X)Y,
+1 − π̃(X)
+
+
+h̃(X)
+1
+−
+T
+ξ˜0 (= −ξ˜1 ) =
+−1
+,
+1 − π̃(X)
+π̃(X)
+
+η̃1 = T Y,
+
+
+T
+h̃(X)
+ξ˜1 =
+−1
+,
+π̃(X)
+1 − π̃(X)
+
+η̃0 =
+
+ζ̃1 =
+
+ζ̃0 =
+
+T
+h̃(X)
+,
+π̃(X) 1 − π̃(X)
+
+1 − T h̃(X)
+,
+1 − π̃(X) π̃(X)
+
+and h̃(X) = {h̃T1 , (C h̃2 )T }T (X) are defined with a constant matrix C such that the
+variables in h̃(X) are linearly independent, and
+h̃1 (X) = [{1 − π̃(X)}ṽ1T(X), π̃(X)ṽ0T (X)]T ,
+ T
+h̃2 (X) = π̃(X){1 − π̃(X)} f(1)
+(X), m̂0 (X)
+ṽ1 (X) = {π̃(X), π̃(X)m̂1 (X)}T ,
+
+T
+
+,
+
+ṽ0 (X) = {π̃(X), π̃(X)m̂0 (X)}T .
+
+where f(1) (X) is the vector of nonconstant variables in f (X), because π̃(X){1− π̃(X)}
+is already a component of {1 − π̃(X)}ṽ1T (X) in h̃1 (X). For example, if Condition (L)
+holds for t = 0 or 1, then h̃(X) should be specified such that one variable is removed
+from the vector π̃(X){1 − π̃(X)}f(1) (X) in h̃2 (X).
+The variables in h̃(X) are included for the following considerations. The variables
+π̃(X)m̂0 (X) and π̃(X)m̂1 (X) are included in ṽ0 (X) and ṽ1 (X) respectively to achieve
+double robustness and local nonparametric efficiency, as later seen from Eq. (8).
+Moreover, the variables in h̃2 (X), in addition to {1 − π̃(X)}ṽ1 (X), are included to
+accommodate the variation of (γ̃, δ̃) for achieving intrinsic efficiency, as later described
+in Proposition 5. The corresponding variables in ξ˜0 or ξ˜1 are exactly the scores
+{T − π̃(X)}{f T (X), m̂0 (X), m̂1 (X)}T for the augmented PS model (5). Finally, π̃(X)
+is included in ṽ0 (X) and ṽ1 (X) to ensure efficiency gains over the ratio estimator
+0
+ν̂IPW,ratio
+(π̃) under a correctly specified PS model, as discussed after Corollary 2.
+
+The name “regression estimator” is adopted from the literatures of survey sampling
+(Cochran 1977) and Monte Carlo integration (Hammersley & Handscomb 1964), and
+t
+should be distinguished from the estimator ν̂OR
+based on outcome regression in Sec-
+
+tion 2. The idea is to exploit the fact that if the PS model is correct, then Ẽ(η̃t )
+asymptotically has mean E(T Y t ) (to be estimated) and ξ˜t mean 0 (known). That
+is, ξ˜t serves as auxiliary variables (in the terminology of survey sampling) or control
+13
+
+variates (in that of Monte Carlo integration). The effect of variance reduction using
+regression estimators can be seen from in the following results.
+Proposition 5 Under suitable regularity conditions (see Appendix I in the Supplet
+mentary Material), the estimator ν̃reg
+for ν t has the following properties for t = 0, 1.
+t
+(i) ν̃reg
+is locally nonparametric efficient: it achieves the nonparametric efficiency
+t
+bound VNP
+when both model (1) for the corresponding t and model (2) are cor-
+
+rectly specified.
+t
+(ii) ν̃reg
+is doubly robust: it remains consistent when either model (1) for the corre-
+
+sponding t or model (2) is correctly specified.
+t
+(iii) ν̃reg
+is intrinsically efficient: if model (2) is correctly specified, then it achieves
+
+the lowest asymptotic variance among the class of estimators
+
+
+Ẽ η̃t − bt ξ˜t
+T
+
+
+Ẽ(T ),
+
+(7)
+
+where bt is an arbitrary vector of constants.
+
+0
+1
+for ATT has the following properties.
+− ν̃reg
+Corollary 2 The estimator ν̃reg
+1
+0
+(i) ν̃reg
+− ν̃reg
+is locally nonparametric efficient: it achieves the nonparametric ef-
+
+ficiency bound, var{ϕ1NP (Y, T, X) − ϕ0NP (Y, T, X)}, when both model (1) for
+t = 0, 1 and model (2) are correctly specified.
+1
+0
+(ii) ν̃reg
+− ν̃reg
+is doubly robust: it remains consistent when either model (1) for
+
+t = 0, 1 or model (2) is correctly specified.
+1
+0
+(iii) ν̃reg
+− ν̃reg
+is intrinsically efficient: if model (2) is correctly specified, then it
+
+achieves the lowest asymptotic variance among the class of estimators
+
+
+Ẽ η̃1 − η̃0 − bT0 ξ˜0 Ẽ(T ),
+
+where b0 is an arbitrary vector of constants.
+
+Double robustness. We point out that the use of augmented propensity scores
+t
+π̃(X) is crucial for ν̃reg
+to be doubly robust, in particular, to be consistent under a
+
+14
+
+correctly specified OR model but a misspecified PS model. [It is possible, for example,
+under Condition (L) that π̃(X) reduces to π̂(X).] If the OR model (1) for t = 0 or 1
+is correctly specified, then, as shown in the Appendix I.3, the vector β̃t converges to
+a constant vector βt∗ such that
+
+
+t
+t
+= Ẽ η̃t − βt∗ T ξ˜t Ẽ(T ) + op (n−1/2 ) = ν̂SP
+ν̃reg
+(π̃, m̂t ) + op (n−1/2 ),
+
+(8)
+
+because π̃(X)m̂0 (X) is a linear combination of variables in h̃(X)/π̃(X) and π̃(X)m̂1 (X)
+is a linear combination of those in h̃(X)/{1− π̃(X)}. By Eq. (6) for the augmented PS
+t
+0
+model, ν̂SP
+(π̃, m̂t ) is identical to ν̂NP
+(π̃, m̂0 ) for t = 0, which is doubly robust similarly
+0
+1
+as ν̂NP
+(π̂, m̂0 ) by Propsition 2, or to ν̂NP
+for t = 1, which is fully robust. Therefore,
+
+t
+ν̃reg
+is consistent when the OR model (1) for the corresponding t is correctly specified.
+t
+This result would not hold when ν̃reg
+were defined with π̂(X) in place of π̃(X).
+
+Local efficiency.
+
+t
+For t = 0 or 1, the estimator ν̃reg
+is locally nonparametric
+
+0
+1
+t
+is generally not locally semiefficient, similarly as ν̂NP
+(π̃, m̂0 ) or ν̂NP
+. In addition, ν̃reg
+
+parametric efficient with respect to PS model (2), but locally semiparametric efficient
+t
+with respect to PS model (5): ν̃reg
+achieves the semiparametric efficiency bounded cal-
+
+culated under model (5), when both model (1) and model (2) are correctly specified.
+t
+In fact, when model (2) holds, the efficiency bound VSP
+under model (5) coincides with
+t
+the nonparametric efficiency bound VNP
+, because {T − π(X)}{mt (X) − ν t } is a linear
+
+combination of the score function, which contains {T − π(X)}{1, m0 (X), m1 (X)}T
+t
+under model (5) as shown in Appendix I. On the other hand, ν̃reg
+with π̃(X) replaced
+
+by π̂(X) throughout would be locally semiparametric efficient with respect to the
+t
+original PS model (2), but generally not doubly robust, similarly as ν̂SP
+(π̃, m̂t ).
+
+Intrinsic efficiency. A classical estimator of the optimal choice of bt in minimizing the asymptotic variance of (7) is β̂t = Ẽ(ξ˜t ξ˜tT )−1 Ẽ(ξ˜t η̃t ), which differs from
+t
+β̃t in a subtle manner. It can be shown that the corresponding estimator, ν̂reg
+=
+t
+Ẽ(η̃t − β̂tT ξ˜t )/Ẽ(T ), for ν t is asymptotically equivalent to the first order to ν̃reg
+when
+t
+t
+the PS model is correctly specified. But ν̂reg
+, unlike ν̃reg
+, is generally inconsistent for
+
+ν t , even when the OR model is correctly specified and the PS model may be misspecified. The particular form of β̃t , although seems ad hoc in the above definition,
+can also be derived through empirical efficiency maximization (Rubin & van der Laan
+2008; Tan 2008) and design-optimal regression estimation for survey calibration (Tan
+15
+
+2013). See further discussion related to calibration estimation after Proposition 6.
+The advantage of achieving intrinsic efficiency is shown by the following com0
+0
+0
+parison, where ν̂IPW
+(π̃), ν̂IPW,ratio
+(π̃), and, as discussed below (8), ν̂NP
+(π̃, m̂0 ), are
+0
+0
+0
+obtained from ν̂IPW
+(π̂), ν̂IPW,ratio
+(π̂), and ν̂NP
+(π̂, m̂0 ) with π̂(X) replaced by π̃(X).
+
+Corollary 3 Under the setting of Proposition 5, if PS model (2) is correctly specified,
+0
+0
+(π̃) and
+then the estimator ν̃reg
+is asymptotically at least as efficient as not only ν̂IPW
+0
+0
+1
+0
+ν̂IPW,ratio
+(π̃) but also ν̂NP
+(π̃, m̂0 ), and the estimator ν̃reg
+−ν̃reg
+for ATT is asymptotically
+1
+0
+1
+0
+1
+0
+at least as efficient as ν̂NP
+− ν̂IPW
+(π̃), ν̂NP
+− ν̂IPW,ratio
+(π̃), and ν̂NP
+− ν̂NP
+(π̃, m̂0 ).
+0
+A technical complication of using augmented propensity scores π̃(X) is that ν̃reg
+
+may not, in general, be intrinsically efficient, when compared to the class of estimators
+(7) with π̃(X) replaced by π̂(X) in η̃0 and ξ˜0 . [Nevertheless, such intrinsic efficiency
+holds in the special case with π̃(X) = π̂(X), where the OR model (1) for t = 0 is linear
+regression with all variables in g0 (X) also included in f (X).] Particularly, if the PS
+0
+0
+model (2) is correctly specified, then ν̃reg
+may not be as efficient as ν̂NP
+(π̂, m̂0 ) based on
+0
+0
+is proven to be asymptotically at least as efficient as ν̂NP
+(π̃, m̂0 )
+π̂(X) even though ν̃reg
+
+based on π̃(X) and, when the OR model (1) for t = 0 is also correctly specified,
+0
+0
+asymptotically equivalent to ν̂NP
+(π̂, m̂0 ) and ν̂NP
+(π̃, m̂0 ). However, the increase in the
+0
+0
+asymptotic variance of ν̂NP
+(π̃, m̂0 ) over that of ν̂NP
+(π̂, m̂0 ) is usually small, caused by
+0
+the use of a slightly augmented PS model (5). The estimator ν̃reg
+may still often
+0
+achieve efficiency gains over ν̂NP
+(π̂, m̂0 ) when the PS model is correctly specified but
+
+the OR model is misspecified, as shown in our simulation studies.
+
+4.2
+
+Likelihood estimators
+
+A practical limitation of the regression estimators as well as AIPW estimators is
+that they may lie outside either the sample or the population range of observed
+t
+outcomes. For example, ν̃reg
+may take values outside the interval (0, 1) for binary
+
+outcomes. Such behavior may occur due to the presence of fitted propensity scores
+π̃(Xi ) near 1 or, equivalently, large inverse probability weights {1 − π̃(Xi )}−1 among
+the untreated. In this section, we derive likelihood estimators for ν t that are not only
+doubly robust, locally nonparametric efficient, and intrinsically efficient similarly to
+16
+
+the regression estimators, but also sample-bounded in falling within the range of
+{Yi : Ti = t, i = 1, . . . , n}. These likelihood estimators are therefore much less
+sensitive to large weights than the regression and AIPW estimators.
+There are two steps in constructing the desired likelihood estimators, similarly
+as for ATE estimation in Tan (2010) but using the fitted propensity scores π̃(X)
+from augmented PS model (5). First, we derive intrinsically efficient, but non-doubly
+robust, likelihood estimators by the approach of empirical likelihood (Owen 2001)
+taking η̃t −ν t T and ξ˜t as asymptotically unbiased estimating functions or, equivalently,
+the approach of nonparametric likelihood (Tan 2006, 2010). Specifically, our approach
+P
+is to maximize the log empirical likelihood, ni=1 log pi , subject to the constraints
+n
+X
+i=1
+
+pi ξ˜1,i = 0 and
+
+n
+X
+
+pi (η̃t,i − ν t Ti ) = 0 for t = 0, 1,
+
+i=1
+
+where pi is a nonnegative weight assigned to (Yi , Ti , Xi ) for i = 1, . . . , n with
+
+Pn
+
+i=1
+
+pi =
+
+1. We show in the Appendix I.4 that the resulting estimates of ν 0 and ν 1 are
+(
+)
+)
+(
+.
+(1
+−
+T
+)π̃(X)Y
+(1
+−
+T
+)π̃(X)
+0
+ν̂lik
+= Ẽ
+,
+Ẽ
+1 − ω(X; λ̂)
+1 − ω(X; λ̂)
+(
+)
+(
+)
+.
+T
+π̃(X)Y
+T
+π̃(X)
+1
+ν̂lik
+= Ẽ
+Ẽ
+,
+ω(X; λ̂)
+ω(X; λ̂)
+where ω(X; λ) = π̃(X) + λT h̃(X) and λ̂ is a maximizer of the function
+ℓ(λ) = Ẽ[T log ω(X; λ) + (1 − T ) log{1 − ω(X; λ)}],
+
+subject to ω(Xi ; λ) > 0 if Ti = 1 and ω(Xi ; λ) < 1 if Ti = 0 for i = 1, . . . , n. Setting
+the gradient of ℓ(λ) to zero shows that λ̂ is a solution to
+
+
+T − ω(X; λ)
+Ẽ
+h̃(X) = 0.
+ω(X; λ){1 − ω(X; λ)}
+
+(9)
+
+Because π̃(X) is a linear combination of variables in h̃(X), it follows from Eq. (9)
+that the two denominators, Ẽ[(1 − T )π̃(X)/{1 − ω(X; λ̂)}] and Ẽ[T π̃(X)/ω(X; λ̂)],
+0
+1
+in the definitions of ν̂lik
+and ν̂lik
+are equal to each other.
+t
+The estimator ν̂lik
+can be shown to be intrinsically efficient among the class of es-
+
+timators (7) and locally nonparametric efficient, but generally not doubly robust. We
+introduce the following modified likelihood estimators, to achieve double robustness
+but without affecting the first-order asymptotic behavior.
+17
+
+For t = 0 or 1, partition h̃ as h̃ = {h̃T1t , h̃T1(t) , (C h̃2 )T }T for a constant matrix C
+and accordingly λ as λ = (λT1t , λT1(t) , λT2 )T , where h̃1t = π̃ṽ0 or (1 − π̃)ṽ1 if t = 0 or 1,
+and h̃1(t) consists of the elements of h̃1 excluding h̃1t . Moreover, write Rt = 0 or 1,
+π̃(t, X) = 1 − π̃(X) or π̃(X), and ω(t, X; λ) = 1 − ω(X; λ) or ω(X; λ) respectively for
+t = 0 or 1. Define λ̃t = (λ̃T1t , λ̂T1(t) , λ̂T2 )T , where λ̂1(t) and λ̂2 are obtained from λ̂, and
+λ̃1t is a maximizer of the function
+#
+"
+log{ω(t, X; λ1t, λ̂1(t) , λ̂2 )} − log{ω(t, X; λ̂)}
+− λT1t vt (X) ,
+κt (λ1t ) = Ẽ Rt
+1 − π̃(t, X)
+subject to ω(t, Xi ; λ1t , λ̂1(t) , λ̂2 ) > 0 if Ti = t for i = 1, . . . , n. Setting the gradient of
+κt (λ1t ) to 0 shows that λ̃1t is a solution to
+"(
+)
+#
+Rt
+Ẽ
+− 1 ṽt (X) = 0.
+ω(t, X; λ1t, λ̂1(t) , λ̂2 )
+
+(10)
+
+For t = 0, 1, the resulting estimator of ν t is
+
+
+
+
+
+
+Rt π̃(X)
+Rt π̃(X)Y .
+Rt π̃(X)Y .
+t
+Ẽ
+= Ẽ
+Ẽ(T ),
+ν̃lik = Ẽ
+ω(t, X; λ̃t)
+ω(t, X; λ̃t)
+ω(t, X; λ̃t)
+where the second equation holds due to Eq. (10) with π̃(X) included in ṽ0 (X) and
+ṽ1 (X), and Ẽ{T − π̃(X)} = 0 by the score equation for model (5). The likelihood
+t
+estimator ν̃lik
+has several desirable properties as follows.
+
+Proposition 6 Under suitable regularity conditions (see Appendix I in the Supplet
+mentary Material), the estimator ν̃lik
+for ν t has the following properties for t = 0, 1.
+t
+(i) ν̃lik
+is sample-bounded: it lies within the range of {Yi : Ti = t, i = 1, . . . , n}.
+t
+(ii) If model (2) is correctly specified, then ν̃lik
+is asymptotically equivalent, to the
+t
+t
+first order, to ν̃reg
+. Hence ν̃lik
+is intrinsically efficient among the class (7) and
+t
+locally nonparametric efficient, similarly as ν̃reg
+in Proposition 5.
+t
+t
+is doubly robust, similarly as ν̃reg
+in Proposition 5.
+(iii) ν̃lik
+t
+The sample-boundedness of ν̃lik
+holds because ω(t, Xi ; λ̃t ) > 0 if Ti = t for i =
+
+1, . . . , n and Ẽ{Rt π̃(X)/ω(t, Xi ; λ̃t )} = Ẽ{π̃(X)} = Ẽ(T ) by Eq. (10). The double
+t
+follows mainly for two reasons: Ẽ{Rt π̃(X)m̂t (X)/ω(t, Xi ; λ̃t )} =
+robustness of ν̃lik
+
+18
+
+Ẽ{π̃(X)m̂t (X)} by Eq. (10) with π̃(X)m̂t (X) included in ṽt (X), and Ẽ{π̃(X)m̂t (X)}
+= Ẽ{T m̂t (X)} by Eq. (6) for the augmented PS model (5).
+Eq. (10), which underlies both sample-boundedness and double robustness as discussed above, can be connected to calibration estimation using auxiliary information
+in survey sampling (Deville & Sarndal 1992; Tan 2013). In fact, the inverse weighted
+average of ṽt (X) = π̃(X){1, m̂t (X)}T is matched (or calibrated) with the simple sample average of ṽt (X). This is equivalent to saying that if Y is replaced by m̂t (X),
+t
+then the numerator in the definition of ν̃lik
+yields exactly Ẽ{π̃(X)m̂t (X)}. A similar
+t
+property holds for ν̃reg
+: if Y is replaced by m̂t (X), then the numerator in the definit
+t
+t
+tion of ν̃reg
+yields exactly Ẽ{π̃(X)m̂t (X)}. By this relationship, ν̃reg
+and ν̃lik
+can be
+
+referred to as calibrated regression and likelihood estimators.
+t
+t
+The implication of intrinsic efficiency for ν̃lik
+is similar to that for ν̃reg
+as discussed
+
+in Section 4.1. If the PS model (2) is correctly specified while the OR model (1) may
+0
+0
+be misspecified, then ν̃lik
+is asymptotically at least as efficient as ν̂NP
+(π̃, m̂0 ), and
+1
+0
+1
+0
+ν̃lik
+− ν̃lik
+is asymptotically at least as efficient as ν̂NP
+− ν̂NP
+(π̃, m̂0 ).
+
+5
+
+Extensions and comparisons
+
+To possibly enhance numerical stability and finite-sample performance, we suggest
+t
+t
+and ν̃lik
+with simplifications of π̃(X) and h̃(X):
+the following versions of ν̃reg
+
+(i) Consider an augmented logistic PS model in place of (5):
+P (T = 1|X) = πaug2 (X; γ0, δ, α̂, γ̂)
+= expit [logit{π̂(X)} + γ0 + δ0 m̂0 (X) + δ1 m̂1 (X)] ,
+
+(11)
+
+where logit(π̂) = log{π̂/(1− π̂)} is included as an offset, and γ0 and δ = (δ0 , δ1 )T
+are unknown coefficients. Let (γ̃0 , δ̃) be the MLE of (γ0 , δ), and redefine π̃(X) =
+πaug2 (X; γ̃0 , δ̃, α̂, γ̂). In contrast with (5), this model (11) is meaningful even
+when the original model (2) is non-logistic regression or γ̂ is obtained by nonmaximum likelihood estimation, for example, penalized estimation.
+(ii) Redefine h̃(X) = h̃1 (X), that is, with h̃2 (X) removed. Then β̃t is defined by
+projection of η̃t on a lower-dimensional vector ξ˜t , and λ̂ is defined by solving a
+19
+
+lower-dimensional optimization problem. The dimension reduction may improve
+t
+t
+numerical stability and finite-sample performance of ν̃reg
+and ν̃lik
+.
+t
+t
+t
+t
+For concreteness, the resulting estimators ν̃reg
+and ν̃lik
+are denoted by ν̃reg2
+and ν̃lik2
+
+respectively. These simplified estimators can be shown to remain locally nonparametric efficient and doubly robust as in Propositions 5 and 6; they are generally not
+t
+intrinsically efficient, but are expected to asymptotically nearly as efficient as ν̃reg
+and
+t
+t
+t
+ν̃lik
+when the PS model (2) is correctly specified. Informally, ν̃reg2
+and ν̃lik2
+would be
+
+intrinsically efficient if π̂(X) = π(X; γ̂) were replaced, in model (11) and the definition
+of π̃(X), by π(X; γ ∗ ) with γ ∗ the limit of γ̂ in probability.
+While h̃2 (X) can be removed from h̃(X) for dimension reduction, we point out that
+h̃1 (X) can be extended to include additional functions of X for achieving calibration
+on those variables in addition to ṽt (X). Specifically, let ct (X) be a vector of known
+but possibly data-dependent functions of X including 1, for example, gt (X) in the
+OR model (1) for t = 0, 1. Redefine the augmented PS model (11) as
+P (T = 1|X) = πaug2 (X; γ0, δ, γ̂)
+
+
+= expit logit{π̂(X)} + γ0 + δ0T c0(1) (X) + δ1T c1(1) (X) ,
+
+(12)
+
+where γ0 and δ = (δ0T , δ1T ) are unknown coefficients, and c0(1) (X) or c1(1) is the
+vector of nonconstant variables in c0 (X) or c1 (X) respectively. Redefine π̃(X) =
+πaug2 (X; γ̃0, δ̃, γ̂) with (γ̃0 , δ̃) the MLE of (γ0 , δ) for model (12), and redefine h̃(X) =
+h̃1 (X) with ṽt (X) = π̃(X)cTt (X) for t = 0, 1. Then Eq. (10) in conjunction with the
+score equation for model (11) leads to calibration equations
+
+
+(1 − T )π̃(X)
+c0 (X) = Ẽ{π̃(X)c0 (X)} = Ẽ{T c0 (X)},
+Ẽ
+1 − ω(X; λ̃0)
+
+
+T π̃(X)
+c1 (X) = Ẽ{π̃(X)c1 (X)} = Ẽ{T c1 (X)}.
+Ẽ
+ω(X; λ̃1)
+
+(13)
+(14)
+
+t
+t
+By the discussion after (8), the resulting estimators ν̃reg2
+and ν̃lik2
+are doubly robust
+
+and locally nonparametric efficient under the following condition:
+(R) m̂t (X) is a linear combination of ct (X) for t = 0, 1.
+This condition is satisfied when all variables in gt (X) including 1 are contained in
+ct (X), and Ψ(·) is the identity link in the OR model (1).
+20
+
+In the rest of this section, we compare our calibrated methods and several related
+methods for estimating ATT, including Qin & Zhang (2008), Hainmueller (2012),
+Imai & Ratkovic (2014), and Graham et al. (2016). The estimators of ν 0 in Qin & Zhang
+(2008) and Graham et al. (2016) are in the form
+n
+1 X (1 − Ti )π̂(Xi )
+Yi ,
+n1 i=1
+wi
+
+where {wi > 0 : Ti = 0, i = 1, . . . , n} are derived such that, similarly to (13)–(14),
+n
+X
+(1 − Ti )π̂(Xi )
+i=1
+
+wi
+
+c0 (Xi ) =
+
+n
+X
+
+π̂(Xi )c0 (Xi ).
+
+i=1
+
+Qin & Zhang (2008) studied asymptotic behavior of their estimator under a correctly
+specified PS model, but did not investigate local efficiency or double robustness or
+address how c0 (X) should be specified to gain efficiency or robustness over nonaugmented IPW estimators. For our current setting, Graham et al. (2016) showed
+that their estimator of ν t is locally semiparametric efficient with respect to PS model
+(2) under Condition (R), and doubly robust under the following condition:
+(R+ ) : Condition R holds, PS model (2) is logistic regression, and each variable in
+ct (X) is a linear combination of f (X) for t = 0, 1.
+
+2
+
+These results can be related to our results as follows.
+(i) Similarly as discussed after Proposition 5, the semiparametric efficiency bound
+t
+VSP
+with respect to model (2) coincides with the nonparametric efficiency bound
+t
+VNP
+when model (2) is logistic regression and {T −π(X)}{mt (X)−ν t } is a linear
+
+combination of {T −π(X)}f (X). Therefore, under Condition R+ , the estimator
+of Graham et al. (2016) is doubly robust and locally both nonparametric and
+semiparamtric efficient (see Proposition 2).
+(ii) If Condition (R+ ) holds, then Condition (L) holds and hence π̃(X) reduces to
+t
+t
+π̂(X). In this case, our estimators ν̃reg
+and ν̃lik
+, while using π̂(X) directly, are
+
+not only doubly robust and locally nonparametric efficient, but also intrinsically
+efficient among the class of estimator (7) with π̃(X) the same as π̂(X). The
+2
+
+This last condition should be added to condition (b) in Theorem 4 of Graham et al. (2016).
+
+21
+
+estimator of Graham et al. (2016) can be shown to be asymptotically equivalent,
+to the first order, to some estimator in class (7) under a correctly specified PS
+model (2). Therefore, under Condition (R+ ), our estimators are proved to be
+asymptotically at least as efficient as the estimator of Graham et al. (2016) when
+the PS model (2) is correctly specified but the OR model (1) is misspecified.
+(iii) Our approach can be used to handle the general case where PS model (2) is
+non-logistic regression (see Appendix I.6), and construct both AIPW estimators
+that are doubly robust and locally nonparametric efficient, but also improved
+estimators that further achieve intrinsic efficiency.
+If PS model (2) is logistic regression, then the methods of Hainmueller (2012) and
+Imai & Ratkovic (2014) seem to use the same estimator of ν 0 ,
+Pn
+n
+(1 − Ti )r(Xi ; γ̆)Yi
+1 X
+0
+ν̂HIR =
+(1 − Ti )r(Xi ; γ̆)Yi = Pi=1
+,
+n
+n1 i=1
+i=1 (1 − Ti )r(Xi ; γ̆)
+
+where r(X; γ) = π(X; γ)/{1 − π(X; γ)} = exp{γ T f (X)} and γ̆ is determined from
+
+the balancing equation similar to Eq. (13)–(14),
+n
+X
+
+(1 − Ti )r(Xi ; γ)f (Xi ) =
+
+i=1
+
+n
+X
+
+Ti f (Xi ).
+
+(15)
+
+i=1
+
+Eq. (15) differs from balancing equations used for ATE estimation in Imai & Ratkovic
+P
+0
+(2014). The two expressions of ν̂HIR
+follow from the fact that ni=1 (1 − Ti )r(Xi ; γ) =
+
+0
+n1 by Eq. (15) with f (X) including a constant. That is, ν̂HIR
+can be seen as standard
+0
+0
+0
+IPW estimators: ν̂HIR
+= ν̂IPW
+(π̆) = ν̂IPW,ratio
+(π̆), where π̆(X) = π(X; γ̆) is substituted
+0
+for π̂(X) = π(X; γ̂) with the MLE γ̂. Under Condition (L), the estimator ν̂HIR
+can
+
+be shown to be doubly robust and locally nonparametric efficient (Zhao & Percival
+0
+2017). However, ν̂HIR
+is not intrinsically efficient and hence, similarly to the estimator
+0
+0
+of Graham et al. (2016), not as efficient as our estimators ν̃reg
+and ν̃lik
+when the PS
+
+model (2) is correctly specified but the OR model (1) is misspecified.
+
+6
+
+Simulation studies
+
+We conducted two simulation studies to compare the proposed and existing estimators. We present in Appendix II the results under the simulation settings of
+22
+
+Kang & Schafer (2007) and McCaffrey et al. (2007). Here we present the results
+under the simulation settings of Qin & Zhang (2008) and Graham et al. (2016).
+The simulation setting of Qin & Zhang (2008) is originally designed in the context
+of difference-in-differences estimation, but can be equivalently recast for estimation
+of ATT as shown in Graham et al. (2016). Specifically, suppose that the covariate
+vector, X = (X1 , X2 ), is generated as
+X1 ∼ N(0, 1),
+
+X2 |X1 ∼ N(1 + 0.6X1 , 1).
+
+The true propensity score is generated as a logistic regression function
+π(X) = P (T = 1|X) = expit(γ0∗ + γ1∗ X1 + γ2∗ X2 ),
+where (γ1∗ , γ2∗ , γ3∗ ) = (1.0, 0.1, 0.1), (1.0, 0.2, 0.2), or (1.0, 0.5, 0.5), corresponding to increasing selection bias into treatment. The potential outcomes (Y 1 , Y 0 ) are generated
+(regardless of T for exogenity) as
+Y 0 |X, T ∼ N{m0 (X), X22 },
+
+Y 1 |X, T ∼ N{m1 (X), X22 },
+
+where m0 (X) and m1 (X) are set in two possible ways:
+(i) LIN-OR: m1 (X) = 2 + 2X1 + 2X2 , m0 (X) = 2X1 + 2X2 ,
+(ii) QUA-OR: m1 (X) = 2 + 2X12 + 3X22 − X2 , m0 (X) = 2X12 + 3X22 − X2 .
+It is easily shown that the true value of ATT is always 2, because the regression
+functions m0 (X) and m1 (X) are parallel to each other.
+For estimation of ATT, consider an outcome regression model (1) with the identity link Ψ(·) and the regressor vector g0 (X) = g1 (X) = (1, X1 , X2 )T or (1, X12 , X22)T ,
+corresponding to a linear or quadratic OR model. Under the LIN-OR setting, the
+linear or quadratic OR model is, respectively, correctly specified or misspecified. Under the QUA-OR setting, both of the OR models are misspecified, but the quadratic
+OR model is misspecified to a lesser degree. Similarly, consider a propensity score
+model (2) with the logistic link Π(·) and the regressor vector f (X) = (1, X1, X2 )T
+or (1, X12, X22 )T , corresponding to a logistic linear or quadratic PS model, which is,
+respectively, correctly specified or misspecified.
+We implemented the following estimators of ATT:
+23
+
+• (OR) µ̂1OR − µ̂1OR ;
+• (IPW) µ̂1NP − µ̂0IPW (π̂), (IPW.ratio) µ̂1NP − µ̂0IPW,ratio (π̂);
+• (AIPW) µ̂1NP − µ̂0NP (π̂, m̂0 );
+• (LIK) µ̃1lik − µ̃0lik , (LIK2) µ̃1lik2 − µ̃0lik2;
+• (HIR) µ̂1NP − µ̂0IPW (π̆), (AIPW.HIR) µ̂1NP − µ̂0NP (π̆, m̂0 ).
+Table 1 and Figures 1-2 present the results for these estimators, from 1000 Monte
+Carlo samples of size n = 1000, under the PS setting with moderate selection bias,
+(γ1∗ , γ2∗ , γ3∗ ) = (1.0, 0.2, 0.2). In addition, results are reproduced under the same setting for two estimators in Qin & Zhang (2008) and Graham et al. (2016). See the
+Appendix II for the results under the other two PS settings.
+The following remarks can be drawn on the comparisons of various estimators.
+First, the OR estimator is approximately unbiased only when the OR model used is
+correctly specified (i.e., linear OR model under LIN-OR setting).
+Second, the IPW and IPW.ratio estimators are approximately unbiased only when
+the PS model used is correctly specified (i.e., linear PS model), but they have large
+variances with noticeably outlying values.
+Third, the HIR estimator is approximately unbiased when the PS model is correctly
+specified, but becomes biased when the PS model is misspecified and even when the
+OR model is correctly specified (for example, quadratic PS model and linear OR
+model under LIN-OR setting). The HIR estimator is not doubly robust, because
+Condition L is not satisfied in this situation.
+Fourth, the four estimators, AIPW, LIK, LIK2, and AIPW.HIR are doubly robust:
+they are approximately unbiased when either the PS model is correctly specified (i.e.,
+linear PS model) or the OR model is correctly specified (i.e., linear OR model under
+LIN-OR setting). In accordance with local efficiency, these estimators have similar
+variances to each other when both the PS and OR models are correctly specified.
+But LIK and LIK2 have smaller variances, sometimes substantially so, than AIPW
+and AIPW.HIR estimators when the PS model is correctly specified but the OR
+model is misspecified. For example, for linear PS model and linear OR model under
+QUA-OR setting, the variance of LIK is smaller than that of AIPW by a factor
+
+24
+
+Table 1: Qin–Zhang simulation results with (γ1∗ , γ2∗ , γ3∗ ) = (1.0, 0.2, 0.2)
+Models
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+EL
+
+AST
+
+Data generated under LIN-OR setting
+linear PS,
+linear OR
+
+0.0120
+(0.0175)
+
+0.0147
+(0.0358)
+
+0.0125
+(0.0201)
+
+0.0118
+(0.0209)
+
+0.0120
+(0.0208)
+
+0.0123
+(0.0200)
+
+0.0123
+(0.0200)
+
+0.0031
+(0.0275)
+
+-0.0065
+(0.0261)
+
+linear PS,
+quadratic OR
+
+0.7170
+(0.0767)
+
+0.0147
+(0.0358)
+
+0.0139
+(0.0500)
+
+0.0168
+(0.0221)
+
+0.0132
+(0.0225)
+
+0.0123
+(0.0200)
+
+0.0122
+(0.0431)
+
+-0.0009
+(0.0306)
+
+-0.0039
+(0.0371)
+
+quadratic PS,
+linear OR
+
+0.0120
+(0.0175)
+
+0.6655
+(0.0878)
+
+0.0106
+(0.0269)
+
+0.0125
+(0.0212)
+
+0.0105
+(0.0221)
+
+0.7501
+(0.0756)
+
+0.0114
+(0.0244)
+
+···
+···
+
+···
+···
+
+quadratic PS,
+quadratic OR
+
+0.7170
+(0.0767)
+
+0.6655
+(0.0878)
+
+0.7644
+(0.0828)
+
+0.7023
+(0.0746)
+
+0.7120
+(0.0746)
+
+0.7501
+(0.0756)
+
+0.7501
+(0.0756)
+
+···
+···
+
+···
+···
+
+Data generated under QUA-OR setting
+linear PS,
+linear OR
+
+0.7028
+(0.4176)
+
+0.0414
+(0.6407)
+
+0.0500
+(0.5201)
+
+0.0471
+(0.0796)
+
+0.0522
+(0.0946)
+
+0.0553
+(0.3683)
+
+0.0553
+(0.3683)
+
+0.0477
+(0.1227)
+
+0.0787
+(0.3620)
+
+linear PS,
+quadratic OR
+
+-0.1473
+(0.0238)
+
+0.0414
+(0.6407)
+
+0.0142
+(0.0216)
+
+0.0120
+(0.0224)
+
+0.0138
+(0.0221)
+
+0.0553
+(0.3683)
+
+0.0144
+(0.0223)
+
+0.0028
+(0.0309)
+
+0.0078
+(0.0218)
+
+quadratic PS,
+linear OR
+
+0.7028
+(0.4176)
+
+-0.4155
+(0.6381)
+
+-0.6468
+(0.6286)
+
+0.0549
+(0.0485)
+
+0.1256
+(0.1044)
+
+-0.1554
+(0.0249)
+
+-0.4657
+(0.1021)
+
+···
+···
+
+···
+···
+
+quadratic PS,
+quadratic OR
+
+-0.1473
+(0.0238)
+
+-0.4155
+(0.6381)
+
+-0.1599
+(0.0263)
+
+-0.1465
+(0.0272)
+
+-0.1493
+(0.0258)
+
+-0.1554
+(0.0249)
+
+-0.1554
+(0.0249)
+
+···
+···
+
+···
+···
+
+Note: In the upper rows are the Monte Carlo biases (= means−2), and in the brackets are the corresponding Monte
+Carlo variances. EL: Qin & Zhang (2008) and AST: Graham et al. (2016).
+
+of 0.52/0.08 = 6.5 and that of AIPW.HIR by a factor of 0.37/0.08 ≈ 4.6. Such
+differences are supported by our theoretical results on intrinsic efficiency.
+Fifth, in contrast with AIPW and AIPW.HIR, the LIK estimator appears to be
+approximately unbiased when the quadratic PS model and linear OR model are used
+under the QUA-OR setting (hence both PS and OR models are misspecified). This
+behavior is not indicated by general theory, but can be explained by the fact that
+even though the PS model (2) is misspecified, the augmented PS model (5) happens
+to be correctly specified in this case: {m̂0 (X), m̂1 (X)} provide exactly the correct
+regressors (X1 , X2 ) up to linear transformation.
+Finally, we compare our likelihood estimators with the estimators in Qin & Zhang
+(2008) and Graham et al. (2016) when the PS model is correctly specified (i.e., linear
+PS model). Results for a misspecified PS model were not available in these previous
+simulation studies. Similarly as in the comparisons with AIPW and AIPW.HIR, our
+25
+
+linear PS, linear OR
+
+linear PS, quadratic OR
+1.5
+1
+0.5
+0
+−1.5 −1 −0.5
+
+−1.5 −1 −0.5
+
+0
+
+0.5
+
+1
+
+1.5
+
+4
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+OR
+
+quadratic PS, linear OR
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+quadratic PS, quadratic OR
+4
+
+3
+
+12
+
+4
+
+5
+
+6
+
+6
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+1
+0.5
+0
+−1.5 −1 −0.5
+
+−1.5 −1 −0.5
+
+0
+
+0.5
+
+1
+
+1.5
+
+6
+
+1.5
+
+3
+
+IPW.r
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+Figure 1: Boxplots of estimates minus the truth under LIN-OR setting with (γ1∗ , γ2∗ , γ3∗ ) =
+(1.0, 0.2, 0.2). All values are censored within the range of y-axis, and the number of values
+that lie outside the range are indicated next to the lower and upper limits of y-axis.
+
+1.5
+0
+−1.5
+−3
+
+−3
+
+−1.5
+
+0
+
+1.5
+
+3
+
+linear PS, quadratic OR
+
+3
+
+linear PS, linear OR
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+OR
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+1.5
+0
+−1.5
+−3
+
+−3
+
+−1.5
+
+0
+
+1.5
+
+3
+
+quadratic PS, quadratic OR
+
+3
+
+quadratic PS, linear OR
+
+IPW.r
+
+OR
+
+10
+
+12
+
+IPW.r
+
+AIPW
+
+10
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+Figure 2: Boxplots of estimates minus the truth under QUA-OR setting with (γ1∗ , γ2∗ , γ3∗ ) =
+(1.0, 0.2, 0.2)
+
+26
+
+likelihood estimators have smaller variances than those in Qin & Zhang and Graham
+et al. when the PS model is correctly specified but the OR model is misspecified.
+For example, for linear PS model and linear OR model under QUA-OR setting, the
+variance of LIK is smaller than that of Qin & Zhang by a factor of 0.12/0.08 = 1.5 and
+that of Graham et al. by a factor of 0.36/0.08 = 4.5. Another interesting observation is
+that when the OR model is also correctly specified or approximately so, our likelihood
+estimators and Graham et al. have similar variances, but smaller than that of Qin
+& Zhang estimator, indicating a lack of local efficiency for the latter estimator. For
+example, the factor of efficiency gain is .031/0.022 ≈ 1.4 for linear PS model and
+quadratic OR model under the QUA-OR setting.
+
+7
+
+Analysis of LaLonde data
+
+NSW (“National Supported Work Demonstration”) is a randomized job training program implemented in 1970s to provide work experience for individuals who had economic and social disadvantages. The randomized experiment provides benchmark
+estimates of average treatment effects. To study econometric methods for program
+evaluation with non-experimental data, LaLonde (1986) constructed an observational
+study by replacing the data from the experimental control group with survey data
+from either Current Population Survey (CPS) or the Panel Study of Income Dynamics
+(PSID). The question of interest is how well the experimental benchmark estimates of
+average treatment effects can be recovered by econometric methods when applied to
+such composite observational studies. LaLonde (1986) showed that many commonly
+used methods failed to replicate the experimental results.
+Analysis of LaLonde’s composite data has since been extensively discussed in the
+evaluation and causal inference literature. Dehejia & Wahba (1999, 2002) obtained
+effect estimates that have low biases from the experimental benchmark, while applying propensity score matching methods to a particular subsample of LaLonde’s
+original data. Smith & Todd (2005a) raised the criticism that the propensity score
+matching estimates are highly sensitive to both the analysis sample used and the
+specification of propensity score models. They calculated direct estimates of the
+
+27
+
+bias by applying matching to the experimental control group and a non-experimental
+comparison group (either CPS or PSID), whereas LaLonde and Dehejia & Wahba
+calculated the bias by applying matching to the experimental treatment group and
+a non-experimental comparison group and then comparing the resulting estimate to
+the experimental benchmark. See Diamond & Sekhon (2013), Hainmueller (2012),
+and Imai & Ratkovic (2014), among others, for more recent analyses.
+We investigate the performances of the proposed and existing estimators for analyzing LaLonde’s original composite data. Specifically, we apply various estimators
+of ATT as listed in Section 6 in the following analyses:
+• Analysis (i): NSW experimental treatment group is combined with either CPS
+or PSID non-experimental comparison group for effect estimation or, equivalently, for bias estimation by subtracting the experimental benchmark from all
+effect estimates;
+• Analysis (ii): NSW experimental control group is combined with either CPS or
+PSID non-experimental comparison group for bias estimation.
+For each application, we consider two possible PS models and two possible OR models,
+as specified in Table 2. The quadratic PS model differs, only by a few terms, from
+the PS model obtained in an iterative model-building approach by Dehejia & Wahba
+(2002) for analyzing NSW+CPS or NSW+PSID composite data.
+For propensity score estimation, we use either the experimental treatment group
+in (i) or experimental control group in (ii) as treated observations (T = 1) and the
+non-experimental comparison group as untreated observations (T = 0). This strategy
+is in line with LaLonde (1986) and Dehejia & Wahba (1999, 2002), but differs from
+Smith & Todd (2005a) and Imai & Ratkovic (2014). In the latter articles, both the
+experimental treatment and control groups are used as treated observations (T = 1)
+when estimating propensity scores, but then either the experimental treatment or
+control group is used in, respectively, effect or bias estimation. This scheme does not
+mimic the practical situation of econometric analysis where a single dataset is used,
+and may not even be desirable as discussed in Dehejia (2005b).
+Before turning to our results, we provide some remarks to explain how the relative
+28
+
+performances of estimators will be assessed from such empirical results. First, as
+discussed in Dehejia (2005a) in response to Smith & Todd (2005a), applications of
+propensity score methods should involve searching for a propensity score model that
+leads to balance of covariates between treatment groups. The approach suggested
+in Rosenbaum & Rubin (1984) and Dehejia & Wahba (1999, 2002) is conceptually
+useful but leaves open the issue of how PS models can actually be built to achieve
+covariate balance. Alternatively, simple PS models such as in Table 2 may often
+be used in applied research. Second, Smith & Todd (2005b) presented additional
+analyses in response to Dehejia (2005a) to argue that the low-bias matching estimates
+in Dehejia & Wahba (1999, 2002) are sensitive not only in regard to the sample and
+propensity score specification as shown in Smith & Todd (2005a), but also, among
+other factors, to whether the propensity score and subsequently the bias are estimated
+using the experimental treatment or control group, as in Analyses (i) and (ii) described
+above. Third, a criterion typically used in previous analyses of LaLonde data is that
+the bias estimates should be close to 0 for a good method. But the true bias can
+be 0 only when the exogeneity assumption (A1) holds on the composite sample, i.e.,
+potential outcomes are influenced by the measured covariates in the experimental
+sample in the same way as in the comparison sample (CPS or PSID). Nevertheless,
+the difference between the two bias estimates from Analyses (i) and (ii), as examined
+in Smith & Todd (2005b), can be shown to be 0 (up to random variation) even when
+the exogeneity assumption (A1) fails on the composite sample. See Appendix I.7 for
+details. By all the preceding considerations, we will assess the relative performances
+of estimators mainly in terms of how close the two bias estimates from Analyses (i)
+and (ii) are to each other, depending on PS and OR models used.
+Table 3 and Figure 3 present the results from Analyses (i) and (ii) for various
+estimators as listed in Section 6, based on 500 bootstrap samples of the NSW+PSID
+composite data. See the Appendix III for the results on the NSW+CPS composite
+data, where the relative performances of estimators are more similar to each other
+than on the NSW+PSID composite data.
+Among all estimators studied, the IPW.ratio estimator yields point estimates of
+effect closest to the experimental benchmark $886 and estimates of bias closest to 0
+
+29
+
+Table 2: PS and OR models for LaLonde data
+Name
+
+Regressors f (X) in PS model or g(X) in OR model
+
+Linear
+
+(1, age, school, black, hisp, married, nodegr, re74, re75, u74, u75)
+
+Quadratic
+
+(1, age, school, black, hisp, married, nodegr, re74, re75, u74, u75, age2 , school2 , re742 , re752 )
+
+Note: The variables are defined as in Table 2 of Dehejia & Wahba (2002). The PS model is T |X ∼ f (X)
+with logistic link. The OR model is Y |(T = t, X) ∼ t + g(X) with identity link.
+
+Table 3: Bootstrap results from Analyses (i) and (ii) on NSW+PSID composite data
+
+Linear PS, Linear OR
+
+Linear PS, Quadratic OR
+
+Quadratic PS, Linear OR
+
+Quadratic PS, Quadratic OR
+
+OR
+
+IPW.ratio
+
+AIPW
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+Treatment Effect
+
+-1690
+(650)
+
+901
+(781)
+
+1109
+(852)
+
+555
+(616)
+
+475
+(598)
+
+475
+(598)
+
+Evaluation Bias
+
+-2941
+(636)
+
+-6
+(764)
+
+337
+(815)
+
+-211
+(523)
+
+-118
+(496)
+
+-118
+(496)
+
+Difference
+
+1251
+(590)
+
+907
+(669)
+
+772
+(757)
+
+765
+(563)
+
+594
+(549)
+
+594
+(549)
+
+Treatment Effect
+
+-1577
+(803)
+
+901
+(781)
+
+613
+(729)
+
+378
+(613)
+
+475
+(598)
+
+441
+(601)
+
+Evaluation Bias
+
+-2674
+(807)
+
+-6
+(764)
+
+-7
+(653)
+
+-365
+(529)
+
+-118
+(496)
+
+-177
+(501)
+
+Difference
+
+1096
+(610)
+
+907
+(669)
+
+620
+(641)
+
+743
+(560)
+
+594
+(549)
+
+618
+(553)
+
+Treatment Effect
+
+-1690
+(650)
+
+901
+(799)
+
+1216
+(896)
+
+573
+(623)
+
+393
+(606)
+
+477
+(601)
+
+Evaluation Bias
+
+-2941
+(636)
+
+-9
+(791)
+
+451
+(862)
+
+-236
+(537)
+
+-254
+(505)
+
+-142
+(498)
+
+Difference
+
+1251
+(590)
+
+910
+(685)
+
+765
+(804)
+
+809
+(560)
+
+647
+(556)
+
+618
+(547)
+
+Treatment Effect
+
+-1577
+(803)
+
+901
+(799)
+
+571
+(742)
+
+332
+(618)
+
+393
+(606)
+
+393
+(606)
+
+Evaluation Bias
+
+-2674
+(807)
+
+-9
+(791)
+
+-27
+(666)
+
+-429
+(531)
+
+-254
+(505)
+
+-254
+(505)
+
+Difference
+
+1096
+(610)
+
+910
+(685)
+
+598
+(651)
+
+761
+(560)
+
+647
+(556)
+
+647
+(556)
+
+Note: In the upper rows are the bootstrap means, and in the brackets are the corresponding bootstrap standard
+errors. Treatment Effect is obtained from Analysis (i), and Evaluation Bias from Analysis (ii). The difference
+is to be compared with the experimental benchmark $886 with standard error $488. To tackle numerical nonconvergence when computing estimates during bootstrapping, the following procedure is used. We performed Principle
+Component Analysis to the regressors from the composite data, NSW (treatment+control) + PSID, and dropped
+principle components whose sample variances are less than (0.3)2 of the component with the largest sample variance.
+Then we resampled the entire composite dataset and conducted Analyses (i) and (ii) on each bootstrap sample.
+
+30
+
+2
+
+OR
+
+IPW.r
+
+AIPW
+
+2000
+
+2
+
+2
+
+2
+
+OR
+
+IPW.r
+
+0
+−2000 −1000
+
+−2000 −1000
+
+0
+
+1000
+
+3
+
+linear PS, quadratic OR
+
+1000
+
+2000
+
+linear PS, linear OR
+
+1
+LIK2
+
+HIR
+
+AIPW.HIR
+
+1
+
+3
+
+OR
+
+IPW.r
+
+AIPW
+
+2000
+
+2
+
+HIR
+
+AIPW.HIR
+
+2
+
+2
+
+1
+
+OR
+
+IPW.r
+
+AIPW
+
+0
+−2000 −1000
+
+−2000 −1000
+
+0
+
+1000
+
+3
+
+LIK2
+
+quadratic PS, quadratic OR
+
+1000
+
+2000
+
+quadratic PS, linear OR
+
+AIPW
+
+4
+LIK2
+
+HIR
+
+AIPW.HIR
+
+1
+LIK2
+
+HIR
+
+AIPW.HIR
+
+Figure 3: Bootstrap boxplots of differences of bias estimates from Analyses (i) and (ii)
+on NSW+PSID composite data. All values are censored within the range of y-axis, with
+number of values laying outside indicated next to the lower and upper limits of y-axis.
+
+from Analyses (i) and (ii), using either the linear or quadratic PS model. But the
+bootstrap variances for IPW.ratio are among the highest for all estimators studied.
+Although such point estimates of effect are much closer to the experimental benchmark than various previously obtained estimates on LaLonde NSW+PSID data (e.g.,
+Diamond & Sekhon 2013; Imai & Ratkovic 2014), these results may not present real
+evidence for any advantage of IPW.ratio for reasons discussed above.
+In terms of how close the difference between effect and bias estimates is to the
+experimental benchmark (i.e., how close the two bias estimates are close to each
+other) from Analyses (i) and (ii), the estimators IPW.ratio, AIPW, and LIK2 yield
+the most accurate point estimates among all estimators studied, regardless of PS and
+OR models used. But the bootstrap variances for LIK2 are much smaller than those
+of IPW.rato and AIPW. As explained above, these results present strong evidence for
+the advantage of the proposed estimator LIK2.
+
+31
+
+8
+
+Conclusion
+
+We study the problem of estimating ATTs from observational data and make the following contributions. In spite of non-ancillarity of the propensity score, we show how
+efficient influence functions from semiparametric theory can be harnessed to derive
+AIPW estimators that are locally efficient and doubly robust. Furthermore, we develop calibrated regression and likelihood estimators that achieve desirable properties
+in efficiency and boundedness beyond local efficiency and double robustness. From
+two simulation studies and reanalysis of LaLonde (1986) data, the proposed methods
+perform overall the best compared with various existing methods.
+The ideas developed in this article can be extended in various directions. For
+example, it is interesting to consider marginal and nested structural models for
+ATTs in subpopulations, i.e., E(Y 1 − Y 0 |T = 1, V ) with some selected covariates
+V , and develop calibrated regression and likelihood estimators. Moreover, as seen
+from Graham et al. (2016), estimation of ATT can be put in a broader class of data
+combination problems. The methods developed here can be extended in that direction.
+
+References
+Abadie, A. (2005). Semiparametric difference-in-differences estimators. Review of
+Economic Studies, 72:1–19.
+Cao, W., Tsiatis, A. A., and Davidian, M. (2009). Improving efficiency and robustness of the doubly robust estimator for a population mean with incomplete data.
+Biometrika, 96:723–734.
+Chen, X., Hong, H., and Tarozzi, A. (2008). Semiparametric efficiency in GMM
+models with auxiliary data. The Annals of Statistics, 36:808–843.
+Cochran, W. G. (1977). Sampling Techniques. John Wiley & Sons, 3 edition.
+Dehejia, R. (2005a).
+
+Practical propensity score matching: A reply to Smith and
+
+Todd. Journal of Econometrics, 125:355–364.
+Dehejia, R. (2005b). Does matching overcome LaLonde’s critique of nonexperimental
+32
+
+estimators? A postscript. Manuscript.
+Dehejia, R. and Wahba, S. (1999). Causal effects in nonexperimental studies: Reevaluating the evaluation of training programs. Journal of the American Statistical
+Association, 94:1053–1062.
+Dehejia, R. and Wahba, S. (2002). Propensity score-matching methods for nonexperimental causal studies. The Review of Economics and Statistics, 84:151–161.
+Deville, J.-C. and Sarndal, C.-E. (1992). Calibration estimators in survey sampling.
+Journal of the American Statistical Association, 87:376–382.
+Diamond, A. and Sekhon, J. S. (2013). Genetic matching for estimating causal effects:
+A general multivariate matching method for achieving balance in observational
+studies. The Review of Economics and Statistics, 95:932–945.
+Graham, B. S., de Xavier Pinto, C. C., and Egel, D. (2016). Efficient estimation
+of data combination models by the method of auxiliary-to-study tilting (AST).
+Journal of Business and Economic Statistics, 34:288–301.
+Hahn, J. (1998). On the role of the propensity score in efficient semiparametric
+estimation of average treatment effects. Econometrica, 66:315–331.
+Hainmueller, J. (2012). Entropy balancing for causal effects: A multivariate reweighting method to produce balanced samples in observational studies. Political Analysis,
+20:25–46.
+Hammersley, J. M. and Handscomb, D. C. (1964). Monte Carlo Methods. Methuen.
+Heckman, J. J., LaLonde, R. J., and Smith, J. A. (1997). Matching as an econometric
+evaluation estimator: Evidence from evaluating a job training program. Review of
+Economic Studies, 64:605–654.
+Heckman, J. J. and Robb, R. (1985). Alternative methods for evaluating the impact
+of interventions. In Heckman, J. J. and Singer, B., editors, Longitudinal Analysis
+of Labor Market Data, pages 156–246. Cambridge University Press, New York.
+Hirano, K., Imbens, G. W., and Ridder, G. (2003). Efficient estimation of average
+treatment effects using the estimated propensity score. Econometrica, 71:1161–
+1189.
+
+33
+
+Imai, K. and Ratkovic, M. (2014). Covariate balancing propensity score. Journal of
+the Royal Statistical Society, 76:243–263.
+Imbens, G. W. (2004). Nonparametric estimation of average treatment effects under
+exogeneity: A review. Review of Economics and Statistics, 86:4–29.
+Kang, J. D. Y. and Schafer, J. L. (2007). Demystifying double robustness: a comparison of alternative strategies for estimating a population mean from incomplete
+data (with discussions). Statistical Science, 22:523–539.
+LaLonde, R. J. (1986). Evaluating the econometric evaluations of training programs
+with experimental data. The American Economic Review, 76:604–620.
+McCaffrey, D. F., Ridgeway, G., and Morral, A. R. (2004). Propensity score estimation with boosted regression for evaluating causal effects in observational studies.
+Psychological Methods, 9:403–425.
+McCaffrey, D. F., Ridgeway, G., and Morral, A. R. (2007). Comment: Demystifying double robustness: A comparison of alternative strategies for estimating a
+population mean from incomplete data. Statistical Science, 22:540–543.
+Newey, W. K. (1990). Semiparametric efficiency bounds. Journal of Applied Econometrics, 5:99–135.
+Neyman, J. (1923). On the application of probability theory to agricultural experiments: Essay on principles, Section 9. Statistical Science, 5:465–472.
+Owen, A. B. (2001). Empirical Likelihood. Chapman & Hall/CRC.
+Qin, J. and Zhang, B. (2008). Empirical-likelihood-based difference-in-differences estimators. Journal of the Royal Statistical Society: Series B (Statistical Methodology),
+70:329–349.
+Robins, J. M. and Ritov, Y. (1997). Toward a curse of dimensionality appropriate
+(CODA) asymptotic theory for semi-parametric models. Statistics in Medicine,
+16:285–319.
+Robins, J. M. and Rotnitzky, A. (2001). Comment on the Bickel and Kwon article,
+‘Inference for semiparametric models: Some questions and an answer’. Statistica
+Sinica, 11:920–936.
+
+34
+
+Robins, J. M., Rotnitzky, A., and Zhao, L. P. (1994). Estimation of regression coefficients when some regressors are not always observed. Journal of the American
+Statistical Association, 89:846–866.
+Rosenbaum, P. R. and Rubin, D. B. (1983). The central role of the propensity score
+in observational studies for causal effects. Biometrika, 70:41–55.
+Rosenbaum, P. R. and Rubin, D. B. (1984). Reducing bias in observational studies
+using subclassification on the propensity score. Journal of the American Statistical
+Association, 79:516–524.
+Rubin, D. B. (1974). Estimating causal effects of treatments in randomized and
+nonrandomized studies. Journal of Educational Statistics, 66:688–701.
+Rubin, D. B. and van der Laan, M. J. (2008). Empirical efficiency maximization:
+Improved locally efficient covariate adjustment in randomized experiments and survival analysis. International Journal of Biostatistics, 4:1557–4679.
+Smith, J. and Todd, P. (2005a). Does matching overcome lalonde’s critique of nonexperimental estimators? Journal of Econometrics, 125:305–353.
+Smith, J. and Todd, P. (2005b). Rejoinder. Journal of Econometrics, 125:365–375.
+Stoczynski, T. and Wooldridge, J. (2014). A general double robustness result for
+estimating average treatment effects. IZA Discussion Paper. No. 8084.
+Tan, Z. (2006). A distributonal approach for causal inference using propensity score.
+Journal of the American Statistical Association, 101:1619–1637.
+Tan, Z. (2007). Comment: Understanding or, ps and dr. Statistical Science, 22:560–
+568.
+Tan, Z. (2008). Improved local efficiency and double robustness, comment on ‘empirical efficiency maximization: Improved locally efficient covariate adjustment in
+randomized experiments and survival analysis’ by Rubin and van der Laan. International Journal of Biostatistics, 4:Article 10.
+Tan, Z. (2010). Bounded, efficient and doubly robust estimation with inverse weighting. Biometrika, 97:661–682.
+Tan, Z. (2013). Simple design-efficient calibration estimators for rejective and high35
+
+entropy sampling. Biometrika, 100:399–415.
+Tsiatis, A. A. (2006). Semiparametric Theory and Missing Data. Springer Series in
+Statistics. Springer.
+Zhao, Q. and Percival, D. (2017). Entropy balancing is doubly robust. Journal of
+Causal Inference, 5:20160010.
+
+36
+
+Supplementary Material
+for “Improved Estimation of Average Treatment Effects on the Treated:
+Local Efficiency, Double Robustness, and Beyond” by Shu & Tan
+The Supplementary Material contains Appendices I–III.
+
+I
+I.1
+
+Technical details
+Preparation
+
+Throughout, we make the following assumptions regarding the estimators α̂t for OR
+model (1), γ̂ for PS model (2), and (γ̃, δ̃) for augmented PS model (5), allowing for
+possible model misspecification (e.g., White 1982).
+(C1) Assume that α̂t converges to a constant αt∗ such that α̂t − αt∗ = Op (n−1/2 ) for
+t = 0, 1. Write m∗t (X) = mt (X; αt∗). If model (1) is correctly specified, then
+m∗t (X) = mt (X). In general, m∗t (X) and mt (X) may differ from each other.
+(C2) Assume that γ̂ converges to a constant γ ∗ such that
+γ̂ − γ ∗ = V −1 Ẽ {sγ ∗ (T, X)} + op (n−1/2 ),
+where E{sγ ∗ (T, X)} = 0, and the matrix V = −E{∂sγ (T, X)/∂γ T }|γ=γ ∗ is
+nonsingular. Write π ∗ (X) = π(X; γ ∗). If model (2) is correctly specified, then
+π ∗ (X) = π(X) and V = var{sγ ∗ (T, X)}. In general, π ∗ (X) and π(X) may differ
+from each other.
+(C3) For augmented PS model (5), define
+s† (T, X; γ, δ, α) = {T − πaug (X; γ, δ, α)}{f T(X), m0 (X; α0 ), m1 (X; α1 )}T .
+Assume that (γ̃, δ̃) converges to a constant (γ † , δ ∗ ) such that
+
+
+†
+
+γ̃ − γ
+
+ = V † −1 Ẽ s† (T, X; γ † , δ ∗ , α̂) + op (n−1/2 ),
+δ̃ − δ ∗
+
+where E{s† (T, X; γ † , δ ∗ , α∗)} = 0, and the matrix V † = −E{∂s† (T, X; γ, δ, α∗)/
+∂(γ T , δ T )}|(γ,δ)=(γ † ,δ∗ ) is nonsingular.
+1
+
+Write π † (X) = πaug (X; γ † , δ ∗ , α∗ ).
+
+If
+
+model (2) is correctly specified, then (γ † , δ ∗ ) = (γ ∗ , 0), π † (X) = π(X), V † =
+var{s† (T, X; γ ∗ , 0, α∗ )}, and the asymptotic expansion for (γ̃, δ̃) reduces to
+
+
+∗
+n
+o
+γ̃ − γ
+
+ = V † −1 Ẽ s† ∗ (T, X) + op (n−1/2 ),
+(γ ,0)
+δ̃
+where s†(γ ∗ ,0) (T, X) = s† (T, X; γ ∗ , 0, α∗).
+
+In addition, we assume that the following regularity conditions hold (e.g., Robins et al.
+1994, Appendix B).
+(C4) E{(Y t )2 } < ∞ and E{m∗t 2 (X)} < ∞ for t = 0, 1.
+(C5) There exists ǫ > 0 such that 0 < π ∗ (x) ≤ 1 − ǫ and 0 < π † (x) ≤ 1 − ǫ for all x.
+(C6) There exists a neighborhood N1,t of αt∗ such that E{supαt ∈N1,t k∂mt (X; αt )/∂αt k2 }
+P
+< ∞ for t = 0, 1, where kAk = ( ij A2ij )1/2 for any matrix with element Aij .
+
+(C7) There exists a neighborhood N2 of γ ∗ such that E{supγ∈N2 k∂π(X; γ)/∂γk2 } <
+∞ and E{supγ∈N2 k∂ 2 π(X; γ)/∂γ∂γ T k2 } < ∞.
+
+(C8) There exists a neighborhood N3 of (γ ∗ , δ ∗ , α∗ ) such that E{supθ∈N3 k∂πaug (X; θ)/
+∂θk2 } < ∞ and E{supθ∈N3 k∂ 2 πaug (X; θ)/∂θ∂θT k2 } < ∞, with θ = (γ T , δ T , αT )T .
+We provide the following lemma on asymptotic expansions of AIPW estimators.
+Lemma 1 Assume that E{h2 (X)} < ∞. If the PS model (2) is correctly specified,
+then the following results hold.
+(i) ν̂ 0 (π̂, h) admits the asymptotic expansion,
+
+ν̂ 0 (π̂, h) − ν 0 = q −1 Ẽ φ0h (Y, T, X) − T ν 0 − Proj{φ0h (Y, T, X)|sγ ∗ (T, X)}
+
++ Proj [{T − π(X)}m0 (X)|sγ ∗ (T, X)] + op (n−1/2 ),
+where φ0h (Y, T, X) = [(1−T )/{1−π(X)}]π(X)Y −[(1−T )/{1−π(X)}−1]h(X).
+
+2
+
+(ii) Define ν̂ 1 (π̂, h) = Ẽ[T Y − {T − π̂(X)}h(X)]/Ẽ(T ). Then ν̂ 1 (π̂, h) admits the
+asymptotic expansion,
+ν̂ 1 (π̂, h) − ν 1
+
+
+=q −1 Ẽ φ1h (Y, T, X) − T ν 1 + Proj [{T − π(X)}h(X)|sγ ∗ (T, X)] + op (n−1/2 ),
+
+−1
+=q Ẽ φ1h (Y, T, X) − T ν 1 − Proj{φ1h (Y, T, X)|sγ ∗ (T, X)}
+
+∗
++ Proj [{T − π(X)}m1 (X)|sγ (T, X)] + op (n−1/2 ),
+
+where φ1h (Y, T, X) = T Y − {T − π(X)}h(X).
+
+Proof of Lemma 1. By direct calculation and Slutsky theorem, we have
+
+
+
+
+1−T
+1−T
+0
+0
+0
+−1
+π̂(X)Y −
+− 1 h(X) − T ν + op (n−1/2 ).
+ν̂ (π̂, h) − ν = q Ẽ
+1 − π̂(X)
+1 − π̂(X)
+
+By a Taylor expansion for γ̂ about γ ∗ and direct calculation, we have
+
+
+
+
+1−T
+1−T
+Ẽ
+π(X)Y −
+− 1 h(X)
+1 − π̂(X)
+1 − π̂(X)
+
+
+
+
+1−T
+1−T
+=Ẽ
+π(X)Y −
+− 1 h(X)
+1 − π(X)
+1 − π(X)
+
+
+∂π(X; γ ∗ )
+1−T
+{π(X)Y − h(X)} (γ̂ − γ ∗ ) + op (n−1/2 )
++E
+2
+{1 − π(X)}
+∂γ
+
+
+=Ẽ φ0h (Y, T, X) − Proj{φ0h (Y, T, X)|sγ ∗ (T, X)} + op (n−1/2 ).
+By similar arguments, we have
+
+
+1−T
+Ẽ
+{π̂(X) − π(X)}Y
+1 − π̂(X)
+
+
+1 − T ∂π(X; γ ∗ )
+Y (γ̂ − γ ∗ ) + op (n−1/2 )
+=E
+1 − π(X)
+∂γ
+
+
+=Ẽ Proj [{T − π(X)}m0 (X)|sγ ∗ (T, X)] + op (n−1/2 ).
+
+Combining the preceding three expansions gives the desired expansion for ν̂ 0 (π̂, h).
+Similarly, the expansion for ν̂ 1 (π̂, h) can be shown. ✷
+
+I.2
+
+Proofs of Propositions 2 & 4
+
+0
+First, we show the local nonparametric efficiency of ν̂NP
+(π̂, m̂0 ). If both model (1) for
+
+t = 0 and model (2) are correctly specified, then by Slutsky theorem,
+
+
+
+.
+1−T
+1−T
+0
+ν̂NP (π̂, m̂0 ) = Ẽ
+π̂(X)Y −
+− 1 m0 (X)
+Ẽ(T ) + op (n−1/2 ).
+1 − π̂(X)
+1 − π̂(X)
+3
+
+The leading term can be reexpressed as
+.
+
+1−T
+π̂(X){Y − m0 (X)} + T m0 (X)
+Ẽ(T )
+Ẽ
+1 − π̂(X)
+
+and, by Slutsky theorem, approximated by
+
+.
+1−T
+Ẽ
+π(X){Y − m0 (X)} + T m0 (X) Ẽ(T ) + op (n−1/2 ),
+1 − π(X)
+
+which gives the desired result. Alternatively, the result follows from Lemma 1(i) with
+h(X) = m0 (X) and the fact that φ0m0 (Y, T, X) = φ0πm0 (Y, T, X) + {T − π(X)}m0 (X)
+and hence Proj{φ0m0 (Y, T, X)|sγ ∗ (T, X)} = Proj[{T − π(X)}m0 (X)|sγ ∗ (T, X)}.
+0
+Second, we show the double robustness of ν̂NP
+(π̂, m̂0 ). If PS model (2) is correctly
+
+specified, then Ẽ([(1 − T )/{1 − π̂(X)} − 1]m̂0 (X)) = Ẽ([(1 − T )/{1 − π(X)} −
+1]m∗0 (X)) + Op (n−1/2 ) = Op (n−1/2 ) and hence
+.
+
+1−T
+0
+π̂(X)Y
+Ẽ(T ) + Op (n−1/2 ) = ν 0 + Op (n−1/2 ).
+ν̂NP (π̂, m̂0 ) = Ẽ
+1 − π̂(X)
+
+0
+On the other hand, ν̂NP
+(π̂, m̂0 ) can be reexpressed as
+.
+
+1−T
+0
+π̂(X){Y − m̂0 (X)} + T m̂0 (X)
+Ẽ(T ).
+ν̂NP (π̂, m̂0 ) = Ẽ
+1 − π̂(X)
+
+If OR model (1) for t = 0 is correctly specified, then Ẽ([(1−T )/{1− π̂(X)}]π̂(X){Y −
+m̂0 (X)}) = Ẽ([(1 − T )/{1 − π ∗ (X)}]π ∗ (X){Y − m0 (X)}) + Op (n−1/2 ) = Op (n−1/2 )
+and hence
+.
+0
+ν̂NP
+(π̂, m̂0 ) = Ẽ {T m̂0 (X)} Ẽ(T ) = ν 0 + Op (n−1/2 ).
+
+0
+Third, we show the local semiparametric efficiency of ν̂SP
+(π̂, m̂0 ). If both model
+
+(1) for t = 0 and model (2) are correctly specified, then
+0
+ν̂SP
+(π̂, m̂0 ) − ν 0
+
+
+
+
+1−T
+1−T
+0
+−1
+π̂(X)Y −
+− 1 π̂(X)m0 (X) − π̂(X)ν + op (n−1/2 )
+=q Ẽ
+1 − π̂(X)
+1 − π̂(X)
+
+
+
+
+1−T
+1−T
+−1
+0
+0
+=q Ẽ
+π̂(X)(Y − ν ) −
+− 1 π(X){m0 (X) − ν } + op (n−1/2 ).
+1 − π̂(X)
+1 − π̂(X)
+
+by direct calculation and Slutsky theorem. Applying, to the above, Lemma 1(i) with
+Y replaced by Y − ν 0 and h(X) = π(X){m0 (X) − ν 0 } yields
+
+0
+ν̂SP
+(π̂, m̂0 ) − ν 0 = q −1 Ẽ φ0h (Y − ν 0 , T, X) − Proj{φ0h (Y − ν 0 , T, X)|sγ ∗ (T, X)}
+
+
+0
++ Proj {T − π(X)}{m0 (X) − ν }|sγ ∗ (T, X) + op (n−1/2 ),
+4
+
+The desired results follows because φ0h (Y − ν 0 , T, X) = τ 0 (π, πm0 ) − π(X)ν 0 by direct
+calculation, and the variable φ0h (Y −ν 0 , T, X) is uncorrelated with the score sγ ∗ (T, X)
+and hence Proj{φ0h (Y − ν 0 , T, X)|sγ ∗ (T, X)} = 0.
+1
+Finally, we show the local semiparametric efficiency of ν̂SP
+(π̂, m̂1 ). If both model
+
+(1) for t = 1 and model (2) are correctly specified, then
+
+
+1
+ν̂SP
+(π̂, m̂1 ) − ν 1 = q −1 Ẽ T Y − {T − π̂(X)}m1 (X) − π̂(X)ν 1 + op (n−1/2 )
+
+
+= q −1 Ẽ T (Y − ν 1 ) − {T − π̂(X)}{m1 (X) − ν 1 } + op (n−1/2 ),
+
+by direct calculation and Slutsky theorem. Applying, to the above, Lemma 1(ii) with
+Y replaced by Y − ν 1 and h(X) = m1 (X) − ν 1 yields
+
+1
+ν̂SP
+(π̂, m̂1 ) − ν 1 = q −1 Ẽ φ1h (Y − ν 1 , T, X)
+
+
+1
++ Proj {T − π(X)}{m1 (X) − ν }|sγ ∗ (T, X) + op (n−1/2 ).
+
+The desired result follows because φ1h (Y − ν 1 , T, X) = T Y − {T − π(X)}m1 (X) −
+π(X)ν 1 by direct calculation. ✷
+
+I.3
+
+Proof of Proposition 5
+
+First, it is straightforward to show that β̃t = βt∗ +op (1), where βt∗ = E −1 (ξt∗ζt∗ T )E(ξt∗ηt∗ )
+and ηt∗ , ξt∗ , ζt∗, and h∗ (X) are defined as η̃t , ξ˜t , ζ̃t , and h̃(X) respectively but with
+π † (X) and m∗t (X) in place of π̃(X) and m̂t (X) throughout.
+t
+Second, we show the local nonparametric efficiency and double robustness of ν̃reg
+.
+
+By the discussion in Section 4.1, it suffices to show that if the OR model (1) for
+t = 0 or 1 is correctly specified, then asymptotic expansion (8) holds for the corresponding t. By construction, π̃(X)m̃0 (X) is a linear combination of h̃(X)/π̃(X), that
+is, π̃(X)m̃0 (X) = cT0 h̃(X)/π̃(X) for some constant vector c0 . Then π † (X)m∗0 (X) =
+cT0 h∗ (X)/π † (X) also holds for the same vector c0 . If model (1) for t = 0 holds, then
+m∗ (x) = m0 (X) and hence π † (X)m0 (X) = cT0 h∗ (X)/π † (X). By direct calculation,
+we have
+β0∗
+
+=E
+
+−1
+
+
+ξ0∗
+
+1 − T h∗ T (X)
+1 − π † (X) π † (X)
+
+
+
+E
+
+5
+
+
+
+ξ0∗
+
+1−T
+π † (X)m0 (X)
+1 − π † (X)
+
+
+
+= c0 .
+
+and hence asymptotic expansion (8) holds for t = 0. Similarly, because π̃(X)m̃1 (X)
+is a linear combination of h̃(X)/{1 − π̃(X)}, it can be shown that if the OR model
+(1) for t = 1 is correctly specified, then expansion (8) holds for t = 1.
+0
+Third, we show the intrinsic efficiency of ν̃reg
+among the class of estimators (7) for
+
+t = 0, denoted by ν̃ 0 (b0 ). By direct calculation and Slutsky theorem, we have
+ν̃ 0 (b0 ) − ν 0 = q −1 Ẽ(η̃0 − bT0 ξ˜0 − ν 0 T ) + op (n−1/2 )
+ ∗
+
+
+
+h (X)
+1−T
+0
+−1
+T
+−1
+− ν T + op (n−1/2 ).
+= q Ẽ η̃0 − b0
+1 − π̃(X)
+π(X)
+If PS model (2) is correctly specified, then applying, to the above, Lemma 1(i) with
+π̂(X) replaced by π̃(X) and h(X) = bT0 h∗ (X)/π(X) yields
+
+ν̃ 0 (b0 ) − ν 0 = q −1 Ẽ η0∗ − bT0 ξ0∗ − π(X)ν 0 − Proj{η0∗ − bT0 ξ0∗ |s†(γ ∗ ,0) (T, X)}
+h
+i
++ Proj {T − π(X)}{m0 (X) − ν 0 }|s†(γ ∗ ,0) (T, X) + op (n−1/2 ).
+
+where φ0h (Y, T, X) = η0∗ − bT0 ξ0∗ and T ν 0 is decomposed as π(X)ν 0 + {T − π(X)}ν 0 =
+π(X)ν 0 +Proj[{T −π(X)}ν 0 |s†(γ ∗ ,0) (T, X)] because T −π(X) is contained in s†(γ ∗ ,0) (T, X).
+The first term inside Ẽ() above, η0∗ − π(X)ν 0 − bT0 ξ0∗ − Proj{η0∗ − bT0 ξ0∗ |s†(γ ∗ ,0) (T, X)}, is
+
+uncorrelated with the second term, Proj[{T −π(X)}{m0 (X)−ν 0 }|s†(γ ∗ ,0) (T, X)], which
+is independent of b0 . Moreover, the first term can be expressed as η0∗ − π(X)ν 0 − aT0 ξ0∗
+for some constant vector a0 , because, by construction, each variable in s†(γ ∗ ,0) (T, X)
+is a linear combination of varibles in ξ0∗. By combining these two facts, we see that
+the asymptotic variance of ν̃ 0 (b0 ) is achieved when a0 is equal to
+
+var−1 (ξ0∗ )cov ξ0∗ , η0∗ − π(X)ν 0 = E −1 (ξ0∗ ζ0∗T )E(ξ0∗ η0∗ ) = β0∗ .
+
+But to make a0 equal to β0∗ , it suffices to set b0 = β0∗ , because η0∗ −β0∗ T ξ0∗ is uncorrelated
+with s†(γ ∗ ,0) (T, X) and hence Proj{η0∗ − β0∗ T ξ0∗ |s†(γ ∗ ,0) (T, X)} = 0. If PS model (2) is
+0
+0
+= ν̃ 0 (β0∗ ) + op (n−1/2 ). Therefore, ν̃reg
+is intrinsically
+correctly specified, then ν̃reg
+
+efficient among the class of estimators ν̃ 0 (b0 ).
+1
+Finally, we show the intrinsic efficiency of ν̃reg
+among the class of estimators (7)
+
+for t = 1, denoted by ν̃ 1 (b1 ). By direct calculation and Slutsky theorem, we have
+ν̃ 1 (b1 ) − ν 1 = q −1 Ẽ(η̃1 − bT1 ξ˜1 − ν 1 T ) + op (n−1/2 )
+
+
+h∗ (X)
+T
+−1
+1
+= q Ẽ η̃1 − b1 {T − π̃(X)}
+− ν T + op (n−1/2 ).
+π(X){1 − π(X)}
+6
+
+If PS model (2) is correctly specified, then applying, to the above, Lemma 1(i) with
+π̂(X) replaced by π̃(X) and h(X) = bT1 h∗ (X)/[π(X){1 − π(X)}] yields
+
+ν̃ 1 (b1 ) − ν 1 = q −1 Ẽ η1∗ − bT1 ξ1∗ − π(X)ν 1 − Proj{η1∗ − bT1 ξ1∗ |s†(γ ∗ ,0) (T, X)}
+h
+i
++ Proj {T − π(X)}{m1 (X) − ν 1 }|s†(γ ∗ ,0) (T, X) + op (n−1/2 ),
+0
+where φ1h (Y, T, X) = η1∗ −bT1 ξ1∗ . The intrinsic efficiency of ν̃reg
+can be similarly obtained
+1
+as above for the intrinsic efficiency of ν̃reg
+.
+
+I.4
+
+Derivation of empirical likelihood estimates
+
+t
+The empirical likelihood estimate of ν t is ν̂lik
+=
+
+Pn
+
+i=1 p̂i η̃t,i /
+
+are obtained from the constrained maximization problem:
+max
+
+p1 ≥0,...,pn ≥0
+
+subject to
+
+n
+X
+
+Pn
+
+i=1 p̂i Ti ,
+
+where (p̂1 , . . . , p̂n )
+
+log pi
+
+i=1
+
+n
+X
+
+pi = 1 and
+
+i=1
+
+n
+X
+
+pi ξ˜1,i = 0.
+
+i=1
+
+By standard calculation (Qin & Lawless 1994), we have
+p̂i =
+
+n−1
+1 + λ̂T ξ˜1,i
+
+,
+
+where λ̂ is a maximizer of the function
+n
+
+ℓEL (λ) =
+
+
+
+1X
+log 1 + λT ξ˜1,i .
+n i=1
+
+Write π̃i = π̃(Xi ), h̃i = h̃(Xi ), and ωi = ω(Xi ; λ) for i = 1, . . . , n. By direct calculation, ℓEL (λ) can be reexpressed as
+
+
+n
+1X
+Ti − π̃i
+T
+ℓEL (λ) =
+log 1 + λ
+h̃i
+n i=1
+π̃i (1 − π̃i )
+(
+!
+!)
+n
+h̃
+h̃
+1X
+i
+i
+Ti log 1 + λT
++ (1 − Ti ) log 1 − λT
+=
+n i=1
+π̃i
+1 − π̃i
+n
+
+n
+
+1X
+1X
+=
+{Ti log ωi + (1 − Ti ) log(1 − ωi )} −
+{Ti log π̃i + (1 − Ti ) log(1 − π̃i )} ,
+n i=1
+n i=1
+
+7
+
+which equals ℓ(λ) up to an additive constant. Therefore, λ̂ is a maximizer of ℓ(λ).
+1
+0
+The desired expressions for ν̂lik
+and ν̂lik
+hold because, by direct calculation,
+n
+X
+
+i=1
+n
+X
+i=1
+
+n
+
+p̂i η̃1,i
+
+n
+
+n
+
+η̃1,i
+1 X Ti Yi
+1 X Ti π̃i Yi
+1X
+,
+=
+=
+=
+n i=1 1 + λ̂T ξ˜1,i
+n i=1 1 + λ̂T h̃i
+n i=1 ω̂i
+π̃i
+
+p̂i η̃0,i
+
+n
+n
+n
+π̃
+1X
+1 X (1 − Ti )π̃i Yi
+η̃0,i
+1 X (1 − Ti ) 1−π̃i i Yi
+=
+=
+,
+=
+n i=1 1 + λ̂T ξ˜1,i
+n i=1 1 − λ̂T h̃i
+n i=1
+1 − ω̂i
+1−π̃i
+
+where ω̂i = ω(Xi ; λ̂) for i = 1, . . . , n. ✷
+
+I.5
+
+Proof of Corollary 3
+
+0
+The simple estimator ν̂IPW
+(π̃) based on π̃(X) falls in the class (7) for t = 0, with
+0
+b0 = 0. The ratio estimator ν̂IPW,ratio
+(π̃) does not directly fall in the class (7), but can
+
+be shown to be asymptotically equivalent to the first order, under a correctly specified
+PS model, to Ẽ(η̂0 − [(1 − T )/{1 − π̃(X)} − 1]ν 0 )/Ẽ(T ), which falls in class (7) for
+t = 0 becauase 1 is a linear combination of the variables, π̃(X) and 1 − π̃(X), in
+0
+h̃(X)/π̃(X). The estimator ν̂NP
+(π̃, m̂0 ) falls in the class (7) for t = 0 because m̂0 (X)
+
+is a linear combination of the variables, π̃(X)m̂0 (X) and {1 − π̃(X)}m̂0 (X), included
+in h̃(X)/π̃(X). The comparison then follows from Proposition 5.
+1
+The estimator ν̂NP
+= Ẽ(η̂1 ) falls in the class (7) for t = 1, with b1 = 0. By
+1
+0
+Corollary 2, the estimator ν̃reg
+− ν̃reg
+for ATT is asymptotically at least as efficient as
+1
+0
+ν̂NP
+− ν̂NP
+(π̃, m̂0 ) when the PS model is correctly specified. ✷
+
+I.6
+
+Proof of Proposition 6
+
+t
+We need only to show that if model (2) is correctly specified, then ν̃lik
+is asymptotically
+t
+equivalent, to the first order, to ν̃reg
+for t = 0, 1. By direct calculation and Slutsky
+
+theorem, we have
+0
+ν̃lik
+
+
+
+
+(1 − T )π̃(X)Y
+0
+− ν = q Ẽ
+− T ν + op (n−1/2 ).
+0
+1 − ω(X; λ̃ )
+0
+
+−1
+
+If model (2) is correctly specified, then
+
+
+(1 − T )π̃(X)Y
+Ẽ
+1 − ω(X; λ̃0)
+
+
+
+= Ẽ
+
+"
+
+(1 − T )π̃(X)Y
+1 − ω(X; λ̂)
+8
+
+#
+
++ op (n−1/2 ),
+
+by a Taylor expansion for λ̃0 about λ̂ and the fact that Ẽ([(1 − T )/{1 − ω(X; λ̂)} −
+1]π̃(X)) = op (n−1/2 ), similarly as in the asymptotic expansion of the calibrated likelihood estimator in Tan (2010). Moreover, if model (2) is correctly specified, then λ̂
+converges to 0 in probability and
+#
+"
+
+
+(1 − T )π̃(X)Y
+= Ẽ η̃0 − β0∗ T ξ˜0 + op (n−1/2 ).
+Ẽ
+1 − ω(X; λ̂)
+by a Taylor expansion for λ̂ about 0, similarly as in the asymptotic expansion of the
+0
+non-calibrated likelihood estimator in Tan (2010). The desired result for ν̃lik
+then
+1
+follows from the preceding expansions. Similarly, the result for ν̃lik
+can be shown. ✷
+
+I.7
+
+Extension with non-logistic PS model
+
+t
+t
+We discuss an extension of the regression and likelihood estimators ν̃reg
+and ν̃lik
+when
+
+the PS model (2) is non-logistic regression. Consider an augmented PS model
+P (T = 1|X) = πaug (X; γ, γ0, δ, α̂)
+
+= Π γ T f (X) + γ0 ρ̂−1 (X) + δ0 ρ̂−1 (X)m̂0 (X) + δ1 ρ̂−1 (X)m̂1 (X) ,
+
+where ρ̂(X) = ρ(X; γ̂), ρ(X; γ) = Π′ {γ T f (X)}/[π(X; γ){1 − π(X; γ)}], and Π′ () is
+the derivative of Π(). For logistic regression, ρ(X; γ) reduces to a constant 1. Let
+(γ̃, γ̃0 , δ̃) be the estimates of (γ, γ0 , δ) solving the estimating equations
+Ẽ [{T − πaug (X; γ, γ0, δ, α̂)}{ρ̂(X)f T(X), 1, m̂0 (X), m̂1 (X)}T ] = 0.
+t
+t
+Let π̃(X) = πaug (X; γ̃, γ̃0 , δ̃, α̂), and define the estimators ν̃reg
+and ν̃lik
+same as before,
+
+except that h̃(X) is defined with
+h̃2 (X) = π̃(X){1 − π̃(X)}{ρ̂(X)f T (X), m̂0 (X)}T .
+Then Propositions 5 and 6 can be shown to hold as before.
+Particularly, to establish intrinsic efficiency, it can be shown that if PS model (2)
+is correctly specified, then the estimates (γ̃, γ̃0 , δ̃) are asymptotically equivalent to the
+first order to the MLE of (γ, γ0 , δ) from the following “model,”
+∗
+P (T = 1|X) = πaug
+(X; γ, γ0, δ, α̂)
+
+= Π γ T f (X) + γ0 ρ∗−1 (X) + δ0 ρ∗−1 (X)m∗0 (X) + δ1 ρ∗−1 (X)m∗1 (X) ,
+
+9
+
+where ρ∗ (X) = ρ(X; γ ∗ ). That is, the random variation in ρ̂(X), m̂0 (X), and m̂1 (X)
+does not affect the asymptotic behavior of (γ̃, γ̃0 , δ̃) to the first order. The proofs of
+Propositions 5 and 6 can be completed similarly as before.
+
+I.8
+
+Violation of the exogeneity assumption
+
+We present large-sample limits for estimators of ATT when the exogeneity assumption
+(A1) may be violated, i.e., T and Y 0 may not be conditionally independent given X.
+Similar results are known for estimators of ATE under possible violation of exogeneity
+assumptions (e.g., Robins 1999; Tan 2006). We mainly use these results to justify
+how various estimators are compared in our analysis of LaLonde data in Section 7,
+although the results can be broadly used.
+Suppose that the exogeneity ssumption (A1) may be violated. The following results
+can be shown by similar calculations as under Assumption (A1).
+0
+0
+(i) If the the OR model (1) is correctly specified for t = 0, then ν̂OR
+, ν̂NP
+(π̂, m̂0 ),
+0
+0
+ν̃reg
+, and ν̃lik
+converge in probability as n → ∞ to E{T m0 (X)}/E(T ), which
+
+reduces to E(Y 0 |T = 1) when Assumption (A1) holds but not generally so.
+1
+Moreover, if the the OR model (1) is correctly specified for t = 1, then ν̃reg
+and
+1
+ν̃lik
+converge in probability as n → ∞ to E(Y |T = 1).
+0
+0
+0
+, and
+(ii) If the PS model (2) is correctly specified, then ν̂IPW
+(π̂), ν̂NP
+(π̂, m̂0 ), ν̃reg
+0
+ν̃lik
+converge in probability as n → ∞ to E{T m0 (X)}/E(T ).
+
+In the context of LaLonde analysis, let T be the indicator for the NSW cohort,
+i.e., T = 1 for the NSW treatment group in Analysis (i) or NSW control group in
+Analysis (ii) and T = 0 for the comparison group, and let D be the indicator for
+job training, i.e., D = 1 for the NSW treatment group and D = 0 for the NSW
+control group and the comparison group. Define Y 11 as the potential outcome that
+would be observed if an individual was selected into NSW cohort and assigned to
+treatment, Y 01 as the potential outcome that would be observed if an individual was
+selected into NSW cohort and assigned to control, and Y 00 as the potential outcome
+that would be observed if an individual was selected into the comparison cohort and
+hence no job training. It is not necessary that Y 01 ≡ Y 00 , which would rule out
+10
+
+any placebo effect such that earnings could be affected by merely participating in
+the NSW experiment. The exogeneity assumption (A1), T ⊥ Y 00 |X, means that
+the NSW and comparison cohorts would have similar distributions of of earnings, at
+each covariate level x, if both placed in the comparison cohort and not assigned to
+job training. This assumption is implicitly made in all previous studies starting from
+LaLonde (1986), but can potentially be violated.
+Because the NSW treatment and control groups are randomized, the difference
+E(Y 11 |T = 1) − E(Y 01 |T = 1)
+is the experimental benchmark. For Analysis (i) with NSW treatment group combined
+with a comparison group, a valid ATT estimator should be close to E(Y 11 |T =
+1) − E{T m0 (X)}/E(T ), and the corresponding bias be close to
+E(Y 11 |T = 1) − E{T m0 (X)}/E(T ) − {E(Y 11 |T = 1) − E(Y 01 |T = 1)}
+= E(Y 01 |T = 1) − E{T m0 (X)}/E(T ),
+where m0 (X) = E(Y 00 |T = 0, X). For Analysis (ii) with NSW control group combined with a comparison group, a valid ATT estimator should be close to
+E(Y 01 |T = 1) − E{T m0 (X)}/E(T ).
+Therefore, the two bias estimates separately from Analyses (i) and (ii) should be
+close to each other for a good method, even when the exogeneity assumption (A1) is
+violated. This relationship forms the basis in our assessment of relative performances
+of various estimators of ATT in Section 7.
+
+11
+
+II
+
+Additional simulation results
+
+II.1
+
+Qin–Zhang simulation
+
+Table S1 and Figures S1-S2 present the results from 1000 Monte Carlo samples of size
+n = 1000, under the PS setting with small selection bias, (γ1∗ , γ2∗ , γ3∗ ) = (1.0, 0.1, 0.1).
+Table S2 and Figures S3-S4 present the results from 1000 Monte Carlo samples of size
+n = 1000, under the PS setting with large selection bias, (γ1∗ , γ2∗ , γ3∗ ) = (1.0, 0.5, 0.5).
+The relative performances of the estimators under study are similar to those under
+the PS setting with large selection bias, (γ1∗ , γ2∗ , γ3∗ ) = (1.0, 0.2, 0.2). In particular,
+efficiency gains of the calibrated likelihood estimators over the doubly robust estimators, AIPW and AIPW.HIR, remain considerable across these settings, when the PS
+model is correctly specified but the OR model is misspecified.
+Table S1: Qin–Zhang simulation results with (γ1∗ , γ2∗ , γ3∗ ) = (1.0, 0.1, 0.1)
+
+Models
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+EL
+
+AST
+
+Data generated under LIN-OR setting
+linear PS,
+linear OR
+
+0.0070
+(0.0147)
+
+0.0076
+(0.0200)
+
+0.0069
+(0.0153)
+
+0.0062
+(0.0157)
+
+0.0066
+(0.0156)
+
+0.0069
+(0.0153)
+
+0.0069
+(0.0153)
+
+0.0038
+(0.0204)
+
+-0.0004
+(0.0154)
+
+linear PS,
+quadratic OR
+
+0.3551
+(0.0562)
+
+0.0076
+(0.0200)
+
+0.0032
+(0.0320)
+
+0.0072
+(0.0163)
+
+0.0040
+(0.0185)
+
+0.0069
+(0.0153)
+
+0.0032
+(0.0312)
+
+0.0040
+(0.0241)
+
+-0.0083
+(0.0285)
+
+quadratic PS,
+linear OR
+
+0.0070
+(0.0147)
+
+0.3488
+(0.0553)
+
+0.0062
+(0.0176)
+
+0.0072
+(0.0160)
+
+0.0070
+(0.0167)
+
+0.3687
+(0.0557)
+
+0.0063
+(0.0171)
+
+···
+···
+
+···
+···
+
+quadratic PS,
+quadratic OR
+
+0.3551
+(0.0562)
+
+0.3488
+(0.0553)
+
+0.3721
+(0.0576)
+
+0.3428
+(0.0544)
+
+0.3516
+(0.0541)
+
+0.3687
+(0.0557)
+
+0.3687
+(0.0557)
+
+···
+···
+
+···
+···
+
+Data generated under QUA-OR setting
+linear PS,
+linear OR
+
+0.2235
+(0.3152)
+
+0.0275
+(0.4034)
+
+0.0291
+(0.3335)
+
+0.0233
+(0.0647)
+
+0.0249
+(0.0730)
+
+0.0302
+(0.2999)
+
+0.0302
+(0.2999)
+
+0.0347
+(0.1561)
+
+0.0009
+(0.3050)
+
+linear PS,
+quadratic OR
+
+-0.0690
+(0.0190)
+
+0.0275
+(0.4034)
+
+0.0094
+(0.0173)
+
+0.0071
+(0.0162)
+
+0.0084
+(0.0170)
+
+0.0302
+(0.2999)
+
+0.0094
+(0.0178)
+
+0.0029
+(0.0226)
+
+-0.0011
+(0.0168)
+
+quadratic PS,
+linear OR
+
+0.2235
+(0.3152)
+
+-0.1398
+(0.1555)
+
+-0.3619
+(0.1949)
+
+0.0214
+(0.0241)
+
+-0.0387
+(0.0635)
+
+-0.0731
+(0.0191)
+
+-0.3250
+(0.0906)
+
+···
+···
+
+···
+···
+
+quadratic PS,
+quadratic OR
+
+-0.0690
+(0.0190)
+
+-0.1398
+(0.1555)
+
+-0.0742
+(0.0193)
+
+-0.0672
+(0.0198)
+
+-0.0698
+(0.0195)
+
+-0.0731
+(0.0191)
+
+-0.0731
+(0.0191)
+
+···
+···
+
+···
+···
+
+12
+
+linear PS, linear OR
+
+linear PS, quadratic OR
+
+1
+0.5
+0
+−0.5
+−1
+
+−1
+
+−0.5
+
+0
+
+0.5
+
+1
+
+4
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+OR
+
+quadratic PS, linear OR
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+quadratic PS, quadratic OR
+4
+
+4
+
+5
+
+5
+
+2
+
+4
+
+4
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+0.5
+0
+−0.5
+−1
+
+−1
+
+−0.5
+
+0
+
+0.5
+
+1
+
+4
+
+1
+
+4
+
+IPW.r
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+Figure S1: Boxplots of estimates minus the truth under LIN-OR setting with (γ1∗ , γ2∗ , γ3∗ ) =
+(1.0, 0.1, 0.1).
+
+linear PS, linear OR
+
+OR
+
+IPW.r
+
+linear PS, quadratic OR
+
+1
+
+1
+
+1
+0
+−1
+−2
+
+−2
+
+−1
+
+0
+
+1
+
+2
+
+1
+
+2
+
+1
+
+1
+
+1
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+OR
+
+quadratic PS, linear OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+quadratic PS, quadratic OR
+2
+1
+0
+−1
+−2
+
+−2
+
+−1
+
+0
+
+1
+
+2
+
+1
+
+OR
+
+6
+
+5
+
+IPW.r
+
+AIPW
+
+6
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+Figure S2: Boxplots of estimates minus the truth under QUA-OR setting with (γ1∗ , γ2∗ , γ3∗ ) =
+(1.0, 0.1, 0.1).
+
+13
+
+Table S2: Qin–Zhang simulation results with (γ1∗ , γ2∗ , γ3∗ ) = (1.0, 0.5, 0.5)
+
+Models
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+EL
+
+AST
+
+Data generated under LIN-OR setting
+linear PS,
+linear OR
+
+0.0089
+(0.0280)
+
+0.0323
+(0.2078)
+
+0.0107
+(0.0608)
+
+0.0009
+(0.0733)
+
+0.0030
+(0.0698)
+
+0.0109
+(0.0547)
+
+0.0109
+(0.0547)
+
+0.0051
+(0.0900)
+
+0.0024
+(0.0537)
+
+linear PS,
+quadratic OR
+
+1.8926
+(0.1748)
+
+0.0323
+(0.2078)
+
+0.0471
+(0.2414)
+
+0.0527
+(0.0642)
+
+0.0665
+(0.0663)
+
+0.0109
+(0.0547)
+
+0.0294
+(0.0998)
+
+-0.0089
+(0.1103)
+
+0.0244
+(0.1015)
+
+quadratic PS,
+linear OR
+
+0.0089
+(0.0280)
+
+1.3964
+(0.9500)
+
+0.0262
+(0.3731)
+
+0.0026
+(0.0739)
+
+0.0059
+(0.0770)
+
+1.8722
+(0.1931)
+
+0.0169
+(0.0731)
+
+···
+···
+
+···
+···
+
+quadratic PS,
+quadratic OR
+
+1.8926
+(0.1748)
+
+1.3964
+(0.9500)
+
+1.8918
+(0.4227)
+
+1.8529
+(0.2195)
+
+1.8459
+(0.2220)
+
+1.8722
+(0.1931)
+
+1.8722
+(0.1931)
+
+···
+···
+
+···
+···
+
+Data generated under QUA-OR setting
+linear PS,
+linear OR
+
+3.2822
+(0.9469)
+
+0.1296
+(3.0404)
+
+0.1560
+(3.7185)
+
+0.3212
+(0.4148)
+
+0.3819
+(0.5712)
+
+0.2428
+(0.9017)
+
+0.2428
+(0.9017)
+
+0.1969
+(0.2647)
+
+0.1943
+(0.7010)
+
+linear PS,
+quadratic OR
+
+-0.4663
+(0.0593)
+
+0.1296
+(3.0404)
+
+0.0077
+(0.0657)
+
+0.0091
+(0.0796)
+
+0.0061
+(0.0798)
+
+0.2428
+(0.9017)
+
+0.0156
+(0.0603)
+
+0.0075
+(0.1026)
+
+0.0095
+(0.0549)
+
+quadratic PS,
+linear OR
+
+3.2822
+(0.9469)
+
+-1.9909
+(13.0100)
+
+-1.9277
+(34.4996)
+
+0.3801
+(0.3366)
+
+0.9864
+(0.3682)
+
+-0.4403
+(0.0742)
+
+0.1483
+(0.3204)
+
+···
+···
+
+···
+···
+
+quadratic PS,
+quadratic OR
+
+-0.4663
+(0.0593)
+
+-1.9909
+(13.0100)
+
+-0.4319
+(0.1954)
+
+-0.4754
+(0.0918)
+
+-0.4449
+(0.0858)
+
+-0.4403
+(0.0742)
+
+-0.4403
+(0.0742)
+
+···
+···
+
+···
+···
+
+14
+
+linear PS, linear OR
+
+linear PS, quadratic OR
+3
+1.5
+0
+−1.5
+−3
+
+−3
+
+−1.5
+
+0
+
+1.5
+
+3
+
+9
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+OR
+
+quadratic PS, linear OR
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+quadratic PS, quadratic OR
+
+18
+
+9
+
+13
+
+OR
+
+IPW.r
+
+34
+
+20
+
+17
+
+18
+
+18
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+1.5
+0
+−1.5
+−3
+
+−3
+
+−1.5
+
+0
+
+1.5
+
+3
+
+4
+
+3
+
+13
+
+IPW.r
+
+OR
+
+5
+
+3
+
+IPW.r
+
+AIPW
+
+5
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+Figure S3: Boxplots of estimates minus the truth under LIN-OR setting with (γ1∗ , γ2∗ , γ3∗ ) =
+(1.0, 0.5, 0.5).
+
+15
+
+linear PS, linear OR
+
+linear PS, quadratic OR
+6
+3
+0
+−3
+−6
+
+−6
+
+−3
+
+0
+
+3
+
+6
+
+2
+
+OR
+
+7
+
+9
+
+IPW.r
+
+AIPW
+
+7
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+OR
+
+quadratic PS, linear OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+quadratic PS, quadratic OR
+6
+3
+0
+−3
+−6
+
+−6
+
+−3
+
+0
+
+3
+
+6
+
+2
+
+OR
+
+83
+
+98
+
+IPW.r
+
+AIPW
+
+83
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+Figure S4: Boxplots of estimates minus the truth under QUA-OR setting with (γ1∗ , γ2∗ , γ3∗ ) =
+(1.0, 0.5, 0.5).
+
+II.2
+
+Kang–Schafer simulation
+
+In addition to the simulation study with the design of Qin & Zhang (2008), we also
+conducted a simulation study with the design of Kang & Schafer (2007) and a modified design defined in McCaffrey et al. (2007).
+In Kang & Schafer (2007), the data are generated as z = (z1 , z2 , z3 , z4 )T , y = 210+
+27.4z1 +13.7z2 +13.7z3 +13.7z4 +ǫ, and T = 1{U 6 expit(−z1 +0.5z2 −0.25z3 −0.1z4 )},
+where (z1 , z2 , z3 , z4 , ǫ, U) are mutually independent, (z1 , z2 , z3 , z4 , ǫ) are marginally
+normally distributed with mean 0 and variance 1 and U is uniformly distributed
+on (0, 1). Let x = (x1 , x2 , x3 , x4 )T , x1 = exp(0.5z1 ), x2 = z2 /{1 + exp(z1 )} + 10,
+x3 = (0.04z1 z3 + 0.6)3 , and x4 = (z2 + z4 + 20)2 .
+Two OR models (1) are specified with the identity link Ψ(·) and the regressor
+vector g0 (z) = g1 (z) = (1, z1 , z2 , z3 , z4 )T or (1, x1 , x2 , x3 , x4 )T , corresponding to a
+correctly specified or misspecified OR model (denoted by OR z or OR x). Similarly,
+two PS models (2) are specified with the logistic link Π(·) and the regressor vector
+
+16
+
+f (z) = (1, z1 , z2 , z3 , z4 )T or (1, x1 , x2 , x3 , x4 )T , corresponding to a correctly specified
+or misspecified PS model (denoted by PS z or PS x).
+The modified design in McCaffrey et al. (2007) is defined the same as above, except
+that an interaction term is added when generating the response, y = 210 + 27.4z1 +
+13.7z2 + 13.7z3 + 13.7z4 + 20z1 z2 + ǫ. Three possible OR models (1) are specified with
+the identity link Ψ(·) and the regressor vector g0 (z) = g1 (z) = (1, z1 , z2 , z3 , z4 , z1 z2 )T ,
+(1, z1 , z2 , z3 , z4 )T or (1, x1 , x2 , x3 , x4 )T , corresponding to a correctly specified, slightly
+misspecified, or misspecified OR model (denoted by OR z2, OR z, or OR x). Two
+possible PS models (2) are specified the same as above.
+For these two designs, Table S3 and Figure S5-S6 present the results for various
+estimators from 5000 Monte Carlo sample with size n = 1000. The true value of ATT
+is easily shown to be always 0.
+The relative performances of the estimators under study are overall similar to those
+found in the Qin–Zhang simulation study. A seemingly unexpected phenomenon, in
+view of intrinsic efficiency of LIK, is that the HIR and AIPW.HIR estimators have
+smaller variances than LIK and LIK2 estimators in the Kang–Schafer design when
+PS z and OR x models (which are correctly specified and misspecified respectively)
+are used. But this difference can be explained as follows. In this case, because the
+true m0 (X) is a linear combination of f (X) used, the HIR estimator can be shown to
+achieve the nonparametric efficiency bound by similar arguments as in the proof of
+0
+local nonparametric efficiency of ν̂NP
+(π̂, m̂0 ). This can also be seen numerically from
+
+Monte Carlo standard errors. The estimator AIPW.HIR (which is doubly robust)
+has a moderately inflated from that of HIR (which is non-doubly robust) and hence
+smaller than those of LIK and LIK2. This phenomenon depends on the particular way
+in which the Kang–Schafer design is defined; it does not occur in the McCaffrey-et-al
+design when PS z and OR z or OR x models are used.
+
+17
+
+Table S3: Kang–Schafer and McCaffrey-et-al simulation results
+Models
+
+OR
+
+IPW.ratio
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+Kang–Schafer design
+PS z, OR z
+
+-0.00021
+(0.07881)
+
+-0.15529
+(2.29565)
+
+0.00009
+(0.08899)
+
+0.00038
+(0.09119)
+
+0.00038
+(0.09014)
+
+-0.00001
+(0.08815)
+
+-0.00001
+(0.08815)
+
+PS x, OR z
+
+-0.00021
+(0.07881)
+
+-7.19115
+(1.76502)
+
+-0.00027
+(0.08423)
+
+0.00019
+(0.09345)
+
+-0.00015
+(0.09431)
+
+-4.43418
+(1.03883)
+
+-0.00035
+(0.08538)
+
+PS z OR x
+
+-9.94070
+(1.53143)
+
+-0.15529
+(2.29565)
+
+-0.28659
+(2.51075)
+
+-0.34182
+(0.98906)
+
+-0.41053
+(1.19155)
+
+-0.00001
+(0.08815)
+
+-0.25263
+(0.78813)
+
+PS x, OR x
+
+-9.94070
+(1.53143)
+
+-7.19115
+(1.76502)
+
+-6.15538
+(1.70318)
+
+-4.80166
+(1.54315)
+
+-5.60558
+(1.56532)
+
+-4.43418
+(1.03883)
+
+-4.43418
+(1.03883)
+
+McCaffrey-et-al design (with interaction)
+PS z, OR z2
+
+-0.00001
+(0.08057)
+
+-0.25727
+(3.74352)
+
+0.00018
+(0.08915)
+
+0.00031
+(0.09289)
+
+0.00030
+(0.09261)
+
+-0.26256
+(1.90160)
+
+1e-6
+(0.08844)
+
+PS x, OR z2
+
+-0.00001
+(0.08057)
+
+-5.36684
+(2.74036)
+
+-0.00024
+(0.08382)
+
+-0.00048
+(0.09746)
+
+-0.00090
+(0.09833)
+
+-2.68423
+(1.69244)
+
+-0.00039
+(0.08490)
+
+PS z, OR z
+
+-6.45619
+(1.92221)
+
+-0.25727
+(3.74352)
+
+-0.16704
+(3.44095)
+
+-0.29360
+(1.43785)
+
+-0.41220
+(1.94467)
+
+-0.26256
+(1.90160)
+
+-0.26256
+(1.90160)
+
+PS x, OR z
+
+-6.45619
+(1.92221)
+
+-5.36684
+(2.74036)
+
+0.79425
+(2.42957)
+
+-0.25981
+(1.31109)
+
+0.81471
+(1.48044)
+
+-2.68423
+(1.69244)
+
+1.16681
+(1.06564)
+
+PS z, OR x
+
+-10.47822
+(2.17768)
+
+-0.25727
+(3.74352)
+
+-0.38755
+(4.11415)
+
+-0.35741
+(1.22501)
+
+-0.59751
+(1.92895)
+
+-0.26256
+(1.90160)
+
+-0.47727
+(1.89506)
+
+PS x, OR x
+
+-10.47822
+(2.17768)
+
+-5.36684
+(2.74036)
+
+-4.36236
+(2.86418)
+
+-2.06547
+(1.84705)
+
+-3.12139
+(2.21782)
+
+-2.68423
+(1.69244)
+
+-2.68423
+(1.69244)
+
+Note: In the upper rows are the Monte Carlo means, and in the brackets are the corresponding Monte Carlo variances.
+
+18
+
+PS z, OR z
+
+PS x, OR z
+10
+5
+0
+−5
+−10
+
+−10
+
+−5
+
+0
+
+5
+
+10
+
+9
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR AIPW.HIR
+
+273
+OR
+
+IPW.r
+
+PS z, OR x
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR AIPW.HIR
+
+PS x, OR x
+
+7
+0
+−7
+−14
+
+−14
+
+−7
+
+0
+
+7
+
+14
+
+32
+
+14
+
+32
+
+2415
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR AIPW.HIR
+
+2415
+
+273
+
+54
+
+7
+
+17
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR AIPW.HIR
+
+Figure S5: Boxplots of estimates under the Kang–Schafer design. The values are censored
+within the range of the y-axis, and the number of values that lie outside the range are
+indicated next to the lower and upper limits of the y-axis.
+
+19
+
+PS z, OR z2
+
+PS x, OR z2
+5
+
+4
+0
+−4
+−8
+
+−8
+
+−4
+
+0
+
+4
+
+8
+
+9
+
+8
+
+122
+
+764
+
+14
+
+OR
+
+IPW.r
+
+AIPW
+
+72
+
+54
+
+LIK
+
+LIK2
+
+HIR AIPW.HIR
+
+OR
+
+6
+
+IPW.r
+
+AIPW
+
+4
+
+24
+
+HIR AIPW.HIR
+
+10
+5
+−10
+
+−5
+
+0
+
+5
+0
+−5
+−10
+
+157
+
+2
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR AIPW.HIR
+
+157
+
+137
+
+OR
+
+IPW.r
+
+AIPW
+
+PS z, OR x
+
+LIK2
+
+HIR AIPW.HIR
+
+2
+
+4
+
+IPW.r
+
+AIPW
+
+0
+−16
+
+−8
+
+0
+
+8
+
+16
+
+26
+
+8
+
+16
+
+17
+
+LIK
+
+PS x, OR x
+
+−8
+−16
+
+LIK2
+
+PS x, OR z
+
+10
+
+PS z, OR z
+
+LIK
+
+38
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK
+
+LIK2
+
+HIR AIPW.HIR
+
+38
+
+OR
+
+LIK
+
+LIK2
+
+HIR AIPW.HIR
+
+Figure S6: Boxplots of estimates under the McCaffrey-et-al design (with interaction).
+
+20
+
+III
+
+Additional results from LaLonde analysis
+
+Table S4 and Figure S7 present the results from Analyses (i) and (ii) for various
+estimators as listed in Section 6, based on 500 bootstrap samples of the NSW+CPS
+composite data. There are much smaller differences between the performances of
+the estimators than when the NSW+PSID composite data are analyzed. Another
+feature worthy of note is that none of the estimators lead to effect estimates close
+to the experimental benchmark $886 or bias estimates close to 0, even though the
+differences between effect and bias estimates are all roughly close to $886.
+
+21
+
+Table S4: Bootstrap results from Analyses (i) and (ii) on NSW+CPS composite data
+
+Linear PS, Linear OR
+
+Linear PS, Quadratic OR
+
+Quadratic PS, Linear OR
+
+Quadratic PS, Quadratic OR
+
+OR
+
+IPW.ratio
+
+AIPW
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+Treatment Effect
+
+-800
+(475)
+
+-451
+(518)
+
+-308
+(526)
+
+-380
+(518)
+
+-503
+(520)
+
+-388
+(520)
+
+Evaluation Bias
+
+-1709
+(374)
+
+-1336
+(414)
+
+-1333
+(428)
+
+-1364
+(420)
+
+-1414
+(422)
+
+-1413
+(422)
+
+Difference
+
+803
+(527)
+
+885
+(518)
+
+903
+(532)
+
+880
+(526)
+
+910
+(531)
+
+910
+(531)
+
+Treatment Effect
+
+-800
+(475)
+
+-451
+(518)
+
+-308
+(522)
+
+-380
+(516)
+
+-503
+(520)
+
+-388
+(517)
+
+Evaluation Bias
+
+-1611
+(379)
+
+-1336
+(414)
+
+-1196
+(436)
+
+-1254
+(430)
+
+-1414
+(422)
+
+-1295
+(429)
+
+Difference
+
+811
+(527)
+
+885
+(518)
+
+888
+(529)
+
+874
+(523)
+
+910
+(531)
+
+907
+(529)
+
+Treatment Effect
+
+-906
+(475)
+
+-427
+(561)
+
+-421
+(561)
+
+-424
+(561)
+
+-465
+(557)
+
+-465
+(557)
+
+Evaluation Bias
+
+-1709
+(374)
+
+-1207
+(529)
+
+-1335
+(533)
+
+-1297
+(514)
+
+-1383
+(507)
+
+-1383
+(507)
+
+Difference
+
+803
+(527)
+
+780
+(547)
+
+914
+(544)
+
+873
+(538)
+
+919
+(532)
+
+919
+(532)
+
+Treatment Effect
+
+-800
+(475)
+
+-427
+(561)
+
+-465
+(557)
+
+-438
+(563)
+
+-432
+(557)
+
+-465
+(557)
+
+Evaluation Bias
+
+-1611
+(379)
+
+-1207
+(529)
+
+-1383
+(507)
+
+-1364
+(535)
+
+-1313
+(514)
+
+-1383
+(507)
+
+Difference
+
+811
+(527)
+
+780
+(547)
+
+919
+(532)
+
+926
+(543)
+
+881
+(535)
+
+919
+(532)
+
+Note: In the upper rows are the bootstrap means, and in the brackets are the corresponding bootstrap standard
+errors. Treatment Effect is obtained from Analysis (i), and Evaluation Bias from Analysis (ii). The difference is to be
+compared with the experimental benchmark $886 with standard error $488. There was no issue of non-convergence
+when computing estimates during bootstrapping, and hence Principle Component Analysis is not needed.
+
+22
+
+5
+
+3
+
+5
+
+5
+
+1400
+
+3
+
+3
+
+3
+
+3
+
+3
+
+3
+
+IPW.r
+
+AIPW
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+5
+
+3
+
+4
+
+3
+
+3
+
+3
+
+3
+
+3
+
+3
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+5
+
+4
+
+3
+
+3
+
+1400
+
+2
+
+3
+
+2
+
+5
+
+3
+
+4
+
+3
+
+0
+−700
+−1400
+
+−700
+
+0
+
+700
+
+3
+
+quadratic PS, quadratic OR
+
+700
+
+1400
+
+4
+
+0
+−1400
+
+3
+OR
+
+quadratic PS, linear OR
+
+−1400
+
+3
+
+−700
+
+0
+−700
+−1400
+
+3
+
+700
+
+3
+
+linear PS, quadratic OR
+
+700
+
+1400
+
+linear PS, linear OR
+
+3
+
+4
+
+3
+
+3
+
+3
+
+3
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+3
+
+4
+
+3
+
+3
+
+5
+
+4
+
+OR
+
+IPW.r
+
+AIPW
+
+LIK2
+
+HIR
+
+AIPW.HIR
+
+Figure S7: Bootstrap boxplots of differences of bias estimates from Analyses (i) and (ii)
+on NSW+CPS composite data.
+
+Appendix References
+Kang, J. D. Y. and Schafer, J. L. (2007). Demystifying double robustness: a comparison of alternative strategies for estimating a population mean from incomplete
+data (with discussions). Statistical Science, 22:523–539.
+LaLonde, R. J. (1986). Evaluating the econometric evaluations of training programs
+with experimental data. The American Economic Review, 76:604–620.
+McCaffrey, D. F., Ridgeway, G., and Morral, A. R. (2007). Comment: Demystifying double robustness: A comparison of alternative strategies for estimating a
+population mean from incomplete data. Statistical Science, 22:540–543.
+Qin, J. and Lawless, J. (1994). Empirical likelihood and general estimating equations.
+The Annals of Statistics, 22:300–325.
+Qin, J. and Zhang, B. (2008). Empirical-likelihood-based difference-in-differences estimators. Journal of the Royal Statistical Society: Series B (Statistical Methodology),
+23
+
+70:329–349.
+Robins, J. M. (1999). Association, causation, and marginal structural models. Synthese, 121:151–179.
+Robins, J. M., Rotnitzky, A., and Zhao, L. P. (1994). Estimation of regression coefficients when some regressors are not always observed. Journal of the American
+Statistical Association, 89:846–866.
+Tan, Z. (2006). A distributonal approach for causal inference using propensity score.
+Journal of the American Statistical Association, 101:1619–1637.
+Tan, Z. (2010). Bounded, efficient and doubly robust estimation with inverse weighting. Biometrika, 97:661–682.
+White, H. (1982). Maximum likelihood estimation of misspecified models. Econometrica, 50:1–25.
+
+24
+
+

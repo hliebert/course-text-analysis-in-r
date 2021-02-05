@@ -1,0 +1,1558 @@
+DOI: 10.1111/j.1541-0420.2005.00377.x
+
+Biometrics 61, 962–972
+December 2005
+
+Doubly Robust Estimation in Missing Data
+and Causal Inference Models
+Heejung Bang
+Division of Biostatistics and Epidemiology, Department of Public Health, Weill Medical College
+of Cornell University, New York, New York 10021, U.S.A.
+email: heb2013@med.cornell.edu
+and
+James M. Robins
+Departments of Biostatistics and Epidemiology, Harvard School of Public Health,
+Boston, Massachusetts 02115, U.S.A.
+
+Summary. The goal of this article is to construct doubly robust (DR) estimators in ignorable missing data
+and causal inference models. In a missing data model, an estimator is DR if it remains consistent when
+either (but not necessarily both) a model for the missingness mechanism or a model for the distribution
+of the complete data is correctly speciﬁed. Because with observational data one can never be sure that
+either a missingness model or a complete data model is correct, perhaps the best that can be hoped for
+is to ﬁnd a DR estimator. DR estimators, in contrast to standard likelihood-based or (nonaugmented)
+inverse probability-weighted estimators, give the analyst two chances, instead of only one, to make a valid
+inference. In a causal inference model, an estimator is DR if it remains consistent when either a model for
+the treatment assignment mechanism or a model for the distribution of the counterfactual data is correctly
+speciﬁed. Because with observational data one can never be sure that a model for the treatment assignment
+mechanism or a model for the counterfactual data is correct, inference based on DR estimators should
+improve upon previous approaches. Indeed, we present the results of simulation studies which demonstrate
+that the ﬁnite sample performance of DR estimators is as impressive as theory would predict. The proposed
+method is applied to a cardiovascular clinical trial.
+Key words: Causal inference; Doubly robust estimation; Longitudinal data; Marginal structural model;
+Missing data; Semiparametrics.
+
+1. Introduction
+In a missing data model, an estimator is doubly robust (DR)
+or doubly protected if it remains consistent when either a
+model for the missingness mechanism or a model for the distribution of the complete data is correctly speciﬁed. In a causal
+inference model, an estimator is DR if it remains consistent
+when either a model for the treatment assignment mechanism or a model for counterfactual data is correctly speciﬁed.
+Because of the frequency and near inevitability of model misspeciﬁcation, double robustness is a highly desirable property.
+Robins, Rotnitzky, and Zhao (1994) and Rotnitzky, Robins,
+and Scharfstein (1998) proposed augmented orthogonal inverse probability-weighted (AIPW) estimators in missing data
+models. Scharfstein, Rotnitzky, and Robins (1999) showed the
+orthogonal AIPW estimator had an alternative “regression
+representation.” More importantly, they showed this estimator was DR and developed a general method to construct DR
+estimators in missing data models when the data are missing at random (MAR). They also showed how to construct
+DR estimators in causal inference models under the assump-
+
+tion of no unmeasured confounders. This methodology was
+further extended in Robins (2000), Robins, Rotnitzky, and
+Van der Laan (2000), Lunceford and Davidian (2004), Neugebauer and Van der Laan (2005), Lipsitz, Ibrahim, and Zhao
+(1999), Robins and Rotnitzky (2001), and Van der Laan and
+Robins (2003); the last two references provide the detailed
+mathematical theory underlying the methodology.
+In this article, we review previously developed methods and
+algorithms for constructing DR estimators in nonlongitudinal
+missing data and causal inference models and extend them to
+longitudinal monotone missing data models and longitudinal
+causal models, speciﬁcally to longitudinal marginal structural
+models (MSMs). Although algebraically equivalent, we represent our DR estimators as sequential regression estimators
+rather than as AIPW estimators, because the former representation leads to a computational algorithm that can be easily
+implemented using standard oﬀ-the-shelf regression software.
+This article is organized as follows. We begin, in Section 2,
+by considering estimation of the mean of an outcome variable
+from nonlongitudinal data when the outcome is MAR. We
+
+962
+
+Doubly Robust Estimation
+next consider estimation of the eﬀect of a binary treatment in
+the presence of high-dimensional baseline covariate data under the assumption of no unmeasured confounders (i.e., ignorability). In Section 3, we obtain a DR estimator for monotone
+MAR longitudinal data. In Section 4, we construct DR estimators of the parameters of an MSM under the assumption of
+no unmeasured confounders. In each section, results of simulations illustrate the ﬁnite sample eﬃciency and robustness of
+our DR estimators. The method is illustrated with the data
+from a multicenter cardiovascular clinical trial in Section 5.
+Some concluding remarks and discussion are provided. In the
+Appendix, we show how to represent our sequential regression
+estimators as AIPW estimators.
+2. Cross-Sectional Models
+In this section, we show how to construct DR estimators in
+two nonlongitudinal models: the ﬁrst a model with missing
+outcome data and the second a model for a treatment eﬀect.
+2.1 A Missing Data Model
+Consider an observational follow-up study with full data
+L = (V , Y ) , where V is an always observed vector of baseline variables and Y is a scalar outcome which is missing by
+happenstance on some subjects. Let ∆ be the indicator of
+whether Y is missing. Then the observed data are O = (∆,
+Lobs ), where Lobs = L when ∆ is 1 and Lobs = V when ∆ = 0.
+In realistic epidemiologic studies it would not be unusual for
+the sample size n to be between 500 and 2000 and yet for V
+to be 50–100 dimensional.
+Suppose that interest lies in estimating the unconditional
+mean µ of Y based on n i.i.d. copies of Oi (i = 1, . . . , n).
+If, as we assume, Y is MAR and the probability of observing
+complete data is always positive, that is, P (∆ = 1 | Y , V) =
+P (∆ = 1 | V) ≡ π(V) > 0 with probability 1, then we can
+represent the mean µ = E(Y ) = E{E(Y | V)} of Y in terms
+of the distribution of the observed data as either E{E(Y | ∆ =
+1, V)} or E{∆Y /π(V)}. The second representation of Y
+suggests (i) ﬁtting a model for the “propensity score”
+(PS) π(V) based on a parametric model π(V; α), such
+as the linear logistic regression model logit {π(V; α)} =
+α V, where logit (x) = log {x/(1 − x)}, and (ii) then
+estimating µ 
+with the Horvitz–Thompson (HT) estimator µ̂HT = n−1 i ∆i Yi /π(Vi ; α̂), where α̂ is the maximum
+likelihood estimator (MLE) of α (Horvitz and Thompson,
+1952; Rosenbaum, 1987). Note that because V is very highdimensional, it may not be feasible to estimate π(V) nonparametrically using smoothing techniques. Rather we must
+specify a dimension reducing parametric model for π(V ; α).
+The ﬁrst representation of Y suggests (i) ﬁtting a
+model Ψ{s(V ; β)} for E(Y | ∆ = 1, V) with Ψ−1 a known
+link function and s(V; β) a known regression function of an unknown ﬁnite-dimensional parameter β, and
+(ii) then estimating 
+µ by the outcome regression (OR)
+estimator µ̂OR = n−1 i Ψ{s(Vi ; β̃)}, the sample average
+over all subjects of the predicted values Ψ{s(Vi ;β̃)}
+of
+nthe Yi . Here β̃  solves the “normal equations” 0 =
+∆i ∂s(Vi ; β)/∂β [Yi − Ψ{s(Vi ; β)}], where 0 is a vector
+i=1
+of all zeros of an appropriate dimension. Note that if Ψ−1 is the
+canonical link function of a generalized linear model (GLM),
+these equations are precisely the likelihood (score) equations
+
+963
+
+for the model and the resulting estimator is the MLE. This estimator is often referred to as the iteratively reweighted least
+squares (IRLS) estimator because an IRLS algorithm is often used to solve the score equations. For example, if Y were
+dichotomous, we choose Ψ−1 (x) = ln {x/(1 − x)} to be the
+logit link, [Ψ(x) = ex /(1 + ex )], and might choose s(V; β) to
+be the linear function s(V; β) = β  V. Then β̃ is the MLE of
+β in this linear logistic model among subjects on whom Y was
+observed.
+There has been considerable debate as to which approach
+to estimating the mean of Y is to be preferred as the approach based on the HT estimator µ̂HT is inconsistent if the
+model for ∆ (i.e., the PS model) is misspeciﬁed while the approach based on the OR estimator µ̂OR is inconsistent if the
+OR model s(V; β) is misspeciﬁed. This controversy could be
+resolved if an estimator were available that was guaranteed to
+be consistent for µ whenever at least one of the two models
+was correct. We refer to such an estimator as DR as it can protect against misspeciﬁcation of either the OR model or the PS
+model, although not against simultaneous misspeciﬁcation of
+both. Because with observational data one can never be sure
+that either model is correct, the best that can be hoped for is
+to ﬁnd a DR estimator.
+Scharfstein et al. (1999, p. 1140–1141) showed that to obtain a DR estimator in this setting it suﬃces to model E(Y | ∆
+= 1, V) as e(V; β, φ) = Ψ{s(V; β) + φπ −1 (V; α̂)}, which adds
+the covariate π −1 (V; α̂) to the OR model Ψ{s(V; β)}. Then
+the estimator
+µ̂dr = n−1
+
+
+
+e(Vi ; β̂, φ̂)
+
+i
+
+= n−1
+
+
+
+Ψ{s(Vi ; β̂) + φ̂π −1 (Vi ; α̂)}
+
+i
+
+is DR in the sense that µ̂dr is consistent asymptotically normal (CAN) if either the model e(V; β, φ) (with π −1 (V; α̂)
+replaced by its probability limit) for E(Y | ∆ = 1, V) or the
+PS
+Here (β̂, φ̂) jointly solve 0 =
+ model π(V; α) is correct.
+
+∆
+∂e(V
+;
+β,
+,
+φ){Y
+−
+e(Vi ; β, φ)}. Thus if Y is diφ)/∂(β
+i
+i
+i
+i
+chotomous, Ψ−1 is the logit link and s(V; β) = β  V,(β̂  , φ̂)
+are the MLEs among subjects with ∆ = 1 in the logistic regression model with covariates V and 1/π(V; α̂). It is clear
+that the µ̂dr is CAN when the model e(V; β, φ) is correct.
+To see why it is DR, consider the estimator µ̃AIP W solving
+0 = Û (µ) where Û (µ) can be written in either of the following
+algebraically equivalent forms:
+Û (µ) =
+
+
+
+π −1 (V; α̂)∆i (Yi − µ)
+
+i
+
+
+
+
+
+− π −1 (V; α̂)∆i − 1 {e(Vi ; β̂, φ̂) − µ}
+=
+
+
+i
+
++
+
+π −1 (V; α̂)∆i {Yi − e(Vi ; β̂, φ̂)}
+
+
+
+{e(Vi ; β̂, φ̂) − µ}.
+
+i
+
+Because it solves an AIPW estimating equation, µ̃AIP W is
+obviously CAN if the model π(V; α) is correct. We now
+show that µ̃AIP W = µ̂dr (i.e., µ̂dr is simply a regression representation of µ̃AIP W ), which proves the double robustness
+
+964
+
+Biometrics, December 2005
+
+of µ̃AIP W = µ̂dr . It follows from the second
+ −1 representation
+of Û (µ), that µ̃AIP W = µ̂dr provided
+π (V ; α̂)∆i {Yi −
+i
+e(Vi ; β̂, φ̂)} = 0. But this equality is immediately seen from
+the normal equations satisﬁed by (β̂, φ̂). The key to the double robustness property of Û (µ) is that it estimates the orthogonal estimating function Uorth (µ) obtained by replacing
+the estimates π −1 (V ; α̂) and e(V ; β̂, φ̂) in Û (µ) with the true
+functions π −1 (V ) and E(Y | V). An AIPW estimating equation
+ is said to be orthogonal if it is uncorrelated with the set
+{ i {∆i − π(Vi )}h(Vi ); h(Vi ) arbitrary} of scores of any PS
+model.
+One could wonder about the actual advantage of using DR
+estimators as, in practice, all models including the OR and PS
+models are misspeciﬁed and thus even the DR estimator of µ
+may be considerably biased. In our opinion, a DR estimator
+has the following advantage that argues for its routine use: if
+either the model for the OR or the model for the PS is nearly
+correct, then the bias of a DR estimator of µ will be small.
+Thus, the DR estimator µ̂dr , in contrast with both the OR
+estimator µ̂OR and the HT estimator µ̂HT , gives the analyst
+two chances to get nearly correct inference about the mean
+of Y. Of course, there can be an eﬃciency cost to using a DR
+estimator rather than the OR estimator of µ. However, we will
+see in the simulation study reported later in this section that
+the use of DR estimators may provide major improvements
+in robustness while incurring strikingly little eﬃciency loss.
+A further advantage of DR estimation is that comparison
+of the three estimators µ̂dr , µ̂HT , and µ̂OR with one another
+serves as a useful goodness of ﬁt test (Robins and Rotnitzky,
+2
+2
+2001). To formalize here, let τ̂dr−HT
+and τ̂dr−OR
+be the empirical variance of (µ̂dr − µ̂HT ) and (µ̂dr − µ̂OR ), respectively, calculated from a large number of nonparametric bootstrap replications of the study data. Then the tests with rejection regions
+|(µ̂dr − µ̂HT )/τ̂dr−HT | > 1.96 and |(µ̂dr − µ̂OR )/τ̂dr−OR | > 1.96
+are valid large sample 0.05 level tests of the null hypotheses
+that the PS model and the OR model, respectively, are correctly speciﬁed. However, the tests are not consistent. That is,
+there exist laws under which the PS and OR models are incorrect but the estimators µ̂dr and µ̂HT converge in probability
+to a common value µ∗ that diﬀers from the true parameter µ,
+resulting in misleading inference. The same holds true with
+µ̂OR replacing µ̂HT . However, although logically possible, such
+inconsistency may be uncommon in practice.
+One possible theoretical objection to µ̂dr is that when the
+PS is either known or correctly modeled, µ̂dr can be less efﬁcient than µ̂HT if the model for E(Y | ∆ = 1, V ) is badly
+misspeciﬁed. Robins (2002, Appendix 4) has developed an alternative DR estimator, referred to as µ̂IP CW , that, as noted
+by Robins, Rotnitzky, and Bonetti (2001), is always guaranteed to be at least as eﬃcient as µ̂HT when the PS is either
+known or correctly modeled. However, µ̂IP CW is more diﬃcult
+than µ̂dr to compute with standard software. Furthermore, in
+practice, it would be rare for the model for E(Y | ∆ = 1, V )
+to be so badly misspeciﬁed that µ̂dr was seriously ineﬃcient.
+2.2 A Treatment-Eﬀect Model
+In this subsection we show the DR estimator of the mean of
+Y can be generalized to provide an estimator of the average
+causal eﬀect of a binary treatment from observational data
+under the assumption of no unmeasured confounders. Consider an observational study with i.i.d. data {Oi = (∆i , Yi ,
+
+Vi ) ; i = 1, . . . , n} on n study subjects, where ∆ is the indicator of the dichotomous treatment, Y is the outcome, and
+V is a high-dimensional vector of pretreatment confounding
+variables.
+We assume ignorable treatment assignment, that is, Y (δ)
+∆ | V, where Y (δ) is the counterfactual outcome at treatment
+level δ(δ ∈ {0, 1}), and A  B | C denotes independence between A and B conditional on C. We often refer to the assumption of ignorable treatment assignment as the assumption of no unmeasured confounders. Under the assumption
+of no unmeasured confounders, the average treatment eﬀect
+µ ≡ E{Y (1)} − E{Y (0)} can be written in two diﬀerent ways
+as a function of the joint distribution of the observed data.
+Speciﬁcally, µ ≡ E{E(Y | ∆ = 1, V) − E(Y | ∆ = 0, V)}
+and µ = E{∆Y /π(V)} − E[(1 − ∆)Y /{1 − π(V)}]. Thus
+given a parametric OR model Ψ{s(∆, 
+V; β)} for E(Y | ∆,
+V), we could estimate µ by µ̂OR = n−1 i [Ψ{s(1, Vi ; β̃)} −
+Ψ{s(0, Vi ; β̃)}], the diﬀerence in the treatment-speciﬁc OR
+estimators of E{Y (δ)}. Here β̃ solves
+0=
+
+n
+
+
+∂s (∆i , Vi ; β) /∂β  [Yi − Ψ{s (∆i , Vi ; β)}],
+
+i=1
+
+which reduce to the ordinary least squares (OLS) normal
+equations when, for example, Ψ(·) is the identity link. A simple choice for s(∆, V; β) would be β  (∆, V ) in the absence
+of the interactions between the treatment and covariates.
+
+−1
+Alternatively,
+ we can estimate µ by µ̂HT = n [ i ∆i Yi /
+π(Vi ; α̂) − i (1 − ∆i )Yi /{1 − π(Vi ; α̂)}], the diﬀerence in
+the treatment-arm-speciﬁc HT estimators of E{Y (δ)}, where
+α̂ is as in the previous subsection. Now µ̂HT is inconsistent
+if the PS (i.e., treatment) model is misspeciﬁed, while µ̂OR is
+inconsistent if the OR model is misspeciﬁed. Scharfstein et al.
+(1999, p. 1141) also showed that to obtain a DR estimator,
+we can model E(Y | ∆, V) by
+e(∆, V; β, φ1 , φ2 ) = Ψ[s(∆, V; β) + φ1 ∆π −1 (V; α̂)
++ φ2 (1 − ∆){1 − π(V; α̂)}−1 ],
+which adds the covariates ∆π −1 (V; α̂) and (1 − ∆){1 −
+π(V; α̂)}−1 to the original OR model. In fact, an alternative DR estimator µ̂dr , that is more eﬃcient than Scharfstein
+et al.’s when only the OR model Ψ{s(∆, V; β)} is correct, is
+to impose φ1 = φ2 in the previous model. That is, to obtain
+µ̂dr we ﬁt the model
+e(∆, V; β, φ) = Ψ[s(∆, V; β) + φ{f (∆ | V ; α̂)}−1 ],
+where f (∆ | V ; α) = ∆π(V ; α̂) + (1 − ∆){1 − π(V ; α̂)} is a
+subject’s estimated probability of getting the treatment they
+actually received.
+
+The estimator µ̂dr = n−1 i {e(1, Vi ; β̂, φ̂) − e(0, Vi ; β̂, φ̂)}
+is DR in the sense that µ̂dr is CAN if either the model
+e(∆, V; β, φ) for E(Y | ∆, V) or the PS
+ model π(V; α) is
+correct. Here, (β̂, φ̂) jointly solve 0 = i ∂e(∆i , Vi ; β, φ)/
+∂(β  , φ){Yi − e(∆i , Vi ; β, φ)}.
+The estimator µ̂dr solves a long-standing open problem in
+the estimation of treatment eﬀects: what function (or functions) of the PS needs to be added to a model Ψ{s(∆,
+V; β)} for E(Y | ∆, V) in order to ensure consistent estimation of the average treatment eﬀect when the PS is modeled
+
+Doubly Robust Estimation
+correctly but the OR model Ψ{s(∆, V; β)} is incorrect. We
+see that we must add to the regression the inverse probability of treatment weighted (IPTW) covariate 1/f (∆ | V ; α̂),
+which is the (estimated) inverse of the PS for treated subjects
+(∆ = 1) and the inverse of “1 minus the PS” for untreated
+subjects (∆ = 0). Other choices can result in inconsistent
+estimation of the average treatment eﬀect.
+2.3 A Simulation Study
+Numerical studies were performed to compare the ﬁnite sample behavior of the standard estimators and the proposed DR
+estimator. In our numerical experiments we assumed a linear regression model for E(Y | ∆, V ) (i.e., an identity link
+function), but a nonlinear model with other canonical link
+functions could have been used. Simulation results are summarized in terms of the bias, variance, and interquartile range
+
+of the estimates. The precise deﬁnitions of the estimators and
+all the models employed for data generation are summarized
+in Table 1 and in the footnote of Table 2, and are omitted
+from the main text. In all simulations, the sample size was
+500 and 1000 simulations were conducted.
+Turn ﬁrst to the missing data model. Recall the full data
+are L = (V , Y ) . We took V = (V 1 , V 2 , V 3 ) to be a vector of always observed baseline variables. We generated Vk
+(k = 1, 2, 3) independently from a standard normal distribution and then Y from a normal distribution with mean
+of s(V; β) and a unit variance (see Table 1A). The parameter values chosen in Table 1A imply the marginal mean µ
+of Y is 1. The missingness indicator ∆ was generated from
+the logistic regression model logit {π(V; α)} also given in
+Table 1A. To investigate the robustness to misspeciﬁcation,
+we also considered false models for both the missingness
+
+Table 1
+Simulation scenarios
+True
+False
+
+True
+False
+
+True
+
+False
+
+True
+
+False
+
+965
+
+A. Nonlongitudinal model
+V 2 , V 2 V 3 ] , β = [0, 1, 2.5, 3].
+[1, I 1 , I 2 , I 3 , I 1 I 2 ] , α = [−1, 1, 0, 0, −1].
+V 22 ] .
+[I 1 , I 3 ] .
+B. Treatment-eﬀect model
+s(∆, V; β) = β · [1, V 21 ∆, V 2 ∆, V 2 V 3 (1 − ∆), V 3 (1 − ∆)] , β = [0, 2, 3, 2, −4].
+logit{π(V; α)} = α · [1, I 1 , I 2 , I 3 , I 1 I 2 ] , α = [−3, 2.5, 3, 1, −3].
+s(∆, V; β) = β · [1, V 1 ∆, V 22 (1 − ∆)] .
+logit{π(V; α)} = α · [I 3 , V 4 ] .
+C. Longitudinal data model
+s1 (L1 ; β) = β · [1, V 11 , V 11 V 13 ] , β = [0, 3, −2].
+s2 (L2 ; β) = β · [1, V112 , V12 , V22 , V12 V2 ] , β = [0, −3, 3, 1, −2].
+logit{λ(1 | L1 ; α)} = α · [1, I 11 , I 12 , I 13 , I 11 I 12 ] , α = [−1, 1, 1, −1, −1].
+logit{λ(2 | L2 ; α)} = α · [1, I11 , I12 , I13 , I11 I12 , I2 , I2 I13 ] , α = [0, 1, 1, 0, −1, 0, −2].
+s1 (L1 ; β) = β · [1, V 11 , V 12 ] .
+s2 (L2 ; β) = β · [1, V11 , V122 , V132 , V2 ] .
+logit{λ(1 | L1 ; α)} = α · [1, I 12 , I 13 ] .
+logit{λ(2 | L2 ; α)} = α · [1, I2 ] .
+D. MSM
+s1 (L1 , a1 = 1; β) = β · [1, V 11 , V 11 V 13 ] , β = [0, 3, −2].
+s1 (L1 , a1 = 0; β) = β · [1, V 11 , V 12 ] , β = [0, −1, 3].
+s2 (L2 , a2 = (1, 1); β) = β · [1, V112 , V12 , V22 , V12 V2 ] , β = [0, −3, 3, 1, −2].
+s2 (L2 , a2 = (1, 0); β) = β · [1, V112 , V12 , V22 ] , β = [0, 5, −2, 1].
+s2 (L2 , a2 = (0, 1); β) = β · [1, V11 , V12 , V2 ] , β = [0, −1, 3, 1].
+s2 (L2 , a2 = (0, 0); β) = β · [1, V11 , V11 V2 ] , β = [0, 2, 1].
+logit{P (A1 = 1 | L1 ; α)} = α · [1, I 11 , I 12 , I 13 , I 11 I 12 ] , α = [−1, 1, 1, −1, −1].
+logit{P (A2 = 1 | L2 , a1 = 1; α)} = α · [1, I11 , I12 , I13 , I11 I12 , I2 , I2 I13 ] ,
+α = [0,1, −1,0,0, −0.4, −0.3].
+logit{P (A2 = 1 | L2 , a1 = 0; α)} = α · [1, I11 , I12 , I13 , I2 ] , α = [0, 2, 1, −1, −1].
+s2 (L2 , a2 = (1, 1); β) = β · [1, V112 ] .
+s2 (L2 , a2 = (1, 0); β) = β · [1, V112 ] .
+s2 (L2 , a2 = (0, 1); β) = β · [1, V11 , V12 , V2 ] .
+s2 (L2 , a2 = (0, 0); β) = β · [1, V11 ] .
+logit{P (A1 = 1 | L1 ; α)} =α · [1, I 11 , I 12 ] .
+logit{P (A2 = 1 | L2 , a1 = 1; α)} = α · [1, I11 , I12 , I13 , I11 I12 ] .
+logit{P (A2 = 1 | L2 , a1 = 0; α)} = α · [1, I11 , I2 , I13 I2 ] .
+s(V; β) = β · [1, V 21 ,
+logit{π(V; α)} = α ·
+s(V; β) = β · [1, V 1 ,
+logit{π(V; α)} = α ·
+
+For simple notation, we let Il = I(Vl > 0) and logit(r) ≡ log{r/(1 − r)}. ā2 denotes (a1 , a2 ). α and β are
+parameter vectors of appropriate dimensions.
+
+Biometrics, December 2005
+
+966
+
+Table 2
+Simulation result: estimating µ = E (Y ) (upper) and
+treatment eﬀect (lower)
+Estimator
+
+Bias1
+
+Variance
+
+Bias2
+
+IQR
+
+µ̂HT
+µ̂HT.fal
+µ̂OR
+µ̂OR.fal
+µ̂dr
+µ̂dr.ofal
+µ̂dr.pfal
+µ̂dr.o⊕pfal
+
+−0.01
+−0.31
+0.00
+−0.36
+0.00
+−0.02
+0.00
+−0.32
+
+0.11
+0.12
+0.04
+0.12
+0.04
+0.11
+0.04
+0.12
+
+0.00
+−0.29
+−0.00
+−0.35
+−0.00
+0.00
+−0.00
+−0.30
+
+0.43
+0.44
+0.28
+0.44
+0.28
+0.45
+0.28
+0.45
+
+µ̂HT
+µ̂HT.fal
+µ̂OR
+µ̂OR.fal
+µ̂dr
+µ̂dr.ofal
+µ̂dr.pfal
+µ̂dr.o⊕pfal
+
+−0.01
+0.86
+0.00
+−1.56
+0.00
+−0.09
+0.00
+0.92
+
+0.21
+0.15
+0.07
+0.07
+0.09
+0.28
+0.08
+0.15
+
+−0.00
+0.87
+0.01
+−1.56
+0.01
+−0.06
+0.01
+0.93
+
+0.59
+0.52
+0.35
+0.34
+0.41
+0.63
+0.39
+0.54
+
+True parameter µ is 1 for mean parameter (upper) and 2 for treatment
+eﬀect (lower). Bias1 , Bias2 , and Variance denote bias in mean, bias
+in median, and variance of the estimates from 1000 simulations,
+respectively. IQR denotes the interquartile range, that is, upper
+quartile (75%)–lower quartile (25%). Each simulation is based on the
+sample size of 500.
+Description of estimators
+• µ̂HT is the Horvitz–Thompson estimator with the correct
+model for π.
+• µ̂HT.fal is the Horvitz–Thompson estimator with the false model
+for π.
+• µ̂OR is the OLS estimator using the correct model for s.
+• µ̂OR.fal is the OLS estimator using the false model for s.
+• µ̂dr is µ̂dr using the correct models for π and s.
+• µ̂dr.ofal is µ̂dr using the correct model for π and the false model
+for s.
+• µ̂dr.pfal is µ̂dr using the false model for π and the correct model
+for s.
+• µ̂dr.o⊕pfal is µ̂dr using the false models for π and s.
+Note that π denotes missingness or treatment allocation probability,
+and s represents the OR model for complete data.
+
+mechanism and OR. We implemented the estimators
+µ̂HT , µ̂OR , and µ̂dr of Section 2.1 and results are reported in
+the upper half of Table 2.
+Turn next to the treatment-eﬀect model based on data
+O = {∆, Y , V = (V 1 , V 2 , V 3 )}. The parameter of interest is the average treatment eﬀect. Vk (k = 1, 2, 3) were
+generated as above and Y from N (s(∆, V; β), 1) where s(∆,
+V; β) is given in the same table. The parameter values used
+in Table 1B imply an average treatment eﬀect µ of 2. The
+treatment indicator ∆ was generated from the logistic model
+logit {π(V; α)} provided in Table 1B. To investigate the impact of model misspeciﬁcations, we also generated the data
+from false models for the treatment mechanism as well as
+the OR model. In our false model for the treatment mechanism, we regressed the treatment indicator on two covariates:
+the ﬁrst was one of the four covariates that actually determined treatment and the second was a noise variable indepen-
+
+dent of these four. Results are presented in the lower half of
+Table 2.
+Reading from Table 2, we observe that in both the missing data and treatment-eﬀect models, as expected, µ̂HT was
+virtually unbiased if we adopted a correct model for π(V)
+but was badly biased otherwise; similarly µ̂OR was unbiased
+under a correct OR model but badly biased otherwise. In
+contrast, µ̂dr was virtually unbiased when either (or both)
+the PS or OR model was correct, although, as anticipated,
+µ̂dr was considerably biased when both were incorrect. Consider next the variance and interquartile range of the estimators. Because µ̂OR is the MLE of µ in both the missing data
+and treatment-eﬀect models it should have minimum variance among all consistent estimators. What is remarkable in
+Table 2 is that whenever the OR model was correctly speciﬁed (so that µ̂OR was consistent), µ̂dr was nearly as eﬃcient
+as the MLE µ̂OR . Thus a very small price is paid in terms of
+eﬃciency loss by using µ̂dr in place of µ̂OR , and yet, when the
+PS model was correct, huge beneﬁts were obtained in terms
+of robustness against misspeciﬁcation of the OR model.
+It follows from the theory of semiparametric eﬃciency
+bounds that, when the PS model is correct, µ̂dr based on
+a correct model for the OR is asymptotically more eﬃcient
+than µ̂dr based on an incorrect model for the OR (Scharfstein
+et al., 1999). These theoretical results are born out here; indeed we see that µ̂dr based on an incorrect model for the OR
+may have variance two to four times that of µ̂dr based on a
+correct model for the OR.
+3. Longitudinal Models with Monotone Missing Data
+Next we turn to longitudinal missing data models. We let
+L = L̄K+1 = (L1 , . . . , LK+1 ) represent the full data obtained
+at times m = 1, . . . , K + 1. Let C be the censoring time
+such that if C = m, then Lobs = L̄m ≡ (L1 , . . . , Lm ) is observed and Lm+1 ≡ (Lm+1 , . . . , LK+1 ) is missing. That is, we
+observe n i.i.d. copies of O = (C, L̄C ). The sample space for
+C is {1, . . . , K + 1}, implying that L1 is an always observed
+baseline variable. We assume that the data are MAR, which
+implies that λ(m | L) = λ(m | L̄m ) for m = 1, . . . , K where
+λ(m | ·) = P (C = m | C ≥ m; · ) is the discrete hazard of censoring, that is, censoring at time m depends on the full data
+L = L̄K+1 only through the observed past L̄m . In addition, we
+assume that λ(m | L̄m ) < 1 − σ with probability one for all m
+and positive σ.
+Suppose the parameter of interest µ is the mean of Y =
+LK+1 , which we will assume to be univariate for simplicity.
+Again we can represent µ as a function of the distribution of
+the observed data in two diﬀerent ways. The ﬁrst representation, analogous to the HT inverse probability-weighted (IPW)
+representation
+of Section 2.1, is E(Y ) = E(∆Y /π̄K+1 ) where
+m
+π̄m = j=1 {1 − λ(j | L̄j )} is the probability of not being censored at any time less than or equal to m − 1, and now ∆ =
+1 if a subject stays uncensored through the end of the study,
+that is, ∆ = I(C = K + 1).
+The second representation is most easily deﬁned recursively. Let H K+1 = Y , then HK = E(HK+1 | C ≥ K + 1,
+L̄K ), . . . , Hm−1 = E(Hm | C ≥ m, L̄m−1 ), . . . , H1 = E(H2 | C ≥
+2, L̄1 ). Finally µ = E(Y ) = E(H 1 ) where H1 is a function of
+the always observed L1 . It follows that if we can specify a
+correct model for λ(j | L̄j ) then we can obtain a consistent
+
+Doubly Robust Estimation
+ˆ K+1 , where
+estimator of µ as the sample average of ∆Y /π̄
+ˆ K+1 is the estimated value of π̄K+1 under the parametric
+π̄
+model. Alternatively, we could correctly specify parametric
+regression models for E(Hm | C ≥ m, L̄m−1 ) for each m, and
+then estimate µ by the sample average of the estimated H1 ’s
+obtained from the recursive regression models for the Hm .
+However, the ﬁrst approach will be inconsistent if the models
+for λ(j | L̄j ) are misspeciﬁed, whereas the second approach
+will be inconsistent if the models for E(Hm | C ≥ m, L̄m−1 )
+are misspeciﬁed. Thus it would be useful to derive DR
+estimators that are CAN if either the PS models for the
+missingness mechanism or the sequential OR models are
+correctly speciﬁed.
+Let us introduce some theoretical background. Our goal in
+this section is to make inference about the ﬁnite-dimensional,
+say p, parameter µ in a semiparametric or nonparametric
+model with likelihood f (L; µ, θ) where µ ∈ Rp (i.e., Euclidean space) and θ ∈ Θ is an inﬁnite-dimensional nuisance parameter. We assume that, in the absence of missing
+data, we would estimate µ by
+solving a p-dimensional unbiased estimating function 0 = i d(Li ; µ) for some d ∈ D =
+{d(L; µ); Eµ,θ {d(L; µ)} = 0 for all θ}. For instance, when µ is
+the marginal mean of LK+1 as above, then d(L; µ) = (LK+1 −
+µ) and the model f (L; µ, θ) for L is nonparametric in the
+sense that we allow the full data L to have an arbitrary unknown distribution restricted only by LK+1 having a ﬁnite expectation. If we were interested in the regression coeﬃcients
+
+E(LK+1 L1 ) cov(L1 )−1 of the population least squares regression of LK+1 on L1 , then d(L; µ) could be taken to be L 1
+(LK+1 − L1 µ) (i.e., the OLS normal equations). Henceforth,
+to simplify notation, we will go back to one-dimensional µ and
+LK+1 .
+In the presence of missing data, even when we assume
+MAR, we will in general not be able to estimate µ without
+making further modeling assumptions due to the curse of dimensionality. Formally, we are assuming that when there are
+missing data, the curse of dimensionality appropriate information bound for µ is zero (Robins and Ritov, 1997). One
+approach to reducing the dimension is to assume a parametric submodel f (L; µ, β) for the distribution of the full data,
+where β ∈ B ⊂ Θ with a ﬁnite-dimensional space B and estimate the parameters by maximum likelihood, using the EM
+algorithm. An alternative approach is to specify a parametric
+model for λ(m | L̄m ; α) for the censoring hazard λ(m | L̄m )
+and estimate µ with the inverse probability of censoring estimators of Robins, Rotnitzky, and Zhao (1995). The ﬁrst approach will be inconsistent if the model f (L; µ, β) is incorrect
+and the second will be inconsistent if the model λ(m | L̄m ; α)
+is incorrect.
+It is possible to construct an estimator of µ based on the full
+data estimating function d(L; µ), that is, CAN in the semiparametric union model that assumes that (i) the data are
+MAR, (ii) the semi- or nonparametric model f (L; µ, θ) is
+true, and (iii) at least one (but not necessarily both) of a
+lower dimensional model f (L; µ, β) for β ∈ B or a parametric model λ(m | L̄m ; α) is correct (Scharfstein et al., 1999;
+Robins, 2000). Any such estimator is referred to as DR. Note
+(ii) will always hold if f (L; µ, θ) is a nonparametric model.
+But, as we now show we can do even better. Speciﬁcally,
+we do not need to specify a parametric model f (L; µ, β) for
+
+967
+
+the entire joint distribution of L. Rather, to be DR, it suﬃces
+to specify parametric models Ψ{sm (L̄m ; β m )} for the regression functions Hm (µ) ≡ E{d(L; µ) | L̄m } for m = K, . . . , 2 and
+then to estimate the regression parameters β m from the observed data. This latter task we will carry out recursively for
+m = K, . . . , 2, based on the observations that (i) by deﬁnition,
+E{Hm (µ) | L̄m−1 } = Hm−1 (µ), (ii) under the MAR assumption, E{Hm (µ) | L̄m−1 } = E{Hm (µ) | L̄m−1 , C ≥ m}, and (iii)
+Hm (µ) is a function of L̄m , which is observed whenever C ≥m.
+Robins (2000) proved that the estimator µ̂dr constructed in
+the following algorithm is CAN for µ under the union model
+that diﬀers from the above union model by replacing “a lower
+dimensional model f (L; µ, β) for β ∈ B” with “a parametric
+model Ψ{sm (L̄m ; β m )} for E{Hm+1 (µ) | L̄m }(m = K, . . . , 2).”
+In what follows we describe how to compute the DR estimator
+µ̂dr .
+1. Compute the MLE α̂ of α from the observed data.
+2. Select a particular d from D. (The choice can only aﬀect
+eﬃciency.)
+3. Set ĤK+1 (µ) = d(L; µ).
+4. Recursively, for m = K + 1, . . . , 2,
+a: For subjects with C ≥ m, specify and ﬁt by IRLS a
+parametric regression model em−1 (L̄m−1 ; β m−1 , φm−1 ) =
+−1
+Ψ{sm−1 (L̄m−1 ; β m−1 ) + φm−1 π̄m−1
+(α̂)} for the conditional expectation E{Ĥm (µ) | C ≥ m, L̄m−1 }, where
+sm−1 (L̄m−1 ; β m−1 ) is a known function with unknown parameter β m−1 , Ψ−1 is the 
+canonical link function of a
+m
+given GLM, and π̄m (α̂) = j=1 {1 − λ(j | L̄j ; α̂)}. Note
+that β m−1 ≡ β m−1 (µ) and φm−1 ≡ φm−1 (µ) depend on
+µ.
+b: For subjects with C ≥ m − 1, let Ĥm−1 (µ) =
+−1
+Ψ{sm−1 (L̄m−1 ; β̂ m−1 ) + φ̂m−1 π̄m−1
+(α̂)} be the predicted value from IRLS ﬁt of the model where φ̂m−1
+and β̂ m−1 are the (joint) IRLS estimators. This
+means that (β̂ m−1 , φ̂m−1 ) satisﬁes 0 = Ẽ[I(C ≥ m)
+−1
+[Ĥm (µ) − Ψ{sm−1 (L̄m−1 ; β̂ m−1 ) + φ̂m−1 π̄m−1
+(α̂)}]
+
+−1
+(
+L̄
+;
+β̂
+)/∂β
+,
+π̄
+(
+α̂)}]
+where
+Ẽ(V ) =
+{∂sm−1
+m−1
+m−1
+m−1
+m−1
+n
+n−1 i=1 Vi .
+
+5. Finally µ̂dr solves 0 = i Ĥ1i (µ).
+Remark. Depending on their functional forms, it is possible
+that the parametric models Ψ{sm (L̄m ; β m ), m = K, . . . , 2}
+are mutually incompatible in the sense that no joint distribution satisﬁes all K − 1 simultaneously, so, by deﬁnition,
+they must be misspeciﬁed. Even if such is the case, we do not
+regard this as a practical drawback, because each of the K
+− 1 models Ψ{sm (L̄m ; β m )} may still have small (approximation) bias for its estimand Hm (µ). After all, even for parametric models that are mutually compatible, the models are
+practically (although not logically) certain to be misspeciﬁed.
+Thus, the most that can be hoped for is an estimator µ̂dr of
+µ with small bias if either the models for censoring hazards
+λ(m | L̄m ) or the models for the full data regression functions
+Hm (µ) have small (approximation) bias.
+Finally, even if the model Ψ{sm (L̄m ; β m )} for Hm (µ)
+is misspeciﬁed, µ̂dr remains DR if the larger model
+−1
+em (L̄m ; β m , φm ) is correct (with π̄m−1
+(α̂) replaced by
+its probability limit). When both the parametric models
+em (L̄m ; β m , φm ) and λ(m | L̄m ; α) are correct and the model
+
+Biometrics, December 2005
+
+968
+
+Table 3
+Simulation result: estimating µ = E (Y ) in the longitudinal
+missing data model
+Estimator
+
+Bias1
+
+Variance
+
+Bias2
+
+IQR
+
+µ̂HT
+µ̂HT.fal
+µ̂OR
+µ̂OR.fal
+µ̂dr
+µ̂dr.ofal
+µ̂dr.pfal
+µ̂dr.o⊕pfal
+
+0.02
+−3.31
+0.02
+−4.82
+0.02
+−0.20
+0.01
+−2.24
+
+10.31
+5.10
+1.73
+3.34
+1.74
+9.79
+1.74
+7.82
+
+−0.34
+−3.48
+−0.04
+−4.99
+−0.02
+−0.56
+−0.03
+−2.51
+
+4.07
+2.98
+1.77
+2.41
+1.76
+3.94
+1.74
+3.56
+
+The true mean µ = E(Y ) is 11. Bias1 , Bias2 , and Variance denote
+bias in mean, bias in median, and variance of the estimates from 1000
+simulations, respectively. IQR denotes the interquartile range, that is,
+upper quartile (75%)–lower quartile (25%). Each simulation is based
+on the sample size of 500. See Table 2 footnote.
+
+f (L; µ, θ) does not restrict the distribution of L (i.e., it is nonparametric), Robins (2000) shows our estimator µ̂dr will attain the semiparametric variance bound for the union model.
+3.1 A Simulation Study
+
+Let L = (L1 , L2 , L3 ) represent the full data with L1 = (V 11 ,
+V 12 , V 13 ) and L3 = Y . So the censoring variable C takes a
+value in {1, 2, 3}. V 1i (i = 1, 2, 3) were generated independently from a standard normal, L2 from N (s1 (L1 ; β), 1), and
+Y from N (s2 (L̄2 ; β), 1) as presented in Table 1C. We are interested in estimating µ = E(Y ) = 11. Ignorable MAR data were
+created according to the missingness probabilities of λ(1 | L1 ;
+α) and λ(2 | L̄2 ; α). Under this data conﬁguration, L2 and L3
+are missing for approximately 33% and 70% of subjects, respectively. Data were additionally generated from false models
+to explore how each estimator behaves under misspeciﬁcation.
+µ̂dr was constructed based on the sequential regression analysis described above; ﬁrst we regressed L3 = Y on L̄2 = (L1 , L2 )
+and the estimated inverse PS π2−1 (α̂) jointly among those who
+had C = 3, and computed the corresponding predicted values for all subjects with C ≥ 2. Next, these predicted values
+were regressed on L1 and π1−1 (α̂). Hence, the new predicted
+values were obtained as a function of L1 only, which is never
+missing. The average of this quantity is the ﬁnal estimate. As
+evident in Table 3, the performance of the estimators under
+comparison is in agreement with the results predicted by the
+theory of double robustness.
+4. MSM for Causal Inference
+In this section, let the temporally ordered observed data be
+O = (L1 , A1 , L2 , A2 , . . . , LK , AK , LK+1 ) where Ak is a treatment given at time k and Lk are other variables measured
+just prior to treatment. For easier presentation, we assume
+that each of Am , LK+1 , and µ are all one-dimensional. Associated with each treatment history ā = (a1 , . . . , aK ), there
+is a counterfactual random variable Lā = L̄ā,K+1 recording a
+subject’s response history if treatment regime ā was followed.
+We link the counterfactual data to the observed data through
+the consistency assumption L̄ā,m = L̄m if Ām−1 = ām−1 which
+states that the observed and counterfactual response through
+
+m will be equal if the observed and counterfactual treatments
+agree through m − 1. That is to say, the future cannot determine the past. We impose the assumption of sequential
+ignorability (i.e., no unmeasured confounders) that for all ā
+and m
+Lā
+
+
+
+Am | L̄m , Ām−1 = ām−1 ,
+
+(1)
+
+which implies that suﬃcient covariates have been recorded
+in the Lm so that, as in a sequential randomized trial, the
+treatment Am is independent of the counterfactuals given the
+observed past. Further we assume that, for all Am in the support of Am ,
+if f (Ām−1 , L̄m ) > 0
+
+then
+
+f (am | Ām−1 , L̄m ) > 0, (2)
+
+which says that there is a positive probability that, in the
+observed study, any regime ā may be followed by a given
+subject.
+We shall consider inference concerning the parameter µ of the marginal structural mean model (MSMM)
+E(Lā,K+1 ) = g(ā; µ) with g(·; ·) a known function. The parameter µ quantiﬁes the eﬀect of the regime ā on the mean of
+LK+1 . The MSMM is a semiparametric model characterized
+by the restriction that E{d(Lā , ā; µ)} = 0 for d ∈ D, with
+D = {d(Lā , ā; µ) = d∗ (ā){Lā,K+1 − g(ā; µ)}; d∗ (·) arbitrary}.
+If the assumption that E{d(Lā , ā; µ)} = 0 does not restrict
+the distribution of the Lā , we say our MSMM is saturated
+(i.e., the observed data model is nonparametric). Under
+sequential ignorability, an MSMM induces a semiparametric
+model for the observed data with likelihood f (O; µ, θ, ρ) =
+K+1
+K
+f (Lm | L̄m−1 , Ām−1 ; µ, θ) × m=1 f (Am | Ām−1 , L̄m ; ρ),
+m=1
+where f (Lm | L̄m−1 , Ām−1 ; µ, θ) and f (Am | Ām−1 , L̄m ; ρ)
+are densities with respect to some dominating measures
+ν l and ν a , respectively, where (µ, θ) and ρ are variation
+independent, and θ and ρ are (often inﬁnite-dimensional)
+nuisance parameters. Robins (2000) notes that, by sequential
+ignorability, the observed data model is characterized by the
+restriction for all functions d ∈ D
+
+
+
+
+
+E{d L̄K+1 , ĀK ; µ /π̄K } = 0,
+
+m
+
+(3)
+
+where now π̄m = j=1 f (Aj | L̄j , Āj−1 ).
+In order to reduce dimensionality, we could specify parametric submodels f (lā,m | l̄ā,m−1 ; µ, β) where β and α are
+ﬁnite-dimensional parameters. Robins (2000) shows that, by
+sequential ignorability, f (lā,m | l̄ā,m−1 ) = f (lm | l̄m−1 , ām−1 ) so
+in terms of the observables we are modeling f (lm | l̄m−1 , ām−1 )
+by the model f (lm | l̄m−1 , ām−1 ; µ, β). We could then estimate
+(µ, β) by maximum likelihood since the MLE does not depend
+on the treatment mechanism f (am | l̄m , ām−1 ). An alternative
+approach is to specify a parametric model f (am | l̄m , ām−1 ; α)
+for f (am | l̄m , ām−1 ) and estimate µ with the inverse probability of treatment estimators of Hernán, Brumback, and
+Robins (2001), as these estimators do not require models for
+f (lm | l̄m−1 , ām−1 ) (Robins et al., 1995). The ﬁrst approach
+will be inconsistent if the model f (lm | l̄m−1 , ām−1 ; µ, β) is
+incorrect and the second will be inconsistent if the model
+f (am | l̄m , ām−1 ; α) is incorrect.
+Robins (2000) constructs a CAN estimator of µ in the semiparametric union model that assumes (1), (2), and the MSMM
+model are true (so (3) holds), and at least one of the two
+
+Doubly Robust Estimation
+ﬁnite-dimensional submodels indexed by β and α is correct
+as well.
+Again we can do better. Speciﬁcally, we need not parametrically model all of the joint law of Lā through the models
+f (lā,m | l̄ā,m−1 ). Rather we need only specify parametric models for the counterfactual regression functions m = K, . . . , 2,
+1:
+hm (l̄m , ām ; µ) ≡
+
+···
+
+E{d(Lā , ā; µ) | L̄a,m
+= l̄m }
+¯
+
+K
+
+dν(aj ),
+j=m+1
+
+where ν is counting measure if Aj is discrete and Lebesgue
+measure if Aj is continuous, and β ≡ β (µ). Note the integral over the measure of the aj (j >m) is required to
+make hm (l̄m , ām ; µ) a function ā only through ām . Robins
+(2000) shows that if we let tK+1 (l̄K+1 , āK ; µ) = d(l̄K+1 , āK ; µ)
+and tm+1 (l̄m+1 , ām ; µ) = hm+1 (l̄m+1 , ām+1 ; µ)dν(am+1 ) < ∞
+for m = K, . . . , 1, then, under sequential ignorability,
+Hm (µ) = hm (L̄m , Ām ; µ) equals E{Tm+1 (µ) | L̄m , Ām } where
+Tm+1 (µ) = tm+1 (L̄m+1 , Ām ; µ). Thus we can ﬁt a model for the
+counterfactual regression hm (l̄m , ām ; µ) by ﬁtting a model for
+the observed data regression E{Tm+1 (µ) | L̄m , Ām }.
+Robins (2000) proves that the estimator constructed in
+the following algorithm is CAN for µ under the union
+model that diﬀers from the above union model by replacing the model f (lā,m | l̄ā,m−1 ; µ) with parametric models for
+hm (L̄m , Ām ; µ) = E{Tm+1 (µ) | L̄m , Ām }. When all our parametric submodels are correct both for treatment and for the
+hm (L̄m , Ām ; µ) and our MSMM is saturated, the DR estimator µ̂dr will attain the semiparametric variance bound for the
+union model.
+1. Compute the MLE α̂ of α from the observed data.
+2. Select a particular d from D. (The choice can only aﬀect
+eﬃciency.)
+3. Set T̂K+1 (µ) = d(L̄K+1 , ĀK ; µ).
+4. Recursively, for m = K + 1, . . . , 2,
+a: Specify and ﬁt by IRLS a parametric regression model hm−1 (L̄m−1 , Ām−1 ; β m−1 , φm−1 ) = Ψ{sm−1
+−1
+(L̄m−1 , Ām−1 ; β m−1 ) + φm−1 π̄m−1
+(α̂)} for the conditional
+expectation E{T̂m (µ) | Ām−1 , L̄m−1 }, where sm−1 (L̄m−1 ,
+Ām−1 ; β m−1 ) is a known function with the unknown parameter β m−1 , Ψ is the
+mcanonical link function of a given
+GLM, and π̄m (α̂) = j=1 f (Aj | L̄j , Āj−1 ; α̂). Implicitly,
+β m−1 ≡ β m−1 (µ) and φm−1 ≡ φm−1 (µ) depend on µ.
+b:
+Let
+Ĥm−1 (µ) ≡ ĥm−1 (L̄m−1 , Ām−1 ; µ) = Ψ{sm−1
+−1
+(L̄m−1 , Ām−1 ; β̂ m−1 ) + φ̂m−1 π̄m−1
+(α̂)} be the predicted
+value from IRLS ﬁt of the model. This implies that
+(β̂ m−1 , φ̂m−1 ) is a solution of 0 = Ẽ[[T̂m (µ) − Ψ{sm−1
+−1
+(L̄m−1 , Ām−1 ; β̂ m−1 ) + φ̂m−1 π̄m−1
+(α̂)}]{∂s(L̄m−1 ; β̂ m−1 )/
+n
+
+−1
+∂β m−1 , π̄m−1 (α̂)}] where Ẽ(V ) = n−1 i=1 Vi .
+c: Here, for m = K, . . . , 1, we have recursively deﬁned
+T̂m (µ) = ĥm (L̄m , Ām ; µ)dνa (Am ).
+
+5. Finally µ̂dr solves 0 = i T̂1i (µ).
+In the Appendix, we will show that this sequential regression
+estimator µ̂dr is indeed an AIPW estimator.
+
+969
+
+4.1 A Simulation Study
+As a last simulation, we show how to implement the above
+algorithm and illustrate the ﬁnite sample eﬃciency and robustness of µ̂dr . The following longitudinal data O = {L1 =
+(V 11 , V 12 , V 13 ), A1 , L2 , A2 , L3 = Y } were generated as follows. We supposed that there exists a counterfactual outcome Yā associated with treatment history ā = (a1 , a2 ). Let
+V 1i (i = 1, 2, 3) be distributed as independent N(0, 1) and
+treatment A1 was assigned according to the probability mass
+functions P (A1 = 1 | L1 ; α). Then generate La1 ,2 | L1 from N (s1
+(L1 , A1 = a1 ; β), 1). Next A2 was assigned according to the
+probability mass function P (A2 = 1 | A1 = a1 , L̄2 ; α). Finally,
+the counterfactual outcome Yā | (Lā,2 , L1 ) was distributed as
+N (s2 (L̄2 , Ā2 = ā2 ; β), 1) (see Table 1D).
+Under the underlying correct models, Robins’s (1986) Gcomputation algorithm gives E(Y 1,1 ) = 11, E(Y 1,0 ) = 19,
+E(Y 0,1 ) = 0, and E(Y 0,0 ) = −1 where, for example, Y 1,1 is
+Yā with ā = (1, 1). Thus, equivalently, E(Yā ) = E(Ya1 ,a2 ) =
+−1 + 20a1 + a2 − 9a1 a2 so all main eﬀects and interactions
+of the MSM are nonzero. To construct a biologically interesting nonsaturated model, we considered a transformation Yā∗ = Yā + 9a1 a2 + 19a2 of Yā . Then Yā∗ satisﬁes E(Yā∗ ) =
+−1 + 20 cum(ā2 ), where cum(ā2 ) = a1 + a2 . Such a model is
+typical in occupational health studies where it is often hypothesized that the exposure eﬀect only depends on cumulative exposure. Finally we took the observed outcome Y = L3
+to be YĀ∗ , that is, Yā∗ with ā evaluated at the observed treatment Ā = (A1 , A2 ). It follows that µ ≡ (µ0 , µ1 ) = (−1, 20) is
+the true parameter to be estimated, where µ0 is the intercept
+and µ1 is the slope.
+A naive OLS estimator, µ̂assoc was obtained by regressing Y∗ on cum(Ā2 ). The OLS estimator will converge to
+a value that diﬀers from the causal parameter µ of the
+MSM in the presence of confounding by (L1 , L2 ). The
+simple HT-like IPW estimator, µ̂HT , of the
+ MSM parameter is deﬁned as the solution of 0 = i d(L̄3i , Ā2i ; µ)/
+π̄2i (α̂), where d(L̄3 , Ā2 ; µ) = {Y ∗ − µ0 − µ1 cum(Ā2 )}f (A1 )
+2
+f (A2 | A1 ){1, cum(Ā2 )} and π̄2 (α) = j=1 f (Aj | L̄j , Āj−1 ; α),
+and α̂ is estimated by maximum likelihood. Both correct
+and incorrect models f (Aj | L̄j , Āj−1 ; α) were tried. This
+estimator is consistent under the correct PS (i.e., treatment)
+eﬀect model but neither robust to its misspeciﬁcation nor
+eﬃcient. The estimator µ̂OR simply replaced the unknown
+conditional probabilities in the G-computation formula with
+their estimates based on the ﬁt of parametric models for
+Y = YĀ∗ given (A2 , L2 , A1 , L1 ), L2 given (A1 , L1 ), and L1
+using the OR models in Table 1D. Both correct and incorrect
+models were tried. The estimator is eﬃcient under correct
+speciﬁcation but inconsistent otherwise. Finally, the DR
+estimator was computed using the above algorithm, with
+the required regressions based on both correct and incorrect
+models.
+Simulation results are summarized in Table 4. µ̂assoc , which
+failed to account for confounding, was severely biased. Again
+µ̂OR was consistent and had the smallest variance under the
+correct regression models but was substantially biased under their misspeciﬁcation. Similarly, µ̂HT was considerably
+biased with the incorrect model for the probability of treatment. Our µ̂dr performed best, being unbiased if either the
+
+Biometrics, December 2005
+
+970
+
+Table 4
+Simulation result: estimating regression parameters in the
+MSM: intercept (upper) and slope (lower)
+Estimator
+
+Bias1
+
+Variance
+
+Bias2
+
+IQR
+
+µ̂assoc
+µ̂HT
+µ̂HT.fal
+µ̂OR
+µ̂OR.fal
+µ̂dr
+µ̂dr.ofal
+µ̂dr.pfal
+µ̂dr.o⊕pfal
+
+−1.24
+−0.02
+−0.31
+0.00
+−1.66
+0.00
+0.10
+0.00
+−1.04
+
+0.92
+0.73
+1.11
+0.05
+0.89
+0.06
+1.33
+0.05
+1.01
+
+−1.22
+−0.00
+−1.26
+0.00
+−1.60
+0.01
+0.12
+0.00
+−0.99
+
+1.24
+1.09
+1.30
+0.30
+1.24
+0.32
+1.40
+0.30
+1.28
+
+µ̂assoc
+µ̂HT
+µ̂HT.fal
+µ̂OR
+µ̂OR.fal
+µ̂dr
+µ̂dr.ofal
+µ̂dr.pfal
+µ̂dr.o⊕pfal
+
+1.97
+0.03
+1.89
+0.01
+1.35
+0.01
+−0.04
+0.00
+1.41
+
+2.52
+1.81
+3.31
+0.49
+1.61
+0.50
+1.80
+0.49
+1.74
+
+1.85
+−0.10
+1.74
+−0.04
+1.24
+−0.03
+−0.13
+−0.04
+1.29
+
+2.09
+1.66
+2.18
+0.90
+1.70
+0.85
+1.69
+0.90
+1.73
+
+The true intercept and slope parameters are −1 and 20, respectively, in
+a simple linear regression model. µ̂assoc is the OLS estimator from the
+simple linear regression model ignoring relevant confounders. Bias1 ,
+Bias2 , and Variance denote bias in mean, bias in median, and variance
+for the estimates from 1000 simulations, respectively. IQR denotes the
+interquartile range, that is, upper quartile (75%)–lower quartile (25%).
+Each simulation is based on the sample size of 500. See Table 2 footnote.
+
+counterfactual OR model or the PS model was correct and
+being nearly as eﬃcient as µ̂OR when both were correct.
+5. An Example: The ENRICHD Study
+We applied the method for time-independent treatment effects presented in Section 2.2 to the recently conducted
+ENRICHD (Enhancing Recovery in Coronary Heart Disease)
+trial (2003). The trial protocol randomized postmyocardial infarction patients suﬀering from depression or social isolation
+to a cognitive behavior therapy program or to usual care. Primary endpoints were time to reinfarction or death. In both
+arms an antidepressant(s) was allowed when prescribed by a
+physician. Thus antidepressant therapy was a nonrandomized
+concomitant treatment. Here, we analyze the eﬀect of postrandomization antidepressant drug therapy on a secondary
+endpoint, the Beck Depression Inventory (BDI) measured at 6
+months from randomization exclusively for statistical illustration. In the analysis we coded postrandomization antidepressant drug therapy as 1 if an antidepressant were prescribed
+any time in the ﬁrst 6 months and 0 otherwise. We restricted
+the analysis to those who were depressed at baseline with nonmissing BDI scores. We adjusted only for baseline variables.
+We report a naive crude estimate of the treatment eﬀect
+equal to diﬀerence in mean BDI among antidepressant users
+(N = 206) and nonusers (N = 1126). We also report the HT,
+OR, and DR estimators of Section 2.2.
+To select our OR model, we used the following algorithm.
+We considered as the potential regressors in a linear regression model, main eﬀects of antidepressant use, treatment arm,
+
+baseline BDI, and 23 remaining baseline characteristics (as
+shown in Table 1 of ENRICHD, 2003) and their two-way interactions with BDI score at baseline, antidepressant use, and
+treatment arm. We used backward elimination to simplify our
+multivariate model. At each step, the factor with the largest pvalue was dropped one at a time until all factors are signiﬁcant
+with a cutpoint of p-value = 0.06. In this process, the main
+eﬀect terms corresponding to each signiﬁcant interaction were
+retained. Our ﬁnal OR model included the following factors:
+main eﬀect terms for antidepressant use, treatment arm, baseline BDI, age, education level, perceived stress score (PSS),
+perceived social support scale (PSSS), comorbidity index, vasodilator use, diabetes, cerebrovascular disease, and interaction terms for antidepressant by education, antidepressant by
+BDI score, BDI by comorbidity, BDI by age, BDI by diabetes,
+treatment by age, and treatment by PSS.
+A completely analogous algorithm was used to build our
+ﬁnal PS model but with logistic replacing linear regression.
+The ﬁnal PS model included BDI at randomization, treatment arm, age, race, comorbidity score, creatinine, and an
+interaction of BDI and creatinine.
+Remark. We chose this particular model selection methodology not because we believe it to be optimal, but rather because we believe it approximates current practice. Indeed the
+issue of how to select an optimal PS model is diﬃcult. Specifically, one cannot simply choose a very large model that includes all main eﬀects and all possible interactions to many
+orders. This reﬂects the fact that the issue is not only bias
+but variance. Speciﬁcally, in order for the HT estimator to
+be CAN or for our DR estimator to be CAN when the OR
+model is misspeciﬁed, the estimated PS must converge to the
+true score at rate n1/4 or better. But the rate of convergence
+depends both on the degree of model misspeciﬁcation (approximation bias) and on the variance of the estimated PS.
+To control the variance, the number of parameters in the PS
+model can increase no faster than the square root of the sample size n. Indeed the question of how to optimally choose
+a PS model that optimally trades oﬀ bias with variance is
+beyond the scope of this article.
+Results are summarized in Table 5. Standard errors and
+the corresponding 95% conﬁdence intervals were obtained
+from 1000 nonparametric bootstrap samples. The estimates
+µ̂HT , µ̂OR , and µ̂dr varied between 2.40–2.76, a maximum
+Table 5
+The ENRICHD study data analysis: estimating the eﬀect of
+antidepressants on BDI
+Estimator
+
+Mean (SE)
+
+µ̂naive
+µ̂HT
+µ̂OR
+µ̂dr
+
+3.32
+2.40
+2.64
+2.76
+
+(0.73)
+(0.71)
+(0.61)
+(0.68)
+
+95% CI
+(1.91,
+(0.96,
+(1.47,
+(1.38,
+
+4.71)
+3.81)
+3.90)
+4.12)
+
+BDI stands for Beck Depression Inventory. SE and CI denote standard
+error and conﬁdence interval, respectively. Treatment eﬀect is deﬁned
+by the diﬀerence in mean BDI score between the treated group and
+the untreated group. µ̂naive is computed as a (unweighted) sample
+average as observed. SE and CI are estimated from 1000 bootstrap
+samples. See Table 2 footnote.
+
+Doubly Robust Estimation
+diﬀerence of approximately 1/2 a standard deviation. In
+contrast, the unadjusted crude “naive estimate” was 3.32. The
+values 1.08 and 1.5 of the test statistics |(µ̂dr − µ̂HT )/τ̂dr−HT |
+and |(µ̂dr − µ̂OR )/τ̂dr−OR | oﬀer no evidence against the null
+hypotheses that the PS and OR models were correctly speciﬁed. The most parsimonious summary of the evidence appears to be that OR and PS models are nearly correct and
+thus, in this data set, µ̂dr , µ̂HT , and µ̂OR may have nearly
+fully corrected for confounding by the measured baseline
+variables. In contrast the naive crude estimator is biased
+upward due to uncontrolled confounding by the measured
+variables.
+The 95% conﬁdence intervals for µ constructed from
+µ̂dr , µ̂HT , and µ̂OR based on the bootstrap standard errors
+exclude the null value of 0, suggesting an adverse eﬀect of
+antidepressants on BDI. However, randomized trials of antidepressant therapy in patients with coronary heart disease have
+previously shown a beneﬁcial eﬀect of these drugs on BDI.
+The most likely explanation for the discrepancy between our
+ﬁndings and these previous ﬁndings is time-dependent confounding by depressive symptoms and BDI scores. For example, subjects in the cognitive behavior therapy arm were given
+a repeat BDI test at 5 weeks postrandomization. If the repeat
+test showed less than 50% reduction in score from baseline,
+the subject was referred to a psychiatrist for consideration of
+antidepressant therapy. Thus BDI test at 5 weeks is a confounder as it predicts both antidepressant treatment and the
+study endpoint, BDI score at 6 months. At time of randomization, 4.8% of the usual care arm and 9.1% of the intervention arm were placed on antidepressants. By 6 months,
+the cumulative rates of antidepressant use had increased to
+13.4% in the usual care and to 20.5% in the intervention arm.
+Since in our analysis we only adjusted for baseline variables,
+we did not eliminate confounding caused by time-varying determinants (such as the BDI score at 5 weeks and clinical
+symptoms of depression) of postrandomization antidepressant
+therapy.
+6. Discussion
+In this article we have considered both the theoretical and, via
+simulation, the practical advantages of DR estimators in four
+diﬀerent epidemiologic settings. A DR estimator oﬀers the
+analyst two chances to make nearly correct inference about
+the parameter of interest, a crucial property not shared by
+standard IPW estimators or standard likelihood-based estimators. Although a DR estimator will be less eﬃcient than
+an MLE when the likelihood model is correct, nonetheless, in
+our opinion, the additional robustness of the DR estimator
+to misspeciﬁcation argues for its routine use. Furthermore, in
+our simulation studies, we have seen that the use of DR estimators may incur surprisingly little eﬃciency loss compared
+to MLEs when both are consistent, and yet provide major
+improvements in robustness when the likelihood model is incorrect.
+Although the DR estimators are attractive and exist in the
+four models we studied in this article, in many models they
+do not exist and even when they do, their construction may
+not be obvious. Robins and Rotnitzky (2001) characterized
+necessary and suﬃcient conditions for the existence of DR
+estimators in a number of models including various nonignor-
+
+971
+
+able missing data models and the semiparametric regression
+model.
+
+Acknowledgements
+The authors thank Professor Butch Tsiatis for reading an
+earlier draft of this article, and Professor Diane Catellier and
+the other ENRICHD Investigators for providing the permission to use the ENRICHD data. The comments from two reviewers greatly improved this article.
+
+References
+The ENRICHD Investigators. (2003). Eﬀects of treating depression and low perceived social support on clinical
+events after myocardial infarction: The Enhancing Recovery in Coronary Heart Disease Patients (ENRICHD)
+Randomized Trial. Journal of the American Medical Association 289, 3106–3116.
+Hernán, M., Brumback, B., and Robins, J. M. (2001).
+Marginal structural models to estimate the joint causal
+eﬀect of nonrandomized treatments. Journal of the American Statistical Association 96, 440–448.
+Horvitz, D. G. and Thompson, D. J. (1952). A generalization
+of sampling without replacement from a ﬁnite universe.
+Journal of the American Statistical Association 47, 663–
+685.
+Lipsitz, S. R., Ibrahim, J. G., and Zhao, L. P. (1999).
+Weighted estimating equation for missing covariate data
+with properties similar to maximum likelihood. Journal
+of the American Statistical Association 94, 1147–1160.
+Lunceford, J. K. and Davidian, M. (2004). Stratiﬁcation and
+weighting via the propensity score in estimation of causal
+treatment eﬀects: A comparative study. Statistics in
+Medicine 23, 2937–2960.
+Neugebauer, R. and Van der Laan, M. J. (2005). Why prefer
+double robust estimates? Journal of Statistical Planning
+and Inference 129, 405–426.
+Robins, J. M. (1986). A new approach to causal inference
+in mortality studies with sustained exposure periods—
+Application to control of the healthy worker survivor effect. Mathematical Modelling 7, 1393–1512.
+Robins, J. M. (1999). Marginal structural models versus structural nested models as tools for causal inference. In Statistical Models in Epidemiology: The Environment and
+Clinical Trials, M. E. Halloran and D. Berry (eds), 95–
+134. New York: Springer-Verlag.
+Robins, J. M. (2000). Robust estimation in sequentially ignorable missing data and causal inference models. Proceedings of the American Statistical Association Section
+on Bayesian Statistical Science, 6–10.
+Robins, J. M. (2002). Commentary on “Using inverse weighting and predictive inference to estimate the eﬀects of
+time-varying treatments on the discrete-time hazard, by
+Dawson and Lavori. Statistics in Medicine, 21, 1663–
+1680.
+Robins, J. M. and Ritov, Y. (1997). A curse of dimensionality appropriate (CODA) asymptotic theory for semiparametric models. Statistics in Medicine 16, 285–319.
+
+Biometrics, December 2005
+
+972
+
+Robins, J. M. and Rotnitzky, A. (2001). Comment on the
+Bickel and Kwon article, “On double robustness.” Statistica Sinica 11, 920–936.
+Robins, J. M., Rotnitzky, A., and Zhao L. P. (1994). Estimation of regression coeﬃcients when some regressors are
+not always observed. Journal of the American Statistical
+Association 89, 846–866.
+Robins, J. M., Rotnitzky, A., and Zhao, L. P. (1995).
+Analysis of semiparametric regression models for repeated outcomes in the presence of missing data. Journal of the American Statistical Association 90, 106–
+121.
+Robins, J. M., Rotnitzky, A., and Van der Laan, M. J. (2000).
+Comment on the Murphy and Van der Vaart article, “On
+proﬁle likelihood.” Journal of the American Statistical Association 95, 431–435.
+Robins, J. M., Rotnitzky, A., and Bonetti, M. (2001). Discussion of the Frangakis and Rubin article, “Addressing an
+idiosyncrasy in estimating survival curves using double
+sampling in the presence of self-selected right censoring.”
+Biometrics 57, 343–347.
+Rosenbaum, P. (1987). Model-based direct adjustment. Journal of the American Statistical Association 82, 387–
+394.
+Rotnitzky, A., Robins, J. M., and Scharfstein, D. O. (1998).
+Semiparametric regression for repeated outcomes with
+nonignorable nonresponse. Journal of the American Statistical Association 93, 1321–1339.
+Scharfstein, D. O., Rotnitzky, A., and Robins, J. M. (1999).
+Adjusting for nonignorable drop-out using semiparametric nonresponse models. Journal of the American Statistical Association 94, 1096–1120 (with Rejoinder, 1135–
+1146).
+Van der Laan, M. J. and Robins, J. M. (2003). Uniﬁed Methods
+for Censored Longitudinal Data and Causality. New York:
+Springer-Verlag.
+
+It follows from Robins (1999) that, because µ̂dr is an
+AIPW estimator, it is regular asymptotically linear when the
+model f (am | L̄m , ām−1 ; α) is correct. The key step in showing
+that µ̂dr is regular asymptotically linear when the model for
+hm (l̄m , ām ; µ) is correct is that φ̂m converges
+to 0 for each m.
+
+It then immediately follows that n−1 i T̂1i (µ) converges to
+E{d(L̄K+1 , ĀK ; µ)/π̄K }. Eﬃciency results from the fact that,
+if the MSMM is saturated, then at laws where both parametric models are true, the tangent space (i.e., the closed
+linear span of scores for correctly speciﬁed regular parametric
+submodels) for the union model is all random variables with
+ﬁnite variance. This implies that all regular estimators have
+the same eﬃcient inﬂuence function.
+Moreover, the monotone missing data model in Section 3 is
+actually a special case of the MSMM model of Section 4. To
+see why, we show a correspondence between the two models by
+recoding our monotone missing data model via the following:
+deﬁne Am = 1 if C > m and Am = 0 otherwise. Then we can
+write ∆d(L; µ) as I(ĀK = 1)d(L; µ) where 1 is the vector with
+all components equal to 1. Then deﬁne d(L̄K+1 , ĀK ; µ) to be
+I(ĀK = 1)d(L; µ) and the correspondence is complete. In this
+special case, Ĥm (µ) = T̂m (µ).
+Proposition A.1:
+
+i
+
+UAIP W,i (µ) =
+
+
+
+i
+
+T̂1i (µ).
+
+Proof:
+Let us set d(L̄K+1 , ĀK ; µ) = T̂K+1 (µ) and
+−1
+c(m, L̄m , Ām ; µ) = Ĥm (µ)π̄m
+(α̂). The relationships of Eα̂
+−1
+{c(m, L̄m , Ām ; µ) | L̄m , Ām−1 } = T̂m (µ)π̄m−1
+(α̂) and π̄0 (α̂) =
+1 lead to
+n
+
+
+UAIPTW ,i (µ)
+
+i=1
+
+=
+
+
+
+n
+
+d L̄K+1i , ĀKi ; µ
+i=1
+
+π̄Ki (α̂)
+
+−
+
+K
+
+
+c(m, L̄mi , Āmi ; µ)
+
+m=1
+
+
+
+−Eα̂ {c(m, L̄mi , Āmi ; µ) | L̄mi , Ām−1i }]
+
+Received February 2004. Revised November 2004.
+Accepted February 2005.
+=
+
+n 
+
+d(L̄K+1i , ĀKi ; µ)
+i=1
+
+Appendix
+Equivalence between Sequential Regression Estimators
+and AIPW Estimators
+We will show that the sequential regression estimator
+µ̂dr in Section 4 is precisely an orthogonal AIPW estimator. Deﬁne, following Robins (1999), the AIPW estiK
+mating function UAIPW (µ) = d(L̄K+1 , ĀK ; µ)/π̄K (α̂) − m=1
+[c(m, L̄m , Ām ; µ) − Eα̂ {c(m, L̄m , Ām ; µ) | L̄m , Ām−1 }], where
+the choice c(m, L̄m , Ām ; µ) = Ĥ
+m (µ)/π̄m (α̂) makes
+ UAIPW (µ)
+orthogonal. We will show that i UAIPW ,i (µ) = i T̂1i (µ) for
+all µ in the proposition below.
+
+
+
+=
+
+n 
+
+d(L̄K+1i , ĀKi ; µ)
+i=1
+
+=
+
+π̄Ki (α̂)
+
+n
+
+
+π̄Ki (α̂)
+
+−
+
+K 
+
+Ĥmi (µ)
+m=1
+
+−
+
+π̄mi (α̂)
+
+−
+
+K 
+
+T̂m+1i (µ)
+m=1
+
+π̄mi (α̂)
+
+T̂mi (µ)
+π̄m−1i (α̂)
+
+−
+
+
+
+T̂mi (µ)
+π̄m−1i (α̂)
+
+
+
+T̂1i (µ),
+
+i=1
+−1
+(α̂) and
+because the sample averages of Ĥm (µ)π̄m
+−1
+T̂m+1 (µ)π̄m (α̂) are equal for m = 1, . . . , K. This is
+−1
+guaranteed by including the term φm−1 π̄m−1
+(α̂) in the GLM
+in Step 4 in Section 4.
+
+

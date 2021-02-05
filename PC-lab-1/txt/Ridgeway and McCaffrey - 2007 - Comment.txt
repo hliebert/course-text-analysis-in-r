@@ -1,0 +1,599 @@
+Comment: Demystifying Double Robustness: A Comparison of Alternative Strategies for
+Estimating a Population Mean from Incomplete Data
+Author(s): Greg Ridgeway and Daniel F. McCaffrey
+Source: Statistical Science, Vol. 22, No. 4 (Nov., 2007), pp. 540-543
+Published by: Institute of Mathematical Statistics
+Stable URL: https://www.jstor.org/stable/27645859
+Accessed: 21-10-2019 14:59 UTC
+JSTOR is a not-for-profit service that helps scholars, researchers, and students discover, use, and build upon a wide
+range of content in a trusted digital archive. We use information technology and tools to increase productivity and
+facilitate new forms of scholarship. For more information about JSTOR, please contact support@jstor.org.
+Your use of the JSTOR archive indicates your acceptance of the Terms & Conditions of Use, available at
+https://about.jstor.org/terms
+
+Institute of Mathematical Statistics is collaborating with JSTOR to digitize, preserve and
+extend access to Statistical Science
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:15 UTC
+All use subject to https://about.jstor.org/terms
+
+Statistical Science
+2007, Vol. 22. No. 4, 540-543
+
+DOI: 10.1214/07-STS227C
+
+Main article DOI: 10.1214/07-STS227
+? Institute of Mathematical Statistics, 2007
+
+Comment: Demystifying Double
+Robustness: A Comparison of Alternative
+Strategies for Estimating a Population
+Mean from Incomplete Data
+Greg Ridgeway and Daniel F. McCaffrey
+This article is an excellent introduction to doubly
+robust methods and we congratulate the authors for
+
+the authors could result from using this method. The
+authors state that none of the various IPW methods
+
+their thoroughness in bringing together the wide array
+of methods from different traditions that all share the
+
+could overcome the problems with estimated propen
+sity scores near 0 and 1, yet we believed that this is
+
+property of being doubly robust.
+
+indicative of a problem with the propensity score es
+timator rather than IPW methods. In our experience
+
+Statisticians at RAND have been making exten
+sive use of propensity score weighting in education
+(McCaffrey and Hamilton, 2007), policing and crim
+inal justice (Ridgeway, 2006), drug treatment evalua
+tion (Morral et al., 2006), and military workforce issues
+
+weights estimated using a generalized boosted model
+(GBM) following the methods of McCaffrey, Ridge
+way and Morral (2004) as implemented in the Toolkit
+for Weighting and Analysis of Nonequivalent Groups,
+
+(Harreil, Lim, Casta?eda and Golinelli, 2004). More
+recently, we have been adopting doubly robust (DR)
+methods in these applications believing that we could
+
+the twang package for R, tend not to show the ex
+treme behavior that resulted from logistic regression
+(Ridgeway, McCaffrey and Morral, 2006).
+
+achieve further bias and variance reduction. Initially,
+this article made us second-guess our decision. The ap
+parently strong performance of OLS and the authors'
+finding that no method outperformed OLS ran counter
+to our intuition and experience with propensity score
+weighting and DR estimators. We posited two potential
+explanations for this. First, we suspected that the high
+variance reported by the authors when using propensity
+score weights could result from their use of standard
+logistic regression. Second, stronger interaction effects
+in the outcome regression model might favor the DR
+
+GBM is a general, automated, data-adaptive algo
+rithm that can be used with a large number of covari
+ates to fit a nonlinear surface and estimate propensity
+scores. GBM uses a linear combination of a large col
+
+lection of piecewise constant basis functions to con
+struct a regression model for dichotomous outcomes.
+Shrunken coefficients prevent the model from overfit
+ting. The use of piecewise constants has the effect of
+keeping the estimated propensity scores relatively fiat
+at the edges of the range of the predictors, yet it still
+produces well-calibrated probability estimates. This re
+duces the risk of the spurious predicted probabilities
+near 0 and 1 that cause problems for propensity score
+
+approach.
+
+1. METHODS
+
+weighting. Many variants of boosting have appeared
+
+We felt the authors were somewhat narrow in their
+discussion of weighting by focusing only on propensity
+scores estimated by logistic regression in their simula
+tion. The high variability in the weights reported by
+Greg Ridgeway is Senior Statistician and Associate
+Director of the Safety and Justice Program at the RAND
+
+Corporation, Santa Monica, California 90407-2138, USA
+
+in machine learning and statistics literature and Hastie,
+
+Tibshirani and Friedman (2001) provide an overview.
+We optimized the number of terms in the GBM model
+to provide the best "balance" between the weighted co
+
+variate distributions f(x\t = 1) and f(x\t = 0). This
+approach to fitting propensity scores is fully imple
+mented in the twang package.
+We tested our conjectures about the performance of
+IPW and DR estimators based on GBM and in the pres
+
+(e-mail: gregr@rand.org). Daniel F. McCaffrey is Senior
+Statistician and Head of the Statistics Group at the RAND
+Corporation, Pittsburgh, Pennsylvania 15213, USA (e-mail:
+danielm @ rand.org).
+
+ence of omitted interactions terms through a simulation
+experiment using the same design that the authors used.
+
+540
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:15 UTC
+All use subject to https://about.jstor.org/terms
+
+COMMENT 541
+Using their model from Section 1.4, we generated 1000
+dataseis and calculated the population and nonresponse
+
+estimator as they did for Tables 1, 3, 5 and 6. In ad
+dition, for each dataset we also estimated propensity
+scores using GBM (the ps ( ) function optimizes the
+number of basis functions in the model to minimize
+the largest of the marginal Kolmogorov-Smirnov sta
+tistics). While their simulations do not test this, Kang
+and Sch?fer noted that choices other than logistic re
+gression may be preferable and offered robit regression
+as a possibility. We included robit(l) propensity score
+estimates in our simulations as well.
+In addition to experimenting with other propensity
+score estimators, we also expanded the simulation to
+add an interaction term equal to 2OZ1Z2 to the mean
+function for Y. R code for the simulation experiments
+is available upon request.
+
+vary by the propensity score model (logistic, GBM
+or robit regression), the use of Z or X as covariates
+in the propensity score model, and the use of either
+population weighting (IPW-POP) or the nonresponder
+reweighting (IPW-NR). The elements of the table con
+tain the ratio of the RMSE of the alternative estimators
+to the RMSE of OLS fit with the covariates listed in
+
+each column heading.
+First note that IPW estimators with logistic regres
+sion using the X covariates have by far the largest
+RMSEs in the table. Second, while OLS seems to be
+preferable over IPW methods in the case where there is
+in truth no interaction, when the OLS models exclude
+
+an important interaction the IPW methods are prefer
+
+able. When faced with the choice between OLS and
+
+IPW, the analyst must decide whether to hedge against
+an interaction and use IPW or choose OLS, hoping that
+
+the outcome model is specified correctly and conse
+quently gaining a 60% improvement over GBM-based
+
+2. RESULTS
+Table 1 shows the results for the IPW methods. The
+
+IPW or a 10% improvement over robit-based IPW.
+
+The aim of DR estimators is to avoid this dilemma
+
+rows of the table correspond to the different estima
+tors presented by Kang and Sch?fer. The row labeled
+
+and the associated hedging by combining the benefits
+
+model used the Z variables or the "mis-transformed"
+X variables in the estimation or, in the case of the
+
+of both the outcome and selection models. Kang and
+Schafer's results suggest that current DR estimators
+can disappoint us. They show DR estimators having
+
+"Model for F" denotes whether the outcome OLS
+
+interaction experiments, whether the fitted model in
+cludes a Z1Z2 term. The 12 IPW estimators in Table 1
+
+twice the RMSE as OLS estimators when both the out
+
+come and selection models use the X covariates. We
+
+Table 1
+Simulation study results for IPW methods
+
+K&S model
+
+Generated data:
+Model for Y :
+
+OLS
+Z
+
+Logistic
+
+GBM
+
+Robit
+
+X
+z
+X
+z
+X
+
+IPW-POP
+IPW-NR
+IPW-POP
+IPW-NR
+IPW-POP
+IPW-NR
+IPW-POP
+IPW-NR
+IPW-POP
+IPW-NR
+IPW-POP
+IPW-NR
+
+K&S model with interaction
+
+Fit with Z
+
+Fit with Z
+
+Fit with X
+
+and interactions
+
+Fit with Z,
+no interactions
+
+Fit with X
+
+1.0 (1.16)
+
+1.0 (1.64)
+
+1.0 (1.35)
+
+1.0 (3.58)
+
+1.0 (5.00)
+
+1.0
+
+2.0
+
+0.7
+0.7
+3.6
+
+0.5
+0.5
+2.6
+1.6
+0.6
+0.6
+0.8
+0.7
+0.4
+0.6
+0.7
+0.8
+
+1.4
+1.3
+
+9.9
+6.0
+1.9
+1.5
+
+2.6
+2.2
+
+1.4
+
+1.3
+1.6
+1.6
+
+0.9
+7.0
+
+4.3
+
+1.3
+
+1.0
+
+1.9
+1.6
+1.0
+0.9
+1.1
+1.1
+
+1.9
+9.7
+5.9
+2.2
+
+2.1
+3.1
+
+2.7
+1.7
+2.4
+2.8
+
+2.9
+
+2.2
+
+0.8
+0.8
+1.2
+
+1.0
+0.6
+0.9
+1.0
+1.1
+
+The rows define the model used for the propensity score weights and the columns define the variables used in the outcome regression. The
+cells show the ratio of the RMSE of the estimator to the RMSE of the OLS model that used the covariates listed in the column title. The
+
+actual RMSE of the OLS model is shown in parentheses.
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:15 UTC
+All use subject to https://about.jstor.org/terms
+
+G. RIDGEWAY AND D. F. MCCAFFREY
+
+Table 2
+Simulation study results for DR methods
+
+K&S model
+
+Generated data:
+Model for Y :
+
+OLS
+Z
+Logistic
+
+GBM
+Robit
+
+X
+X
+X
+
+K&S model with interaction
+
+Fit with Z
+
+Fit with Z
+
+Fit with X
+
+and interactions
+
+Fit with Z,
+no interactions
+
+Fit with X
+
+1.0 (1.16)
+
+1.0 (1.64)
+
+1.0 (1.35)
+
+1.0 (3.58)
+
+1.0 (5.00)
+
+1.0
+
+1.0
+
+0.6
+
+2.6
+
+85.8
+
+0.4
+0.4
+139.2
+
+BC
+
+1.0
+
+WLS
+
+1.0
+
+WLS
+BC
+
+1.0
+1.0
+
+BC
+
+WLS
+BC
+WLS
+
+1.0
+
+0.8
+
+51.3
+
+1.0
+1.0
+
+1.0
+
+2.0
+0.9
+0.9
+1.9
+1.5
+
+1.0
+
+0.5
+
+1.0
+1.0
+
+1.1
+
+*0.6
+*0.5
+*0.5
+*0.5
+
+1.0
+
+1.0
+1.0
+
+1.2
+
+0.6
+0.6
+
+1.2
+
+1.0
+
+* These estimators use Z in the propensity score model.
+The rows define the model used for the propensity score weights and the columns define the variables used in the outcome regression. The
+cells show the ratio of the RMSE of the estimator to the RMSE of the OLS model that used the covariates listed in the column title. All GBM
+and robit models were fit using X with the exception of the "Fit with Z, no interactions" column for which they were fit with Z. The actual
+
+RMSE of the OLS model is shown in parentheses.
+
+investigated this using the same propensity score mod
+
+els described previously and the bias corrected (BC)
+and weighted least squares (WLS) described by Kang
+and Sch?fer. Table 2 compares the relative efficiency
+of DR estimators in terms of the RMSE of the DR es
+timators compared to OLS. The most interesting com
+parisons are those for which both the propensity score
+
+model and the outcome regression model use X. Other
+combinations, such as the propensity score fit with X
+and the outcome regression fit with Z, are not realistic
+but are included for completeness.
+The results clearly show that WLS with GBM dom
+inates OLS. When the model for Y is correct, WLS is
+essentially as efficient as the OL,S estimator. When the
+
+model for Y is incorrect, WLS with GBM can be sig
+nificantly more efficient than OLS. GBM also outper
+forms the robit regression model that the authors sug
+gested as an option. These results suggest that DR esti
+mators might be reliable methods of buying insurance
+against model misspecification without paying a high
+price in lost efficiency.
+
+3. SUMMARY
+In the simulation the doubly robust estimators are
+particularly useful when the model is missing an im
+portant interaction between pretreatment variables. Ex
+
+ploratory data analysis could be used to find such
+missing terms in the model and hence the advantages
+
+of WLS might appear overstated. However, such ex
+ploratory analyses require modeling the outcome and
+present the opportunity for the model selection to be
+corrupted by the impact of alternative models on the
+estimated treatment effect. That is, the model might be
+chosen because it yields significant treatment effects.
+This type of model fitting removes one of the benefits
+of the propensity score approach, which is the ability
+to control for pretreatment variable prior to seeing the
+outcome to avoid the temptation or even the appear
+ance of data snooping.
+Doubly robust estimators with GBM appear to have
+the desired properties in this simulation study. When
+the model for the mean is correct, there is no cost for
+
+using the doubly robust estimator (bias corrected or
+WLS). They are essentially as efficient as the correctly
+
+specified OLS model. When the OLS model is incor
+rect, again the doubly robust estimators are at least as
+efficient as OLS and substantially more efficient when
+the OLS model is missing important interaction terms.
+While it is clear that more work on these estimators is
+
+needed, our results do suggest that doubly robust esti
+mation should not be dismissed too quickly.
+
+REFERENCES
+Harrell, M. C, Lim, N., Casta?eda, L. and Golinelli,
+D. (2004). Working around the military: Challenges to military
+
+spouse employment and education. RAND Monograph MG
+196-OSD, Santa Monica, CA.
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:15 UTC
+All use subject to https://about.jstor.org/terms
+
+COMMENT 543
+Hastie, T., Tibshirani, R. and Friedman, J. H. (2001). The
+Elements of Statistical Learning: Data Mining, Inference, and
+
+Prediction. Springer, New York. MR1851606
+
+McCaffrey, D. F. and Hamilton, L. S. (2007). Value-added
+assessment in practice: Lessons from the Pennsylvania value
+added assessment system pilot project. RAND Technical Report
+
+TR-506, Santa Monica, CA.
+
+McCaffrey, D. F., Ridgeway, G. and Morral, A. R. (2004).
+Propensity score estimation with boosted regression for evalu
+ating causal effects in observational studies. Psychol. Methods
+
+9 403-425.
+
+Morral, A. R., McCaffrey, D. F., Ridgeway, G.,
+MUKHERJI, A. and Beighley, C. (2006). The relative effec
+tiveness of 10 adolescent substance abuse treatment programs
+
+in the United States. RAND Technical Report TR-346, Santa
+
+Monica, CA.
+
+Ridgeway, G. (2006). Assessing the effect of race bias in post
+traffic stop outcomes using propensity scores. /. Quant. Crimi
+
+nol. 22 1-29.
+
+Ridgeway, G., McCaffrey, D. F. and Morral, A. R. (2006).
+Twang: Toolkit for weighting and analysis of nonequivalent
+groups. (Software and reference manual.) Available at http:
+//cran.r-project.org/src/contrib/Descriptions/twang.html.
+
+This content downloaded from 206.253.207.235 on Mon, 21 Oct 2019 14:59:15 UTC
+All use subject to https://about.jstor.org/terms
+
+

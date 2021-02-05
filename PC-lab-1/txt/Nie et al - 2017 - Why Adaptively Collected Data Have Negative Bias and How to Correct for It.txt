@@ -1,0 +1,2394 @@
+Why Adaptively Collected Data Have Negative Bias and How to
+Correct for It
+
+arXiv:1708.01977v2 [stat.ML] 30 Dec 2017
+
+Xinkun Nie
+Stanford University
+
+Xiaoying Tian
+Stanford University
+
+Abstract
+From scientific experiments to online A/B
+testing, the previously observed data often
+affects how future experiments are performed,
+which in turn affects which data will be collected. Such adaptivity introduces complex
+correlations between the data and the collection procedure. In this paper, we prove that
+when the data collection procedure satisfies
+natural conditions, then sample means of the
+data have systematic negative biases. As an
+example, consider an adaptive clinical trial
+where additional data points are more likely
+to be tested for treatments that show initial
+promise. Our surprising result implies that
+the average observed treatment effects would
+underestimate the true effects of each treatment. We quantitatively analyze the magnitude and behavior of this negative bias in a
+variety of settings. We also propose a novel debiasing algorithm based on selective inference
+techniques. In experiments, our method can
+effectively reduce bias and estimation error.
+
+1
+
+INTRODUCTION
+
+Much of modern data science is driven by data that
+is collected adaptively. A scientist often starts off
+testing multiple experimental conditions, and based
+on the initial results may decide to collect more data
+points from some conditions and less data from other
+settings. A sequential clinical trial initially groups
+the participants into different treatment regimes, and
+depending on the continuous feedback, may reallocate
+participants into the more promising treatments. In
+e-commerce, companies often use online A/B tests to
+Proceedings of the 21st International Conference on Artificial Intelligence and Statistics (AISTATS) 2018, Lanzarote,
+Spain. JMLR: W&CP volume 7X. Copyright 2018 by the
+author(s).
+
+Jonathan Taylor
+Stanford University
+
+James Zou
+Stanford University
+
+collect user data from multiple variants of a project,
+and could adaptively collect more data from a subset
+of the variants (multi-arm bandit algorithms are often
+used here to decide which variant to collect data from
+as a function of the data log history).
+The key characteristic of adaptively collected data is
+that the analyst sequentially collects data from multiple
+alternatives (e.g. different treatments, products, etc.).
+The choice of which alternative to gather data from at
+a particular time depends on the previously observed
+data from all the options. The collected data could
+be used in many different ways. In some settings, the
+analyst simply wants to use it to identify the single
+best alternative, and may not care about the data
+beyond this goal (this setting motivates many bandit
+problems). In many other settings, the data itself could
+be used to estimate various statistical parameters. In
+the sequential clinical trial example, many scientists
+would like to use the data to estimate the effects of each
+of the treatments. Even if the company sponsoring
+the trials may care most about identifying the best
+treatment, other scientist using the data may care
+about the effect size estimates of other treatments in
+the data for their own applications.
+Our contributions. We study the problem of estimation using adaptively collected data. We prove
+that when the adaptive data collection procedure satisfies two natural conditions (precisely defined in Sec. 2),
+then the sample mean of the collected data is negatively
+biased as an estimator for the true mean. This means
+that the effect size empirically observed is systematically less than the true effect size for every alternative.
+We provide intuition for this counter-intuitive result,
+and compare and analyze the magnitude of this negative bias across different conditions and collection
+procedures. We then propose a novel randomized algorithm called the conditional Maximum Likelihood
+Estimator (cMLE) based on selective inference to reduce this ubiquitous bias, and compare it with a simple
+approach using an independent set of held-out data.
+We validate the performance of our bias-reduction algorithm in extensive experiments. All the proofs and
+
+Why Adaptively Collected Data Have Negative Bias and How to Correct for It
+
+additional experiments are in the Appendix.
+Related works. Multi-arm bandits and its variations are extensively studied in machine learning. The
+goal of our work is different from that of the standard
+bandit setting. In bandits, the data sampled from an
+arm (i.e. one of the alternatives) is considered a reward
+and the objective is to design adaptive algorithms to
+pick arms so as to maximize total reward (or minimize
+regret). Our goal is not to design such algorithms and
+we are agnostic to the reward. We take the perspective
+of an analyst who is given such an adaptively collected
+dataset and wants to estimate statistical parameters.
+Xu et al. [2013] empirically observed estimation bias
+due to selection in specific multi-arm bandit algorithms.
+They were primarily interested in estimating the values
+of the top two arms, and used data splitting with a heldout set in their experiments to reduce bias. We are the
+first one to rigorously prove that such underestimation
+is a general phenomenon. Our cMLE approach builds
+upon recent advances in selective inference [Taylor and
+Tibshirani, 2015, Tian and Taylor, 2015], which derives
+valid confidence intervals accounting for selection effects
+of the algorithm. Selective inference has been applied to
+regression problems (e.g. LASSO, Stepwise regression),
+and has not been considered for the adaptive data
+collection setting before. We build upon results from
+recent developments in this area [Tian and Taylor, 2015,
+Tian et al., 2016, Harris et al., 2016].
+The problem of selection bias has been extensively
+studied, especially in the context of Winner’s Curse
+in genetic association studies [Ionita-Laza et al., 2009].
+There the bias arises from selective reporting rather
+than adaptivity in data collection. There is a related
+line of recent work [Dwork et al., 2015, Russo and Zou,
+2016] in adaptive data analysis that is complementary
+to ours. In their work the data is fixed (and is typically
+i.i.d.) and the adaptivity is in the analyst. In contrast,
+in our work the data collection itself is adaptive.
+
+2
+
+ADAPTIVE DATA COLLECTION
+HAS NEGATIVE BIAS
+
+Model of adaptive data collection. We have K
+unknown distributions that we would like to collect data
+from. There are T rounds of data collection and at
+round t ∈ [T ] the distribution st ∈ [K] is selected, and
+we draw X (st ) , an independent sample, from st . The
+data collection procedure can be modeled by a selection function st = f (Λt ), where Λt is the history of the
+(k)
+observed samples up to time t. More precisely, let Xi
+(k)
+denote the i-th sample from distribution k and Nt denote the number of times that distribution k is sampled
+by round t, which could be a random variable, then
+
+(1)
+
+Λt = {{X1 , ..., X
+
+(1)
+(1)
+
+Nt
+
+(K)
+
+}, ..., {X1
+
+, ..., X
+
+(K)
+(K)
+
+Nt
+
+}}. The
+
+history of distribution k up to round t is denoted by
+(k)
+(k)
+(k)
+(−k)
+Λt = {X1 , ..., X (K) }. We use Λt
+to denote the
+Nt
+
+history up to round t of all the distributions except for
+(−k)
+(i)
+(i)
+the k-th one; Λt
+= {{X1 , ..., X (K) }}i∈[K]\k . We
+Nt
+
+allow f to be a randomized function, and will sometimes write f (Λt , ω), where ω ∈ Ω is a random seed,
+(k)
+
+to highlight this randomness. Let Xt
+
+≡
+
+PNt(k)
+i=1
+
+(k)
+
+Xi
+
+(k)
+Nt
+
+denote the sample average of distribution k at round t.
+Example. The simplest example of adaptive data
+collection is the Greedy algorithm. In Greedy, at
+round t, the selection function chooses to sample the
+distribution with the highest empirical mean. Then
+(k)
+
+f (Λt ) = arg maxk∈[K] Xt . Often in practice, a randomized version of Greedy, called -Greedy, is also used.
+In -Greedy with probability  we uniformly randomly
+select a distribution and with probability 1 − , we
+perform Greedy. This corresponds to the selection
+(
+(k)
+arg maxk∈[K] Xt , if ω > 
+f (Λt , ω) =
+k, k ∈ [K], if K · (k − 1) < ω < K · k
+where ω ∼ Unif[0, 1]. All common multi-arm bandit
+algorithms can be modeled as a selection function f .
+Many adaptive data collection procedures correspond
+to a selection function f that satisfies two natural properties: Exploit and Independence of Irrelevant Option
+(IIO). Exploit means that all else being equal, if distribution k is selected in a scenario where it has lower
+sample average, then k would also be selected in a scenario where it has higher sample average. IIO means
+that if distribution k is not selected then the precise values observed from k does not affect which of the other
+distributions is selected. We precisely define these two
+properties next.
+Definition 1 (Exploit). Given any t ∈ [T ], k ∈ [K],
+(−k)
+(k)
+realization Λt
+and random seed ω. Suppose Λt
+0
+(k)
+and Λt
+are two sample histories of distribution k
+(k)
+
+0 (k)
+
+of length n with sample means Xt ≤ Xt . Then
+0
+(k)
+(−k)
+(k)
+(−k)
+f (Λt ∪ Λt , ω) = k implies f (Λt ∪ Λt , ω) = k.
+In words, Exploit states that given the same context
+(−k)
+specified by Λt
+and ω, if k is selected when it has
+smaller sample mean then it should also be selected
+when it has a larger mean.
+Exploit captures the intuition that when we are looking
+for options that work well, we are more likely to try out
+the options that show more promise early on. Note that
+(k)
+in Exploit, we only compare two sample histories Λt
+0
+(k)
+and Λt with the same number of observed samples.
+
+Xinkun Nie, Xiaoying Tian, Jonathan Taylor, James Zou
+
+This allows f to also account for the number of samples
+observed so far (e.g. selecting a distribution k with
+low sample average if it does not have many samples).
+Therefore confidence interval based bandit algorithms
+can also be shown to satisfy Exploit.
+Definition 2 (Independent of Irrelevant Options
+(IIO)). Given any t ∈ [T ] and k ∈ [K]. Let Λt =
+0
+(k)
+(−k)
+(k)
+(−k)
+Λt ∪ Λt
+and Λ0t = Λt ∪ Λt , i.e. Λt and Λ0t
+have the same histories for distributions i =
+6 k and
+could have arbitrary histories for distribution k. Then
+∀ i 6= k,
+Pr [f (Λt ) = i|f (Λt ) 6= k] = Pr [f (Λ0t ) = i|f (Λ0t ) 6= k] .
+In words, so long as k is not chosen, which other dis(−k)
+tribution is selected depends only on the history Λt
+of those distributions.
+Estimation bias. In this paper, we are interested in
+the fundamental problem of estimating the true mean,
+µk = E[X (k) ], of each of the distributions given a sample history dataset, ΛT , which is collected through an
+adaptive procedure. This models the adaptive clinical
+trials example, where the scientist is interested in estimating {µk }k∈[K] , the true effects of the treatments.
+Of course, if the scientist can collect her own data, she
+could just collect a non-adaptive set of samples and
+obtain unbiased estimates of {µk }k∈[K] . However, in
+many settings like the clinical trials, the scientist does
+not collect the data; rather it is adaptively collected
+by a pharmaceutical company with a different objective of finding an optimal treatment or demonstrating
+efficacy. The simplest and most common approach is
+(k)
+
+to use the sample average XT to estimate the true
+mean µk . Our main result shows that in expectation,
+the sample average underestimates
+h
+i the true mean if f
+(k)
+
+satisfies Exploit and IIO: E XT
+
+≤ µk , ∀k ∈ [K].
+
+Theorem 1. Suppose X (k) , k ∈ [K] is a sample drawn
+from a distribution with finite mean µk = E[X (k) ],
+and the selection function
+h
+if satisfies Exploit and IIO.
+(k)
+
+Then ∀k and ∀T , E XT ≤ µk . Moreover, the equality holds only if the number of times distribution k is
+(k)
+selected, NT , does not depend on the observed history
+(k)
+ΛT of k.
+
+Intuition behind the proof. Here we present the highlevel insights for the proof. The detailed proof is in
+Appendix B. For simplicity, we condition on a fixed
+realization of distributions 2, . . . , K. If the bias of
+distribution 1 is negative for every realization of distributions 2, . . . , K, then taking the expectation shows
+that the total bias is negative.
+(1)
+
+Consider a particular sample path history Λt at some
+round t < T , with corresponding empirical average
+
+(1)
+
+(1)
+
+Xt . There are two types of scenarios. First, Λt
+(1)
+
+could be lucky and Xt > µ1 . Then the Exploit property states that with this lucky sample path history,
+distribution 1 is likely to be sampled more often in
+the future in rounds [t + 1, . . . , T ]. Since these future
+samples have expected values µ1 , the expected average
+(1)
+
+of final value of XT is likely to decrease closer to µ1 .
+This is similar to the reversion to mean phenomenon.
+(1)
+
+(1)
+
+In scenario two, Λt is unlucky and Xt < µ1 . The
+exploitative nature of f makes it less likely to select
+distribution 1 and this sample path history is likely
+to be stuck with the negative bias. Therefore we see
+that the exploitative property of the adaptive collection procedure creates a fundamental asymmetry in
+the sample path histories such that the positive bias
+(lucky) paths revert back to mean but the negative bias
+(unlucky) paths are stuck at negative. The overall bias
+becomes negative. The IIO property allows us to safely
+condition on the realizations of distributions 2, . . . , K
+and isolate the effects of distribution 1.
+Many standard multi-arm bandit algorithms can be
+modeled by a selection function f that satisfies Exploit
+and IIO. While Greedy only has sample mean as its
+input, upper confidence bound (UCB) type algorithms
+also account for the number of observations and give
+preference for the less explored distributions. lil’ UCB
+is the state-of-the-art UCB algorithm [Jamieson et al.,
+2014] and its details are presented in Appendix A.
+Proposition 1. lil’ UCB, Greedy, -Greedy are all
+equivalent to selection functions f (Λt ) that satisfy Exploit and IIO.
+In Appendix H, we extend Proposition 1 to Thompson
+Sampling [Thompson, 1933, Agrawal and Goyal, 2012].
+When K = 2, we do not need the IIO condition in
+order for the bias to be non-positive.
+Proposition 2. Suppose X (1) , X (2) are samples drawn
+from distributions with finite means µ1 , µ2 and the selection function
+Exploit. Then for k ∈ {1, 2}
+h f satisfies
+i
+(k)
+
+and all T , E XT ≤ µk . Moreover the equality holds
+only if the number of times distribution k is selected,
+(k)
+(k)
+NT , does not depend on observed values ΛT of k.
+
+3
+
+QUANTITATIVE
+CHARACTERIZATION OF BIAS
+
+Analytic example with explicit bias. Consider
+the setting where K = 2, X (1) ∼ Bernoulli(µ1 ) and
+X (2) ∼ Bernoulli(µ2 ). A greedy data collection procedure is to draw one sample from each distribution
+in the first two rounds, and at T = 3 sample from the
+distribution with the larger empirical sample mean. In
+
+Why Adaptively Collected Data Have Negative Bias and How to Correct for It
+
+three unknown distributions, all of the form N (µi , 1),
+with µ1 = 2, µ2 = 1.5, µ3 = 1. In this experiment, we
+scale the µi ’s by a scaling factor of 1, 2, 3, and observe
+the bias of the empirical mean estimates of the three
+distributions. In Figure 2(a) (b) (c), we plot the bias
+with the number of rounds.
+(a) T=3
+
+(b) T=10
+
+Figure 1: The bias of X (1) as a function of µ1 and µ2
+running the Greedy algorithm, at T = 3 and T = 10
+respectively. Note the difference in scale.
+the event of a tie, i.e. both samples are 0 or 1, X (1) is
+selected by default. We can derive analytic expressions
+for the bias of the empirical mean of each distribution
+at T = 3.
+i
+h
+1
+(1)
+bias1 ≡ E X3 − µ1 = − µ1 (1 − µ1 )µ2 ,
+2
+h
+i
+1
+(2)
+bias2 ≡ E X3 − µ2 = − µ2 (1 − µ2 )(1 − µ1 ).
+2
+When 0 < µ1 , µ2 < 1, both biases are strictly negative. This simple example already demonstrates the
+interesting phenomenon that the distribution with the
+highest mean does not always have the least bias. Using the above analytical forms, the ratio of the biases
+µ1
+1
+is bias
+bias2 = 1−µ2 . Therefore bias2 is worse than bias1
+when µ1 , µ2 are both close to 1, and bias1 is worse
+than bias2 when µ1 , µ2 are both close to 0. Figure 1
+illustrates the quantitative bias of the first distribution
+X (1) at times T = 3 and T = 10. The setup and bias
+is symmetric for the second distribution X (2) .
+The insight from our proof of Theorem 1 is that the bias
+of distribution k at time t should be large if how likely
+we are to choose k in the future (after t) is sensitive
+(k)
+
+to the value Xt . This sensitivity increases if there is
+consequential competition for distribution k at time t,
+i.e. if there are other distribution(s), i, whose empirical
+(i)
+
+average Xt is in some consequential middle range
+from the empirical average of distribution k. When
+they are too far apart, the particular sample values
+drawn from k are not consequential to the chance of
+it getting sampled again. If they are too close, having
+one bad sample value also does not affect the chance
+of k being drawn as much. We demonstrate the above
+remarks empirically in the next section.
+Experiments quantifying negative bias. We explore the effects on the bias from moving the distribution means apart. We used the lil’ UCB algorithm,
+with algorithm specific parameters α = 9, β = 1,  =
+0.01, δ = 0.005, which are the same as in the experiment section of Jamieson et al. [2014]. We ran 1000
+independent trials, with horizon T = 500. We have
+
+We first observe all distributions have negatively biased
+estimates of their true means. Further, these plots
+illustrate our intuition on the effect of consequential
+competition. The distribution with the second best
+mean (the magenta curve) has worse bias as we scale up
+the µi ’s. We hypothesize when the distributions with
+the second best and the best means are close together,
+having one bad sample value for the second best one
+does not affect its chance of being sampled again as
+much as when their means are farther apart. On the
+other hand, for the distribution with the lowest true
+mean (the yellow curve), we observe its bias becomes
+worse first and then better as we scale up the µi ’s. We
+hypothesize that the same reason as before explains
+why the bias becomes worse first. However, as we
+further scale up the µi ’s, the bad sample values from
+the distribution with the lowest mean does not affect
+its future chances of being drawn much more than the
+good samples values, since its true mean is too far from
+the distribution with the highest mean.
+Next we compare lil’ UCB with Greedy, see sub-figure
+(a) and (d) in Figure 2. We observe that with Greedy
+in our setting, the empirical mean estimates for the
+distribution with the lowest mean has the least bias,
+followed by the distribution with the highest true mean.
+This is an example in which the distribution with the
+highest mean might not incur the least bias. With lil’
+UCB, the bias for the distribution with the highest
+true mean converges to 0 quickly, but with Greedy it
+plateaus. In lil’ UCB, since it achieves optimal regret,
+the algorithm finds the distribution the highest true
+mean in finite number of time steps. The samples we
+get from that distribution become close to i.i.d. samples
+as t increases, since the effect of the competition from
+other distributions is reduced over time. In Greedy it’s
+known that the algorithm can be stuck on drawing from
+a suboptimal distribution, in which case the empirical
+average of the particular samples we have drawn from
+the distribution with the highest true mean must have
+a negative bias for this to happen. The bias of the
+best distribution thus doesn’t converge to 0. Note
+that for both lil’ UCB and Greedy, the suboptimal
+distributions can stay negatively biased for large T .
+However, the negative bias from running lil’ UCB is less
+severe in magnitude, because it uses confidence intervals
+to better address the issue that the empirical mean
+may be artificially small purely due to randomness.
+Figure 2(e) shows at round step t = 100 with horizon
+
+Xinkun Nie, Xiaoying Tian, Jonathan Taylor, James Zou
+
+(a) lil’ UCB, µ scale = 1
+
+(d) Greedy, µ scale = 1
+
+(b) lil’ UCB, µ scale = 2
+
+(c) lil’ UCB, µ scale = 3
+
+(e) # future samples drawn given bias
+at t=100, with horizon T=1000
+
+(f) cMLE debiasing
+
+Figure 2: In (a-c), we plot the bias of the empirical mean estimates of three unknown distributions running lil’
+UCB with horizon T=500. Each is distributed according to N (µi , 1), where µi is the mean of the i-th distribution,
+specified in the legends of the plot. We see that as we scale up µi ’s, so they become more spread out, the bias
+increases/decreases depending how far the µi ’s are from each other, and what is the order of the distributions.
+(d) plots the bias of the three unknown distributions running Greedy. (e) plots the number of future samples
+drawn from distribution 1 given its bias at t=100, running lil’ UCB. Here T=1000 with two distributions, N (2, 1)
+and N (1.5, 1). This is a scatter plot over 1000 independent trials. (f) plots the bias as the estimate of the mean
+converges to the true mean across 600 gradient descent iterations. (a-d) and (f) are all averaged across 1000
+independent trials.
+Table 1: We run each of the following common bandit
+T = 1000, running lil’ UCB with the same hyperalgorithms (note "TS" stands for Thompson Sampling)
+parameters in the same setting as in Figure 2(a), we
+across 10,000 independent trials with 5 distributions,
+plot the number of future samples drawn from the
+each with N (µi , 1), where µ1 = 1.0, µ2 = 0.75, µ3 =
+distribution with the highest mean (i.e. µ = 2.0) vs.
+0.5, µ4 = 0.38, µ5 = 0.25. In each column, we record
+the bias from the empirical average of samples drawn so
+the fraction of trials in which m distributions have
+far from this distribution at time t = 100. This confirms
+negative bias at T = 100, where m = 0, · · · , 5. In
+our intuition that large negative bias is correlated with
+-Greedy,  = 0.1. In Thompson Sampling (TS), all
+fewer future chances of getting sampled.
+distributions have prior N (0, 25).
+Our theoretical analysis of Theorem 1 shows that the
+marginal bias of each distribution is negative. The joint
+bias across all the distributions—e.g. how likely is it
+that all the distributions have negative bias—is also
+an interesting question. We empirically investigated
+the frequency at which negative bias occurs across
+distributions in simulations. In Table 1, we run Greedy,
+lil’ UCB, -Greedy ( = 0.1), and Thompson Sampling
+(shown as "TS" in Table 1) on 5 different distributions
+(see caption of Table 1 for details) for 10,000 trials, and
+record the fraction of trials at which any m distributions
+all have negative bias at T = 100, where m = 0, · · · , 5.
+We observe that the results are highly skewed towards
+large values of m, suggesting that it is much more
+
+Greedy
+lil’ UCB
+-Greedy
+TS
+
+0
+0.02
+0.01
+0.02
+0.01
+
+m: # of
+1
+0.09
+0.05
+0.12
+0.08
+
+distr.
+2
+0.23
+0.21
+0.27
+0.24
+
+with bias < 0
+3
+4
+0.34 0.24
+0.36 0.30
+0.33 0.21
+0.34 0.26
+
+5
+0.08
+0.08
+0.05
+0.07
+
+frequent that more distributions simultaneously have
+negative bias. We have also included additional results
+in a variety of settings in Appendix C that confirm this
+finding. Theoretical analysis of the joint bias across
+distributions is beyond the scope of this paper and is
+an interesting direction of future investigation.
+
+Why Adaptively Collected Data Have Negative Bias and How to Correct for It
+
+4
+
+DEBIASING ALGORITHMS AND
+EXPERIMENTS
+
+Data splitting. A simple approach to obtain unbiased estimators of µk ’s is to split the data. Data
+splitting dates back to Cox [1975] and has been discussed by in the context of identifying loci of interest
+in genetics [Sladek et al., 2007], and online search advertising [Xu et al., 2013]. Wasserman and Roeder
+[2009] and Meinshausen et al. [2009] discussed data
+splitting in high-dimensional inference. Fithian et al.
+[2014] discussed data splitting in post-selective inference. Let k be the distribution the selection function f
+chooses at time t. Instead of taking one sample from k,
+we maintain a "held-out" set by taking an additional
+independent sample from k. We use the first samples
+as the sample history for f which determines the future selections, and use the "held-out" set composed
+of the second samples for mean estimation. Since the
+"held-out" set is composed of i.i.d. samples that are
+independent of the selection process, its sample average
+is an unbiased estimate of µk . However, if the total
+number of samples collected is fixed at T rounds, then
+data splitting suffers from high variance, since half of
+all the samples are discarded in estimation. Data splitting is a natural baseline and we compare it with more
+sophisticated debiasing algorithms.
+Conditional Maximum Likelihood Estimator
+(cMLE). Data splitting is a general approach since
+it is agnostic to the selection function f . If we know
+the f used to collect the data, then more powerful
+debiasing could be achieved by explicitly conditioning
+on the sequence of distributions that are selected by f
+in a maximum likelihood framework. This conditioning
+approach is motivated by the recent successes of selective inference, which have been applied, for example,
+to debias the confidence intervals of the Lasso-selected
+features by conditioning on the Lasso algorithm [Taylor
+and Tibshirani, 2015]. To the best of our knowledge,
+our paper is the first extension of selective inference to
+adaptive data collection. To illustrate the cMLE approach, we consider the special case where the decision
+on which distribution to sample at round t is based on
+comparing the decision statistics of the form,
+ 
+
+
+
+∆
+(1)
+(1)
+(K)
+(K)
+Ut = U Xt , Nt
+, . . . , U Xt , Nt
+. (1)
+(k)
+
+Ut depends only on the empirical average Xt ’s and
+(k)
+the number of samples Nt ’s for k ∈ [K]. In other
+words, the selection function f depends on the history
+ of rewards
+ Λt only through Ut . In Greedy,
+(k)
+
+(k)
+
+U Xt , Nt
+(k)
+
+Ut
+
+(k)
+
+= Xt , while in UCB type algorithms,
+
+will be the upper confidence bounds that depend
+
+(k)
+
+(k)
+
+(k)
+
+onboth Xt ’sand Nt ’s, where Ut
+(k)
+(k)
+U Xt , Nt
+.
+
+is shorthand for
+
+Theorem 2. Let st = f (Λt ). Suppose the distributional function for distribution k has density hθ(k) , then
+the conditional likelihood of the adaptive data collection
+problem is proportional to
+(k)
+
+p(ΛT | st , t = 1, . . . , T ) ∝
+
+K N
+T
+Y
+Y
+
+(k)
+hθ(k) (Xm
+)
+
+k=1 m=1
+
+·
+
+TY
+−1
+
+Pr [f (Ut ) = st+1 | Ut ] .
+
+(2)
+
+t=K
+
+To maximize the conditional likelihood, we need to solve
+the following optimization problem,
+(k)
+
+max
+θ
+
++
+
+T
+−1
+X
+
+K N
+T
+X
+X
+
+h
+i
+(k)
+log hθ(k) (Xm
+)
+
+k=1 m=1
+
+
+
+
+
+log Pr [f (Ut ) = st+1 | Ut ]
+
+− log Z(θ), (3)
+
+t=K
+
+where θ = (θ(1) , . . . , θ(K) ) are the parameters of interest
+and Z(θ) is the partition function in Eqn. (2), that only
+depends on the parameters θ.
+Theorem 2 gives an explicit form for the likelihood
+function of the adaptive data collection problem (up
+to a constant). Note that in Eqn 2, ΛT contains both
+(k)
+Xm , and {Ut }Tt=1 (recall that ΛT is the history of
+samples up to time T ). We give a proof of Theorem 2
+in Appendix B.
+Adding additional noise to the sample values to
+improve cMLE optimization. We introduce additional randomization when selecting a distribution. The
+reasons are two-fold. First, we need exponential-tailed
+noise in randomization to achieve asymptotically consistent estimates [Tian and Taylor, 2015, Panigrahi et al.,
+2016]. Second, adding randomization smooths out the
+the hard boundaries in the sample space in evaluating
+Pr [f (Ut ) = st+1 | Ut ]. For example, in Greedy,
+
+
+(k)
+Pr [f (Ut ) = st+1 | Ut ] = I arg max Xt = st+1 , (4)
+k
+
+which means to compute the cMLE, we need to maximize the log-likelihood in a constrained region of the
+sample space. Optimization on such a region is no easy
+task. Moreover, since the hard-max function induces
+discontinuities of likelihood along the boundary of the
+constrained region, the cMLE will be ill-behaved since
+the gradient of the log-likelihood can become infinite
+[Tian and Taylor, 2015, Panigrahi et al., 2016].
+
+Xinkun Nie, Xiaoying Tian, Jonathan Taylor, James Zou
+
+We propose adding Gumbel noise to the decision statistics Ut to smooth out Pr [f (Ut ) = st+1 | Ut ]. Note
+that we could also use other heavy-tailed distributions
+for the added noise. The Gumbel distribution offers
+computational convenience, since
+(k)
+
+exp[Ut /τt ]
+Pr [f (Ut ) = k | Ut ] = PK
+(i)
+i=1 exp[Ut /τt ]
+
+(5)
+
+has a closed form due to the Gumbel-max trick [Gumbel
+and Lieblein, 1954] (also see Lemma 1 in Appendix F).
+We can now optimize Eqn. 3 using contrastive divergence [Carreira-Perpinan and Hinton, 2005]. Details
+of the algorithm are in Appendix E. For lil’ UCB or
+Greedy, we can compute Ut deterministically from Xt
+and Nt . The selection function after Gumbel randomization is defined as
+(k)
+
+f (Ut ) = arg max Ut
+k
+
+(k)
+
++ t ,
+
+(k) iid
+
+t
+
+∼ Gτt ,
+
+(6)
+
+where Gτ is a Gumbel distribution of mean 0 and scale
+parameter τ . Similarly, we can also add Gumbel noise
+to -Greedy to derive smooth conditional probabilities.
+We give examples of computing the conditional likelihood functions of common bandit algorithms with
+added Gumbel noise in Appendix D.
+We summarize the debiasing procedure in Algorithm 1.
+Note that we only compute cMLE with contrastive divergence (see Algorithm 2 in Appendix E) once at time
+step T when we wish to debias the estimates. Note that
+with these smooth Pr [f (Ut ) = k | Ut ] in Eqn. 5, we
+have well-behaved gradients in the parameter updates
+in computing cMLE.
+Debiasing experiments. We empirically show that
+the cMLE algorithm can reduce bias significantly and
+reduce the mean squared error (MSE) as well. In Table 2, we see significant bias reduction for the lil’ UCB,
+-Greedy, and Greedy algorithms using the cMLE debiasing algorithm, in both the K = 2 and K = 5 cases,
+where K is the number of distributions. All of our experiments used the same implementation of cMLE with
+the same hyper-parameters to demonstrate that cMLE
+can be robustly applied to different distribution settings
+without fine-tuning. We could still have some residual
+bias after running cMLE. This is due to the guarantee of
+asymptotic consistency with added heavy-tailed noise
+(i.e. the bias tends to 0 as T tends to infinity), and T is
+finite in our experiments. Table 3 shows the reduction
+of MSE. The data splitting algorithm achieves consistent estimates, but it incurs high variance since the
+effective sample size is halved by maintaining a held-out
+set. Empirically we observe that data splitting suffers
+from high MSE. In Figure 2(f), we run Greedy with
+cMLE, with two distributions, N (1, 1) and N (0.75, 1).
+
+Algorithm 1 Debiasing algorithm using cMLE. Note
+that we only compute cMLE with contrastive divergence (see Algorithm 2 in Appendix E) once at time
+step T when we wish to debias the estimates.
+Add Gumbel noise when choosing which distribution to sample from at each time step t. Instead of
+applying the selection function directly to Ut , we
+apply it to
+
+
+(k)
+(k)
+U t + t
+, k = 1, . . . , K
+(k) iid
+
+where t ∼ Gτt .
+Compute conditional likelihood by computing
+the selection probabilities,
+Pr [f (Ut ) = st+1 | Ut ] .
+t
+
+Note that here f incorporates the randomness of
+(k)
+Gumbel randomizations {t }k∈[K] as well as the
+randomness in the original bandit algorithm.
+Compute cMLE using approximate gradient descent with contrastive divergence.
+We show the convergence of the estimated mean to the
+true mean as we run gradient descent over 600 iterations. We see that cMLE significantly reduces the bias,
+while improving the MSE. We also experimented with
+propensity matching, a commonly used method that
+weights each observed value of a distribution by one
+over the probability that this distribution is selected
+[Austin, 2011]. Propensity matching is unbiased, but
+has very large variance and thus a much greater MSE
+by several fold compared to cMLE. We discuss it in
+more detail in Appendix G.
+In both Table 2 and Table 3, we looked at the cases
+where the horizon T is relatively small. The reasons
+are two-fold. First, a relatively small T is relevant in
+many biomedical settings, where the scientist adaptively collects data from several arms corresponding
+to different experimental conditions, and such collection procedures are expensive. Second, empirically, the
+magnitude of the bias tends to be the largest when t
+is small (c.f.Figure 2 (a)-(d)), so we focused on cases
+where the bias is the largest to demonstrate the effectiveness of cMLE to debias the empirical estimates. For
+-Greedy, for example, the biases of all the distributions are essentially 0 when T is large, and cMLE is not
+needed in this regime. For the Greedy algorithm, the
+bias of the suboptimal distributions are stuck at quite
+negative values even for very large T because they are
+not sampled again after the first few rounds. For completeness, we have also included the debiasing results
+for the Greedy algorithm when the horizon is large
+(T = 1000) in Table 4. We observe here that cMLE
+
+Why Adaptively Collected Data Have Negative Bias and How to Correct for It
+
+Table 2: Bias Reduction. With K = 2, each distribution is drawn from N (µi , 1). where µ1 = 1.0, µ2 = 0.75.
+With K = 5, each distribution is drawn from N (µi , 1). where µ1 = 1.0, µ2 = 0.75, µ3 = 0.5, µ4 = 0.38, µ5 = 0.25.
+In the left columns under each algorithm, we record the bias of the original algorithm at different time steps
+T . In the right columns, we record the percentage of the original bias that still remains after we run cMLE by
+adding gumbel noise g ∼ Gτ , with scale parameter τ = 1.0, and contrastive divergence with 600 gradient descent
+iterations. All results are averaged across 1000 independent trials.
+lil’ UCB
+-Greedy ( = 0.1)
+Greedy
+orig. cMLE orig.
+cMLE
+orig. cMLE
+T=8,K=2 -0.26 6.2% -0.25
+7.3%
+-0.29 2.8%
+T=16,K=2 -0.29 5.2% -0.25
+1.6%
+-0.32 8.3%
+T=20,K=5 -0.32 14.9% -0.31
+9.1%
+-0.35 18.0%
+T=40,K=5 -0.35 14.2% -0.27
+8.8%
+-0.37 15.9%
+Table 3: Mean Squared Error(MSE) reduction. The experiment setup is the same as in Table 2. The
+leftmost columns under each algorithm is the MSE of the original algorithm. The second to the left columns are
+the MSE percentage ratio of the data splitting with a held-out set compared to the MSE of the original algorithm.
+The right columns are the MSE percentage ratio of the cMLE algorithm after debiasing compared to the MSE
+of the original algorithm. For -Greedy, we additionally run propensity matching (prop). Note that both data
+splitting and prop suffer from high variance despite achieving consistent estimation.
+
+T=8,K=2
+T=16,K=2
+T=20,K=5
+T=40,K=5
+
+orig.
+0.56
+0.50
+0.57
+0.54
+
+lil’ UCB
+held cMLE
+108% 86%
+101% 40%
+112% 99%
+104% 52%
+
+orig.
+0.51
+0.38
+0.52
+0.39
+
+−Greedy( = 0.1)
+held
+prop cMLE
+123% 295% 76%
+123% 244% 52%
+123% 399% 94%
+135% 290% 62%
+
+can almost completely debias the Greedy algorithm.
+This is expected since cMLE is asymptotically consistent, so as T grows, the bias reduces to 0 significantly.
+The mean squared error (MSE) has also reduced to
+a negligible amount for cMLE, but remains huge for
+the data splitting method. We have also included results running Thompson Sampling in Appendix H for
+completeness.
+Table 4: The bias and mean squared error (MSE) of
+running the Greedy algorithm with T = 1000. The
+experiment setup is the same as in Table 2, for K = 2
+and K = 5, where K is the number of distributions
+of interest. The columns under "Bias" record the bias
+incurred by the original algorithm under "orig.", and
+the percentage of bias remaining after running the
+cMLE algorithm under "cMLE". The columns under
+"MSE" record the mean squared error (MSE) under
+the original greedy algorithm, the percentage of MSE
+running the data splitting method (i.e. using a held-out
+set of samples) in comparison to the original MSE, and
+the percentage of MSE running cMLE in comparison to
+the original MSE. We observe the cMLE has superior
+performance in both bias and MSE reduction.
+
+K=2
+K=5
+
+Bias
+orig. cMLE
+-0.2
+0.0%
+-0.21 1.0%
+
+orig.
+0.255
+0.277
+
+MSE
+held-out
+89.8%
+94.9%
+
+cMLE
+0.4%
+1.1%
+
+5
+
+orig
+0.56
+0.53
+0.59
+0.54
+
+Greedy
+held
+108%
+107%
+111%
+107%
+
+cMLE
+78%
+45%
+89%
+52%
+
+DISCUSSION
+
+Our main result shows that adaptively collected data
+are negatively biased when the data collection algorithm f satisfies Exploit and IIO. This seems counterintuitive because we typically associate optimization
+(as in exploitative algorithms) with a positive selection
+bias (i.e.Winner’s Curse). For example, if we draw 10
+samples from N (0, 1) and report the max, then we have
+positive reporting bias. The reason for the discrepancy
+between these phenomena is that for any sample history of data, the “best” option k’s sample mean is likely
+to be larger than its true mean. However who is the
+“best” varies in different sample paths, and the bias of
+each distribution k is negative in expectation.
+We explored data splitting and cMLE as two approaches
+to reduce this bias. Data splitting is unbiased but suffers larger MSE because it ignores half of the samples
+during estimation. cMLE can reduce bias close to 0
+while also reducing MSE. The trade-off is that it requires specific knowledge about f and also requires one
+to add additional noise to the collected data. Both
+approaches require modifying the data collection procedure and cannot be generically applied to debias
+existing adaptively collected data. As adaptively collected data are ubiquitous, developing flexible debiasing
+approaches to debias observational data is an important
+direction of future research.
+
+Xinkun Nie, Xiaoying Tian, Jonathan Taylor, James Zou
+
+References
+S. Agrawal and N. Goyal. Analysis of thompson sampling for the multi-armed bandit problem. In Conference on Learning Theory, pages 39–1, 2012.
+P. Auer, N. Cesa-Bianchi, Y. Freund, and R. E.
+Schapire. The nonstochastic multiarmed bandit problem. SIAM journal on computing, 32(1):48–77, 2002.
+P. C. Austin. An introduction to propensity score methods for reducing the effects of confounding in observational studies. Multivariate behavioral research, 46
+(3):399–424, 2011.
+M. A. Carreira-Perpinan and G. E. Hinton. On contrastive divergence learning. In AISTATS, volume 10,
+pages 33–40. Citeseer, 2005.
+D. Cox. A note on data-splitting for the evaluation of
+significance levels. Biometrika, 62(2):441–444, 1975.
+A. Deng, J. Lu, and S. Chen. Continuous monitoring of a/b tests without pain: Optional stopping in
+bayesian testing. In Data Science and Advanced Analytics (DSAA), 2016 IEEE International Conference
+on, pages 243–252. IEEE, 2016.
+C. Dwork, V. Feldman, M. Hardt, T. Pitassi, O. Reingold, and A. L. Roth. Preserving statistical validity
+in adaptive data analysis. In Proceedings of the FortySeventh Annual ACM on Symposium on Theory of
+Computing, pages 117–126. ACM, 2015.
+E. Even-Dar, S. Mannor, and Y. Mansour. Action
+elimination and stopping conditions for the multiarmed bandit and reinforcement learning problems.
+Journal of machine learning research, 7(Jun):1079–
+1105, 2006.
+W. Fithian, D. Sun, and J. Taylor. Optimal inference after model selection. arXiv preprint arXiv:1410.2597,
+2014.
+E. J. Gumbel and J. Lieblein. Statistical theory of
+extreme values and some practical applications: a
+series of lectures. 1954.
+X. T. Harris, S. Panigrahi, J. Markovic, N. Bi, and
+J. Taylor. Selective sampling after solving a convex
+problem. arXiv preprint arXiv:1609.05609, 2016.
+I. Ionita-Laza, A. J. Rogers, C. Lange, B. A. Raby, and
+C. Lee. Genetic association analysis of copy-number
+variation (cnv) in human disease pathogenesis. Genomics, 93(1):22–26, 2009.
+K. Jamieson, M. Malloy, R. Nowak, and S. Bubeck.
+lil’ucb: An optimal exploration algorithm for multiarmed bandits. In Conference on Learning Theory,
+pages 423–439, 2014.
+J. Lu and A. Deng. Demystifying the bias from selective
+inference: A revisit to dawid’s treatment selection
+
+problem. Statistics & Probability Letters, 118:8–15,
+2016.
+N. Meinshausen, L. Meier, and P. Bühlmann. Pvalues for high-dimensional regression. Journal of
+the American Statistical Association, 104(488):1671–
+1681, 2009.
+S. Panigrahi, J. Taylor, and A. Weinstein. Bayesian
+post-selection inference in the linear model. arXiv
+preprint arXiv:1605.08824, 2016.
+D. Russo and J. Zou. Controlling bias in adaptive data
+analysis using information theory. In Proceedings
+of the 19th International Conference on Artificial
+Intelligence and Statistics, AISTATS, 2016.
+R. Sladek, G. Rocheleau, J. Rung, C. Dina, L. Shen,
+D. Serre, P. Boutin, D. Vincent, A. Belisle, S. Hadjadj, et al. A genome-wide association study identifies
+novel risk loci for type 2 diabetes. Nature, 445(7130):
+881–885, 2007.
+J. Taylor and R. J. Tibshirani. Statistical learning
+and selective inference. Proceedings of the National
+Academy of Sciences, 112(25):7629–7634, 2015.
+W. R. Thompson. On the likelihood that one unknown
+probability exceeds another in view of the evidence
+of two samples. Biometrika, 25(3/4):285–294, 1933.
+X. Tian and J. E. Taylor. Selective inference with a
+randomized response. To Appear in the Annals of
+Statistics, 2015.
+X. Tian, N. Bi, and J. Taylor. Magic: a general, powerful and tractable method for selective inference.
+arXiv preprint arXiv:1607.02630, 2016.
+L. Wasserman and K. Roeder. High dimensional variable selection. Annals of statistics, 37(5A):2178,
+2009.
+M. Xu, T. Qin, and T.-Y. Liu. Estimation bias in multiarmed bandit algorithms for search advertising. In
+Advances in Neural Information Processing Systems,
+pages 2400–2408, 2013.
+
+Why Adaptively Collected Data Have Negative Bias and How to Correct for It
+
+A
+
+lil’ UCB Algorithm
+
+lil’ UCB Algorithm is proposed by Jamieson et al. [2014], and achieves optimal regret. It has become one of the
+most popular upper confidence bound type algorithms.
+In lil’ UCB, the selection function
+v
+u
+(k)
+log((1+)Nt )
+√ u
+2(1 + ) log(
+)
+(k)
+t
+δ
+f (Λt ) = arg max Xt + (1 + β)(1 + )
+(k)
+k
+Nt
+where
+
+(k)
+Nt
+
+is the number of times arm k gets pulled by time t, and
+
+(k)
+Xt
+
+≡
+
+PNt(k)
+i=1
+
+(7)
+
+(k)
+
+Xi
+
+. , δ, β are lil’ UCB
+
+(k)
+Nt
+
+hyper-parameters as specified in Jamieson et al. [2014].
+
+B
+
+Proofs of the main results
+
+Proof of Theorem 1. Without loss of generality, we focus on showing that distribution 1 has negative bias. The
+argument applies directly to every other distribution. For a given history Λt , f (Λt ) is a random variable
+over
+ [K]. We define two independent random variables based on f (Λt ). Let g(Λt ) = I (f (Λt ) = 1). Let
+(−1)
+
+h Λt
+
+= f (Λt )|f (Λt ) 6= 1 be a random variable with support {2, ..., K}, such that for k ∈ {2, ..., K},
+h 
+
+i
+Pr[f (Λt ) = k]
+(−1)
+Pr h Λt
+= k = Pr[f (Λt ) = k|f (Λt ) 6= 1] = PK
+.
+i=2 Pr[f (Λt ) = i]
+(−1)
+
+Note that f satisfies IIO implies that the law of h is only a function of Λt , which is the history only of the
+distributions 2, ..., K up to time t. It’s clear that distribution selection by st+1 = f (Λt ) is equivalent to (i.e. have
+the same law as)
+(
+1, if g(Λt ) = 1.
+st+1 =
+(8)
+(−1)
+k, if g(Λt ) = 0, h(Λt ) = k, k ∈ [2, K].
+Since this equivalence holds for every t, the adaptive data collection procedure is defined by the independent
+(−1)
+random variables g(Λt ) and h(Λt ).
+To study distribution 1 we condition on the realization Θ, where Θ includes the realizations of distributions k for
+(k)
+k ∈ {2, ..., K} and T random seeds for g and h, {ωg,t , ωh,t }Tt=1 . More precisely, Θ = {{xt }Tt=1 , {ωg,t , ωh,t }Tt=1 , k ∈
+(k)
+[2, K]}, where xt is a realized value of a sample drawn from distribution k at round t. Then given any realization of
+distribution 1, σ = (σ1 , σ2 , . . . , σT ), σi ∈ R, conditioning on Θ induces a deterministic mapping S(σ) = (t1 , ..., tT ),
+where tiSis a positive integer corresponding to the time when the i-th sampling of distribution 1 occurs. Note that
+ti ∈ [T ] {∗}, where ti = ∗ indicates that the i-th drawing occurs after time T . Since all the other distributions’
+realization and randomness are fixed, ti is a deterministic function of (σ1 , ..., σi−1 ).
+Let t̃j indicate the round at which distribution 1 is not selected for the j-th time, then IIO implies st̃j =
+(−1)
+, ωh,j ).
+j −1
+
+h(Λt̃
+
+(−1)
+,
+j −1
+
+Which distribution among 2, . . . , K is selected is determined by Λt̃
+
+which is the history of
+
+distributions 2, . . . , K up to time t̃j − 1. Note that st̃j is a function of ωh,j not ωh,t̃j ; i.e. the random seeds
+ωh,j is only used when distribution 1 is not selected. From this observation, we see an important property of
+conditioning on Θ.
+Property 1. If t̃j indicates the round at which distribution 1 is not selected for the j-th time, then the history
+(−1)
+Λt̃
+is completely determined by the index j.
+j
+h
+i
+h
+i
+(1)
+(1)
+Our goal is to show that for an arbitrary realization Θ, E XT |Θ ≤ µ1 . Then it would follow that E XT ≤ µ1 .
+As we discussed above, after conditioning on Θ, the data collection procedure is equivalent to a mapping
+S(σ) = (t1 , ..., tT ). For a given path σ = (σ1 , ..., σT ), let nσ = |{ti : ti ≤ T }| be the number of times distribution
+
+Xinkun Nie, Xiaoying Tian, Jonathan Taylor, James Zou
+
+1 is selected by round T . S depends on Θ, but we will not write this explicitly to simplify notation. Moreover,
+Pr[σ|Θ] = Pr[σ] since the values of distribution 1 is independent of the realizations of the other distributions and
+the randomness in the selections. Therefore,
+Pnσ
+h
+i X
+σi
+(1)
+E XT |Θ =
+Pr[σ] i=1 .
+n
+σ
+σ
+Our proof strategy is to show that any mapping S from paths σ to sets of times (t1 , ..., tT ) which satisfies
+Exploit
+h
+i
+(1)
+condition must have bias ≤ 0. It suffices to consider the mapping S corresponding to the largest E XT |Θ and
+still satisfies Exploit. We show that such a mapping
+h S must
+i have the property that nσ is the same constant for
+(1)
+
+all path σ. For such an S, it is immediate that E XT |Θ = µ1 .
+
+Suppose for a maximal mapping S, nσ differs for different σ. Let l be the largest integer for which there exist
+two paths σ and σ 0 such that σi = σi0 for i < l and nσ 6= nσ0 . So σ and σ 0 agree up to the l − 1st drawing of
+distribution 1. We denote α ≡ σl and α0 ≡ σl0 ; without loss of generality we can assume α < α0 .
+Property 2. The fact that l is the largest such index implies that if σ 00 is any other path such that σi00 = σi
+for i ≤ l then nσ00 = nσ . Similarly if σi00 = σi0 for i ≤ l then nσ00 = nσ0 .
+There are two possible cases and we show that they both lead to contradictions. This would complete the proof
+by contradiction.
+Case 1:
+nσ > nσ0 . Consider the two paths λ = (σ1 , ..., σl−1 , α, λl+1 , ..., λT ) and λ0 =
+0
+(σ1 , ..., σl−1 , α , λl+1 , ..., λT ), where λl+1 ...λT is some arbitrary fixed string of realizations. Property 2 implies
+that nλ = nσ > nσ0 = nλ0 . Under the mapping S, λ and λ0 maps onto two sets of times {tλ,i }Ti=1 and {tλ0 ,i }Ti=1 ,
+where tλ,i (resp. tλ0 ,i ) is the round at which distribution 1 is drawn the i-th time under the realization λ (resp.
+λ0 ). Since at least the first l − 1 terms of λ and λ0 are equal, at least the first l terms of tλ,i and tλ0 ,i are equal
+since the k-th term of tλ,i depends on the first k − 1 terms of λ for all 0 < k ≤ T . Let l1 > l be the first index
+where tλ,l1 < tλ0 ,l1 . There must exist such a l1 in order for nλ > nλ0 .
+(−1)
+
+(−1)
+
+Consider the round t∗ = tλ,l1 − 1. The histories up to round t∗ of paths λ and λ0 , i.e. Λλ,t∗ and Λλ0 ,t∗ ,
+are identical because in both paths distribution 1 has been selected l1 − 1 times by round t∗ (by Property 1).
+Moreover the empirical average of distribution 1 under λ is strictly lower than the average under λ0 . Exploit
+property states that g(Λλ,t∗ , ωg,t∗ ) = 1 = f (Λλ,t∗ , ωg,t∗ ) implies f (Λλ0 ,t∗ , ωg,t∗ ) = 1 = g(Λλ0 ,t∗ , ωg,t∗ ). This
+implies that tλ,l1 = tλ0 ,l1 , contradicting tλ,l1 < tλ0 ,l1 . Therefore the scenario nσ > nσ0 is not possible if f
+satisfies Exploit. Note that for any Λt , we can use the same probability space Ω for g(Λt ) and f (Λt ) such that
+{ω : g(Λt , ω) = 1} = {ω : f (Λt , ω) = 1}.
+Case 2: nσ < nσ0 . By Property 2, all the path where the first l terms are σ1 ...σl−1 α have nσ total number of
+(1)
+
+draws. The contribution of these paths to the average XT
+
+is
+
+i Pl−1 σ + α + (n − l)µ
+h
+i
+σ
+1
+(1)
+E XT |Θ, σ1 , ..., σl−1 , α = i=1
+.
+nσ
+Similarly, all the path where the first l terms are σ1 ...σl−1 α0 have nσ0 total number of draws. The contribution of
+(1)
+
+these paths to the average XT
+
+is
+
+h
+i Pl−1 σ + α0 + (n 0 − l)µ
+i
+σ
+1
+(1)
+0
+E XT |Θ, σ1 , ..., σl−1 , α = i=1
+.
+nσ 0
+Since
+1.
+
+Pl−1
+
+σi +α
+l
+
+i=1
+
+Pl−1
+
+σi +α
+l
+
+i=1
+
+<
+
+Pl−1
+i=1
+
+σi +α0
+,
+l
+
+we must have either of the following hold:
+
+< µ1 . If this holds true, then the paths where the first l terms are σ1 ...σl−1 α can have m instead
+
+of nσ total number of draws, where nσ < m ≤ nσ0 . Note that
+
+Pl−1
+i=1
+
+σi +α+(nσ −l)µ1
+nσ
+
+<
+
+Pl−1
+i=1
+
+σi +α+(m−l)µ1
+.
+m
+
+Why Adaptively Collected Data Have Negative Bias and How to Correct for It
+
+h
+i
+(1)
+This modification preserves Exploit property while increasing E XT |Θ, σ1 , ..., σl−1 , α , and thus increasing
+h
+i
+(1)
+the E XT |Θ of S. This contradicts the assumption that S is the maximal mapping.
+2.
+
+Pl−1
+i=1
+
+σi +α0
+l
+
+> µ1 . If this holds true, then the paths where the first l terms are σ1 ...σl−1 α0 can have m0 instead
+Pl−1
+
+σ +α0 +(n
+
+Pl−1
+
+0 −l)µ
+
+σ +α0 +(m−l)µ
+
+1
+1
+of nσ0 total number of draws, where nσ ≤ m < nσ0 . Note that i=1 i n 0 σ
+< i=1 i m
+.
+σ
+h
+i
+(1)
+This modification preserves Exploit property while increasing E XT |Θ, σ1 , ..., σl−1 , α0 , and thus increasing
+h
+i
+(1)
+the E XT |Θ of S. This contradicts the assumption that S is the maximal mapping.
+
+h
+i
+(1)
+The case analysis proves that in order for S to be the mapping corresponding to the maximal E XT |Θ it must
+assign the same constant nσ for all path σ, i.e. the number
+of
+h
+i times distribution 1 is selected does not depend on
+(1)
+
+its observed values. Such a mapping is unbiased: E XT |Θ = µ1 .
+
+Proof of Proposition. 1. For any algorithm with the following form of the selection function,
+
+
+
+
+(k)
+(k)
+(k)
+(−k)
+(k)
+Xt , Nt , ω ,
+f Λt ∪ Λt
+= arg max Ut
+
+(9)
+
+k∈[K]
+(k)
+
+such that conditioning on Λt
+0
+
+(k)
+(k)
+(k)
+Ut (Xt , Nt , ω)
+
+(k)
+
+0
+
+(k)
+
+and Λt
+0
+
+0 (k)
+
+(k)
+
+with Nt
+
+0
+
+= Nt
+
+(k)
+
+(k)
+
+, and Xt
+
+0 (k)
+
+< Xt
+
+(−k)
+
+, and fixing Λt
+
+and ω, we have
+
+(k)
+
+< Ut (Xt , Nt , ω), then it satisfies Exploit by definition. We show lil’ UCB, Greedy,
+and -Greedy can all be written in the form of Eqn. 9.
+In lil’ UCB,
+(k)
+
+Ut
+
+
+
+(k)
+
+(k)
+
+
+
+(k)
+
+Xt , Nt , ω = Ut
+
+
+
+(k)
+
+(k)
+
+Xt , Nt
+
+
+
+v
+u
+(k)
+log((1+)Nt )
+√ u
+)
+2(1 + ) log(
+(k)
+t
+δ
+= Xt + (1 + β)(1 + )
+(k)
+Nt
+
+(10)
+
+where , δ, β are lil’ UCB hyper-parameters as specified in Jamieson et al. [2014]. In Greedy,
+(k)
+
+(k)
+
+(k)
+
+(k)
+
+(k)
+
+(k)
+
+Ut (Xt , Nt , ω) = Ut (Xt ) = Xt
+
+(11)
+
+In -Greedy,
+(k)
+(k)
+(k)
+Ut (Xt , Nt , ω)
+
+(
+(k)
+Xt ,
+=
+−
+
+if ω > 
+if ω < 
+
+(12)
+
+(k)
+
+In Eqn. 12, when ω < , since we condition on ω, it is trivially true that f (Λt
+(−k)
+Λt )
+
+(k)
+Ut
+
+= k. In all of the above algorithms,
+monotonically increases as
+Nt (k) fixed. Thus all three algorithms satisfy Exploit.
+
+(k)
+Xt
+
+(−k)
+
+∪ Λt
+
+0
+
+(k)
+
+) = k implies f (Λt
+
+∪
+
+increases, conditioning on ω and
+
+lil’ UCB and greedy trivially satisfy IIO because they are deterministic algorithms. For -Greedy, conditioning on
+(−k)
+(−k)
+f (Λt ) 6= k and f (Λt ) 6= k, and Λt , if ω > , then f (Λt , ω) is determined by Λt . If ω < , then all the K − 1
+distributions are uniformly chosen in both cases.
+Proof of Proposition. 2. Without loss of generality, we focus on showing that distribution 1 has negative bias. We
+modify the arguments used to prove Theorem 1. To study distribution 1 we condition on the realization Θ, where
+Θ includes the realization of distribution 2 and T random seeds for f , {ωt }Tt=1 . Then given any realization of
+distribution 1, σ = (σ1 , σ2 , ..., σT ), σi ∈ R, conditioning on Θ induces a deterministic mapping S(σ) = {t1 , ..., tT },
+where ti is a positive integer corresponding to the time when the i-th drawing of distribution 1 occurs. Note that
+ti ∈ [T ] ∪ ∗, where ti = ∗ indicates that the i-th drawing occurs after time T . Since the realizations of distribution
+2 and the randomness in f are fixed, ti is a deterministic function of {σ1 , ..., σi−1 }. We also have the following
+property as a consequence.
+
+Xinkun Nie, Xiaoying Tian, Jonathan Taylor, James Zou
+(2)
+
+Property 1. If t̃j indicate the j-th time where distribution 2 is selected, then the history Λt̃ is completely
+j
+determined by the index j.
+The rest of the proof is identical to the proof of Theorem 1.
+Proof of Theorem 2. The conditional likelihood pΛT (ΛT | st , t = 1, . . . , T ) is related to the original likelihood
+QK QNT(k)
+(k)
+hΛT (ΛT ) = k=1 m=1
+hθ(k) (Xm ) via the selective likelihood ratio (LR) .
+LR(U | st , t = 1, . . . , T ) ∝
+
+TY
+−1
+
+Pr [f (Ut ) = st+1 | Ut ] ,
+
+(13)
+
+t=K
+
+where U = (Ut )Tt=1 . The index starts from K because we always draw samples from each distribution once in the
+beginning. The probability is taken over the extra randomness in the selection function f , fixing the decision
+statistics Ut ’s and the sequence of choices st ’s. Moreover, note that conditioning on the sequence of distribution
+to select st ’s means we are also fixing Nt ’s as they are equivalent.
+Using the change of variable formula and the selective likelihood ratio in Eqn. 13, we have
+pΛT (ΛT | st , t = 1, . . . , T )
+=pU (U | st , t = 1, . . . , T ) × | det JΛT →U |
+=hU (U)LR(U | st , t = 1, . . . , T ) × | det JΛT →U |
+=hΛT (ΛT ) × | det JU→ΛT | × LR(U | st , t = 1, . . . , T ) × | det JΛT →U |
+∝hΛT (ΛT ) ×
+
+TY
+−1
+
+Pr [f (Ut ) = st+1 | Ut ] ,
+
+t=K
+
+where JΛT →U is the Jacobian matrix for the map from ΛT → U. hΛT (ΛT ) is the unconditional likelihood of the
+data generating distribution. Note the last equation is due to that there is an invertible (linear) map between ΛT
+and U.
+
+C
+
+Additional experiment results for joint bias characterization
+
+Table 5: We run each of the following common bandit algorithms (note "TS" stands for Thompson Sampling)
+across 10,000 independent trials with 2 distributions, each with N (µi , 1), where µ1 = 1.0, µ2 = 0.75. In each
+column, we record the fraction of trials in which m distributions have negative bias at T = 100, where m = 0, 1, 2.
+In -Greedy,  = 0.1. In Thompson Sampling (TS), all distributions have prior N (0, 25).
+
+Greedy
+lil’ UCB
+-Greedy
+TS
+
+m=0
+0.11
+0.20
+0.20
+0.17
+
+m=1
+0.50
+0.51
+0.51
+0.51
+
+m=2
+0.39
+0.29
+0.29
+0.32
+
+Table 6: We run each of the following common bandit algorithms (note "TS" stands for Thompson Sampling)
+across 10,000 independent trials with 3 distributions, each with N (µi , 1), where µ1 = 1.0, µ2 = 0.75, µ3 = 0.5.
+In each column, we record the fraction of trials in which m distributions have negative bias at T = 100, where
+m = 0, 1, 2, 3. In -Greedy,  = 0.1. In Thompson Sampling (TS), all distributions have prior N (0, 25).
+
+Greedy
+lil’ UCB
+-Greedy
+TS
+
+m=0
+0.05
+0.07
+0.09
+0.07
+
+m=1
+0.26
+0.32
+0.34
+0.31
+
+m=2
+0.44
+0.43
+0.40
+0.43
+
+m=3
+0.25
+0.18
+0.17
+0.20
+
+We have included additional experiment results to supplement Table 1 that confirm the findings in Section 3. In
+Table 5 and Table 6, we run experiments in settings there are two and three distributions respectively (details see
+captions of the Tables). Each column is the fraction of trials in which m distributions have negative bias, where
+m = 0, 1, 2 in the case of two distributions, and m = 0, 1, 2, 3 in the case of three distributions.
+
+Why Adaptively Collected Data Have Negative Bias and How to Correct for It
+
+D
+
+Examples of computing the conditional likelihood
+
+Here are some examples of computing the explicit forms of the conditional likelihood. We see from Eqn. 2 that it
+suffices to compute the selective likelihood ratios through Eqn. 13 for the different algorithms. The explicit form
+of the selection probability for Thompson Sampling can be found in Appendix H.
+1. lil’ UCB + Gumbel or Greedy + Gumbel: per Lemma 1,
+h
+i
+(k)
+exp Ut /τt
+h
+i.
+Pr [f (Ut ) = k | Ut ] = P
+(i)
+K
+exp
+U
+/τ
+t
+t
+i=1
+2. -Greedy:
+
+
+
+(i)
+Pr [f (Ut ) = k | Ut ] =
++ (1 − )I arg max Xt = k .
+K
+i
+-Greedy + Gumbel: the selection function will be
+(
+(k)
+(k)
+arg maxk Xt + t ,
+f (Ut ) =
+k, k ∈ [K]
+
+w.p. 1 − 
+,
+w.p. K
+
+(k) iid
+
+t
+
+∼ Gτt .
+
+and the selection probabilities are
+(k)
+
+Pr [f (Ut ) = k | Ut ] =
+
+
+exp[Xt /τt ]
+.
++ (1 − ) · P
+(i)
+K
+K
+i=1 exp[Xt /τt ]
+
+We see that with Gumbel randomization, the only difference is that we replace argmax with the softmax
+function.
+
+E
+
+Optimization the cMLE with contrastive divergence
+
+Theorem 2 gives an explicit formula for likelihood function up to a normalizing constant (partition function).
+Since it is infeasible to get an explicit formula for this partition function, we use Contrastive Divergence (CD)
+proposed in Carreira-Perpinan and Hinton [2005] for solving the Maximum Likelihood Estimation problem.
+To maximize the log-likelihood,
+max log p(ΛT | st , t = 1, . . . , T ; θ),
+θ
+
+we compute its approximate gradient descent using CD. Suppose
+p(ΛT | st , t = 1, . . . , T ; θ) =
+
+`(ΛT | st , t = 1, . . . , T ; θ)
+,
+Z(θ)
+
+then the approximate gradient step for θ would be
+θi+1 = θi + η
+
+∂`
+∂θ
+
+ΛT
+
+∂`
+−
+∂θ
+
+!
+,
+Λ0T
+
+where Λ0T is a single step of MCMC from the density p(ΛT | st , t = 1, . . . , T ; θi ), η is the step size. Contrastive
+ ∂` 
+Divergence can be seen as a form of stochastic gradient descent where the gradient ∂ log∂θZ(θ) = EΛT ∂θ
+is
+approximated by a single sample from the MCMC chain. In practice, to stabilize the gradient, we may take
+multiple samples from the MCMC chain and average the gradient to reduce variance.
+See Algorithm 2 for finding the cMLE using Contrastive Divergence.
+
+Xinkun Nie, Xiaoying Tian, Jonathan Taylor, James Zou
+
+Algorithm 2 Algorithm for computing cMLE for adaptive data collection
+
+
+(1)
+(K)
+Initialize θ0 = XT , . . . , XT
+to be the empirical means.
+repeat
+0
+0
+(1)
+(R)
+Obtain MCMC samples (ΛT , . . . , ΛT ) from the density in Eqn. 2 at θi , where R is the number of MCMC
+samples we take.
+Update θ through the gradient step,
+!
+R
+1 X ∂`
+∂`
+−
+,
+θi+1 = θi + η
+∂θ ΛT
+R r=1 ∂θ Λ0(r)
+T
+
+i 7→ i + 1
+until θi converges.
+
+F
+
+Gumbel-Max trick
+
+Lemma 1 (Gumbel-Max trick). For any fixed vectors U = (U (1) , . . . , U (K) ) ∈ RK , we have
+
+
+exp(U (k) /τ )
+(i)
+(i)
+Pr arg max U +  = k = PK
+,
+(k) /τ )
+
+i
+i=1 exp(U
+iid
+
+where (k) ∼ Gτ , where Gτ is Gumbel distribution with scale τ .
+Proof. Let t(x) = exp(−x/τ ), then we have
+h
+i
+Pr U (k) + (k) > U (i) + (i) , i 6= k
+
+
+
+Y
+(k)
+(k)
+(i)
+−t(U
++
+−U
+)
+
+e
+= Pr 
+(k)
+
+1≤i≤K,i6=k
+
+
+
+
+
+Z
+
+X
+
+exp −
+
+=
+
+1≤k≤K,i6=k
+
+(k) ∈R
+
+Z
+exp −
+
+=
+
+K
+X
+
+!
+t(
+
+Z
+exp −t(
+
+(k)
+
+)
+
+Z0
+exp −s
+
+i=1
+
+G
+
+−U
+
+(i)
+
+−U
+
+(i)
+
+)
+
+K
+X
+
+!
+t(U
+
+(k)
+
+)
+
+K
+X
+
+1 (k) (k)
+t( )d
+τ
+1 (k) (k)
+t( )d
+τ
+
+!
+t(U
+
+(k)
+
+−U
+
+(i)
+
+) ds
+
+i=1
+
+−∞
+
+= PK
+
++U
+
+(k)
+
+i=1
+
+(k) ∈R
+
+=−
+
+(k)
+
+i=1
+
+(k) ∈R
+
+=
+
+(k)
+1
+t(U (k) + (k) − U (k) ) t((k) )e−t( ) d(k)
+τ
+
+1
+t(U (k) − U (i) )
+
+eU
+= PK
+
+(k)
+
+i=1
+
+/τ
+
+eU (i) /τ
+
+.
+
+Propensity Matching
+
+Propensity Matching [Austin, 2011] is an unbiased estimator that is commonly used in selection functions that
+make choices based on the probability of selecting a distribution, such as in EXP3 suggested by Auer et al. [2002].
+The estimator achieves consistent estimates by
+X
+
+PT
+µ̂(k) =
+
+t=1 I (f (Λt ) = k) ·
+
+T
+
+(k)
+(k)
+Nt
+
+Pr[f (Λt )=k]
+
+.
+
+(14)
+
+Why Adaptively Collected Data Have Negative Bias and How to Correct for It
+
+for k ∈ [K], where T is the horizon. This estimator also suffers from high variance, as observed in Table 3.
+Additionally, this estimator is only relevant to be applied if the selection function f outputs a probability
+distribution over which one of the K distributions to select at each time step, so it is not readily applicable to
+Greedy and UCB type algorithms.
+
+H
+
+Extensions to Thompson Sampling
+
+Thompson Sampling is another common bandit algorithm [Thompson, 1933, Agrawal and Goyal, 2012]. We
+extend Proposition 1 to Thompson sampling, and then show how to apply cMLE, and finally show empirical
+(k)
+(k)
+results. In the Gaussian setting, with Gaussian prior µ(k) ∼ N (µ0 , σ02 ), and Xt ∼ N (µ(k) , σ 2 ), where µ(k) is
+the true mean for distribution k, the decision statistics are the posterior means and variances,
+(k)
+
+Ut
+
+(k)
+µt
+
+=
+
+µ0
+σ02
+
++
+1
+σ02
+
+(k)
+N t Xt
+σ2
+
+(k)
+
+)
+(k)
+
+(k)2
+σt
+
+,
+
+(k)
+
++
+
+(k)2
+
+= (µt , σt
+
+(k)
+
+Nt
+σ2
+
+1
+N
++ t2
+2
+σ0
+σ
+
+=
+
+!−1
+.
+
+The selection function is
+(k)
+
+(k)
+
+f (Ut ) = arg max µ̂t ,
+
+µ̂t
+
+k
+
+H.1
+
+(k)2
+
+(k)
+
+∼ N (µt , σt
+
+).
+
+Extension of Proposition 1 to Thompson Sampling
+(k)
+
+Lemma 2. Let θ (k) = {θi } be a set of M parameters that are updated after each drawing of distribution k. Let
+(k)
+Fθ(k) be the CDF of θi . Define the generalized inverse CDF F −1
+(k) (q) = inf{θ ∈ R : F (θ) ≥ q}. Assume for any
+θi
+
+q1 , · · · , qM ∈ [0, 1],
+
+E X (k) |F −1
+(k)
+
+θ1 |X t
+
+(k)
+
+
+
+(q
+)
+≥
+E
+X (k) |F −1
+M
+(k)
+(k)
+
+−1
+(k) (q1 ), · · · , F (k)
+
+θM |X t
+
+−1
+(k)0 (q1 ), · · · , F (k)
+
+θ1 |X t
+
+
+(q
+)
+M
+(k)0
+
+(15)
+
+θM |X t
+
+(k)0
+
+if X t > X t . Then Thompson sampling is also equivalent to selection function f (Λt , ω = {qi }M
+i=1 ) that satisfies
+Exploit and IIO.
+Proof. Recall that in Thompson Sampling, we choose the distribution that has the highest expected mean
+conditioned on a sample drawn from the posterior distribution of θ (k) . Since we condition on a fixed realization of
+random seeds q1 , · · · , qM drawn to sample from the inverse CDF of the posterior of θ (k) , Equation (15) implies
+that the expected mean is higher for distributions that have higher empirical mean so far. Exploit is satisfied by
+definition. For IIO, since the posterior of θ (k) is a deterministic function of the history Λ(k) , it is also trivially
+satisfied.
+H.2
+
+cMLE for Thompson Sampling
+(k)
+
+For Thompson + Gumbel, additional Gumbel noises are added to the sampled expected reward µ̂t ’s. In
+other words, the selection function will be
+(k)
+
+f (Ut ) = arg max µ̂t
+k
+
+(k)
+
+(k)
+
++ t ,
+
+µ̂t
+
+(k)
+
+(k)2
+
+∼ N (µt , σt
+
+),
+
+(k) iid
+
+t
+
+∼ Gτt ,
+
+where Gτt is a centered Gumbel distribution with mean 0 and scale τt .
+The selection probability
+Pr [f (Ut ) = k | Ut ] =
+
+TY
+−1 Y
+K
+t=K k=1
+
+(k)
+
+φ
+
+µ̂t
+
+(k)
+
+− µt
+
+! T −1
+Y
+
+(k)
+
+σt
+
+t=K
+
+(k)
+
+exp[µ̂t /τt ]
+,
+PK
+(i)
+exp[µ̂
+/τ
+]
+t
+t
+i=1
+
+where the softmax terms come from the additional Gumbel randomizations.
+
+Xinkun Nie, Xiaoying Tian, Jonathan Taylor, James Zou
+
+H.3
+
+Experimental results
+
+We compare the bias and MSE of the original Thompson Sampling (TS) algorithm, and the debiased results after
+running cMLE. The debiasing runs 3000 gradient descent steps, 30 steps of MCMC with the first half as burn-in.
+The scale of the Gumbel distribution is 1.0. See Table 7 for experiment results.
+Table 7: In the left table, we compare the bias of the original Thompson Sampling (TS) algorithm and the bias
+after running cMLE, for K = 2 and K = 5 distributions, with different stopping values T. With K = 2, each
+distribution is drawn from N (µi , 1). where µ1 = 1.0, µ2 = 0.75. With K = 5, each distribution is drawn from
+N (µi , 1). where µ1 = 1.0, µ2 = 0.75, µ3 = 0.5, µ4 = 0.38, µ5 = 0.25. All distributions have prior N (0, 25). The
+left column is the bias of the original algorithm, and the right column is the percentage of bias that is left after
+running cMLE. In the right table, we compare the MSE of the original algorithm, data splitting (held-out),
+and cMLE. The leftmost columns show the MSE in the original algorithm, and the right two columns show the
+percentage in comparison to the MSE of the original algorithm. We see that data splitting suffers from high
+variance, and cMLE improves MSE.
+
+T=24,K=2
+T=32,K=2
+T=60,K=5
+T=80,K=5
+
+orig.
+-0.19
+-0.17
+-0.23
+-0.11
+
+TS
+cMLE
+18.7%
+20.5%
+37.3%
+28.8%
+
+T=24,K=2
+T=32,K=2
+T=60,K=5
+T=80,K=5
+
+orig.
+0.32
+0.28
+0.34
+0.16
+
+TS
+held-out
+130.0%
+110.0%
+123.0%
+125.0%
+
+cMLE
+90.0%
+77.0%
+85.0%
+62.0%
+
+

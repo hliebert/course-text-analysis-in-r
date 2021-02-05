@@ -1,0 +1,2332 @@
+J. R. Statist. Soc. B (2018)
+80, Part 4, pp. 597–623
+
+Approximate residual balancing: debiased inference
+of average treatment effects in high dimensions
+Susan Athey, Guido W. Imbens and Stefan Wager
+Stanford University, USA
+[Received November 2016. Final revision December 2017]
+Summary. There are many settings where researchers are interested in estimating average
+treatment effects and are willing to rely on the unconfoundedness assumption, which requires
+that the treatment assignment be as good as random conditional on pretreatment variables. The
+unconfoundedness assumption is often more plausible if a large number of pretreatment variables are included in the analysis, but this can worsen the performance of standard approaches
+to treatment effect estimation. We develop a method for debiasing penalized
+regression adjustp
+ments to allow sparse regression methods like the lasso to be used for n-consistent inference
+of average treatment effects in high dimensional linear models. Given linearity, we do not need
+to assume that the treatment propensities are estimable, or that the average treatment effect is
+a sparse contrast of the outcome model parameters. Rather, in addition to standard assumptions used to make lasso regression on the outcome model consistent under 1-norm error, we
+require only overlap, i.e. that the propensity score be uniformly bounded away from 0 and 1.
+Procedurally, our method combines balancing weights with a regularized regression adjustment.
+Keywords: Causal inference; Potential outcomes; Propensity score; Sparse estimation
+
+1.
+
+Introduction
+
+To identify causal effects in observational studies, practitioners may assume that treatment assignments are as good as random (or unconfounded) conditional on observed features of the
+units; see Rosenbaum and Rubin (1983) and Imbens and Rubin (2015) for general discussions.
+Motivated by this set-up, there is a large literature on how to adjust for differences in observed
+features between the treatment and control groups; some popular methods include regression,
+matching, propensity score weighting and subclassiﬁcation, as well as doubly robust combinations thereof (e.g. Abadie and Imbens (2006), Heckman et al. (1998), Hirano et al. (2003),
+Robins et al. (1994, 1995, 2017), Rosenbaum (2002), Tan (2010), Tsiatis (2007) and Van Der
+Laan and Rubin (2006)).
+In practice, researchers sometimes need to account for a substantial number of features to
+make this assumption of unconfoundedness plausible. For example, in an observational study
+of the effect of ﬂu vaccines on hospitalization, we may be concerned that only controlling for
+differences in the age and sex distribution between controls and treated individuals may not be
+sufﬁcient to eliminate biases. In contrast, controlling for detailed medical histories and personal
+characteristics may make unconfoundedness more plausible. But the formal asymptotic theory
+in the earlier literature considers only the case where the sample size increases whereas the
+number of features remains ﬁxed, and so approximations based on those results may not yield
+Address for correspondence: Stefan Wager, Stanford Graduate School of Business, 655 Knight Way, Stanford,
+CA 94305, USA.
+E-mail: swager@stanford.edu
+© 2018 Royal Statistical Society
+
+1369–7412/18/80597
+
+598
+
+S. Athey, G. W. Imbens and S. Wager
+
+valid inferences in settings where the number of features is large, possibly even larger than the
+sample size.
+There has been considerable recent interest in adapting methods from the earlier literature
+to high dimensional settings. Belloni et al. (2014, 2017) showed that attempting to control for
+high dimensional confounders by using a regularized regression adjustment obtained via, for
+example, the lasso can result in substantial biases. Belloni et al. (2014) proposed an augmented
+variable selection scheme to avoid this effect, whereas Belloni et al. (2017), Chernozhukov et al.
+(2017), Farrell (2015) and Van der Laan and Rose (2011) built on the work of Robins et al. (1994,
+1995) and discussed how a doubly robust approach to average treatment effect estimation in high
+dimensions can also be used to compensate for the bias of regularized regression adjustments.
+Despite the breadth of research on the topic, all these references rely crucially on the existence
+of a consistent estimator of the propensity
+score, i.e. the conditional probability of receiving
+√
+treatment given the features, to yield n-consistent estimates of the average treatment effect in
+high dimensions. (Some of these methods assume that the propensity scores can be consistently
+estimated by using a sparse logistic model, whereas others allow for the use of more ﬂexible
+modelling strategies following, for example, McCaffrey et al. (2004), Van der Laan et al. (2007)
+or Westreich et al. (2010).)
+In this paper, we show that, in settings where we are willing to entertain a sparse, well-speciﬁed
+linear model on the outcomes, efﬁcient inference of average treatment effects in high dimensions
+is possible under more general assumptions than suggested by the literature discussed above.
+Given linearity assumptions, we show that it is not necessary to estimate treatment propensities
+consistently; rather, it is enough to rely on debiasing techniques building on recent developments
+in the high dimensional inference literature (Javanmard and Montanari, 2014, 2015; Van de
+Geer√et al., 2014; Zhang and Zhang, 2014). In particular, in sparse linear models, we show
+that n-consistent inference of average treatment effects is possible provided that we simply
+require overlap, i.e. that the propensity score be uniformly bounded away from 0 and 1 for all
+values in the support of the pretreatment variables. We do not need to assume the existence
+of a consistent estimator of the propensity scores, or any form of sparsity on the propensity
+model.
+The starting point behind both our method and the doubly robust methods of Belloni et al.
+(2017), Chernozhukov et al. (2017), Farrell (2015), Van der Laan and Rose (2011), etc. is a
+recognition that high dimensional regression adjustments (such as the lasso) always shrink estimated effects, and that ignoring this shrinkage may result in prohibitively biased treatment effect
+estimates. The references on doubly robust estimation then proceed to show that propensitybased adjustments can be used to compensate for this bias, provided that we have a consistent
+propensity model that converges sufﬁciently fast to the truth. Conceptually, this work builds
+on the result of Rosenbaum and Rubin (1983), who showed that controlling for the propensity
+score is sufﬁcient to remove all biases associated with observed covariates, regardless of their
+functional form.
+If we are willing to focus on high dimensional linear models, however, it is possible to tighten
+the connection between the estimation strategy and the objective of √
+estimating the average
+treatment effect and, in doing so, to extend the number of settings where n-consistent inference
+is possible. The key insight is that, in a linear model, propensity-based methods are attempting
+to solve a needlessly difﬁcult task when they seek to eliminate biases of any functional form.
+Rather, in linear models, it is enough to correct for linear biases. In high dimensions, this can
+still be challenging; however, we ﬁnd that it is possible to correct approximately for such biases
+whenever we assume overlap.
+Concretely, we study the following two-stage approximate residual balancing algorithm. First,
+
+Approximate Residual Balancing
+
+599
+
+we ﬁt a regularized linear model for the outcome given the features separately in the two treatment groups. In the current paper we focus on the elastic net (Zou and Hastie, 2005) and the
+lasso (Chen et al., 1998; Tibshirani, 1996) for this component and present formal results for the
+latter. In a second stage, we reweight the ﬁrst-stage residuals by using weights that approximately
+balance all the features between the treatment and control groups. Here we follow Zubizarreta
+(2015) and optimize the implied balance and variance provided by the weights, rather than the
+ﬁt of the propensity score. Approximate balancing on all pretreatment variables (rather than
+exact balance on a subset of features, as in a regularized regression, or weighting using a regularized propensity model that may not be able to capture all relevant dimensions) enables us
+to guarantee that the bias arising from a potential failure to adjust for a large number of weak
+confounders can be bounded. Formally, this second step of reweighting residuals by using the
+weights that were proposed by Zubizarreta (2015) is closely related to debiasing corrections
+studied in the high dimensional regression literature (Javanmard and Montanari, 2014, 2015;
+Van de Geer et al., 2014; Zhang and Zhang, 2014); we comment further on this connection in
+Section 3.
+This approach also bears a close conceptual connection to work by Chan et al. (2016), Deville
+and Särndal (1992), Graham et al. (2012, 2016), Hainmueller (2012), Hellerstein and Imbens
+(1999), Imai and Ratkovic (2014) and Zhao (2016), who ﬁtted propensity models to the data
+under a constraint that the resulting inverse propensity weights exactly balance the covariate
+distributions between the treatment and control groups and found that these methods outperform propensity-based methods that do not impose balance. Such an approach, however, is only
+possible in low dimensions; in high dimensions where there are more covariates than samples,
+achieving exact balance is in general impossible. One of the key ﬁndings of this paper is that, in
+high dimensions, it is still often possible to achieve approximate balance under reasonable assumptions and that—when combined with a lasso regression adjustment—approximate balance
+sufﬁces for eliminating bias due to regularization.
+In our simulations, we ﬁnd that three features of the algorithm are important:
+(a) the direct covariance adjustment based on the outcome data with regularization to deal
+with the large number of features,
+(b) the weighting using the relationship between the treatment and the features and
+(c) the fact that the weights are based on direct measures of imbalance rather than on estimates of the propensity score.
+The ﬁnding that both weighting and regression adjustment are important is similar to conclusions drawn from the earlier literature on doubly robust estimation (e.g. Robins and Ritov
+(1997)), where combining both techniques was shown to extend the set of problems where efﬁcient treatment effect estimation is possible. The ﬁnding that weights designed to achieve balance
+perform better than weights based on the propensity score is consistent with ﬁndings in Chan
+et al. (2016), Graham et al. (2012, 2016), Hainmueller (2012), Imai and Ratkovic (2014) and
+Zubizarreta (2015).
+Our paper is structured as follows. First, in Section 2, we motivate our two-stage procedure
+by using a simple bound for its estimation error. Then, in Section 3, we provide a formal analysis
+of our procedure under high dimensional asymptotics, and we identify conditions under which
+approximate residual balancing is asymptotically Gaussian and enables practical inference about
+the average treatment effect with dimension-free rates of convergence. Finally, in Section 5, we
+conduct a simulation experiment and ﬁnd that our method performs well in a wide variety of
+settings relative to other proposals in the literature. A software implementation for R is available
+at https://github.com/swager/balanceHD.
+
+600
+
+2.
+
+S. Athey, G. W. Imbens and S. Wager
+
+Estimating average treatment effects in high dimensions
+
+2.1. Setting and notation
+Our goal is to estimate average treatment effects in the potential outcomes framework, or Rubin
+causal model (Rubin, 1974; Imbens and Rubin, 2015). For each unit in a large population there
+is a pair of (scalar) potential outcomes .Yi .0/, Yi .1//. Each unit is assigned to the treatment or
+not, with the treatment indicator denoted by Wi ∈ {0, 1}. Each unit is also characterized by a
+vector of covariates or features Xi ∈ Rp , with p potentially large, possibly larger than the sample
+size. For a random sample of size n from this population, we observe the triple .Xi , Wi , Yiobs /
+for i = 1, : : : , n, where
+
+Yi .1/
+if Wi = 1,
+.1/
+Yiobs = Yi .Wi / =
+Yi .0/
+if Wi = 0
+is the realized outcome, equal to the potential outcome corresponding to the actual treatment
+received. The total number of treated units is equal to nt and the number of control units
+equals nc . We frequently use the shorthand Xc and Xt for the feature matrices corresponding
+only to control or treated units respectively. We write the propensity score, i.e. the conditional
+probability of receiving the treatment given features, as e.x/ = P.Wi = 1|Xi = x/ (Rosenbaum
+and Rubin, 1983). We focus primarily on the conditional average treatment effect for the treated
+sample:
+τ=
+
+1 
+E[Yi .0/ − Yi .1/|Xi ]:
+nt {i:Wi =1}
+
+.2/
+
+We note that the average treatment effect for the controls and the overall average effect can be
+handled similarly. Throughout the paper we assume unconfoundedness, i.e. that, conditional
+on the pretreatment variables, treatment assignment is as good as random (Rosenbaum and
+Rubin, 1983); we also assume a linear model for the potential outcomes in both groups.
+Assumption 1 (unconfoundedness). Wi ⊥
+⊥ .Yi .0/, Yi .1// | Xi .
+Assumption 2 (linearity). The conditional response functions satisfy μc .x/ = E[Yi .0/|X = x] =
+xβc and μt .x/ = E[Yi .1/|X = x] = xβt , for all x ∈ Rp .
+Here, we shall use the linear model only for the control outcome because we focus on the
+average effect for the treated units, but if we were interested in the overall average effect we
+would need linearity in both groups. The linearity assumption is strong, but in high dimensions
+some strong structural assumption is in general needed for inference to be possible. Then, given
+linearity, we have
+τ = μt − μc ,
+
+μt = X̄t βt ,
+
+μc = X̄t βc ,
+
+X̄t =
+
+n
+1 
+1.{Wi = 1}/Xi :
+nt i=1
+
+.3/
+
+Estimating the ﬁrst term is easy: μ̂t = Ȳt = Σ{i:Wi =1} Yiobs =nt is unbiased for μt . In contrast,
+estimating μc is a major challenge, especially in settings where p is large, and it is the main focus
+of the paper.
+2.2. Baselines and background
+We begin by reviewing two classical approaches to estimating μc , and thus also τ , in the above
+linear model. The ﬁrst is a weighting-based approach, which seeks to reweight the control sample
+to make it look more like the treatment sample; the second is a regression-based approach, which
+
+Approximate Residual Balancing
+
+601
+
+seeks to adjust for differences in features between treated and control units by ﬁtting an accurate
+model to the outcomes. Though neither approach alone performs well in a high dimensional
+setting with a generic propensity score, we ﬁnd that these two approaches can be fruitfully
+combined to obtain better estimators for τ .
+2.2.1. Weighted estimation
+A ﬁrst approach is to reweight the control data set by using weights γi to make the weighted
+covariate distribution mimic the covariate distribution in the treatment population. Given the
+weights we estimate μ̂c as a weighted average μ̂c = Σ{i:Wi =0} γi Yiobs . The standard way of selecting
+weights γi uses the propensity score: γi = e.Xi /={1 − e.Xi /}=[Σ{i:Wj =0} e.Xj /={1 − e.Xj /}]: To
+implement these methods researchers typically substitute an estimate of the propensity score
+into this expression. Such inverse propensity weights with non-parametric propensity score
+estimates have desirable asymptotic properties in settings with a small number of covariates
+(Hirano et al., 2003). The ﬁnite sample performance of methods based on inverse propensity
+weighting can be poor, however, both in settings with limited overlap in covariate distributions
+and in settings with many covariates. A key difﬁculty is that estimating the treatment effect
+then involves dividing by 1 − ê.Xi /, and so small inaccuracies in ê.Xi / can have large effects,
+especially when e.x/ can be close to 1; this problem is often quite severe in high dimensions.
+As discussed in Section 1, if the control potential outcomes Yi .0/ have a linear dependence
+on Xi , then using weights γi that explicitly seek to balance the features Xi is often advantageous
+(Deville and Särndal, 1992; Chan et al., 2016; Graham et al., 2012, 2016; Hainmueller, 2012;
+Hellerstein and Imbens, 1999; Imai and Ratkovic, 2014; Zhao, 2016; Zubizarreta, 2015). This
+is a subtle but important improvement. The motivation behind this approach is that, in a linear
+model, the bias for estimators based on weighted averaging depends solely on X̄t − Σ{i:Wi =0} γi Xi .
+Therefore getting the propensity model exactly right is less important than accurately matching
+the moments of X̄t . In high dimensions, however, exact balancing weights do not in general
+exist. When p  nc , there will in general be no weights γi for which X̄t − Σ{i:Wi =0} γi Xi = 0, and
+even in settings where p < nc but p is large such estimators would not have good properties.
+Zubizarreta (2015) extended the balancing weights approach to allow for weights that achieve
+approximate
+√ balance instead of exact balance; however, directly using his approach does not
+allow for n-consistent estimation in a regime where p is much larger than n.
+2.2.2. Regression adjustments
+A second approach is to compute an estimator β̂ c for βc by using the nc control observations,
+and then to estimate μc as μ̂c = X̄t β̂ c . In a low dimensional regime with p  nc , the ordinary
+least squares estimator for βc is a natural choice and yields an accurate and unbiased estimate
+of μc . In high dimensions, however, the problem is more delicate: accurate unbiased estimation
+of the regression adjustment is in general impossible, and methods such as the lasso, ridge
+regression or the elastic net may perform poorly when plugged in for βc , in particular when
+X̄t is far from X̄c . As stressed by Belloni et al. (2014), the problem with plain lasso regression
+adjustments is that features with a substantial difference in average values between the two
+treatment arms can generate large biases even if the coefﬁcients on these features in the outcome
+regression are small. Thus, a regularized regression that has been tuned to optimize goodness
+of ﬁt on the outcome model is not appropriate whenever bias in the treatment effect estimate
+due to failing to control for potential confounders is of concern. To address this problem,
+Belloni et al. (2014) proposed running least squares regression on the union of two sets of
+selected variables: one selected by a lasso regressing the outcome on the covariates, and the other
+
+602
+
+S. Athey, G. W. Imbens and S. Wager
+
+selected by a lasso logistic regression for the treatment assignment. We note that estimating μc
+by a regression adjustment μ̂c = X̄t β̂ c , with β̂ c estimated by ordinary least squares on selected
+variables, is implicitly equivalent to using a weighted averaging estimator with weights γ chosen
+to balance the selected features (Robins et al., 2007). The approach of Belloni et al. (2014)
+works well in settings where both the outcome regression and the treatment regression are
+at least approximately sparse. However, when the propensity is not sparse, we ﬁnd that the
+performance of such double-selection methods is often poor.
+2.3. Approximate residual balancing
+Here we propose a new method combining weighting and regression adjustments to overcome
+the limitations of each method. In the ﬁrst step of our method, we use a regularized linear model,
+e.g. the lasso or the elastic net, to obtain a pilot estimate of the treatment effect. In the second
+step, we do ‘approximate balancing’ of the regression residuals to estimate treatment effects:
+we weight the residuals by using weights that achieve approximate balance of the covariate
+distribution between treatment and control groups. This step compensates for the potential
+bias of the pilot estimator that arises due to confounders that may be weakly correlated with
+the outcome but are important because of their correlation with the treatment assignment.
+We ﬁnd that the regression adjustment is effective at capturing strong effects; the weighting
+in contrast is effective at capturing small effects. The combination leads to an effective and
+simple-to-implement estimator for average treatment effects with many features.
+We focus on a meta-algorithm that ﬁrst computes an estimate β̂ c of βc by using the full sample
+of control units. This estimator may take a variety of forms, but typically it will involve some
+form of regularization to deal with the number of features. Second we compute weights γi that
+balance the covariates at least approximately and apply these weights to the residuals (Cassel
+et al., 1976; Robins et al., 1994):
+
+μ̂c = X̄t β̂ c +
+γi .Yiobs − Xi β̂ c /:
+.4/
+{i:Wi =0}
+
+In other words, we ﬁt a model parameterized by βc to capture some of the strong signals and
+then use direct numerical rebalancing of the control data on the features to extract left-over
+signal from the residuals Yiobs − Xi β̂ c . Ideally, we would hope for the ﬁrst term to take care of
+any strong effects, whereas the rebalancing of the residuals can efﬁciently take care of the small
+spread-out effects. Our theory and experiments will verify that this is so.
+A major advantage of the functional form in equation (4) is that it yields a simple and
+powerful theoretical guarantee, as stated below. Recall that Xc is the feature matrix for the
+control units. Consider the difference between μ̂c and μc for our proposed approach: μ̂c −
+μc = .X̄t − XcT γ/.β̂ c − βc / + γ", where " is the intrinsic noise "i = Yi .0/ − Xi βc . With only the
+regression adjustment and no weighting, the difference would be μ̂c,reg − μc = .X̄t − X̄c /.β̂ c −
+βc / + 1"=nc , and with only the weighting the difference would be μ̂c,weight − μc = .X̄t − XcT γ/βc +
+γ". Without any adjustment, just using the average outcome for the controls as an estimator
+for μc , the difference between the estimator for μc and its actual value would be μ̂c,no-adj − μc =
+.X̄t − X̄c /βc + 1"=nc . The regression reduces the bias from .X̄t − X̄c /βc to .X̄t − X̄c /.β̂ c − βc /,
+which will be a substantial reduction if the estimation error β̂ c − βc is small relative to βc .
+The weighting further reduces this to .X̄t − XcT γ/.β̂ c − βc /, which may be helpful if there is a
+substantial difference between X̄t and X̄c . This result, which is formalized below, shows the
+complementary nature of the regression adjustment and the weighting. All proofs are given in
+the on-line appendix.
+
+Approximate Residual Balancing
+
+603
+
+Proposition 1. The estimator (4) satisﬁes |μ̂c − μc |  X̄t −XcT γ∞ β̂ c −βc 1 +|Σ{i:Wi =0} γi "i |.
+This result decomposes the error of μ̂c into two parts. The ﬁrst is a bias term reﬂecting
+the dimension p of the covariates; the second term is a variance term that does not depend
+on it. The upshot is that the bias term, which encodes the high dimensional nature of the
+problem, involves a product of two factors that can both be made reasonably
+small; we shall
+√
+focus on regimes where the ﬁrst
+term
+should
+be
+expected
+to
+scale
+as
+O[
+{log.p/=n}],
+whereas
+√
+the second term scales as O[k {log.p/=n}] where k is the sparsity of the outcome model. If
+we are in a sufﬁciently sparse regime (i.e. k is sufﬁciently small), proposition 1 implies that our
+√
+procedure will be variance dominated; and, under these conditions, we also show that it is n
+consistent.
+To exploit proposition 1, we need to make concrete choices for the weights γ and the parameter
+estimates β̂ c . First, just like Zubizarreta (2015), we choose our weights γ to optimize the bias
+and variance terms in proposition 1 directly; the functional form of γ is given in expression
+(5) below, where ζ ∈ .0, 1/ is a tuning parameter. We refer to them as approximately balancing
+weights since they seek to make the mean of the reweighted control sample, namely XcT γ, match
+the treated sample mean X̄t as closely as possible. The positivity constraint on γi in expression
+(5) aims to prevent the method from extrapolating too aggressively, whereas the upper bound
+is added for technical reasons discussed in Section 3. Meanwhile, for estimating β̂ c , we simply
+need to use an estimator that achieves sufﬁciently good risk bounds under L1 -risk. In our
+analysis, we focus on the lasso (Chen et al., 1998; Tibshirani, 1996); however, in experiments,
+we use the elastic net for additional stability (Zou and Hastie, 2005). Our complete algorithm
+is described in the following procedure 1 (approximately residual balancing with the elastic
+net).
+The algorithm estimates the average treatment effect on the treated by approximately balanced
+residual weighting. Here, ζ ∈ .0, 1/, α ∈ .0, 1] and λ > 0 are tuning parameters. This procedure
+is implemented in our R package balanceHD; we default to ζ = 0:5 and α = 0:9, and select λ
+by cross-validation using the lambda.1se rule from the glmnet package (Friedman et al.,
+2010). The optimization problem (5) is a quadratic programme, and so can be solved by using
+off-the-shelf convex optimization software; we use the interior point solver mosek by default
+(MOSEK, 2015).
+Step 1: compute positive approximately balancing weights γ as
+
+
+
+γ = arg min .1 − ζ/γ̃22 + ζX̄t − XcT γ̃2∞ subject to
+:
+γ̃ i = 1 and 0  γ̃ i  n−2=3
+c
+γ̃
+
+{i:Wi =0}
+
+Step 2: ﬁt βc in the linear model by using a lasso or an elastic net:
+β̂ c = arg min
+β
+
+
+
+
+{i:Wi =0}
+
+
+.Yiobs − Xi β/2 + λ{.1 − α/β22 + αβ1 } :
+
+Step 3: estimate the average treatment effect τ as
+
+
+τˆ = Ȳt − X̄t β̂ c +
+
+{i:Wi =0}
+
+
+γi .Yiobs − Xi β̂ c / :
+
+.5/
+.6/
+
+.7/
+
+Finally, although we do use this estimator in the present paper, we note that an analogous
+estimator for the average treatment effect E [Y.1/ − Y.0/] can also be constructed:
+
+604
+
+S. Athey, G. W. Imbens and S. Wager
+
+τˆATE = X̄.β̂ t − β̂ c / +
+
+
+
+{i:Wi =1}
+
+γt,i .Yiobs − Xi β̂ t / −
+
+
+γt = arg min .1 − ζ/γ̃22 + ζX̄ − X̄tT γ̃2∞ subject to
+γ̃
+
+
+{i:Wi =0}
+
+
+
+{i:Wi =1}
+
+γc,i .Yiobs − Xi β̂ c /,
+−2=3
+
+γ̃ i = 1 and 0  γ̃ i  nt
+
+ .8/
+,
+
+and γc is constructed similarly. This method can be analysed by using the same tools as developed
+in this paper√and is available in our software package balanceHD. The conditions that are
+required for n-consistent inference of τATE using expression (8) directly mirror the conditions
+(sparsity, overlap etc.) listed in Section 3 for inference about the average treatment effect on the
+treated.
+2.4. Connection to doubly robust estimation
+The idea of combining weighted and regression-based approaches to treatment effect estimation
+has a long history in the causal inference literature. Given estimated propensity scores ê.Xi /,
+Cassel et al. (1976) and Robins et al. (1994) proposed the use of an augmented inverse propensity
+weighting (AIPW) estimator,
+
+
+
+ê.Xi /
+ê.Xi /
+.AIPW/
+obs
+μ̂c
+= X̄t β̂ c +
+.Yi − Xi β̂ c /
+;
+.9/
+1
+−
+ê.X
+1
+−
+ê.Xi /
+/
+i
+{i:Wi =0}
+{i:Wi =0}
+the difference between this estimator and ours is that Cassel et al. (1976) and Robins et al. (1994)
+obtained their weights γi for equation (4) via propensity score modelling instead of quadratic
+programming. Estimators of this type have several desirable aspects: they are ‘doubly robust’ in
+the sense that they are consistent whenever either the propensity ﬁt ê.·/ or the outcome ﬁt β̂ c is
+consistent, and they are asymptotically efﬁcient in a semiparametric speciﬁcation (Hahn, 1998;
+Hirano et al., 2003; Robins and Rotnitzky, 1995; Tsiatis, 2007). However, a practical concern
+with this class of methods is that they may perform less well when 1 − ê.Xi / is close to 0 (Hirano
+et al., 2003; Kang and Schafer, 2007). Several higher order reﬁnements to the simple AIPW estimator (9) have also been considered in the literature. In particular, Kang and Schafer (2007) used
+the inverse propensity weights ê.Xi /={1 − ê.Xi /} as sample weights when estimating β̂ c , whereas
+Scharfstein et al. (1999) and Van Der Laan and Rubin (2006) considered adding these weights as
+features in the outcome model; see also Robins et al. (2007) and Tan (2010) for further discussion.
+Belloni et al. (2017) and Farrell (2015) studied the behaviour of AIPW in high dimensions
+and established conditions under which they can reach efﬁciency when both the propensity
+function and the outcome model are consistently estimable. Intriguingly, in low dimensions,
+doubly robust methods are not necessary for achieving semiparametric efﬁciency. This rate can
+be achieved by either non-parametric inverse propensity weighting or non-parametric regression
+adjustments on their own (Chen et al., 2008; Hirano et al., 2003); doubly robust methods can
+then be used to relax the regularity conditions that are needed for efﬁciency (Farrell, 2015; Robins
+et al., 2017).√Conversely, in high dimensions, both weighting and regression adjustments are
+required for n-consistency (Belloni et al., 2017; Farrell, 2015; Robins and Ritov, 1997).
+Although our estimator (4) is cosmetically quite closely related to the AIPW estimator (9),
+the motivation behind it is quite different. A common description of the AIPW estimator is
+that it tries to estimate two different nuisance components, i.e. the outcome model μ̂c and the
+propensity model ê; it then achieves consistency if either of these components is itself estimated
+consistently, and efﬁciency if both components are estimated at sufﬁciently fast rates. In contrast,
+our approximate residual balancing estimator bets on linearity twice: once in ﬁtting the outcome
+model via the lasso, and once in debiasing the lasso via balancing weights (5).
+
+Approximate Residual Balancing
+
+605
+
+By relying
+more heavily on linearity, we can considerably extend the set of problems under
+√
+which n-consistency is possible (assuming that linearity in fact holds). As a concrete example, a
+simple analysis of AIPW estimation in high dimensional linear models would start by assuming
+that the lasso is oP .n−1=4 / consistent in root-mean-squared error, which
+√ can be attained via
+the lasso by assuming a k-sparse true model with sparsity level k  n= log.p/; and this is,
+in fact, exactly the same condition as we assume in theorem 2. (A more careful analysis of
+AIPW estimators can trade off the accuracy of the propensity and main effect models and,
+instead of requiring that both the propensity and the outcome models can be estimated at
+oP .n−1=4 / rates, assumes only that the product of the two rates is bounded as oP .n−1=2 /; see, for
+example, Farrell (2015). In high dimensions, this amounts to assuming that the outcome and
+propensity models are both well speciﬁed and sparse, with respective sparsity levels kβ and ke
+satisfying kβ ke  n= log.p/2 . AIPW can thus be preferable to approximate
+√ residual balancing
+given sufﬁciently sparse and well-speciﬁed propensity models, with ke  n= log.p/.) Then, in
+addition to this requirement on the outcome model, AIPW estimators still need to posit the
+existence of an oP .n−1=4 / consistent estimator of the treatment propensities, whereas we do
+not need to assume anything about the treatment assignment mechanism beyond overlap. The
+reason for this is that the task of balancing (which is all that is needed to correct for the bias
+of the lasso in a linear model) is different from the task of estimating the propensity score—
+and is in fact often substantially easier. (These distinctions are framed in a situation where the
+statistician starts with a set of high dimensional covariates and needs to ﬁnd a way to control
+for all of them at once. In this setting, linearity is a strong assumption, and so it is not surprising
+that making this assumption lets us considerably weaken requirements on other aspects of the
+problem. In other applications, however, the statistician may have started with low dimensional
+data, but then created a high dimensional design by listing series expansions of the original
+data, interactions, etc. In this setting, linearity is replaced with smoothness assumptions on the
+outcome model (since any smooth function can be well approximated by using a sufﬁciently
+large number of terms from an appropriately chosen series expansion). Here, variants of our
+procedure can be more directly compared with doubly robust methods and, in particular, the γi
+in fact converge to the oracle inverse propensity weights e.Xi /={1 − e.Xi /}; see Hirshberg and
+Wager (2017) and Wang and Zubizarreta (2017) for a discussion and further results.)
+2.5. Related work
+Our approximately balancing weights (5) are inspired by the recent literature on balancing
+weights (Chan et al., 2016; Deville and Särndal, 1992; Graham et al., 2012, 2016; Hainmueller,
+2012; Hellerstein and Imbens, 1999; Hirano et al., 2001; Imai and Ratkovic, 2014; Zhao, 2016).
+Most closely related, Zubizarreta (2015) proposed to estimate τ by using the reweighting formula
+as in Section 2.2.1 with weights
+
+γ = arg min{γ̃22 subject to
+γ̃ i = 1, γ̃ i  0, X̄t − XcT γ̃∞  t},
+.10/
+γ̃
+
+where the tuning parameter is t; he called these weights stable balancing weights. These weights
+are of course equivalent to ours, the only difference being that Zubizarreta bounds imbalance
+in constraint form whereas we do so in Lagrange form. The main conceptual difference between
+our setting and that of Zubizarreta (2015) is that he considered problem settings where p < nc
+and then considered t to be a practically small tuning parameter, e.g. t = 0:1σ or t = 0:001σ.
+However, in high dimensions, the optimization problem (10) will not in general be feasible for
+small values of t; and in fact the bias term X̄t − XcT γ∞ becomes the dominant source of error
+in estimating τ . We call our weights γ ‘approximately’ balancing to remind the reader of this
+
+606
+
+S. Athey, G. W. Imbens and S. Wager
+
+fact. In settings where it is only possible to achieve
+√ approximate balance, weighting alone as
+considered in Zubizarreta (2015) will not yield a n-consistent estimate of the average treatment
+effect, and it is necessary to use a regularized regression adjustment as in estimator (4).
+Similar estimators have been considered by Graham et al. (2012, 2016) and Hainmueller
+(2012) in a setting where exact balancing is possible, with slightly different objection functions.
+For example, Hainmueller (2012) used Σi γi log.γi / instead of Σi γi2 , leading to
+ 
+
+
+(11)
+γ = arg min
+γ̃ i log.γ̃ i / subject to
+γ̃ i = 1, γ̃ i  0, X̄t − XcT γ̃∞ = 0 .
+γ̃
+
+{i:Wi =0}
+
+This estimator has attractive conceptual connections to logistic regression and maximum entropy estimation, and in a low dimensional setting where W|X admits a well-speciﬁed logistic
+model the methods of Graham et al. (2012, 2016) and Hainmueller (2012) are doubly robust
+(Zhao and Percival, 2017); see also Hirano et al. (2001), Imbens et al. (1998) and Newey and
+Smith (2004). In terms of our immediate concerns, however, the variance of τˆ depends on γ
+through γ22 and not Σi γi log.γi ), so our approximately balancing weights are more directly
+induced by our statistical objective than those deﬁned in result (11).
+Finally, in this paper, we have emphasized an asymptotic analysis point of view, where we
+evaluate estimators via their large sample accuracy. From this perspective, our estimator—which
+combines weighting with a regression adjustment as in expression (4)—appears √
+largely to dominate pure weighting estimators; in particular, in high dimensions, we achieve n-consistency
+whereas pure weighting estimators do not. In contrast, stressing practical concerns, Rubin (2008)
+strongly argued that ‘designed-based’ inference leads to more credible conclusions in applications by better approximating randomized experiments. In our context, design-based inference
+amounts to using a pure weighting estimator of the form Σγi Yi where the γi are chosen without
+looking at the Yi . The methods that were considered by Chan et al. (2016), Graham et al. (2012),
+Hainmueller (2012), Zubizarreta (2015), etc. all ﬁt within this design-based paradigm, whereas
+ours does not.
+3.
+
+Asymptotics of approximate residual balancing
+
+3.1. Approximate residual balancing as debiased linear estimation
+As we have already emphasized, approximate residual balancing is a method that enables us to
+make inferences about average treatment effects without needing to estimate treatment propensities as nuisance parameters; rather, we build on recent developments on inference in high
+dimensional linear models (Cai and Guo, 2017; Javanmard and Montanari, 2014, 2015; Ning
+and Liu, 2017; Van de Geer et al., 2014; Zhang and Zhang, 2014). Our main goal is to understand the asymptotics of our estimates for μc = X̄t βc . In the interest of generality, however, we
+begin by considering a broader problem, namely that of estimating generic contrasts ξβc in high
+dimensional linear models. This detour via linear theory will help to highlight the statistical
+phenomena that make approximate residual balancing work, and to explain why—unlike the
+methods of Belloni et al. (2017), Chernozhukov et al. (2017) or Farrell (2015)—our method
+does not require consistent estimability of the treatment propensity function e.x/.
+The problem of estimating sparse linear contrasts ξβc in high dimensional regression problems
+has received considerable attention, including notable recent contributions by Javanmard and
+Montanari (2014, 2015), Van de Geer et al. (2014) and Zhang and Zhang (2014), which, however,
+exclusively considered the setting where ξ is a sparse vector, and, in particular, focused on the case
+where ξ is the jth basis vector ej , i.e. the target estimand is the jth co-ordinate of βc . But, in our
+setting, the contrast vector X̄t deﬁning our estimand μc = X̄t βc is random and thus generically
+
+Approximate Residual Balancing
+
+607
+
+dense; moreover, we are interested in applications where mt = E[X̄t ] itself may also be dense.
+Thus, a direct application of these methods is not appropriate in our problem. (As a concrete
+example, theorem √
+6 of Javanmard and Montanari (2014) shows that their debiased estimator
+.debiased/
+.debiased/
+β̂ c
+satisﬁes nc .β̂ c
+− βc / = Z + Δ, where Z is a Gaussian random variable with
+desirable properties and Δ∞ = o.1/. If we simply consider sparse contrasts of β̂ c , then this
+error term Δ is negligible; however, in our setting, we would have a prohibitively large error
+term X̄t Δ that may grow polynomially in p.)
+An extension of this line of work to the problem of estimating dense, generic contrasts θ = ξβc
+turns out to be closely related to our approximate residual balancing method for treatment effect
+estimation. To make this connection explicit, deﬁne the estimator
+
+θ̂ = ξ β̂ c +
+γi .Yiobs − Xi β̂ c /,
+.12/
+{i:Wi =0}
+
+where
+
+
+γ = arg min γ̃22 subject to ξ − XcT γ̃∞  K
+γ̃
+
+log.p/
+,
+, max |γ̃ i |  n−2=3
+c
+i
+nc
+
+.13/
+
+β̂ c is a properly tuned sparse linear estimator and K is a tuning parameter that is discussed
+below. If we set ξ ← X̄t , then this estimator is just our treatment effect estimator from procedure
+1. (Here, we phrased the imbalance constraint in constraint form rather than in Lagrange
+form; the reason for this is that, although there is a 1:1 mapping between these two settings,
+we found the former easier to work with formally whereas the latter appears to yield more
+consistent numerical performance. We also dropped the constraints Σγi = 1 and γi  0 for now
+but we shall revisit them in Section 3.3.) Conversely, in the classical parameter estimation setting
+with ξ ← ej , the above procedure is algorithmically equivalent to that proposed by Javanmard
+and Montanari (2014, 2015). Thus, the estimator (12) can be thought of as an adaptation of
+the method of Javanmard and Montanari (2014, 2015) that debiases β̂ c speciﬁcally along the
+direction of interest ξ.
+We begin our analysis in Section 3.2 by considering a general version of estimator (12) under
+fairly strong ‘transformed independence design’ generative assumptions on Xc . Although these
+assumptions may be too strong to be palatable in practical data analysis, this result lets us
+make a crisp conceptual link between approximate residual balancing
+and the debiased lasso.
+√
+In particular, we ﬁnd that (theorem 1) θ̂ from estimator (12) is n consistent for θ provided that
+ξ T Σ−1
+c ξ = O.1/, where Σc is the covariance of Xc . Interestingly, if Σc = Ip×p , then in general
+2
+ξ T Σ−1
+c ξ = ξ2 = O.1/ if and only if ξ is very sparse, and so the classical debiased lasso theory
+that was reviewed above is essentially sharp despite only considering the sparse ξ case (see also
+Cai and Guo (2017)). In contrast, whenever Σc has latent correlation structure, it is possible
+to have ξ T Σ−1
+c ξ = O.1/ even when ξ is dense and ξ2  1, provided that ξ is aligned with
+the large latent components of Σc . We also note that, in the application to treatment effect
+estimation, X̄tT Σ−1
+c X̄t will in general be much larger than 1; however, in corollary 1 we show
+how to overcome this issue.
+√
+To our knowledge, this was the ﬁrst result for n-consistent inference about dense contrasts
+of βc at the time that we ﬁrst circulated our manuscript. We note, however, simultaneous and
+independent work by Zhu and Bradic (2016), who developed a promising method for testing
+hypotheses of the form ξβc = 0 for potentially dense vectors ξ; their approach uses an orthogonal
+moments construction that relies on regressing ξXi against a .p − 1/-dimensional design that
+captures the components of Xi orthogonal to ξ.
+
+608
+
+S. Athey, G. W. Imbens and S. Wager
+
+Finally, in Section 3.3, we revisit the speciﬁc problem of high dimensional treatment effect estimation via approximate residual balancing under substantially weaker assumptions on
+the design matrix Xc : rather than assuming a generative ‘transformed independence design’
+model, we simply require overlap and standard regularity conditions. The cost of relaxing our
+assumptions on Xc is that we now obtain slightly looser performance guarantees; however, our
+asymptotic error rates are still in line with those that we could obtain from doubly robust methods. We also discuss practical, heteroscedasticity robust conﬁdence intervals for τ . Through our
+analysis, we assume that β̂ c is obtained via the lasso; however, we could just as well consider, for
+example, the square-root lasso (Belloni et al., 2011), sorted L1 -penalized regression (Bogdan
+et al., 2015; Su and Candes, 2016) or other methods with comparable L1 -risk bounds.
+3.2. Debiasing dense contrasts
+As we begin our analysis of θ̂ deﬁned in expression (12), it is ﬁrst important to note that the
+optimization programme (13) is not always feasible. For example suppose that p = 2nc , that Xc =
+.Inc ×nc Inc ×nc / and that ξ consists of n times ‘1’ followed by n times ‘−1’; then ξ − XcT γ∞  1
+for any γ ∈ Rnc , and the approximation error does not improve as nc and p both grow large.
+Thus, our ﬁrst task is to identify a class of problems for which programme (13) has a solution
+with high probability. The following lemma establishes such a result for random designs, in the
+case of vectors ξ for which ξ T Σ−1
+c ξ is bounded; here Σc = var.Xi |Wi = 0/ denotes the population
+variance of control features. We also rely on the following regularity condition, which will be
+needed for an application of the Hanson–Wright concentration bound for quadratic forms
+following Rudelson and Vershynin (2013).
+Assumption 3 (transformed independence design). Suppose that we have a sequence of ran1=2
+dom design problems with Xc = QΣc , where E[Qij ] = 0, var.Qij / = 1, for all indices i and j,
+and the individual entries Qij are all independent. (To simplify our exposition, this assumption
+implicitly rules out the use of an intercept. Our analysis would go through verbatim, however,
+if we added an intercept X1 = 1 to the design.) Moreover suppose that the Q-matrix is subGaussian for some ς > 0, E[exp{t.Qij − E[Qij ]/}]  exp.ς 2 t 2 =2/ for any t > 0, and that .Σc /jj  S
+for all j = 1, : : : , p.
+Lemma 1. Suppose that we have a sequence of problems for which assumption 3 holds and,
+moreover, ξ T Σ−1
+c ξ  V for√some constant V > 0. Then, there is a universal constant C > 0
+such that, setting K = Cς 2 .VS/, the optimization problem (13) is feasible with probability
+tending to 1; and, in particular, the constraints are satisﬁed by γiÅ = .1=nc /ξ T Σ−1
+c Xi .
+Lemma 1 is the key to our analysis of approximate residual balancing. Because, with high
+probability, the weights γ Å from lemma 1 provide one feasible solution to the constraint in
+problem (13), we conclude that, again with high probability, the actual weights that we use for
+T −1
+approximate residual balancing must satisfy γ22  γ Å 22 ≈ n−1
+c ξ Σc ξ. To turn this insight
+into a formal result, we need assumptions on both the sparsity of the signal and the covariance
+matrix Σc .
+Assumption 4 (sparsity). We have a sequence of problems indexed
+√ by n, p and k such that the
+parameter vector βc is k sparse, i.e. βc 0  k, and that k log.p/= n → 0. (In recent literature,
+there has been some interest in methods that require only approximate, rather than exact, ksparsity. We emphasize that our results also hold with approximate rather than exact sparsity,
+as we use only our sparsity assumption to obtain bounds on β̂ c − βc 1 that can be used in
+conjunction with proposition 1. For simplicity of exposition, however, we restrict our present
+discussion to the case of exact sparsity.)
+
+Approximate Residual Balancing
+
+609
+
+This sparsity requirement is quite strong. However, many analyses that seek to establish
+asymptotic normality in high dimensions rely on such an assumption. For example, Javanmard
+and Montanari (2014), Van de Geer et al. (2014) and Zhang and Zhang (2014) all made this
+assumption when seeking to provide conﬁdence intervals for individual components of βc ;
+Belloni et al. (2014) used a similar assumption where they allowed for additional non-zero
+components, but they assumed that, beyond the largest k components with k satisfying the
+same sparsity condition, the remaining non-zero elements of βc are sufﬁciently small that they
+can be ignored, in what they referred to as approximate sparsity. (There are, of course, some
+exceptions to this assumption. In recent work, Javanmard and Montanari (2015) showed that
+inference of βc is possible even when k  n log.p/ in a setting where X is a random Gaussian
+matrix with either a known or extremely sparse population precision matrix; Wager et al. (2016)
+showed that lasso regression adjustments allow for efﬁcient average treatment effect estimation
+in randomized trials even when k  n log.p/, whereas the method of Zhu and Bradic (2016) for
+estimating dense contrasts ξβc does not rely on sparsity of βc and instead places assumptions
+on the joint distribution of ξXi and the individual regressors. The point in common between
+these results is that they let us weaken the sparsity requirements at the expense of strengthening
+our assumptions about the X-distribution.)
+Next, our analysis builds on well-known bounds on the estimation error of the lasso (Bickel
+et al., 2009; Hastie et al., 2015) that require Xc to satisfy a form of the restricted eigenvalue condi1=2
+tion. Below, we make a restricted eigenvalue assumption on Σc ; then, we shall use results from
+Rudelson and Zhou (2013) to verify that this also implies a restricted eigenvalue condition on Xc .
+Assumption 5 (well-conditioned covariance). Given the sparsity level k that was speciﬁed
+1=2
+above, the covariance matrix Σc of the control features satisﬁes the {k, 2ω, 10}-restricted eigenvalue deﬁned as follows, for some ω > 0. For 1  k  p and L  1, deﬁne the set Ck .L/ as
+
+k
+
+Ck .L/ = β ∈ Rp : β1  L
+|βij | for some 1  i1 <: : : < ij  p :
+.14/
+j=1
+
+Then,
+Ck .L/.
+
+1=2
+Σc
+
+satisﬁes the {k, ω, L}-restricted eigenvalue condition if β T Σc β  ωβ22 for all β ∈
+
+Theorem 1. Under the conditions of lemma 1, suppose that the control outcomes Yi .0/ are
+1=2
+drawn from a sparse, linear model as in assumptions 1, 2, 3 and 4, that Σc satisﬁes the
+restricted eigenvalue property (assumption 5), and that we have a minimum estimand size
+ξ∞  κ > 0. Suppose, moreover, that we have homoscedastic noise: var{"i .0/|Xi } = σ 2 for
+all i = 1, : : : , n, and also that the response noise "i .0/ := Yi .0/ − E[Yi .0/|Xi ] is uniformly subGaussian with parameter υ 2 S > 0. Finally, suppose that we estimate θ̂ by using estimator (12),
+with the optimization
+parameter K selected as in lemma 1 and the lasso penalty parameter
+√
+set to λn = 5ς 2 υ {log.p/=nc }. Then, θ̂ is asymptotically Gaussian,
+.θ̂ − θ/ γ2 ⇒ N .0, σ 2 /,
+nc γ22 ξ T Σ−1
+c ξ  1 + op .1/:
+
+.15/
+
+The minimum estimand size assumption is needed to rule out pathological superefﬁcient
+√
+behaviour. As a concrete example, suppose that Xi ∼ N .0, Ip×p /, and that ξj = 1= p for j =
+1, : : : , p with p  nc . Then, with high probability, the optimization problem (13) will yield
+γ = 0. This leaves us with a simple lasso estimator θ̂ = ξ β̂ c whose risk scales as E[.θ̂ − θ/2 ] =
+O{k2 log.p/=.pnc /}  1=nc . The problem with this superefﬁcient estimator is that it is not necessarily asymptotically Gaussian.
+
+610
+
+S. Athey, G. W. Imbens and S. Wager
+
+The statement of theorem 1 highlights a connection between our debiased estimator (12),
+and the ordinary least squares (OLS) estimator. Under classical large sample asymptotics with
+.OLS/
+n  p, it is well known that the OLS estimator θ̂
+= ξ T .XcT Xc /−1 XcT Y , satisﬁes
+√
+
+√
+.OLS/
+2
+nc .θ̂
+− θ/ .ξ T Σ−1
+c ξ/ ⇒ N .0, σ /,
+
+
+
+√
+.OLS/
+nc θ̂
+−θ−
+γiÅ "i .0/ →p 0,
+
+.16/
+
+{i:Wi =0}
+
+where γiÅ is as deﬁned in lemma 1. By comparing this characterization with our result in theorem 1, it becomes apparent that our debiased estimator θ̂ has been able to recover the large
+.OLS/
+sample qualitative behaviour of θ̂
+, despite being in a high dimensional p  n regime. The
+connection between debiasing and OLS ought not appear too surprising. After all, under clas.OLS/
+sical assumptions, θ̂
+is known to be the minimum variance unbiased linear estimator for
+θ, whereas the weights γ in equation (13) were explicitly chosen to minimize the variance of θ̂
+subject to the estimator being nearly unbiased.
+A downside of the above result is that our main goal is to estimate μc = X̄t βc , and this contrast
+deﬁning vector X̄t fails to satisfy the bound on X̄tT Σ−1 X̄t that is assumed in theorem 1. In fact,
+because X̄t is random, this quantity will in general be of the order of p=n. In the result below, we
+−1
+show how to circumvent this problem under the weaker assumption that mT
+t Σc mt is bounded;
+at a high level, the proof shows that the stochasticity X̄t does not invalidate our previous result.
+We note that, because Ȳt is uncorrelated with μ̂c conditionally on X̄t , the following result also
+immediately implies a central limit theorem for τˆ = Ȳt − μ̂c where Ȳt is the average of the treated
+outcomes.
+Corollary 1. Under the conditions of theorem 1, suppose that we want to estimate μc = X̄t βc
+by replacing ξ with X̄t in expression (12), and let mt = E[X|W = 1]. Suppose, moreover, that we
+replace all the assumptions made about ξ in theorem 1 with the following assumptions: throughout our sequence of problems, the vector mt satisﬁes mt Σ−1
+c mt  V and mt ∞  κ. Suppose,
+ﬁnally, that .Xi − mt /j |Wi = 1 is sub-Gaussian with parameter ν 2 > 0, and that the overall odds
+of receiving treatment P.W = 1/=P.W = 0/ tend to a limit√ρ bounded
+√away from 0 and ∞. Then,
+setting the tuning parameter in problem (13) as K = Cς 2 .VS/ + ν .2:1ρ/, we obtain
+.μ̂c − μc / γ2 ⇒ N .0, σ 2 /,
+−1
+nc γ22 mT
+t Σc mt  1 + op .1/:
+
+.17/
+
+−1
+The asymptotic variance bound mT
+t Σc mt is exactly the Mahalanobis distance between the
+mean treated and control subjects with respect to the covariance of the control
+sample. Thus, our
+√
+result shows that we can achieve asymptotic inference about τ with a 1= n rate of convergence,
+irrespective of the dimension of the features, subject only to a requirement on the Mahalanobis
+distance between the treated and control classes, and comparable sparsity assumptions on the
+Y -model as used by the rest of the high dimensional inference literature, including Belloni et al.
+(2014, 2017), Chernozhukov et al. (2017) and Farrell (2015). However, unlike this literature,
+we make no assumptions on the propensity model beyond overlap and do not require it to
+be estimated consistently. In other words, by relying more heavily on linearity of√the outcome
+function, we can considerably relax the assumptions that are required to obtain n-consistent
+treatment effect estimation.
+
+3.3. A robust analysis with overlap
+Our discussion so far, leading up to corollary 1, gives a characterization of when and why we
+
+Approximate Residual Balancing
+
+611
+
+should expect approximate residual balancing to work. However, from a practical perspective,
+the assumptions that are used in our derivation—in particular the transformed independence
+design assumption—were stronger than those which we may feel comfortable making in applications.
+In this section, we propose an alternative analysis of approximate residual balancing based
+on overlap. Informally, overlap requires that each unit has a positive probability of receiving
+each of the treatment and control conditions, and thus that the treatment and control populations cannot be too dissimilar. Without overlap, estimation of average treatment effects relies
+fundamentally on extrapolation beyond the support of the features and thus makes estimation
+inherently sensitive to functional form assumptions; and, for this reason, overlap has become
+a common assumption in the literature on causal inference from observational studies (Crump
+et al., 2009; Imbens and Rubin, 2015). For estimation of the average effect for the treated we in
+fact need only the propensity score to be bounded from above by 1 − η, but for estimation of the
+overall average effect we would require both the lower and the upper bound on the propensity
+score. If we are willing to assume overlap, we can relax the transposed independence design
+assumption into much more routine regularity conditions on the design, as in assumption 7.
+Assumption 6 (overlap). There is a constant 0 < η such that η  e.x/  1 − η for all x ∈ Rp .
+Assumption 7 (design). Our design X satisﬁes the following two conditions. First, the design is
+sub-Gaussian, i.e. there is a constant ν > 0 such that the distribution of Xj conditional on W = w is
+sub-Gaussian with parameter ν 2 after recentring. Second, we assume that Xc satisﬁes the {k, ω, 4}restricted eigenvalue condition as deﬁned in assumption 5, with probability tending to 1.
+Following lemma 1, our analysis again proceeds by guessing a feasible solution to our optimization problem, and then using it to bound the variance of our estimator. Here, however,
+we use inverse propensity weights as our guess: γiÅ ∝ e.Xi /={1 − e.Xi /}. Our proof hinges on
+showing that the actual weights that we obtain from the optimization problem are at least as
+good as these inverse propensity weights, and thus our method will be at most as variable as the
+method that uses AIPW (9) with these oracle propensity weights.
+Theorem 2. Suppose that we have n independent and identically distributed training examples
+satisfying assumptions 1, 2, 4, 6 and 7, and that the treatment odds P.W = 1/=P.W = 0/ converge to ρ with 0 < ρ < ∞. Suppose, moreover, that we have homoscedastic noise: var{"i .w/|Xi }
+= σ 2 for all i = 1, : : : , n, and also that the response noise "i .w/ := Yi .w/ − E[Yi .w/|Xi ] is uniformly sub-Gaussian with parameter υ 2 > 0. Finally, suppose that we use estimator (4) with
+weights (5), except that we replace
+the Lagrange form penalty
+on the imbalance with a hard
+√
+√
+constraint X̄t − XcT γ̃∞  K {log.p/=nc }, with K = ν [2:1{ρ + .η −1 − 1/2 }].√Moreover, we
+ﬁt the outcome model by using a lasso with penalty parameter set to λn = 5νυ {log.p/=nc }.
+Then,
+μ̂c − μc
+⇒ N .0, σ 2 /,
+γ2
+τˆ − τ
+⇒ N .0, σ 2 /,
+√ −1
+.nt + γ22 /
+where τ is the expected treatment effect on the treated (2). Moreover,
+
+2
+e.Xi /
+2
+−2
+Wi = 0 :
+lim sup nc γ2  ρ E
+1 − e.Xi /
+n→∞
+
+.18/
+
+.19/
+
+612
+
+S. Athey, G. W. Imbens and S. Wager
+
+The rate of convergence that is guaranteed by expression (19) is the same as what we would
+obtain if we actually knew the true propensities and could use them for weighting (Robins et al.,
+1994, 1995). Here, we achieve this rate although we have no guarantees that the true propensities
+e.Xi / are consistently estimable. Finally, we note that, when the assumptions to corollary 1 hold,
+the bound (17) is stronger than expression (19); however, there are designs where the bounds
+match (Wang and Zubizarreta, 2017).
+Finally, in applications, it is often of interest to have conﬁdence intervals for μc and τ rather
+than just point estimates; below, we propose such a construction. Much like the sandwich
+variance estimates for OLS regression, our proposed conﬁdence intervals are heteroscedasticity
+robust even though the underlying point estimates were motivated by using an argument written
+in terms of a homoscedastic sampling distribution.
+Corollary 2. Under the conditions of theorems 1 or 2, suppose instead that we have het2  var{" .W /|X , W }  υ 2 for all i = 1, : : : , n. Then, the following results
+eroscedastic noise υmin
+i
+i
+i
+i
+hold:
+√
+.μ̂c − μc /= V̂ c ⇒ N .0, 1/,
+
+.20/
+V̂ c =
+γi2 .Yi − Xi β̂ c /2 :
+{i:Wi =0}
+
+To provide inference about τ , we also need error bounds for μ̂t . Under sparsity assumptions
+that are comparable with those made for βc in theorem 2, we can verify that
+√
+.μ̂t − μt /= V̂ t ⇒ .0, 1/,
+
+1
+.21/
+V̂ t = 2
+.Yi − Xi β̂ t /2 ,
+nt {i:Wi =1}
+√
+where β̂ t is obtained by using the lasso with λn = 5νυ {log.p/=nc }. Moreover, μ̂c and μ̂t are
+independent conditionally on X and W, thus implying that .τˆ − τ /=.V̂ c + V̂ t /1=2 ⇒ N .0, 1/. This
+last expression is what we use for building conﬁdence intervals for τ .
+4.
+
+Application: the efficacy of welfare-to-work programmes
+
+Starting in 1986, California implemented the ‘Greater avenues to independence’ (GAIN) programme, with an aim to reduce dependence on welfare and to promote work among disadvantaged households. The GAIN programme provided its participants with a mix of educational
+resources such as English as a second language courses and vocational training, and job search
+assistance. This programme is described in detail by Hotz et al. (2006). To evaluate the effect
+of GAIN, the Manpower Development Research Corporation conducted a randomized study
+between 1988 and 1993, where a random subset of GAIN registrants were eligible to receive
+GAIN beneﬁts immediately, whereas others were embargoed from the programme until 1993
+(after which point they were allowed to participate in the programme). All experimental subjects
+were followed for a 3-year post-randomization period.
+The randomization for the GAIN evaluation was conducted separately by county; following
+Hotz et al. (2006), we consider data from Alameda, Los Angeles, Riverside and San Diego counties. As discussed in detail in Hotz et al. (2006), the experimental conditions differed noticeably
+across counties, both in terms of the fraction of registrants who were eligible for GAIN, i.e. the
+treatment propensity, and in terms of the subjects participating in the experiment. For example,
+the GAIN programmes in Riverside and San Diego counties sought to register all welfare cases
+
+Approximate Residual Balancing
+
+613
+
+in GAIN, whereas the programmes in Alameda and Los Angeles counties focused on long-term
+welfare recipients.
+The fact that the randomization of the GAIN evaluation was done at the county level rather
+than at the state level presents us with a natural opportunity to test our method, as follows.
+We seek to estimate the average treatment effect of GAIN on the treated; however, we hide
+the county information from our procedure and instead try to compensate for sampling bias
+by controlling for a large amount of covariates. We used spline expansions of age and prior
+income, indicators for race, family status, etc., for a total of p = 93 covariates. Meanwhile, we
+can check our performance against a gold standard estimate of the average treatment effect
+that is stratiﬁed by county and thus guaranteed to be unbiased. (More formally, in our experiments, we set the gold standard using the county-stratiﬁed oracle estimator on bootstrap
+samples of the full n = 19170 sample. We use bootstrap samples to correct for the correlation
+of estimators τˆ obtained by using the full data set and subsamples of it. We also note that,
+given this set-up, the quantity that we are using as our gold standard is not an estimate of
+τ , i.e. the conditional average treatment effect on the treated sample, and should rather be
+thought of as an estimate of E[τ ], i.e. the average treatment effect on the treated population.
+Since we are in a setting with a fairly weak signal, this should not make a noticeable difference
+in practice.)
+We compare the behaviour of various methods for estimating the average treatment effect on
+the treated by using randomly drawn subsamples of the original data. In addition to approximate
+residual balancing, we consider AIPW (9) and double selection following Belloni et al. (2014) as
+our baselines. We also show the behaviour of an ‘oracle’ procedure that gets to observe the hidden
+county information and then simply estimates treatment effects for each county separately, and
+the ‘naive’ difference-in-means estimator that ignores the features X. In very small samples, the
+oracle procedure is not always well deﬁned because some samples may result in counties where
+either everyone or no one is treated.
+Fig. 1 compares the performance of the various methods. We see that approximate residual
+balancing and double selection both do well in terms of mean-squared error. Moreover, conﬁdence intervals built via approximate residual balancing achieve effectively nominal coverage;
+double selection also achieves reasonable coverage and improves with n. In contrast, AIPW
+does not perform well here. The problem appears to be that estimating treatment propensities
+is quite difﬁcult, and a cross-validated logistic elastic net often learns an effectively constant
+propensity model.
+5.
+
+Simulation experiments
+
+5.1. Methods under comparison
+In addition to approximate residual balancing as described in procedure 1, the methods that we
+use as baselines are as follows: naive difference-in-means estimation τˆ = Ȳt − Ȳc that ignores the
+covariate information X; the elastic net (Zou and Hastie, 2005) or, equivalently, procedure 1
+with trivial weights γi = 1=nc ; approximate balancing or, equivalently, procedure 1 with trivial
+parameter estimates β̂ c = 0 (Zubizarreta, 2015); inverse propensity weighting, as discussed in
+Section 2.2.1, with propensity estimates ê.Xi / obtained by elastic net logistic regression, with
+the propensity scores trimmed at 0:05 and 0:95; AIPW , which pairs elastic net regression adjustments with the above inverse propensity weights (9); the weighted elastic net, motivated by
+Kang and Schafer (2007), that uses inverse propensity weights as sample weights for the elastic
+net regression; targeted maximum likelihood estimation (TMLE), which ﬁne tunes the elastic net
+regression estimates along the direction speciﬁed by the inverse propensity weights (Van Der
+
+S. Athey, G. W. Imbens and S. Wager
+
+0.90
+0.85
+0.80
+
+Coverage
+
+0.95
+
+614
+
+200
+
+500
+
+1000
+
+2000
+
+5000
+
+2000
+
+5000
+
+0.020
+0.005
+
+0.010
+
+MSE
+
+0.050
+
+0.100
+
+n
+(a)
+
+200
+
+500
+
+1000
+n
+(b)
+
+Fig. 1. Finite sample performance of the average treatment effect on the treated for various estimators,
+aggregated over 1000 replications:
+, target coverage rate, 0.95;
+, oracle adjustment;
+,
+approximate residual balance;
+, double selection plus OLS;
+, AIPW;
+, no adjustment
+(naive)
+
+Laan and Rubin, 2006); OLS after model selection where, in the spirit of Belloni et al. (2014),
+we run lasso linear regression for Y |X, W = 0 and lasso logistic regression for W|X, and then
+compute the OLS estimate for τ on the union of the support of the three lasso problems.
+Unless otherwise speciﬁed, all outcome and propensity models were ﬁtted by using a (linear
+or logistic) elastic net. Whenever there is a ‘λ’ regularization parameter to be selected, we use
+cross-validation with the lambda.1se rule from the glmnet package (Friedman et al., 2010).
+Belloni et al. (2014) recommended selecting λ by using more sophisticated methods, such as
+
+Approximate Residual Balancing
+
+615
+
+(a)
+
+(b)
+
+Fig. 2. Illustrating simulation designs: (a) low dimensional version of the many-clusters simulation setting
+, control; , treated X -observations); (b) schematic diagram of a misspecified simulation setting, along the
+first covariate .Xi /1 (
+, ‘treatment effect’ curve (not to scale along the y-axis);
+, density of control;
+, density of treated)
+
+616
+Table 1.
+
+S. Athey, G. W. Imbens and S. Wager
+Root-mean-squared error
+
+p
+
+E[.τˆ  τ /2 ] in the two-cluster setting†
+
+Method
+
+Results for the following experiments:
+Beta model
+dense
+
+Beta model
+harmonic
+
+Beta model
+moderately sparse
+
+Beta model very
+sparse
+
+Propensity Propensity Propensity Propensity Propensity Propensity Propensity Propensity
+model
+model
+model
+model
+model
+model
+model
+model
+dense
+sparse
+dense
+sparse
+dense
+sparse
+dense
+sparse
+Naive
+Elastic net
+Approximate balance
+Approximate
+residual balance
+Inverse propensity
+weight
+AIPW
+Weighted elastic net
+TMLE elastic net
+Double selection
++ OLS
+
+6.625
+4.328
+3.960
+3.832
+
+7.119
+1.058
+1.179
+0.423
+
+3.557
+2.190
+2.130
+1.854
+
+3.924
+0.665
+0.686
+0.320
+
+1.257
+0.716
+0.789
+0.495
+
+1.256
+0.350
+0.362
+0.213
+
+0.711
+0.237
+0.464
+0.185
+
+0.722
+0.204
+0.316
+0.165
+
+5.341
+
+3.094
+
+2.866
+
+1.707
+
+1.026
+
+0.596
+
+0.586
+
+0.398
+
+4.082
+4.086
+3.811
+6.625
+
+0.618
+0.562
+0.591
+0.620
+
+2.031
+1.984
+1.843
+3.540
+
+0.415
+0.385
+0.399
+0.430
+
+0.607
+0.575
+0.495
+0.525
+
+0.242
+0.232
+0.239
+0.233
+
+0.209
+0.207
+0.192
+0.254
+
+0.166
+0.171
+0.165
+0.165
+
+†We used n = 500 and p = 2000 and scaled the signal such that β2 = 2. All numbers are averaged over 400
+simulation replications.
+
+the square-root lasso (Belloni et al., 2011). However, in our simulations, our implementation
+of Belloni et al. (2014) still attains excellent performance in the regimes that the method is
+designed to work in. Similarly, our conﬁdence intervals for τ are built by using a cross-validated
+choice of λ instead of the ﬁxed choice that is assumed by corollary 3. Our implementation
+of approximate residual balancing, as well as all the discussed baselines, is available in the R
+package balanceHD.
+5.2. Simulation designs
+We consider ﬁve different simulation settings. Our ﬁrst setting is a two-cluster lay-out, with data
+drawn as Yi = .Ci + Zi /β + Wi + "i . Here, Wi = Bernoulli.0:5/, Zi ∼ N .0, Ip×p /, "i ∼ N .0, 1/
+and Ci ∈ Rp is a cluster centre that is one of Ci ∈ {0, δ}, such that P.Ci = 0|Wi = 0/ = 0:8 and
+P.Ci = 0|Wi = 1/ = 0:2.
+vector δ: a ‘dense’
+√
+√ We consider two settings for the between-cluster
+setting where δ = .4= n/1, and a ‘sparse’ setting where δj = .40= n/1.{j = 1 mod 10}/. Our
+second many-cluster lay-out is closely related to the ﬁrst, except now we have 20 cluster centres
+Ci ∈ {c1 , : : : , c20 }, where all the cluster centres are independently generated as ck ∼ N .0, Ip×p /.
+To generate the data, we ﬁrst draw Ci uniformly at random from one of the 20 cluster centres
+and then set Wi = 1 with probability η for the ﬁrst 10 clusters and Wi = 1 with probability 1 − η
+for the last 10 clusters; we tried both η = 0:1 and η = 0:25. We illustrate this simulation concept
+in Fig. 2(a). In both cases, we chose β as one of dense,
+√
+√
+β ∝ .1, 1= 2, : : : , 1= p/,
+harmonic,
+β ∝ .1=10, 1=11, : : : , 1=.p + 9//,
+moderately sparse,
+
+Approximate Residual Balancing
+Table 2.
+
+Root-mean-squared error
+
+p
+
+E[.τˆ  τ /2 ] in the many-cluster setting†
+
+Method
+
+Results for the following experiments:
+Beta model
+dense
+
+Naive
+Elastic net
+Approximate balance
+Approximate
+residual balance
+Inverse propensity weight
+AIPW
+Weighted elastic net
+TMLE elastic net
+Double selection + OLS
+
+617
+
+Beta model
+harmonic
+
+Beta model
+moderately sparse
+
+Beta model
+very sparse
+
+Overlap
+(η) 0.1
+
+Overlap
+(η) 0.25
+
+Overlap
+(η) 0.1
+
+Overlap
+(η) 0.25
+
+Overlap
+(η) 0.1
+
+Overlap
+(η) 0.25
+
+Overlap
+(η) 0.1
+
+Overlap
+(η) 0.25
+
+4.921
+2.527
+2.575
+2.123
+
+3.283
+1.353
+1.324
+1.172
+
+5.100
+1.618
+2.505
+1.528
+
+3.231
+0.869
+1.379
+0.866
+
+4.776
+0.727
+2.567
+0.653
+
+3.270
+0.385
+1.248
+0.383
+
+5.078
+0.168
+2.434
+0.158
+
+3.348
+0.108
+1.396
+0.105
+
+2.626
+2.102
+2.061
+2.095
+2.726
+
+1.983
+1.233
+1.176
+1.208
+1.526
+
+2.625
+1.515
+1.576
+1.500
+3.364
+
+1.943
+0.852
+0.862
+0.847
+1.840
+
+2.586
+0.656
+0.727
+0.656
+2.201
+
+1.896
+0.376
+0.388
+0.375
+1.092
+
+2.568
+0.154
+0.194
+0.163
+0.211
+
+2.000
+0.103
+0.108
+0.103
+0.114
+
+†We used n = 800 and p = 4000 and scaled the signal such that β2 = 3. All numbers are averaged over 400
+simulation replications.
+
+β ∝ .10, : : : , 10 , 1, : : : , 1 , 0, : : : , 0/,
+        
+10
+
+p−100
+
+90
+
+or very sparse,
+β ∝ .1, : : : , 1 , 0, : : : , 0/:
+     
+10
+
+p−10
+
+The signal strength was scaled such that β2 is a two-cluster layout and β2 = 3 in the manycluster layout.
+Our next two simulations are built by using more traditional structural models. We ﬁrst
+consider a sparse two-stage setting closely inspired by an experiment of Belloni et al. (2014). Here
+Xi ∼ N .0, Σ/ with Σij = ρ|i−j| , and θi = Xi βW + "i1 . Then, Wi ∼ Bernoulli[1={1 + exp .θi /}], and
+ﬁnally Yi = Xi βY + 0:5Wi + "i2 where "i1 and "i2 are independent standard Gaussian. Following
+Belloni et al. (2014), we set the structure model as .βY /j ∝ 1=j 2 for j = 1, : : : , p; for the propensity
+model, we consider both a √
+‘very sparse’ propensity model .βW /j ∝ 1=j 2 , and also a ‘dense’
+propensity model .βW /j ∝ 1= j. A potential criticism of this simulation design is that the signal
+is perhaps unusually sparse (in the ﬁfth column of Table 3, adjusting for differences in the two
+most important covariates removes 93% of the bias that is associated with all the covariates);
+moreover, we note that all the important coefﬁcients of both βY and βW are close to each
+other in terms of their indices; thus, the effect of using a correlated design may be mitigated.
+Thus, we also ran a moderately sparse two-stage simulation, just like that above one, except
+that we now used choices for βY as above, the only difference being that we shifted the indices
+of the βs, multiplying them by 23 mod p (for example, the harmonic set-up now has .β/j ∝
+1=[10 + {23.j − 1/ mod p}]). Here, we drew the treatment assignments from a well-speciﬁed
+logistic model, Wi ∼ Bernoulli[1={1 + exp.−Σ100
+j=1 Xij =40/}].
+To test the robustness of all the methods considered, we also ran a misspeciﬁed simulation. Here, we ﬁrst drew Xi ∼ N .0, Ip×p /, and deﬁned latent parameters θi = log[1 + exp{−2 −
+
+618
+Table 3.
+
+S. Athey, G. W. Imbens and S. Wager
+Root-mean-squared error
+
+p
+
+E[.τˆ  τ /2 ] in the sparse two-stage setting†
+
+Method
+
+Results for the following experiments:
+Propensity model sparse
+
+Propensity model dense
+
+First-stage signal
+First-stage signal
+First-stage signal
+First-stage signal
+strength βW 2 = 1 strength βW 2 = 4 strength βW 2 = 1 strength βW 2 = 4
+Structure Structure Structure Structure Structure Structure Structure Structure
+signal
+signal
+signal
+signal
+signal
+signal
+signal
+signal
+strength strength strength strength strength strength strength strength
+(βY 2 ) 1 (βY 2 ) 4 (βY 2 ) 1 (βY 2 ) 4 (βY 2 ) 1 (βY 2 ) 4 (βY 2 ) 1 (βY 2 ) 4
+Naive
+Elastic net
+Approximate balance
+Approximate
+residual balance
+Inverse propensity
+weight
+AIPW
+Weighted elastic net
+TMLE elastic net
+Double selection + OLS
+
+0.963
+0.277
+0.195
+0.109
+
+3.796
+0.246
+0.662
+0.102
+
+1.701
+0.648
+0.585
+0.287
+
+6.804
+0.619
+2.313
+0.326
+
+0.535
+0.202
+0.198
+0.107
+
+2.129
+0.279
+0.731
+0.138
+
+0.784
+0.307
+0.260
+0.134
+
+3.130
+0.433
+0.987
+0.192
+
+0.484
+
+1.876
+
+0.932
+
+3.722
+
+0.301
+
+1.191
+
+0.421
+
+1.651
+
+0.164
+0.174
+0.161
+0.081
+
+0.151
+0.163
+0.149
+0.077
+
+0.374
+0.686
+0.234
+0.115
+
+0.384
+0.708
+0.227
+0.123
+
+0.130
+0.132
+0.122
+0.092
+
+0.188
+0.193
+0.175
+0.093
+
+0.181
+0.201
+0.355
+0.190
+
+0.258
+0.300
+0.389
+0.194
+
+†We used n = 1000, p = 2000 and ρ = 0:5. All numbers are averaged over 400 simulation replications.
+
+2.Xi /1 }]=0:915. We then drew Wi ∼ Bernoulli{1 − exp.−θi /}, and ﬁnally Yi = .Xi /1 +: : : +
+.Xi /10 + θi .2Wi − 1/=2 + "i with "i ∼ N .0, 1/. We varied n and p. This simulation setting, loosely
+inspired by the classic programme evaluation data set of LaLonde (1986), is illustrated in Fig.
+2(b); note that the average treatment effect on the treated is much greater than the overall average
+treatment effect here.
+5.3. Results
+In the ﬁrst two experiments, for which we report results in Tables 1 and 2, the outcome model
+Y |X is reasonably sparse, whereas the propensity model has overlap but is not in general sparse.
+In relative terms, this appears to hurt the double-selection method most. Meanwhile, in Table
+3, we ﬁnd that the method of Belloni et al. (2014) has excellent performance—as expected—
+when both the propensity and the outcome models are sparse. However, if we make the problem
+somewhat more difﬁcult (Table 4), its performance decays substantially, and double selection
+lags both the approximate residual balancing and the propensity-based methods in its performance.
+Generally, we ﬁnd that the balancing performs substantially better than propensity score
+weighting, with or without direct covariate adjustment. We also ﬁnd that combining direct
+covariate adjustment with weighting does better than weighting on its own, irrespectively of
+whether the weighting is based on balance or on the propensity score. In these experiments, the
+weighted elastic net and TMLE also somewhat improve over AIPW.
+Encouragingly, approximate residual balancing also does a good job in the misspeciﬁed setting
+from Table 5. It appears that our stipulation that the approximately balancing weights (5) must
+
+Approximate Residual Balancing
+Table 4.
+
+Root-mean-squared error
+
+p
+
+619
+
+E[.τˆ  τ /2 ] in the moderately sparse two-stage setting†
+
+Method
+
+Results for the following experiments:
+Beta model
+dense
+
+Beta model
+harmonic
+
+Beta model
+moderately sparse
+
+Beta model
+very sparse
+
+AutoAutoAutoAutoAutoAutoAutoAutocovariance covariance covariance covariance covariance covariance covariance covariance
+(ρ) 0.5
+(ρ) 0.9
+(ρ) 0.5
+(ρ) 0.9
+(ρ) 0.5
+(ρ) 0.9
+(ρ) 0.5
+(ρ) 0.9
+Naive
+Elastic net
+Approximate balance
+Approximate
+residual balance
+Inverse propensity
+weight
+AIPW
+Weighted elastic net
+TMLE elastic net
+Double selection
++ OLS
+
+1.236
+1.075
+1.153
+0.994
+
+2.659
+1.235
+1.125
+1.146
+
+1.088
+0.631
+1.034
+0.614
+
+1.938
+0.597
+0.994
+0.554
+
+0.951
+0.225
+0.921
+0.219
+
+1.096
+0.132
+0.717
+0.131
+
+0.814
+0.098
+0.827
+0.109
+
+0.814
+0.096
+0.569
+0.100
+
+1.236
+
+2.645
+
+1.084
+
+1.932
+
+0.950
+
+1.091
+
+0.814
+
+0.813
+
+1.082
+1.089
+1.065
+1.312
+
+1.231
+1.234
+1.233
+2.659
+
+0.629
+0.624
+0.629
+1.064
+
+0.597
+0.597
+0.597
+1.938
+
+0.224
+0.225
+0.225
+0.629
+
+0.132
+0.132
+0.132
+0.204
+
+0.098
+0.099
+0.099
+0.092
+
+0.096
+0.096
+0.096
+0.097
+
+†We used n = 600, p = 2000 and scaled the signal such that β2 = 1. All numbers are averaged over 400 simulation
+replications.
+Table 5.
+
+Root-mean-squared error
+
+p
+
+E[.τˆ  τ /2 ] in the misspecified setting†
+
+Method
+
+Results for the following experiments:
+n = 400
+
+n = 1000
+
+p = 100 p = 200 p = 400 p = 800 p = 1600 p = 100 p = 200 p = 400 p = 800 p = 1600
+Naive
+Elastic net
+Approximate balance
+Approximate
+residual balance
+Inverse propensity weight
+AIPW
+Weighted elastic net
+TMLE elastic net
+Double selection + OLS
+
+1.734
+0.446
+0.523
+0.249
+
+1.738
+0.468
+0.582
+0.276
+
+1.734
+0.492
+0.609
+0:270
+
+1.736
+0.517
+0.656
+0.295
+
+1.747
+0.540
+0.700
+0.310
+
+1.724
+0.376
+0.297
+0.168
+
+1.679
+0.380
+0.327
+0.175
+
+1.706
+0.389
+0.379
+0.176
+
+1.698
+0.401
+0.395
+0.179
+
+1.720
+0.413
+0.464
+0.194
+
+1.060
+0.340
+0.313
+0.347
+0.285
+
+1.081
+0.359
+0.338
+0.365
+0.292
+
+1.111
+0.377
+0.355
+0.381
+0.301
+
+1.154
+0.406
+0.385
+0.407
+0.320
+
+1.189
+0.425
+0.412
+0.428
+0.339
+
+0.831
+0.249
+0.204
+0.273
+0.250
+
+0.831
+0.254
+0.209
+0.275
+0.250
+
+0.874
+0.261
+0.220
+0.282
+0.246
+
+0.875
+0.266
+0.221
+0.286
+0.244
+
+0.940
+0.285
+0.249
+0.301
+0.246
+
+†All numbers are averaged over 400 simulation replications.
+
+be non-negative (i.e. γi  0) helps to prevent our method from extrapolating too aggressively.
+Conversely, least squares with model selection does not perform well although both the outcome
+and the propensity models are sparse; apparently, it is more sensitive to the misspeciﬁcation here.
+Perhaps the reason that AIPW and TMLE do not do as well here is that there are very strong
+linear effects.
+
+620
+
+S. Athey, G. W. Imbens and S. Wager
+Table 6. Coverage for approximate residual balancing confidence intervals as constructed
+in corollary 3, with data generated as in the many-cluster setting†
+n
+
+400
+400
+400
+800
+800
+800
+1600
+1600
+1600
+
+p
+
+800
+1600
+3200
+800
+1600
+3200
+800
+1600
+3200
+
+Results for βj ∝ 1({ j  10 } )
+
+Results for βj ∝ 1=j 2
+
+Results for βj ∝ 1=j
+
+η = 0.25
+
+η = 0.1
+
+η = 0.25
+
+η = 0.1
+
+η = 0.25
+
+η = 0.1
+
+0.95
+0.92
+0.90
+0.94
+0.95
+0.94
+0.96
+0.95
+0.95
+
+0.87
+0.87
+0.82
+0.92
+0.92
+0.90
+0.94
+0.93
+0.92
+
+0.97
+0.94
+0.94
+0.97
+0.97
+0.95
+0.96
+0.98
+0.96
+
+0.88
+0.89
+0.86
+0.92
+0.92
+0.91
+0.94
+0.94
+0.95
+
+0.87
+0.88
+0.86
+0.95
+0.91
+0.91
+0.97
+0.97
+0.94
+
+0.70
+0.72
+0.71
+0.85
+0.83
+0.79
+0.93
+0.91
+0.90
+
+†We scaled the signal such that β2 = 3. The target coverage is 0.95. All numbers are averaged
+over 1000 simulation replications.
+
+We evaluate coverage of conﬁdence intervals in the ‘many-cluster’ setting for various choices
+of β, n and p; results are given in Table 6. Coverage is generally better with more overlap
+(η = 0:25) rather than less (η = 0:1), and with sparser choices of β. Moreover, coverage rates
+appear to improve as n increases, suggesting that we are in a regime where the asymptotics from
+corollary 3 are beginning to apply.
+6.
+
+Discussion
+
+In this paper, we introduced approximate residual balancing as a method for unconfounded average treatment effect estimation in high dimensional linear models. Under
+√ standard assumptions
+from the high dimensional inference literature, our method enables n-consistent inference of
+the average treatment effect without any structural assumptions on the treatment assignment
+mechanism beyond overlap.
+Widely used doubly robust methods, pioneered by Robins et al. (1994) and studied further by
+several researchers (e.g. Belloni et al. (2017), Farrell (2015), Kang and Schafer (2007), Scharfstein et al. (1999), Robins et al. (2007), Tan (2010) and Van Der Laan and Rubin (2006))
+approach this problem by trying to estimate two nuisance components, the outcome model and
+the propensity model. These methods then achieve consistency if either nuisance component is
+itself consistently estimated, and they achieve semiparametric efﬁciency if both components are
+estimated sufﬁciently fast. In contrast, our method ‘bets’ on linearity twice: both in ﬁtting the
+lasso and in attempting to balance away its bias. In√well-speciﬁed linear models, this bet allows
+us to extend the class of problems considerably for n-consistent inference of average treatment
+effects is possible; thus, if a practitioner believes linearity to be a reasonable assumption in a
+given problem, our estimator may be a promising choice.
+We end by mentioning two important questions that are left open by this paper. First, it would
+be important to develop a better understanding of how to choose the tuning parameter ζ in
+expression (5) that trades off bias and variance in our balancing. Results from theorems 1 and 2
+provide some guidance on choosing ζ (via a constraint form characterization); however, in our
+experiments, we achieved good performance by simply setting ζ = 21 everywhere. The difﬁculty in
+choosing ζ is that we are trying to trade off an observable quantity (sampling variance) against an
+
+Approximate Residual Balancing
+
+621
+
+unobservable quantity (residual bias) and so cannot rely on simple methods like cross-validation
+that require unbiased estimates of the loss criterion that we are trying to minimize. It would be
+of considerable interest either to devise a data-adaptive choice for ζ, or to understand why a
+ﬁxed choice ζ = 21 appears to achieve systematically good performance.
+It would also be interesting to extend our approach to generalized linear models, where there is
+a non-linear link function ψ for which E[Yi .c/|Xi = x] = ψ.xβc /. In causal inference applications,
+this setting frequently arises when the outcomes Yiobs are binary, and we are willing to work
+with a logistic regression model. In this case, the ﬁrst-order error component from using a pilot
+estimator β̂ c for estimating μc with a plug-in estimator n−1
+c Σ{Wi =1} ψ.Xi β̂ c / would be of the
+
+form n−1
+c Σ{Wi =1} ψ .Xi β̂ c /Xi .βc − β̂ c /. An analogue to proposition 1 then suggests using an
+estimator
+
+1 
+ψ.Xi β̂ c / +
+γi {Yiobs − ψ.Xi β̂ c /},
+nc {Wi =1}
+{Wi =0}
+2
+ 
+1 
+
+
+
+
+
+γ = arg min ζ 
+ψ .Xi β̂ c /Xi −
+γ̃ i ψ .Xi β̂ c /Xi 
+
+nt {Wi =1}
+γ̃
+∞
+{Wi =0}
+μ̂c =
+
++ .1 − ζ/
+
+
+{Wi =0}
+
+γ̃ 2i ψ  .Xi β̂ c / subject to
+
+
+{Wi =0}
+
+:
+γ̃ i = 1, 0  γ̃ i  n−2=3
+c
+
+.22/
+
+However, for brevity, we leave a study of this estimator to further work.
+Acknowledgements
+We are grateful for detailed comments from Jelena Bradic, Edgar Dobriban, Bryan Graham,
+Chris Hansen, Nishanth Mundru, Jamie Robins and José Zubizarreta, and for discussions
+with seminar participants at the Atlantic Causal Inference Conference, Boston University, the
+Columbia Causal Inference Conference, Columbia University, Cowles Foundation, the Econometric Society Winter Meeting, the Evidence in Governance and Politics standards meeting,
+the European Meeting of Statisticians, the International Conference on Machine Learning,
+the Institute for Operations Research and the Management Sciences, Stanford University, the
+University of North Carolina at Chapel Hill, University of Southern California and the World
+Statistics Congress.
+References
+Abadie, A. and Imbens, G. W. (2006) Large sample properties of matching estimators for average treatment effects.
+Econometrica, 74, 235–267.
+Belloni, A., Chernozhukov, V., Fernández-Val, I. and Hansen, C. (2017) Program evaluation and causal inference
+with high-dimensional data. Econometrica, 85, 233–298.
+Belloni, A., Chernozhukov, V. and Hansen, C. (2014) Inference on treatment effects after selection among highdimensional controls. Rev. Econ. Stud., 81, 608–650.
+Belloni, A., Chernozhukov, V. and Wang, L. (2011) Square-root lasso: pivotal recovery of sparse signals via conic
+programming. Biometrika, 98, 791–806.
+Bickel, P. J., Ritov, Y. and Tsybakov, A. B. (2009) Simultaneous analysis of lasso and Dantzig selector. Ann.
+Statist., 37, 1705–1732.
+Bogdan, M., van den Berg, E., Sabatti, C., Su, W. and Candès, E. J. (2015) SLOPE: adaptive variable selection
+via convex optimization. Ann. Appl. Statist., 9, 1103–1140.
+Cai, T. T. and Guo, Z. (2017) Conﬁdence intervals for high-dimensional linear regression: minimax rates and
+adaptivity. Ann. Statist., 45, 615–646.
+Cassel, C. M., Särndal, C. E. and Wretman, J. H. (1976) Some results on generalized difference estimation and
+generalized regression estimation for ﬁnite populations. Biometrika, 63, 615–620.
+
+622
+
+S. Athey, G. W. Imbens and S. Wager
+
+Chan, K. C. G., Yam, S. C. P. and Zhang, Z. (2016) Globally efﬁcient non-parametric inference of average treatment
+effects by empirical balancing calibration weighting. J. R. Statist. Soc. B, 78, 673–700.
+Chen, S. S., Donoho, D. L. and Saunders, M. A. (1998) Atomic decomposition by basis pursuit. SIAM J. Scient.
+Comput., 20, 33–61.
+Chen, X., Hong, H. and Tarozzi, A. (2008) Semiparametric efﬁciency in GMM models with auxiliary data. Ann.
+Statist., 36, 808–843.
+Chernozhukov, V., Chetverikov, D., Demirer, M., Duﬂo, E., Hansen, C., Newey, W. and Robins, J. (2017) Double/debiased machine learning for treatment and structural parameters. Econmetr. J., to be published.
+Crump, R. K., Hotz, V. J., Imbens, G. W. and Mitnik, O. A. (2009) Dealing with limited overlap in estimation of
+average treatment effects. Biometrika, 96, 187–199.
+Deville, J.-C. and Särndal, C.-E. (1992) Calibration estimators in survey sampling. J. Am. Statist. Ass., 87, 376–
+382.
+Farrell, M. H. (2015) Robust inference on average treatment effects with possibly more covariates than observations. J. Econmetr., 189, 1–23.
+Friedman, J., Hastie, T. and Tibshirani, R. (2010) Regularization paths for generalized linear models via coordinate
+descent. J. Statist. Softwr., 33, 1–22.
+Graham, B., Pinto, C. and Egel, D. (2012) Inverse probability tilting for moment condition models with missing
+data. Rev. Econ. Stud., 79, 1053–1079.
+Graham, B., Pinto, C. and Egel, D. (2016) Efﬁcient estimation of data combination models by the method of
+auxiliary-to-study tilting (AST). J. Bus. Econ. Statist., 34, 288–301.
+Hahn, J. (1998) On the role of the propensity score in efﬁcient semiparametric estimation of average treatment
+effects. Econometrica, 66, 315–331.
+Hainmueller, J. (2012) Entropy balancing for causal effects: a multivariate reweighting method to produce balanced
+samples in observational studies. Polit. Anal., 20, 25–46.
+Hastie, T., Tibshirani, R. and Wainwright, M. (2015) Statistical Learning with Sparsity: the Lasso and Generalizations. Boca Raton: CRC.
+Heckman, J. J., Ichimura, H. and Todd, P. (1998) Matching as an econometric evaluation estimator. Rev. Econ.
+Stud., 65, 261–294.
+Hellerstein, J. and Imbens, G. (1999) Imposing moment restrictions by weighting. Rev. Econ. Statist., 81, 1–14.
+Hirano, K., Imbens, G. W. and Ridder, G. (2003) Efﬁcient estimation of average treatment effects using the
+estimated propensity score. Econometrica, 71, 1161–1189.
+Hirano, K., Imbens, G., Ridder, G. and Rubin, D. (2001) Combining panels with attrition and refreshment
+samples. Econometrica, 69, 1645–1659.
+Hirshberg, D. A. and Wager, S. (2017) Balancing out regression error: efﬁcient treatment effect estimation without
+smooth propensities. Preprint arXiv:1712.00038. Columbia University, New York.
+Hotz, V. J., Imbens, G. W. and Klerman, J. A. (2006) Evaluating the differential effects of alternative welfare-towork training components: a reanalysis of the California GAIN program. J. Lab. Econ., 24, 521–566.
+Imai, K. and Ratkovic, M. (2014) Covariate balancing propensity score. J. R. Statist. Soc. B, 76, 243–263.
+Imbens, G. W. and Rubin, D. B. (2015) Causal Inference in Statistics, Social, and Biomedical Sciences. New York:
+Cambridge University Press.
+Imbens, G., Spady, R. and Johnson, P. (1998) Information theoretic approaches to inference in moment condition
+models. Econometrica, 66, 333–357.
+Javanmard, A. and Montanari, A. (2014) Conﬁdence intervals and hypothesis testing for high-dimensional regression. J. Mach. Learn. Res., 15, 2869–2909.
+Javanmard, A. and Montanari, A. (2015) De-biasing the lasso: optimal sample size for Gaussian designs. Preprint
+arXiv:1508.02757. Marshall School of Business, University of Southern California, Los Angeles.
+Kang, J. and Schafer, J. (2007) Demystifying double robustness: a comparison of alternative strategies for estimating a population mean from incomplete data. Statist. Sci., 22, 523–529.
+LaLonde, R. J. (1986) Evaluating the econometric evaluations of training programs with experimental data. Am.
+Econ. Rev., 76, 604–620.
+McCaffrey, D. F., Ridgeway, G. and Morral, A. R. (2004) Propensity score estimation with boosted regression
+for evaluating causal effects in observational studies. Psychol. Meth., 9, 403–425.
+MOSEK (2015) MOSEK Rmosek Package. MOSEK, Copenhagen. (Available from http://docs.mos
+ek.com/8.0/rmosek.pdf.)
+Newey, W. K. and Smith, R. J. (2004) Higher order properties of GMM and generalized empirical likelihood
+estimators. Econometrica, 72, 219–255.
+Ning, Y. and Liu, H. (2017) A general theory of hypothesis tests and conﬁdence regions for sparse high dimensional
+models. Ann. Statist., 45, 158–195.
+Robins, J., Li, L., Mukherjee, R., Tchetgen Tchetgen, E. and van der Vaart, A. (2017) Minimax estimation of a
+functional on a structured high dimensional model. Ann. Statist., 45, 1951–1987.
+Robins, J. M. and Ritov, Y. (1997) Toward a curse of dimensionality appropriate (CODA) asymptotic theory for
+semi-parametric models. Statist. Med., 16, 285–319.
+Robins, J. and Rotnitzky, A. (1995) Semiparametric efﬁciency in multivariate regression models with missing data.
+J. Am. Statist. Ass., 90, 122–129.
+
+Approximate Residual Balancing
+
+623
+
+Robins, J. M., Rotnitzky, A. and Zhao, L. P. (1994) Estimation of regression coefﬁcients when some regressors
+are not always observed. J. Am. Statist. Ass., 89, 846–866.
+Robins, J., Rotnitzky, A. and Zhao, L. (1995) Analysis of semiparametric regression models for repeated outcomes
+in the presence of missing data. J. Am. Statist. Ass., 90, 106–121.
+Robins, J., Sued, M., Lei-Gomez, Q. and Rotnitzky, A. (2007) Comment: Performance of double-robust estimators
+when inverse probability weights are highly variable. Statist. Sci., 22, 544–559.
+Rosenbaum, P. R. (2002) Observational Studies. New York: Springer.
+Rosenbaum, P. R. and Rubin, D. B. (1983) The central role of the propensity score in observational studies for
+causal effects. Biometrika, 70, 41–55.
+Rubin, D. B. (1974) Estimating causal effects of treatments in randomized and nonrandomized studies. J. Educ.
+Psychol., 66, 688–701.
+Rubin, D. B. (2008) For objective causal inference, design trumps analysis. Ann. Appl. Statist., 2, 808–840.
+Rudelson, M. and Vershynin, R. (2013) Hanson-Wright inequality and sub-Gaussian concentration. Electron.
+Communs Probab., 18, 1–9.
+Rudelson, M. and Zhou, S. (2013) Reconstruction from anisotropic random measurements. IEEE Trans. Inform.
+Theory, 59, 3434–3447.
+Scharfstein, D. O., Rotnitzky, A. and Robins, J. M. (1999) Adjusting for nonignorable drop-out using semiparametric nonresponse models. J. Am. Statist. Ass., 94, 1096–1120.
+Su, W. and Candes, E. (2016) SLOPE is adaptive to unknown sparsity and asymptotically minimax. Ann. Statist.,
+44, 1038–1068.
+Tan, Z. (2010) Bounded, efﬁcient and doubly robust estimation with inverse weighting. Biometrika, 97, 661–
+682.
+Tibshirani, R. (1996) Regression shrinkage and selection via the lasso. J. R. Statist. Soc. B, 58, 267–288.
+Tsiatis, A. (2007) Semiparametric Theory and Missing Data. New York: Springer Science and Business Media.
+Van de Geer, S., Bühlmann, P., Ritov, Y. and Dezeure, R. (2014) On asymptotically optimal conﬁdence regions
+and tests for high-dimensional models. Ann. Statist., 42, 1166–1202.
+Van der Laan, M. J., Polley, E. C. and Hubbard, A. E. (2007) Super learner. Statist. Appl. Genet., Molec. Biol., 6,
+article 25.
+Van der Laan, M. J. and Rose, S. (2011) Targeted Learning: Causal Inference for Observational and Experimental
+Data. New York: Springer Science and Business Media.
+Van der Laan, M. J. and Rubin, D. (2006) Targeted maximum likelihood learning. Int. J. Biostatist., 2, no. 1.
+Wager, S., Du, W., Taylor, J. and Tibshirani, R. J. (2016) High-dimensional regression adjustments in randomized
+experiments. Proc. Natn. Acad. Sci. USA, 113, 12673–12678.
+Wang, Y. and Zubizarreta, J. R. (2017) Approximate balancing weights: characterizations from a shrinkage estimation perspective. Preprint arXiv:1705.00998. Columbia University, New York.
+Westreich, D., Lessler, J. and Funk, M. J. (2010) Propensity score estimation: neural networks, support vector
+machines, decision trees (CART), and meta-classiﬁers as alternatives to logistic regression. J. Clin. Epidem., 63,
+826–833.
+Zhang, C.-H. and Zhang, S. S. (2014) Conﬁdence intervals for low dimensional parameters in high dimensional
+linear models. J. R. Statist. Soc. B, 76, 217–242.
+Zhao, Q. (2016) Covariate balancing propensity score by tailored loss functions. Preprint arXiv:1601.05890.
+University of Pennsylvania, Philadelphia.
+Zhao, Q. and Percival, D. (2017) Entropy balancing is doubly robust. J. Causl Inf., 5, no. 1.
+Zhu Y. and Bradic, J. (2016) Linear hypothesis testing in dense high-dimensional linear models. J. Am. Statist.
+Ass., to be published.
+Zou, H. and Hastie, T. (2005) Regularization and variable selection via the elastic net. J. R. Statist. Soc. B, 67,
+301–320.
+Zubizarreta, J. R. (2015) Stable weights that balance covariates for estimation with incomplete outcome data. J.
+Am. Statist. Ass., 110, 910–922.
+
+Supporting information
+Additional ‘supporting information’ may be found in the on-line version of this article:
+‘Proofs’.
+
+

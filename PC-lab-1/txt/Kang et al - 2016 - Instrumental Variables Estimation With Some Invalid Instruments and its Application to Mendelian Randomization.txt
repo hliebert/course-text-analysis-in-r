@@ -1,0 +1,1750 @@
+Journal of the American Statistical Association
+
+ISSN: 0162-1459 (Print) 1537-274X (Online) Journal homepage: https://www.tandfonline.com/loi/uasa20
+
+Instrumental Variables Estimation With Some
+Invalid Instruments and its Application to
+Mendelian Randomization
+Hyunseung Kang, Anru Zhang, T. Tony Cai & Dylan S. Small
+To cite this article: Hyunseung Kang, Anru Zhang, T. Tony Cai & Dylan S. Small (2016)
+Instrumental Variables Estimation With Some Invalid Instruments and its Application to Mendelian
+Randomization, Journal of the American Statistical Association, 111:513, 132-144, DOI:
+10.1080/01621459.2014.994705
+To link to this article: https://doi.org/10.1080/01621459.2014.994705
+
+View supplementary material
+
+Accepted author version posted online: 22
+Jan 2015.
+Published online: 05 May 2016.
+
+Submit your article to this journal
+
+Article views: 1953
+
+View related articles
+
+View Crossmark data
+
+Citing articles: 57 View citing articles
+
+Full Terms & Conditions of access and use can be found at
+https://www.tandfonline.com/action/journalInformation?journalCode=uasa20
+
+Supplementary materials for this article are available online. Please go to www.tandfonline.com/r/JASA
+
+Instrumental Variables Estimation With Some Invalid
+Instruments and its Application to Mendelian
+Randomization
+Hyunseung KANG, Anru ZHANG, T. Tony CAI, and Dylan S. SMALL
+Instrumental variables have been widely used for estimating the causal effect between exposure and outcome. Conventional estimation
+methods require complete knowledge about all the instruments’ validity; a valid instrument must not have a direct effect on the outcome
+and not be related to unmeasured confounders. Often, this is impractical as highlighted by Mendelian randomization studies where genetic
+markers are used as instruments and complete knowledge about instruments’ validity is equivalent to complete knowledge about the
+involved genes’ functions. In this article, we propose a method for estimation of causal effects when this complete knowledge is absent.
+It is shown that causal effects are identified and can be estimated as long as less than 50% of instruments are invalid, without knowing
+which of the instruments are invalid. We also introduce conditions for identification when the 50% threshold is violated. A fast penalized
+1 estimation method, called sisVIVE, is introduced for estimating the causal effect without knowing which instruments are valid, with
+theoretical guarantees on its performance. The proposed method is demonstrated on simulated data and a real Mendelian randomization
+study concerning the effect of body mass index(BMI) on health-related quality of life (HRQL) index. An R package sisVIVE is available on
+CRAN. Supplementary materials for this article are available online.
+KEY WORDS:
+
+Body mass index; Causal inference; Health-related quality of life; Instrumental variable; 1 penalization; Pleiotropy.
+
+1. INTRODUCTION
+Instrumental variables (IV) is a popular method for estimating the causal effect of an exposure on an outcome when there is
+unmeasured confounding. Conventional IV estimation methods
+require that the instruments are valid, or informally speaking,
+that the instruments are (A1) related to the exposure (A2) have
+no direct pathway to the outcome and (A3) are not related to
+unmeasured variables that affect the exposure and the outcome
+(see Figure 1 and Section 2 for a formal definition of valid IVs).
+For example, Figure 1 is an illustration of the IV assumptions
+and one potential violation of the IV assumptions (see, Hernán
+and Robins 2006 for details on other possible violations). Here,
+the IV is a genetic marker that is a single nucleotide polymorphism (SNP) whose value is fixed at birth and the unmeasured
+variables refer to variables that precede the assignment of the
+genetic marker, such as population stratification (to be discussed
+later). The challenge in IV estimation is to find valid instruments
+that satisfy assumptions (A1)–(A3). Unfortunately, this is a difficult task, especially in the case of Mendelian randomization
+(MR).
+In MR, the goal is to estimate the causal effect of an exposure
+on an outcome by using genetic markers, specifically SNPs,
+as instruments (Davey Smith and Ebrahim 2003, 2004; Lawlor
+et al. 2008; Wehby, Ohsfeldt, and Murray 2008). For example,
+Timpson et al. (2005) studied the causal effect of C-reactive
+protein (CRP), the exposure, on various metabolic outcomes,
+
+Hyunseung Kang is Ph.D. student (E-mail: khyuns@wharton.upenn.edu);
+Anru Zhang is Ph.D. student (E-mail: anrzhang@wharton.upenn.edu),
+T. Tony Cai is Dorothy Silberberg Professor of Statistics (E-mail:
+tcai@wharton.upenn.edu), and Dylan S. Small is Professor (E-mail: dsmall@wharton.upenn.edu), Department of Statistics, Jon M. Huntsman Hall,
+The Wharton School, University of Pennsylvania, 3730 Walnut Street, Philadelphia, PA 19104. The research of Tony Cai and Anru Zhang was supported in
+part by NSF FRG Grant DMS-0854973, NSF Grant DMS-1208982 and NIH
+Grant R01 CA127334-05. The research of Hyunseung Kang and Dylan Small
+was supported in part by NSF Grant SES-1260782. The authors thank Jack
+Bowden, two referees, and the associate editor for helpful suggestions.
+
+such as body mass index (BMI) and cholesterol biomarkers
+(e.g., tryglycerides), using four haplotypes constructed from
+three SNPs (rs1800947, rs1130864, rs1205) as instruments. The
+instruments have been previously associated with plasma CRP
+levels, thereby agreeing with (A1). However, agreement with
+(A2) and (A3) is less certain. As the authors of the study noted,
+it is plausible that one or more of the genes that contain the
+SNPs, rs1800947, rs1130864, and rs1205, may have multiple
+functions, known as pleiotropy, where, in addition to changing
+CRP levels (the exposure), the gene containing one of these
+SNPs would change triglyceride levels or BMI (the outcome)
+and (A2) would not hold. Indeed, recent work by Martı́nezCalleja et al. (2012) suggested that one of the instruments used,
+rs1130864, is directly linked to BMI, one of the outcomes,
+raising doubts about causal estimates when this SNP is assumed
+to be a valid instrument.
+As another example, Katan (1986), in one of the first discussions of MR, proposed to estimate the causal effect of serum
+cholesterol level on cancer by using the apolipoprotein E polymorphism (APOE)’s effect on serum cholesterol levels. However, as Davey Smith and Ebrahim (2004) argued, the current
+knowledge about the APOE gene and its multiple pleiotropic
+effects on longevity, cholesterol biomarkers, and several other
+variables, would invalidate the APOE gene as a valid instrument, specifically due to its violation of (A2), and make an IV
+analysis based on it biased.
+Both examples highlight a fundamental limitation with MR
+studies. For one, pleiotropy and its impact on (A2) is a concern in most MR studies (Little and Khoury 2003; Davey Smith
+and Ebrahim 2003, 2004; Thomas and Conti 2004; Brennan
+2004; Lawlor et al. 2008). Lawlor et al. (2008) also list other
+biological phenomena associated with genetic instruments such
+
+132
+
+© 2016 American Statistical Association
+Journal of the American Statistical Association
+March 2016, Vol. 111, No. 513, Theory and Methods
+DOI: 10.1080/01621459.2014.994705
+
+Kang et al.: Instrumental Variables Estimation with Some Invalid Instruments and its Application to Mendelian Randomization
+
+Unmeasured
+variables
+
+(A3)
+
+Genec
+marker
+
+(A1)
+
+Exposure
+
+Outcome
+
+(A2)
+
+Figure 1. Diagram of one possible violation of instrumental variables assumptions. Arrows represent associations between variables.
+Absence of arrows indicates no relationship. Numbers (A1), (A2), and
+(A3) indicate different instrumental variables assumptions. In this example, the unmeasured variable refers to variables that precede the
+assignment of the genetic marker, such as population stratification, and
+the genetic marker is a single nucleotide polymorphism (SNP) whose
+value is fixed at birth. As such, the arrows from the unmeasured variable
+originate from the unmeasured variable and the arrow from the genetic
+marker goes from it to the outcome (A2) since the genetic marker is
+fixed at the time of conception.
+
+as linkage disequilibrium and population stratification that may
+violate (A2) and (A3). Unfortunately, verifying genetic instruments as valid IVs requires having complete knowledge of the
+instruments’ biological function and pleiotropic effects. As both
+examples highlight, the biological understanding of many genetic markers and their potential pleiotropic effects are typically
+incomplete at the time of the study (Solovieff et al. 2013). In
+the face of incomplete biological knowledge and possible instrument invalidity, can valid causal estimates be derived?
+Previous work in IV estimation in the presence of possibly
+invalid instruments is limited. Traditional instrumental variables
+literature has stated that to estimate the causal effect of an exposure on an outcome when there are unmeasured confounders,
+one needs to have at least one instrument that one knows is valid
+(Wooldridge 2010). Andrews (1999) considered the invalid instrument case in the general context of generalized method of
+moments (GMM) estimation common in econometrics and arrived at an identification result that is similar to our identification
+result in Theorem 1. The author also proposed an estimation
+strategy, called the moment selection criteria (MSC), to correctly select the valid instruments, which is similar to (8) in
+Section 3.2. Unfortunately, as we discuss in Section 3.2, MSC
+is computationally infeasible when the number of instruments
+are large. Kolesár et al. (2011) considered the possibility of
+identifying causal effects when all the instruments are invalid
+because of direct effects on the outcome. The authors showed
+that if the direct effects are orthogonal to the instruments’ effects on the treatment, then the causal effect can be identified.
+Kolesár et al. (2011) describes conditions under which this orthogonality is plausible. But, for MR, this stringent structure on
+the instruments would not hold in most cases as it would mean
+that the pleiotropic effects of the IVs are orthogonal to the effects of the IVs on the treatment. Gautier and Tsybakov (2011)
+analyzed instrumental variables regression in the presence of
+
+133
+
+possibly invalid instruments. However, for their procedure to
+work, one must have a predefined set of known valid instruments. Finally, Mealli and Pacini (2013) explored how using an
+auxiliary outcome can tighten bounds or provide identification
+of the effect of a treatment on a primary outcome when there is
+only one binary instrument that may violate (A2) by using an
+using auxiliary outcome. However, their work is different to our
+problem where we consider multiple candidate instruments.
+Our article adds to the prior literature as follows. First, we
+show that it is indeed possible to identify and estimate the causal
+effect without a known predefined set of valid instruments. In
+particular, under a weaker condition where the proportion of
+invalid instruments is strictly less than 50% of the total instruments, we show that identification and estimation is possible.
+For example, given four possible haplotypes/instruments in the
+previous example by Timpson et al. (2005), estimation of the
+causal effect of CRP on metabolic phenotypes is still possible
+if no more than one instrument is invalid, without knowing exactly which of the four is invalid. We also show conditions for
+identification when the 50% threshold may not hold.
+Second, we develop a fast 1 estimation procedure to estimate
+the causal effect of the exposure on the outcome in the presence
+of possibly invalid instruments. The procedure has provable theoretical guarantees on estimation performance and is computationally as fast as ordinary least squares (OLS). The procedure is
+implemented and available on CRAN as an R package sisVIVE,
+which stands for some invalid some valid IV estimator.
+Third, we conduct a simulation study that compares our
+method to two-stage least squares (TSLS), the most popular
+estimation procedure in IV estimation. We show that our procedure dominates TSLS when the instruments may be invalid.
+We also conduct a real MR study concerning the effect of BMI
+on health-related quality of life (HRQL) measure using our new
+method.
+2. CAUSAL MODEL AND INSTRUMENTAL
+VARIABLES
+2.1 Notation
+To define valid instruments, the potential outcomes approach
+(Neyman 1923; Rubin 1974) for instruments laid out in Holland
+(1988) is used. For each individual i ∈ {1, . . . , n}, let Yi(d,z) ∈ R
+be the potential outcome if the individual were to have exposure
+d ∈ R and instruments z ∈ RL . Let Di(z) ∈ R be the potential
+exposure if the individual had instruments z ∈ RL . For each
+individual, only one possible realization of Yi(d,z) and Di(z) is observed, denoted as Yi and Di , respectively, based on his observed
+instrument values Zi. ∈ RL and exposure Di . In total, n sets of
+outcome, exposure, and instruments, denoted as (Yi , Di , Zi. ),
+are observed in an iid fashion.
+We denote Y = (Y1 , . . . , Yn ) to be an n-dimensional vector of
+observed outcomes, D = (D1 , . . . , Dn ) to be an n-dimensional
+vector of observed exposures, and Z to be a n by L matrix of
+instruments where row i consists of Zi. .
+For any vector α ∈ RL , let αj denote the jth element of α.
+Let α1 , α2 , and α∞ be the usual 1, 2 and ∞-norms,
+respectively. Let α0 denote the 0-norm, that is the number of
+nonzero elements in α. The support of α, denoted as supp(α) ⊆
+{1, . . . , L}, is defined as the set containing the nonzero elements
+
+134
+
+Journal of the American Statistical Association, March 2016
+
+of the vector α, that is, j ∈ supp(α) if and only if αj = 0. A
+vector α is called s-sparse if it has no more than s nonzero
+entries. Also, for a vector α ∈ RL and set A ⊆ {1, . . . , L}, we
+denote α A ∈ RL to be the vector where all the elements except
+whose indices are in A are zero.
+For any n by L matrix M ∈ Rn×L , we denote the (i, j ) element
+of matrix M as Mij , the ith row as Mi. , and the jth column
+as M.j . Let MT be the transpose of M. Let PM be the n by
+n orthogonal projection matrix onto the column space of M,
+specifically PM = M(MT M)−1 MT ; it is assumed that MT M
+has a proper inverse, unless otherwise noted. Let PM⊥ be the
+residual projection matrix, specifically PM⊥ = I − PM where I
+is an n by n identity matrix.
+For any sets A ⊆ {1, . . . , L}, we denote AC to be the complement of set A. Also, we denote |A| to be the cardinality of
+set A.
+2.2 Model
+We consider the Additive LInear, Constant Effects (ALICE)
+model of Holland (1988) and extend it to allow for multiple valid
+and possibly invalid instruments as in Small (2007). Let d  , d ∈
+R be possible values of the exposure and z , z ∈ RL be possible
+values of the instruments. Let i = Yi(0,0) − E[Yi(0,0) |Zi. ] and
+the collection of i be denoted as  = (1 , . . . , n ). Suppose we
+have the following potential outcomes model for the outcome
+
+
+
+
+Yi(d ,z ) − Yi(d,z) = (z − z)T φ ∗ + (d  − d)β ∗
+E(Yi(0,0) |Zi. )
+
+=
+
+ZTi. ψ ∗ ,
+
+(1)
+(2)
+
+where φ ∗ , ψ ∗ ∈ RL , and β ∗ ∈ R are unknown parameters. In
+Equation (1), the parameter β ∗ represents the causal parameter
+of interest, the causal effect on the outcome of changing the
+exposure by one unit. Also in Equation (1), the parameter φ ∗
+represents the direct effect of the instruments on the outcome;
+changing instruments from z to z results in a direct effect on
+the outcome of (z − z)T φ ∗ . In Equation (2), the parameter ψ ∗
+represents the confounders that affect the instrument and the
+outcome. In particular, without any confounders, there should
+not be any relationship between the instruments Zi. and the potential outcome Yi(0,0) . Instead, in Equation (2), they are related
+via ψ ∗ .
+Let α ∗ = φ ∗ + ψ ∗ . When we combine Equations (1) and (2)
+along with the definition of i , we have the observed data model
+Yi = ZTi. α ∗ + Di β ∗ + i ,
+
+E(i |Zi. ) = 0.
+
+(3)
+
+We make the following remarks regarding the model (3). First,
+the model can include exogenous measured covariates, say Xi. ∈
+Rp which may include the intercept term, and we can replace
+the variables Yi , Di , and Zi. with the residuals after regressing
+them on X (e.g., replace Y by (I − PX )Y) where X is the n by
+p matrix of covariates (Wang and Zivot 1998). The results in
+this article will hold generally when working with such data
+that is transformed by regressing out the effect of X. In the
+same spirit, the model can be extended to nonlinear models by
+including appropriate basis transformations of Zi. . However, for
+simplicity of exposition, we will focus on a model without any
+measured covariates or nonlinear terms. We will also assume
+that Y, D, and the columns of Z are centered, which can also
+
+result from a residual transformation with X containing only the
+intercept term.
+Second, following Heckman and Robb (1985), Björklund and
+Moffitt (1987), and Small (2007), we can incorporate heterogeneous effects as follows. Suppose, instead of Equation (1), the
+potential outcomes model for the outcome is
+
+
+
+
+Yi(d ,z ) − Yi(d,z) = (z − z)T φ ∗ + (d  − d)βi∗ ,
+
+(4)
+
+where β ∗ = E(βi∗ ) is the average effect of the exposure for
+everyone in the population. Then, the observed data model can
+be derived from (4) as follows
+Yi = ZTi. α ∗ + Di β ∗ + (βi∗ − β ∗ )Di + i ,
+
+E(i |Zi. ) = 0.
+(5)
+
+If (βi∗ − β ∗ ) is independent of Di given Zi. , the heterogeneous
+model in (5) is identical to model (3) and our result for Theorem
+1 in Section 3.1 hold. Also, as Small (2007) notes in page 1055,
+the assumption that (βi∗ − β ∗ ) is independent of Di given Zi.
+is equivalent to that “units do not select their treatment levels
+Di given Zi. based on the gains they would experience from
+treatment Di given Zi. .” If this assumption is violated, different
+groups of people will have different treatment effects, which in
+turn would lead to possibly nonzero α ∗ (see, Angrist and Imbens
+1995 and Small 2007 for details). For simplicity of exposition,
+we’ll focus on a model with constant linear effect β ∗ .
+2.3 Definition of Valid Instruments
+Based on the observed model in (3), the parameter α ∗ combines both the direct effect, represented by φ ∗ , and the effect of
+confounders on the Zi. and Yi(0,0) relationship, represented by
+ψ ∗ . If there is no direct effect and no effect of the confounders,
+then α ∗ = 0. Hence, the value of α ∗ captures the notion of valid
+and invalid instruments. The definition below formalizes this
+idea:
+Definition 1. Suppose we have the models in (1)–(3) with L
+instruments. We say instrument j ∈ {1, . . . , L} is valid if αj∗ = 0
+and invalid if αj∗ = 0.
+Definition 1 distinguishes valid and invalid instruments based
+on supp(α ∗ ), the support of α ∗ . If instrument j = 1, . . . , L is not
+in the support, it is valid. If the instrument is in the support of α ∗ ,
+it is invalid. Consequently, not knowing which instruments are
+valid and invalid directly translates to not knowing the support
+of α ∗ in model (3).
+In the case of only one instrument (i.e., L = 1), Definition
+1 of a valid instrument matches with the informal definition
+(A2) and (A3) in the Introduction and the formal definition in
+Holland (1988). Specifically, the notion of exclusion restriction
+
+(A2), Yi(d,z) = Yi(d,z ) for all z, z ∈ R is equivalent to the parameter φ ∗ in Equation (1) being zero. Also, the assumption of no
+unmeasured confounding of the IV-outcome relationship (A3)
+where Yi(d,z) and Di(z) are independent of Zi for all d, z ∈ R, is
+encoded by ψ ∗ in (2) being zero. Hence, φ ∗ = ψ ∗ = 0, which
+implies α ∗ = 0 and a valid IV in Holland (1988) is also a valid
+IV in our definition. Also, for one instrument, our model and
+definition is a special case of the definition of valid instrument discussed in Angrist, Imbens, and Rubin (1996) where
+
+Kang et al.: Instrumental Variables Estimation with Some Invalid Instruments and its Application to Mendelian Randomization
+
+our model assumes an additive, linear, and constant treatment
+effect β ∗ .
+For more than one instruments (i.e., L > 1), our model (1)–(3)
+and definition of valid IVs can be viewed as a generalization of
+Holland (1988). It is important to note that in this generalization, Definition 1 defines the validity of an instrument j in the
+context of the set of instruments {1, . . . , L} being considered.
+Specifically, an instrument j could be valid in the context of
+the set {1, . . . , L} (i.e., αj∗ = 0), but invalid if considered alone
+because Z.j may be associated with or causally affect another
+IV Z.j  , j = j  where αj∗ = 0.
+3. ESTIMATION OF CAUSAL EFFECT
+3.1 Identifiability of Model
+We first address whether the model in Equation (3) is identifiable, that is whether we can estimate the unknown parameters if
+we were given infinite data, even without any knowledge about
+which instruments are valid and invalid. We begin by making
+the assumptions.
+(a) E(ZT Z) is full rank.
+(b) For E(ZT D) = E(ZT Z)γ ∗ , the components of γ ∗ are all
+not equal to zero, that is, γj∗ = 0 for j = 1, . . . , L.
+Assumption (a) states that the matrix of instruments Z is
+full rank, a common assumption in the instrumental variables
+literature (Wooldridge 2010). Assumption (b) states that the instruments are associated with the exposure, akin to assumption
+(A1), that the instruments are relevant to the exposure; note
+that there does not need to be a causal relationship between the
+instrument Z and the exposure D, just an association (Hernán
+and Robins 2006; Didelez and Sheehan 2007; Glymour, Tchetgen, and Robins 2012). As one reviewer remarked, assumption
+(b) requires that all L instruments are related to the exposure,
+γj∗ = 0 for all j. If we have instruments that are not relevant to
+the exposure, γj∗ = 0, we can exclude them from further analysis and concentrate only on those instruments that affect the
+exposure.
+Now, the model in (3) implies the following moment
+condition
+E(ZT (Y − Zα ∗ − Dβ ∗ )) = 0.
+
+(6)
+
+Suppose the assumptions (a) and (b) hold. Then, the moment
+equation in Equation (6) simplifies to
+∗ = α∗ + γ ∗β ∗
+
+(7)
+
+where  ∗ = E(ZT Z)−1 E(ZT Y). Since both  ∗ and γ ∗ , defined
+by (b), can be identified by their moments based on observed
+data E(ZT Z)−1 E(ZT Y) and E(ZT Z)−1 E(ZT D), respectively,
+α ∗ and β ∗ are identified if we can find a bijective mapping
+between α ∗ , β ∗ , and  ∗ , γ ∗ , that is, a unique solution α ∗ , β ∗
+given  ∗ , γ ∗ .
+If we know exactly which instruments are invalid A∗ =
+supp(α ∗ ) = {j : αj∗ = 0} and hence, know the set of valid instruments (A∗ )C = {j : αj∗ = 0}, Equation (7) becomes
+α (A∗ )C + γ ∗(A∗ )C β ∗ = γ ∗(A∗ )C β ∗ =
+
+∗
+(A∗ )C .
+
+There is a unique β ∗ so long as |(A∗ )C | > 0, or there is at least
+one known valid instrument. This is a special case of the classic
+
+135
+
+identification result for linear simultaneous equation models
+(Koopmans, Rubin, and Leipnik 1950).
+If we know that there is a valid instrument, but are not sure
+of the identity of the valid instrument(s), then a unique solution
+to (7) and hence, identification, is not guaranteed. For example, let there be four instruments, L = 4 with γ ∗ = (1, 2, 3, 4)
+and  ∗ = (1, 2, 3, 8). Then, depending on the set of valid instruments (A∗ )C , which is unknown, we have two different β ∗
+that satisfy Equation (7). If the set of valid instruments (A∗ )C
+∗
+∗
+is (A∗ )C = {1, 2, 3}, we have γ ∗(A∗ )C β ∗ = (A
+= 1.
+∗ )C and β
+∗ C
+∗
+However, if the set of valid instruments is (A ) = {4}, β = 2.
+Without knowing exactly which (A∗ )C is the true set of valid
+instruments, we cannot choose between the two β ∗ ’s and hence,
+there is not a unique solution to (7).
+But, suppose we impose constraints on A∗ . Specifically, suppose the number of invalid instruments, s = |A∗ |, has to be
+less than some number U, s < U , without knowing which instruments are invalid or knowing exactly the number of invalid
+instruments. For example, geneticists may have a rough idea on
+the maximum number of invalid instruments, U, but not know
+exactly the number of invalid instruments nor do they know
+exactly which instruments are invalid. Note that this condition
+of knowing the maximum number of invalid instruments is a
+much weaker requirement than what is traditionally required
+in IV and MR literature where one must know exactly which
+instruments are invalid, that is, know exactly the set A∗ ; here,
+we only need an upper bound on the cardinality of A∗ . Under
+the weaker condition s < U , a unique solution to (7) can exist
+and this is stated in Theorem 1.
+Theorem 1 (Uniqueness of solution). Suppose we assume
+assumptions (a) and (b) and the modeling assumption (3). Let
+s ∈ {0, 1, . . . , L} with s < U where U = 1, . . . , L. Consider all
+sets Cm ⊆ {1, . . . , L}, m = 1, . . . , M of size |Cm | = L − U +
+1 with the property
+γj∗ qm =
+
+∗
+j
+
+j ∈ Cm
+
+where qm is a constant. There is a unique solution α ∗ and β ∗ to
+(7) if and only if qm = qm for all m, m ∈ {1, . . . , M}.
+To understand Theorem 1, note that if the valid instruments
+are those in the set Cm , then the causal effect β ∗ = qm . Theorem
+1 says that β ∗ is identified as long as there are not two subsets
+of the instruments of cardinality L − U + 1 that give internally
+consistent estimates of β ∗ (i.e., all instruments in each subset
+give the same estimate of β ∗ ), but are externally inconsistent
+(i.e., the estimates of β ∗ from the two subsets are different). We
+call the property in Theorem 1 that there is a unique solution
+to α ∗ and β ∗ to (7) if and only if qm = qm for all m, m ∈
+{1, . . . , M} the consistency criterion. We thank Jack Bowden
+for his insight and suggestions on terminology for interpreting
+Theorem 1.
+As an example of applying Theorem 1, consider our numerical
+example above with γ ∗ = (1, 2, 3, 4) and  ∗ = (1, 2, 3, 8) and
+U = 3. Then, by Theorem 1 we have 3 sets C1 = {1, 2}, C2 =
+{1, 3}, C3 = {2, 3} with q1 = q2 = q3 = 1. Hence, γ ∗ and  ∗
+satisfy the consistency criterion of Theorem 1 and we have a
+unique solution α ∗ and β ∗ to (7). In contrast, if γ ∗ = (1, 2, 3, 4)
+and  ∗ = (1, 2, 6, 8), we would have two sets C1 = {1, 2}, C2 =
+
+136
+
+Journal of the American Statistical Association, March 2016
+
+{3, 4} with q1 = 1 and q2 = 2, respectively. These γ ∗ and  ∗
+do not satisfy the consistency criterion of Theorem 1 because
+q1 = q2 and there are no unique solutions α ∗ and β ∗ to (7).
+Further discussion of this particular example is discussed in
+supplementary materials along with discussion of the implications of Theorem 1 when the additional linearity and normality assumptions of the classical linear simultaneous/structural
+equation model (Koopmans, Rubin, and Leipnik 1950) are
+considered.
+Checking the consistency criterion can be computationally
+L
+)
+difficult, especially if U is large; it requires looking at ( L−U
++1
+possible subsets of {1, . . . , L} and the constants qm associated
+with  ∗ and γ ∗ . Corollary 1 says that the consistency criterion
+is automatically satisfied if U ≤ L/2 (i.e., if 50% of the total
+candidate of L instruments are invalid) regardless of the values
+of γ ∗ and  ∗ .
+Corollary 1. If U ≤ L/2, there is always a unique solution
+to (7)
+In addition to the computational benefits, compared to Theorem 1, Corollary 1 is simpler to interpret. For example, for a
+geneticist, without knowing the entire biology of genetic instruments, specifically knowing which instruments are valid and
+invalid, as long as the number of invalid instruments is less than
+50% of the total instruments, then the geneticist can rest assured
+that the parameters can always be identified. If this is not the
+case, the geneticist can always check the consistency criterion
+stated in Theorem 1.
+We would like to mention two final points about Theorem 1.
+First, Theorem 1 is a statement about uniqueness of solutions for
+the parameters α ∗ , and β ∗ in Equation (7). A natural question
+to ask is whether the uniqueness is guaranteed for just β ∗ , the
+causal effect of interest, at the expense of nonuniqueness of α ∗ .
+In the proof of Theorem 1, we show that this cannot be the case.
+Specifically, regardless of the condition on s, the parameter β ∗ is
+a unique solution to (7) if and only if the parameter α ∗ is a unique
+solution to (7). Second, Theorem 1 supposes the existences of
+the sets Cm and proceeds to compare their corresponding qm .
+However, one may ask whether these sets Cm even exist in the
+first place. In the proof of Theorem 1, we provide a rigorous
+argument that, indeed, under model (3) and s < U , at least one
+set Cm has to exist.
+3.2 Estimation of the Causal Effect of Exposure
+on Outcome
+Given the model (3) and s < U , Theorem 1 lays out the sufficient and necessary condition for finding a unique solution to
+the moment Equation (6). Specifically, if the model is identified,
+the moment Equation (6) is zero at exactly one value, the true
+value of α ∗ and β ∗ . Naturally then, a method to estimate the
+one true value is to find the values of α ∗ and β ∗ that minimize
+(6) subject to the parameter constraint that s < U . Formally, we
+can write this estimation strategy as
+1
+argmin PZ (Y − Zα − Dβ)22 ,
+2
+α,β
+
+s.t. ||α||0 < U,
+
+(8)
+
+where ||α||0 is the number of nonzero entries of α and by Definition 1, s = ||α||0 . Equation (8) is similar to the moment selection
+
+criterion (MSC) in Andrews (1999). However, both the moment
+selection criterion in Andrews (1999) and (8) are computationally infeasible in the sense that both require going through all
+subsets of size less than U and this type of problem has been
+shown to be NP-hard (Natarajan 1995). Instead, a computationally tractable version of estimation strategies like (8) has been
+proposed in the literature using a convex surrogate of the 0 norm
+(Candes and Tao 2005; Tropp 2006; Donoho 2006). Specifically,
+the computationally feasible version of the estimation strategy
+in (8) can be written as
+1
+argmin PZ (Y − Zα − Dβ)22 ,
+2
+α,β
+
+s.t. ||α||1 ≤ t,
+
+(9)
+
+where the 0 norm is replaced by the convex norm 1 and U
+is replaced by a user-specified tuning parameter t > 0. In this
+article, we propose the equivalent Lagrangian form as our estimator of the causal effect, called some invalid some valid IV
+estimator, or sisVIVE, as follows
+1
+(α̂ λ , β̂λ ) ∈ argmin PZ (Y − Zα − Dβ)22 + λα1 (10)
+2
+α,β
+for some tuning parameter λ > 0 where λ corresponds to t in (9).
+If λ = 0 in (10), then (10) is the popular two stage least squares
+(TSLS) estimator, which is equivalent to the GMM estimator
+when the  are assumed to be homoscedastic (Hansen 1982).
+Hence, sisVIVE can be viewed as a generalization of TSLS or
+GMM.
+sisVIVE also bears some resemblance to the traditional 1
+penalization procedure, in particular the Lasso (Tibshirani 1996)
+or the recent 1 penalty procedures in IV estimation by Gautier
+and Tsybakov (2011) and Belloni et al. (2012). However, there
+are a few important differences. First, with regards to traditional
+Lasso and the procedure proposed by Gautier and Tsybakov
+(2011), our procedure in (10) only penalizes α ∗ . The estimator
+(10) does not penalize β ∗ , the causal effect of the exposure
+on the outcome, because the causal effect may be far from
+zero. In contrast, the prior works we mentioned penalize all
+the parameters in the model. Second, the traditional Lasso only
+considers regression with all exogenous regressors, which are
+regressors that are assumed to be independent of the error term
+or assumed to be fixed. The regressors in our model (3) are
+not all exogenous; specifically, model (3) contains one random
+endogenous variable, Di , which is dependent on the error term.
+Third, Gautier and Tsybakov (2011) and Belloni et al. (2012)
+assume that either all the L instruments are valid or we know
+exactly which subset of them are valid. In contrast, our procedure
+does not assume this.
+Finally, a careful reader may have recognized that there may
+be multiple minimizers to the Equation (10), specifically β̂λ ,
+because ||α||1 is not strictly convex and hence, we use the set
+notation instead of the equality sign in (10). This might seem
+to be a concern as there are multiple estimates of β ∗ . However,
+as we will show in Section 3.4, all minimizers of (10) are close
+to the true values β ∗ . Also, if the entries of the matrix PD̂⊥ Z
+where D̂ = PZ D (i.e., the predicted value of the exposure given
+the instruments) are drawn from a continuous distribution, then
+the solution to (10) is unique (Tibshirani 2013).
+Without loss of generality, we assume that the columns of Z
+are scaled to unit length. This allows all L instruments to have
+
+Kang et al.: Instrumental Variables Estimation with Some Invalid Instruments and its Application to Mendelian Randomization
+
+137
+
+identical units so no columns of Z gets unfairly penalized by
+the penalty term in (10) simply due to their original units.
+
+samples using the RIP conditions. Note that this characterizes
+all the minimizers β̂λ from sisVIVE in (10).
+
+3.3 Choice of λ
+
+Theorem 2 (Estimation performance of sisVIVE). Suppose
+we have the model given in (3). Let D̂ = PZ D. Let the restricted
++
+−
++
+(Z), δ2s
+(Z), δ2s
+(PD̂ Z) be defined as in
+isometry constants δ2s
+(11), where s is the number of invalid instruments. Suppose
+
+Like many penalization procedures, the choice of the tuning
+parameter λ affects the performance of the estimation procedure
+and this is certainly the case with sisVIVE. High values of λ
+force heavy penalization on α, which will put most elements of
+α̂ λ to zero and most instruments will be estimated as valid instruments. In contrast, low values of λ will put few elements of
+α̂ λ to zero and most instruments will be estimated as invalid instruments. In short, the optimal choice of λ depends on knowing
+the exact number of invalid and valid instruments, something
+not implied by the condition s < U .
+In practice, cross-validation is a popular data-driven method
+to choose λ. In the same spirit, we use a K-fold cross-validation
+where we minimize the estimating equation ||PZ (Y − Zα −
+Dβ)||2 instead of the predictive error ||(Y − Zα − Dβ)||2 . We
+minimize the estimating equation instead of the predictive error
+since the parameter of interest is the causal effect β ∗ that sets the
+expected value of the estimating equation to zero (see Equation
+(6), Sections 3.1 and 3.2). We use the “one standard error” rule
+used in most cross-validation procedures (Hastie et al. 2009) and
+choose the smallest λ that is no more than one standard error
+above the minimum of the estimating equation. In Section 4, we
+discuss the performance of β̂λcv , where λcv is the cross-validated
+λ based on the estimating equation through various simulation
+studies. Also, in the supplementary materials, we discuss another method of choosing λ, in particular, choosing λ based on
+the theoretical guidance from Theorem 2 and Corollary 2. In
+short, the supplementary materials show that for better estimation performance of β̂λ , it is important not to incorrectly set
+invalid IVs to be valid (i.e., let α̂j to be zero when the true αj∗ is
+not zero), while the reverse is not as important. This observation
+argues for choosing λ that tends to set relatively few elements
+of α̂ λ to be zero and in the supplementary materials, we demonstrate that cross-validation achieves this goal in a wide variety
+of settings.
+3.4 Estimation Performance
+How well does sisVIVE estimate the causal effect β ∗ ? To
+analyze the performance of sisVIVE, we first introduce some
+basic notations and definitions.
+Definition 2. For any matrix M, the upper and lower restricted
+isometry property (RIP) constants of order k, denoted as δk+ (M)
+and δk− (M), respectively, are the smallest δk+ (M) and largest
+δk− (M) such that
+δk− (M)α22 ≤ Mα22 ≤ δk+ (M)α22
+
+(11)
+
+holds for all k-sparse vectors α.
+RIP conditions have been widely used in the literature on
+compressed sensing and high-dimensional linear regression. See
+Cai and Zhang (2013) and the references therein. The following theorem characterizes the performance of sisVIVE in finite
+
+−
++
++
+(Z) > δ2s
+(Z) + 2δ2s
+(PD̂ Z)
+2δ2s
+
+(12)
+
+holds, then the estimate β̂λ given by (10) with tuning parameter
+λ ≥ 3ZT PD̂⊥ ∞ has the following performance guarantee
+|β̂λ − β ∗ | ≤
+
+|D̂T |
+D̂22
++
+
+1
+D̂2
+
+⎛
+⎝
+
+√  +
+(PD̂ Z)
+(4/3 5)λ sδ2s
+−
++
++
+2δ2s
+(Z) − δ2s
+(Z) − 2δ2s
+(PD̂ Z)
+
+⎞
+⎠ . (13)
+
+−
++
+Condition (12) includes the RIP constants, δ2s
+(Z), δ2s
+(Z), and
++
+δ2s (PD̂ Z). Unfortunately, these RIP constants in (12) are difficult
+
+to evaluate. Hence, in some applications, it is more convenient to
+use a slightly stronger but much simpler and interpretable condition called the “mutual incoherence property” (MIP). Specifically, let D̂ = PZ D and Z.j 2 = 1 for all j = 1, . . . , L. Define
+the constants μ and ρ as
+μ = max |ZT.i Z.j |
+i=j
+
+and
+
+ρ = max |D̂T Z.j |/D̂2 .
+j
+
+(14)
+
+First, the constant μ measures the maximum correlation between any two columns of the matrix of instruments Z. This
+is related to Assumption (a) in Section 3.1 where a full rank
+Z means the columns of Z are linearly independent. In fact,
+if μ < 1/(L − 1), Z is full rank. Second, the constant ρ measures the maximum strength of individual instruments. A high ρ
+doesn’t necessarily imply that all L instruments are individually
+strong; it just implies that one of the L instruments is strong
+(i.e., has a high correlation to D); it’s possible that the rest of
+the L − 1 instruments are weak. This notion of strength by ρ is
+slightly different than the concentration parameter, which measures the overall strength of all the L instruments (see, Section 4
+for details). Also, ρ stands in contrast to Condition (b) in Theorem 1 which looks at the individual values of γj , j = 1, . . . , L,
+instead of the maximum of γj ’s.
+Given the two MIP constants μ and ρ, we have the following
+result on estimation performance. Like Theorem 2, Corollary 2
+characterizes all the minimizers β̂λ from sisVIVE in (10).
+Corollary 2 (Estimation performance of sisVIVE under
+MIP). Let the MIP constants μ and ρ be given in (14). If the
+number of invalid instruments, s, satisfies
+
+
+1
+1
+(15)
+,
+s < min
+12μ 10ρ 2
+the estimate β̂λ given by (10) with tuning parameter λ ≥
+3ZT PD̂⊥ ∞ has the following performance guarantee
+√
+4 105/9λsρ
+|D̂T |
+1
+∗
++
+|β̂λ − β | ≤
+. (16)
+D̂22
+D̂2 1 − s(5ρ 2 + 6μ)
+
+138
+
+Journal of the American Statistical Association, March 2016
+
+We make the following remarks. First, in the supplementary materials, we show the condition in Equation (15) directly
+implies the condition in Equation (11). We also provide an example of a matrix of instruments Z where the RIP condition
+is satisfied, but the MIP condition is not satisfied. Second, the
+constraint on the number of invalid instruments, s, in Corollary
+2 is strict, but is required to precisely characterize the bound
+on estimation performance. As two reviewers pointed out, if the
+instruments are even slightly correlated at μ = 0.1, s < 10/12,
+no invalid instruments are allowed, and Corollary 2 is not useful in characterizing the performance of sisVIVE. In Section 4
+and in the supplementary materials, we study the behavior of
+sisVIVE when this constraint in (15) may not hold. Third, in the
+case where all the instruments are uncorrelated with each other
+so that μ = 0, a small ρ provides a less restrictive upper bound
+on s. At first glance, this may be counterintuitive since a small
+ρ implies that all the instruments’ individual correlation to the
+exposure is weak and, therefore, having weak instruments allow
+one to have more invalid instruments. However, we note that the
+denominator of the bound (16), specifically D̂22 is a function
+of the correlation of the instruments, and having a small ρ would
+translate to having a small D̂22 . Hence, even though the condition (15) allows for more invalid instruments, the upper bound
+(16) becomes worse and our estimator β̂λ will be far from β ∗ .
+Finally, we emphasize that the conditions in both Theorem 2 and
+Corollary 2 are sufficient, but not necessary conditions for the
+performance bounds to hold. In particular, a violation of these
+conditions does not imply that sisVIVE will perform badly (see
+Section 4 and the supplementary materials).
+3.5 Fast Numerical Algorithm
+In addition to the theoretical guarantees on estimation performance, in practice, a fast, scalable numerical algorithm for
+estimation is desirable, especially for MR where genetic data
+can be large. Theorem 3 outlines a two-step numerical method
+whose solution is identical to sisVIVE in (10), but is as fast as
+OLS.
+Theorem 3 (Fast two-step numerical algorithm). Let PD̂ be
+the projection matrix onto the vector D̂ and PD̂⊥ = I − PD̂ . We
+propose the two-step algorithm as follows.
+Step 1. For a given λ > 0, solve
+1
+α̂ λ ∈ argmin ||PD̂⊥ PZ Y − PD̂⊥ Zα||22 + λ||α||1 .
+2
+α
+Step 2. Use α̂ λ from Step 1 to estimate β̂λ by
+β̂λ =
+
+D̂T (Y − Zα̂ λ )
+||D̂||22
+
+.
+
+The solution to the two-step algorithm is identical to the
+solution to sisVIVE in (10)
+In the two-step algorithm, Step 1 is the standard Lasso problem with outcome PD̂⊥ PZ Y and PD̂⊥ Z; remember, sisVIVE in
+(10) is not the standard Lasso problem as discussed in Section
+3.2. Fast algorithms for the Lasso exist, most notably LARS
+(Efron et al. 2004). In fact, LARS is able to solve α̂ λ for all values of λ > 0 at the same computational efficiency as OLS. Step
+
+2 is also numerically efficient, requiring a simple dot product
+operation between D̂ and Y − Zα̂ λ . Thus, the proposed two-step
+algorithm is, practically speaking, as fast as OLS. Best of all, the
+estimate from this two-step algorithm is identical to sisVIVE.
+4. SIMULATION STUDY
+We conduct various simulation studies to study the estimation performance, measured by |β̂ − β ∗ |, for different methods.
+Specifically, we compare sisVIVE with TSLS, the most popular
+estimator in IV and MR, and OLS under various settings that
+vary the instruments’ absolute/overall and relative strength, their
+validity and correlation among each other, and endogeneity.
+Let there be n = 2000 individuals and L = 10 potential candidate instruments. The observations (Yi , Di , Zi. ), i = 1, . . . , n
+are generated by
+Yi = π ∗ + ZTi. α ∗ + Di β ∗ + i
+,
+Di = γ0∗ + ZTi. γ ∗ + ξi
+i iid
+∼N
+ξi
+
+1
+0
+,
+∗
+σξ
+0
+
+∗
+σξ
+1
+
+,
+
+where Zi. is drawn from a multivariate normal with mean 0 and
+covariance matrix where the diagonals are all one. Throughout
+the simulation, the parameters π ∗ , β ∗ , and γ0∗ are fixed. How∗
+, (ii) the direct
+ever, we vary (i) the endogeneity parameter σξ
+effect parameter α ∗ = (1, 1, . . . , 0, 0) where we change s in
+α ∗ 0 = s, (iii) the pairwise correlation between instruments,
+that is, μ in Equation (14), (iv) the absolute/overall strength
+of instruments, and (v) the relative strength of instruments, the
+latter two by changing the parameter γ ∗ .
+∗
+from 0 to 0.9. For (ii), we
+In particular, for (i), we vary σξ
+vary s from 0 to 9. For (iii), we set μ at four different values,
+0, 0.25, 0.5, and 0.75, by setting all the off-diagonal elements of
+the covariance matrix of Zi. to this value. For (iv), we vary the
+absolute/overall instrument strength by the concentration parameter. The concentration parameter is a popular measure for
+instrument strength; high values of the concentration parameter
+indicate the overall strength of all L instruments are strong and
+vice versa. The concentration parameter is also the population
+value of the first stage F statistic for the instruments when the
+exposure is regressed on them; this first stage F statistic is often used to check instrument strength (Stock, Wright, and Yogo
+2002). Based on Table 1 in Stock, Wright, and Yogo (2002), a
+set of instruments with a concentration parameter (scaled by the
+number of valid instruments) of around 10 is considered weak in
+the absolute/overall sense and instruments with a concentration
+parameter (scaled by the number of valid instruments) of around
+100 is considered strong in the absolute/overall sense. Finally
+for (v), we vary the relative instrument strength by changing the
+individual entries of the vector γ ∗ while keeping the concentration parameter fixed. Specifically, for a particular concentration parameter, we consider instruments to have equal relative
+strength if γj∗ = γk∗ for all j = k and variable relative strength
+if γj∗ = 2 ∗ γk∗ for various values of j = k.
+For each simulation setting, we repeat the simulation
+1000 times. For each repetition, we compute sisVIVE’s estimate of the causal effect, β̂λ , where λ is chosen by 10-fold
+cross-validation outlined in Section 3.3. We also compute es-
+
+Kang et al.: Instrumental Variables Estimation with Some Invalid Instruments and its Application to Mendelian Randomization
+
+139
+
+Table 1. Summary of instruments in the data analysis
+Instruments
+
+Major alleles
+
+Heterozygote
+
+Minor alleles
+
+MAF (SE)
+
+rs1421085
+rs1501299
+rs2241766
+rs6265
+
+1281 (34.5%; T T )
+1950 (52.5%; CC)
+2956 (79.6%; T T )
+2437 (65.7%; GG)
+
+1818 (49.0%; CT )
+1502 (40.5%; AC)
+719 (19.4%; T G)
+1112 (30.0%; AG)
+
+613 (16.5%; CC)
+260 (7.0%; AA)
+37 (1.0%; GG)
+163 (4.4%; AA)
+
+0.39 (0.0057)
+0.24 (0.0049)
+0.10 (0.0036)
+0.19 (0.0046)
+
+NOTE: MAF stands for minor allele frequency.
+
+timates from TSLS and OLS. For TSLS, we run two types of
+TSLS. First, we run the “naive” TSLS as if all the instruments
+are valid. This is quite common in MR studies where all the
+instruments are assumed to be valid and the causal estimate is
+computed using TSLS. When some of the instruments are in
+fact invalid, naive TSLS should give biased estimates. Second,
+we run TSLS as if we knew exactly which instruments are valid,
+that is, the “oracle” TSLS. Specifically, we use the knowledge
+of the support of α ∗ and run TSLS controlling for the invalid instruments that are in the support of α ∗ as covariates. Finally, we
+run OLS with Z and D as our regressors and Y as our outcome.
+We expect OLS to perform poorly when there is substantial
+endogeneity by D since OLS cannot control for endogenous
+variables. But, OLS should be more efficient than IV methods
+if there is no endogeneity (Richardson and Wu 1971).
+Figure 2 shows the estimation error when endogeneity is
+varied. The number of invalid instruments is fixed at s = 3
+and we consider 16 different sets of instruments based on their
+absolute and relative strength as well as their pairwise correlations. For example, the top lefthand plot of Figure 2 corresponds to instruments whose overall strength is strong (i.e.,
+scaled concentration parameter is around 100) , their relative
+strength is equal (i.e., γj∗ are identical for all j = 1, . . . , L),
+and their pairwise correlations are 0. In contrast, the bottom right plot of Figure 2 corresponds to instruments whose
+their overall strength is weak (i.e., scaled concentration parameter is around 10), their relative strength is variable (i.e.,
+γj∗ = 2 ∗ γk∗ for j = k) and their pairwise correlations are equal
+to 0.75.
+As expected, OLS dominates naive TSLS, oracle TSLS, and
+sisVIVE when the endogeneity is small and close to zero, with
+the dominance being greater for weak instruments. Once there is
+a sufficient amount of endogeneity, oracle TSLS, which knows
+exactly which instruments are valid and invalid, does best. However, sisVIVE, which is a feasible rather than infeasible oracle
+estimator, is close to the oracle TSLS; the gap between oracle TSLS and sisVIVE gets larger as the instruments’ absolute
+strength gets weaker. Regardless of instrument strength, naive
+TSLS, which assumes all the L instruments are valid, has a high
+error since it cannot take into account the bias introduced by
+invalid instruments.
+Figure 3 shows the estimation error when the number of
+∗
+, is fixed at
+invalid instruments is varied. The endogeneity, σξ
+0.8. Like Figure 2, we consider the same 16 sets of instruments.
+We first see that at s = 0, that is, when there are no invalid
+instruments, sisVIVE’s performance is nearly identical to naive
+and oracle TSLS. However, sisVIVE does not use the knowledge
+that one knows exactly which instruments are valid while the
+two TSLS estimators do. Also, sisVIVE’s performance degrades
+
+slightly for instruments with weak absolute strength when the
+correlation between instruments increases.
+When s < L/2 = 5, sisVIVE’s performance is comparable to
+oracle TSLS and better than naive TSLS. However, for instruments with weak absolute strength, sisVIVE does slightly worse
+compared to the oracle TSLS than for instruments with strong
+absolute strength. Once we reach the identification boundary
+in Corollary 1, s < L/2 = 5, sisVIVE’s performance becomes
+similar to naive TSLS. This is the case regardless of the instruments’ absolute and relative strength. Finally, for any s, oracle
+TSLS performs much better than all the other estimators.
+Also, in all 16 sets of instruments, we compute the ρ and μ
+found in the condition for Corollary 2 from the simulated data
+and this is detailed in supplementary materials. For example,
+the top lefthand plot of Figure 2 has ρ of approximately 0.31
+and μ = 0. Based on this, the upper bound on s in Corollary 2
+is 1.04. However, since s = 3 for the simulations in Figure 2,
+the condition (15) in Corollary 2 is violated and cannot be
+used to characterize the behavior of sisVIVE. Regardless, in our
+simulation study presented in this section, sisVIVE performs
+just as well as the oracle TSLS.
+In supplementary materials, we expand the simulation study
+to cover different types of instrument strength, correlation structure between instruments, and total number of potential instruments. We also explore different metrics of error, such as the
+proportion of correctly selected valid instruments and invalid instruments, to analyze the relationship between these proportionbased error metrics and the median bias error metric used in this
+Section. In addition, we also compute the conditions for Corollary 2, specifically ρ, μ, and λ required to achieve the performance bound. The supplementary materials show that in every
+case considered, sisVIVE performs no worse than the next best
+alternative, naive TSLS. In fact, in most cases, sisVIVE beats
+naive TSLS and performs similarly to the oracle TSLS. The
+only case where sisVIVE’s performance deviated greatly from
+the oracle TSLS was when the invalid instruments were weaker
+than the valid instruments and s = 4. In addition, supplementary materials show that a good estimate of β ∗ depends strongly
+on correctly selecting the invalid instruments more than correctly selecting the valid instruments and choosing λ based on
+cross-validation seems to favor this situation. We also find that
+choosing λ based on Corollary 2 leads to a higher λ than one
+based on cross-validation. Finally, we find that sisVIVE based
+on λ chosen by cross-validation always performed at least as
+well as sisVIVE based on λ chosen by Corollary 2. In fact, in
+most cases, sisVIVE with a cross-validated λ performs better
+than sisVIVE with a λ chosen by Corollary 2.
+Overall, sisVIVE using a cross-validated λ does much better
+than naive TSLS, the most frequently used estimator in MR
+
+140
+
+Journal of the American Statistical Association, March 2016
+Strong Instrument
+
+Strong Instrument
+
+Weak Instrument
+
+Weak Instrument
+
+Equal Strength
+
+Variable Strength
+
+Equal Strength
+
+Variable Strength
+
+# # # # # # # # # #
+
+2
+# # # # # # # # # # # # # # # # # # # #
+
+Instrument corr. = 0
+
+# # # # # # # # # #
+
+4
+
+0 OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO
+# # # # # # # # # # # # # # # # # # # #
+
+Instrument corr. = 0.25
+
+4
+
+Error
+
+2
+
+# # # # # # # # # # # # # # # # # # # #
+
+# Naive TSLS
+
+0 OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO
+
+OLS
+O Oracle TSLS
+
+# # # # # # # # # # # # # # # # # # # #
+
+Instrument corr. = 0.5
+
+4
+
+2
+# # # # # # # # # # # # # # # # # # # #
+
+Estimator
+
+sisVIVE
+
+0 OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO
+
+# # # # # # # # # # # # # # # # # # # #
+
+2
+# # # # # # # # # # # # # # # # # # # #
+
+Instrument corr. = 0.75
+
+4
+
+0 OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO OOOOOOOOOO
+0.00 0.25 0.50 0.75 0.00 0.25 0.50 0.75 0.00 0.25 0.50 0.75 0.00 0.25 0.50 0.75
+
+Endogeneity
+
+Figure 2. Simulation study of estimation performance varying endogeneity. There are 10 (L = 10) instruments. Each line represents median
+absolute estimation error (|β ∗ − β̂|) after 1000 simulations. We fix the number of invalid instruments to s = 3. Each column in the plot corresponds
+to a different variation of instruments’ absolute and relative strength. There are two types of absolute strengths, “Strong” and “Weak,” measured
+by the concentration parameter. There are two types of relative strengths, “Equal” and “Variable,” measured by varying γ ∗ while holding the
+absolute strength (i.e., concentration parameter) fixed. Each row corresponds to the maximum correlation between instruments.
+
+and IV. In many cases, sisVIVE beats the naive TSLS and it is
+comparable to oracle TSLS. The promising simulation results
+suggest that sisVIVE should be used whenever there is concern
+about invalid instruments.
+5. DATA ANALYSIS
+We demonstrate the potential benefit of using sisVIVE in MR
+by analyzing the effect of obesity, the exposure, on HRQL, the
+outcome. An individual’s quality of life is the general well-being
+of the individual; an individual’s health quality of life is the subset of quality of life related to the individual’s health (Torrance
+1987). Previous non-MR studies by Trakas et al. (2001) and
+
+Sach et al. (2007) have shown that there is a negative association between obesity and HRQL. However, a fundamental
+difficulty with these studies is that the outcome, HRQL, encompasses various factors about the individual, making it difficult
+to control for all possible confounders that may affect obesity
+and HRQL (Cawley and Meyerhoefer 2012). An MR approach
+offers the potential of controlling for unmeasured confounders.
+For the analysis, we use the data from the Wisconsin Longitudinal Study (WLS), a well-known longitudinal study that has
+kept track of American high school graduates from Wisconsin
+since 1957. We look at graduates that were reinterviewed in
+2003–2005 (Hauser 2005) and who have been genotyped. Similar to another analysis with the WLS genetic data, we remove
+
+Kang et al.: Instrumental Variables Estimation with Some Invalid Instruments and its Application to Mendelian Randomization
+
+12.5
+
+Strong Instrument
+
+Strong Instrument
+
+Weak Instrument
+
+Weak Instrument
+
+Equal Strength
+
+Variable Strength
+
+Equal Strength
+
+Variable Strength
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+7.5
+#
+
+0.0
+12.5
+
+#
+
+#
+
+5.0
+#
+
+#
+
+#
+
+#
+
+#
+#
+
+# #
+
+#
+
+#
+
+#
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+Instrument corr. = 0
+
+10.0
+
+2.5
+
+141
+
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+# OOOOOOOOO
+# OOOOOOOOO O
+# OOOOOOOOO O
+# OOOOOOOOO O
+O
+#
+#
+#
+
+#
+#
+
+2.5
+
+Error
+
+# #
+# #
+# #
+
+#
+
+#
+
+# #
+#
+# #
+
+#
+
+#
+#
+#
+#
+#
+#
+# OOOOOOOOO O
+# OOOOOOOOO
+# OOOOOOOOO O
+# OOOOOOOOO O
+O
+#
+
+0.0
+12.5
+
+#
+
+#
+
+5.0
+
+#
+
+#
+
+#
+
+7.5
+
+#
+
+#
+
+#
+
+Instrument corr. = 0.25
+
+#
+
+#
+
+10.0
+
+Estimator
+# Naive TSLS
+
+OLS
+O Oracle TSLS
+
+#
+#
+
+7.5
+
+#
+
+#
+
+#
+
+# #
+#
+
+#
+#
+
+#
+#
+
+#
+
+2.5
+#
+
+# #
+# #
+# #
+#
+#
+
+#
+
+#
+# #
+#
+# #
+#
+#
+
+#
+
+#
+
+#
+
+5.0
+
+#
+
+#
+
+Instrument corr. = 0.5
+
+10.0
+
+sisVIVE
+
+# OOOOOOOOO O
+# OOOOOOOOO
+# OOOOOOOOO O
+# OOOOOOOOO O
+0.0 O
+12.5
+
+7.5
+5.0
+#
+
+2.5
+0.0
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+#
+
+# #
+
+#
+
+#
+#
+#
+#
+# # #
+# # #
+# # #
+# # #
+#
+#
+# #
+# #
+# OOOOOOOOO
+# OOOOOOOOO O
+# OOOOOOOOO O
+# OOOOOOOOO O
+O
+
+Instrument corr. = 0.75
+
+10.0
+
+0123456789 0123456789 0123456789 0123456789
+
+s
+
+Figure 3. Simulation study of estimation performance varying the number of invalid instruments (s). There are 10 (L = 10) instruments.
+Each line represents median absolute estimation error (|β ∗ − β̂|) after 1000 simulations. We fix the endogeneity σξ∗ to σξ∗ = 0.8. Each column
+in the plot corresponds to a different variation of instruments’ absolute and relative strength. There are two types of absolute strengths, “Strong”
+and “Weak,” measured by the concentration parameter. There are two types of relative strengths, “Equal” and “Variable,” measured by varying
+γ ∗ while holding the absolute strength fixed. Each row corresponds to maximum correlation between instruments.
+
+individuals with more than 10% missing genotype data (Roetker
+et al. 2012). Our analysis of the dataset contains n = 3712 individuals with 1913 females and 1799 males born mostly between
+1938 and 1940.
+To measure HRQL, we use the Health Utility Index Mark 3
+(HUI-3) which was also used in Trakas et al. (2001). HUI-3 is
+a composite score of utility between 0 and 1, with 1 indicating
+highest health state and 0 indicating a health state equivalent to
+death; negative utility is possible and indicates that the person
+is alive, but in a state worse than death. To measure obesity, we
+use the BMI and the U.S. National Institute of Health clinical
+guidelines (National Institute of Health 1998) that were also
+used in Trakas et al. (2001) and Sach et al. (2007) in their anal-
+
+ysis. Specifically, we follow Trakas et al. (2001) and define the
+exposure by assigning individuals with BMI less than 30 (i.e.,
+not obese) to be 0, individuals with BMI between 30 and 35
+(i.e., obese class I) to be 1, individuals with BMI between 35
+and 40 (i.e., obese class II) to be 2, and individuals with BMI
+greater than 40 (i.e., obese class III) to be 3 so that each value
+of the exposure corresponds to the increasing obese classes
+used in Trakas et al. (2001) and the U.S. National Institutes of
+Health clinical guidelines (National Institutes of Health 1998).
+For instance, exposure value of zero corresponds to nonobese
+individuals while exposure value of two corresponds to individuals in obese class II. Hence, the causal effect of interest is the
+effect of moving up in the obese class; specifically β ∗ in model
+
+142
+
+(1) will correspond to the effect of moving up one obese class
+on the HUI-3 index of HRQL. In supplementary materials, we
+explore different methods to quantify obesity and the resulting
+estimates from different methods.
+For potential candidate instruments, we use the following
+SNPs in the WLS that have been previously shown to be associated with obesity: rs1421085, rs1501299, and rs2241766
+(see, Table 1). rs1421085 is in the FTO gene and it has been
+shown to be strongly associated with obesity (Dina et al. 2007;
+Price, Li, and Zhao 2008). rs1501299 (i.e., +276G>T) is in
+the ADIPOQ gene that encodes adiponectin, a protein encoding for lipid metabolism, and has been associated with obesity
+(Bouatia-Naji et al. 2006; Yang et al. 2007). Finally, rs2241766
+is also in the ADIPOQ gene that has been associated with obesity (Ukkola et al. 2003; Yang et al. 2003; Beckers et al. 2009).
+For all the SNPs, we follow an MR study done by Timpson
+et al. (2005) and assume an additive model. Although we have
+no particular reason to think any of the SNPs is an invalid IV,
+we are uncertain due to the lack of complete knowledge about
+the biological functions of the SNPs, a common scenario in MR
+studies. Our sisVIVE estimator will provide a good estimate as
+long as least two of the three SNPs are valid IVs.
+A simple OLS analysis estimates that an increase in one obese
+class is associated with a 0.052 (SE: 0.0040) decrease in HUI-3
+score. The reduced form estimates along with the first stage F
+statistics are summarized in the supplementary materials.
+If we use TSLS, under the operating assumption that all the
+instruments are valid, the estimated causal effect is −0.00094
+(SE: 0.081), that is, climbing up one obese class reduces your
+health utility quality of life by 0.00094. Our estimator, sisVIVE,
+which operates only under the assumption that a proportion of
+instruments are invalid, estimates −0.00094 as the causal effect,
+which is identical to the estimate by TSLS. Also, sisVIVE does
+not select any SNPs as an invalid IV. The overidentifying restrictions test and the implied structural correlation between Di and
+the error term are summarized in the supplementary materials.
+To further validate our method, we include another instrument, rs6265 (i.e., Val66Met). rs6265 is in the brain-derived
+neurotrophic factor BDNF gene and has been shown to not only
+be associated with BMI (Thorleifsson et al. 2008; Shugart et al.
+2009), but also neurological and cognitive function (Hwang et al.
+2006; Rybakowski et al. 2006). Hence, there is some reason
+to believe that rs6265 may be pleiotropic; rs6265 may impact
+obesity, but also affect HRQL through mechanisms other than
+obesity. sisVIVE should be able to pick up on this instrument
+being invalid in contrast to TSLS, which will always assume
+that all the instruments used are valid.
+If we use TSLS under the operating assumption that all the
+four instruments are valid, the estimated effect is −0.0086
+(SE:0.080). sisVIVE, on the other hand, estimates the causal
+effect to be −0.0037, which is closer to the estimates when we
+used three instruments. sisVIVE also throws out the instrument,
+rs6265, which we suspect to be invalid. The reduced form estimates and the overidentifying restrictions test are summarized
+in the supplementary materials.
+In both data analyses, sisVIVE operates under the assumption of possibly invalid instruments, which are typical in MR
+studies, while TSLS operates under the assumption of all valid
+instruments. In the first data analysis where there was no reason
+
+Journal of the American Statistical Association, March 2016
+
+to believe that the instruments were invalid, sisVIVE provides
+the same answer as TSLS, but without assuming that all the
+instruments were valid. In the second data analysis where one
+instrument was suspect, sisVIVE removed the suspected instrument. In both cases, sisVIVE was robust to possibly invalid
+instruments compared to TSLS.
+6. DISCUSSION
+This article demonstrates that proper estimation of causal
+effects using the IV method is possible without knowledge of all
+the instruments’ validity. Our results show that simply knowing
+a proportion of the instrument is valid, without knowing which
+are valid, is sufficient and we construct the sisVIVE estimator
+that dominates the naive TSLS in almost every aspect while
+performing similarly to the oracle TSLS. Both the simulation
+result and data analysis show that sisVIVE is a robust alternative
+to TSLS in the presence of possibly invalid instruments.
+Future work could involve generalizing the model considered. In particular, the current article discusses a model in
+which treatment effects are constant. Angrist, Imbens, and Rubin (1996) discusses the setting in which the treatment effects are not constant and individuals may select into treatment
+based on expected gains from treatment. Then, qm and qm in
+Theorem 1 might not be equal to each other for different sets
+of valid instruments and Theorem 1 does not apply. It would be
+useful to understand what sisVIVE is estimating under this setting of treatment effect heterogeneity. Other useful directions
+for future work are relaxing the conditions on Corollary 2 to
+encompass more invalid instruments s and deriving tests for
+identification. Also, we have focused on the applications of our
+method to Mendelian randomization. In economic applications,
+it is also common to have multiple candidate instruments and be
+concerned that some proportion of the instruments are invalid
+(Murray 2006). Our current work demonstrates that instrumental variable estimation is definitely possible even in the presence
+of possibly invalid instruments.
+7. SUPPLEMENTARY MATERIALS
+Proofs: The file contains additional information about the Wisconsin Longitudinal Data, the simulation study, further discussions, and all the technical details, including the proofs of
+Theorems 1, 2, and 3.
+Supplementary zip file: The file contains the R-package “sisVIVE” which implements the method proposed in the article
+along with documentation and one technical report on arXiv
+and one article on NBER Working Article series, both of
+which are cited in the main manuscript.
+[Received November 2013. Revised November 2014.]
+
+REFERENCES
+Andrews, W. K. D. (1999), “Consistent Moment Selection Procedures for
+Generalized Method of Moments Estimation,” Econometrica, 67, 543–
+563. [133,136]
+Angrist, J. D., and Imbens, G. W. (1995), “Two-Stage Least Squares Estimation
+of Average Causal Effects in Models With Variable Treatment Intensity,”
+Journal of the American Statistical Association, 90, 431–442. [134]
+
+Kang et al.: Instrumental Variables Estimation with Some Invalid Instruments and its Application to Mendelian Randomization
+Angrist, J. D., Imbens, G. W., and Rubin, D. B. (1996), “Identification of Causal
+Effects Using Instrumental Variables,” Journal of the American Statistical
+Association, 91, 444–455. [134,142]
+Beckers, S., Peeters, A. V., de Freitas, F., Mertens, I. L., Verhulst, S. L., Haentjens, D., Desager, K. N., Van Gaal, L. F., and Van Hul, W. (2009), “Association Study and Mutation Analysis of Adiponectin Shows Association
+of Variants in APM1 With Complex Obesity in Women,” Annals of Human
+Genetic, 73, 492–501. [142]
+Belloni, A., Chen, D., Chernozhukov, V., and Hansen, C. (2012), “Sparse Models and Methods for Optimal Instruments With an Application to Eminent
+Domain,” Econometrica, 80, 2369–2429. [136]
+Björklund, A., and Moffitt, R. (1987), “The Estimation of Wage Gains and
+Welfare Gains in Self-Selection Models,” The Review of Economics and
+Statistics, 69, 42–49. [134]
+Bouatia-Naji, N., Meyre, D., Lobbens, S., Séron, K., Fumeron, F., Balkau, B.,
+Heude, B., Jouret, B., Scherer, P. E., Dina, C., Weill, J., and Froquel, P.
+(2006), “ACDC/Adiponectin Polymorphisms are Associated with Severe
+Childhood and Adult Obesity,” Diabetes, 55, 545–550. [142]
+Brennan, P. (2004), “Commentary: Mendelian Randomization and
+Gene–Environment Interaction,” International Journal of Epidemiology, 33,
+17–21. [132]
+Cai, T. T., and Zhang, A. (2013), “Compressed Sensing and Affine Rank Minimization Under Restricted Isometry,” IEEE Transactions on Signal Processing, 61, 3279–3290. [137]
+Candes, E. J., and Tao, T. (2005), “Decoding by Linear Programming,” IEEE
+Transactions on Information Theory, 51, 4203–4215. [136]
+Cawley, J., and Meyerhoefer, C. (2012), “The Medical Care Costs of Obesity:
+An Instrumental Variables Approach,” Journal of Health Economics, 31,
+219–230. [140]
+Davey Smith, G., and Ebrahim, S. (2003), “Mendelian Randomization: Can
+Genetic Epidemiology Contribute to Understanding Environmental Determinants of Disease?” International Journal of Epidemiology, 32, 1–
+22. [132]
+——— (2004), “Mendelian Randomization: Prospects, Potentials, and Limitations,” International Journal of Epidemiology, 33, 30–42. [132]
+Dina, C., Meyre, D., Gallina, S., Durand, E., Kórner, A., Jacobson, P., Carlsson,
+L. M. S., Kiess, W., Vatin, V., Lecoeur, C., Delplanque, J., Vaillant, E., Pattou,
+F., Ruiz, J., Weill, J., Levy-Marchal, C., Horber, F., Potoczna, N., Hercberg,
+S., Le Stunff, C., Bougneres, P., Kovacs, P., Marre, M., Balkau, B., Cauchi,
+S., Chevre, J. C., and Froguel, P. (2007), “Variation in FTO Contributes
+to Childhood Obesity and Severe Adult Obesity,” Nature Genetics, 39,
+724–726. [142]
+Didelez, V., and Sheehan, N. (2007), “Mendelian Randomization as an Instrumental Variable Approach to Causal Inference,” Statistical Methods in
+Medical Research, 16, 309–330. [135]
+Donoho, D. L. (2006), “For Most Large Underdetermined Systems of Linear Equations the Minimal L1 -norm Solution is Also the Sparsest Solution,” Communications on Pure and Applied Mathematics, 59, 797–
+829. [136]
+Efron, B., Hastie, T., Johnstone, I., and Tibshirani, R. (2004), “Least Angle
+Regression,” The Annals of Statistics, 32, 407–499. [138]
+Gautier, E., and Tsybakov, A. B. (2011), “High-Dimensional Instrumental
+Variables Regression and Confidence Sets,” arXiv:1105.2454 [math.ST].
+[133,136]
+Glymour, M. M., Tchetgen, E. T., and Robins, J. M. (2012), “Credible Mendelian
+Randomization Studies: Approaches for Evaluating the Instrumental Variable Assumptions,” American Journal of Epidemiology, 175, 332–339.
+[135]
+Hansen, L. P. (1982), “Large Sample Properties of Generalized Method of
+Moments Estimators,” Econometrica, 1029–1054. [136]
+Hastie, T., Tibshirani, R., and Friedman, H. (2009), The Elements of Statistical
+Learning (2nd ed.), New York: Springer. [137]
+Hauser, R. M. (2005), “Survey Response in the Long Run: The Wisconsin
+Longitudinal Study,” Field Methods, 17, 3–29. [140]
+Hernán, M. A., and Robins, J. M. (2006), “Instruments for Causal Inference:
+An Epidemiologist’s Dream,” Epidemiology, 17, 360–372. [132,135]
+Heckman, J. J., and Robb, R. (1985), “Alternative Methods for Evaluating
+the Impact of Interventions: An Overview,” Journal of Econometrics, 30,
+239–267. [134]
+Holland, P. W. (1988), “Causal Inference, Path Analysis, and Recursive
+Structural Equations Models,” Sociological Methodology, 18, 449–484.
+[133,134,135]
+Hwang, J.-P., Tsai, S.-J., Hong, C.-J., Yang, C.-H., Lirng, J.-F., and Yang, Y.-M.
+(2006), “The Val66Met Polymorphism of the Brain-Derived Neurotrophicfactor Gene is Associated With Geriatric Depression,” Neurobiology of Aging, 27, 1834–1837. [142]
+Katan, M. B. (1986), “Apolipoprotein E Isoforms, Serum Cholesterol, and
+Cancer,” Lancet, 327, 507–508. [132]
+
+143
+
+Kolesár, M., Chetty, R., Friedman, J. N., Glaeser, E. L., and Imbens, G.
+W. (2011), “Identification and Inference With Many Invalid Instruments,”
+NBER Working Paper No. 17519, National Bureau of Economic Research.
+[133]
+Koopmans, T. C., Rubin, H., and Leipnik, R. B. (1950), “Measuring the Equation Systems of Dynamic Economics,” in Statistical Inference in Dynamic
+Economic Models, New York: Wiley, pp. 54–237. [135]
+Lawlor, D. A., Harbord, R. M., Sterne, J. A. C., Timpson, N., and Smith, G. D.
+(2008), “Mendelian Randomization: Using Genes as Instruments for Making
+Causal Inferences in Epidemiology,” Statistics in Medicine, 27, 1133–1163.
+[132]
+Little, J., and Khoury, M. J. (2003), “Mendelian Randomisation: A New Spin
+or Real Progress?” The Lancet, 362, 930–931. [132]
+Martı́nez-Calleja, A., Quiróz-Vargas, I., Parra-Rojas, I., Muñoz-Valle, J. F.,
+Leyva-Vázquez, M. A., Fernández-Tilapa, G., Vences-Velázquez, A., Cruz,
+M., Salazar-Martı́nez, E., and Flores-Alfaro, E. (2012), “Haplotypes in the
+CRP Gene Associated With Increased BMI and Levels of CRP in Subjects
+With Type 2 Diabetes or Obesity From Southwestern Mexico,” Experimental
+Diabetes Research, 2012, 1–7, Article ID 982683. [132]
+Mealli, F., and Pacini, B. (2013), “Using Secondary Outcomes to Sharpen
+Inference in Randomized Experiments With Noncompliance,” The Journal
+of the American Statistical Association, 108, 1120–1131. [133]
+Murray, M. P. (2006), “Avoiding Invalid Instruments and Coping with Weak
+Instruments,” The Journal of Economic Perspectives, 20, 111–132. [142]
+Natarajan, B. K. (1995), “Sparse Approximate Solutions to Linear Systems,”
+SIAM Journal on Computing, 24, 227–234. [136]
+National Institutes of Health (1998), “Clinical Guidelines on the Identification, Evaluation, and Treatment of Overweight and Obesity in Adults: The
+Evidence Report,” Obesity Research, 2, 51S–209S. [141]
+Neyman, J. (1923), “On the Application of Probability Theory to Agricultural
+Experiments,” Statistical Science, 5, 463–480. [133]
+Price, R. A., Li, W.-D., and Zhao, H. (2008), “FTO Gene SNPs Associated With
+Extreme Obesity in Cases, Controls and Extremely Discordant Sister Pairs,”
+BMC Medical Genetics, 9, 1–5. [142]
+Richardson, D. H., and Wu, D. (1971), “A Note on the Comparison of Ordinary and Two-Stage Least Squares Estimators,” Econometrica, 39, 973–981.
+[139]
+Roetker, N. S., Yonker, J. A., Lee, C., Chang, V., Basson, J. J., Roan, C.
+L., Hauser, T. S., Hauser, R. M., and Atwood, C. S. (2012), “Multigene
+Interactions and Prediction of Depression in the Wisconsin Longitudinal
+Study,” British Medical Journal Open, 2, e000944, 1–7. [141]
+Rubin, D. B. (1974), “Estimating Causal Effects of Treatments in Randomized and Nonrandomized Studies,” Journal of Educational Psychology, 66,
+688–701. [133]
+Rybakowski, J. K., Borkowska, A., Skibinska, M., Szczepankiewicz, A., Kapelski, P., Leszczynska-rodziewicz, A., Czerski, P. M., and Hauser, J. (2006),
+“Prefrontal Cognition in Schizophrenia and Bipolar Illness in Relation to
+Val66Met Polymorphism of the Brain-Derived Neurotrophic Factor Gene,”
+Psychiatry and Clinical Neurosciences, 60, 70–76. [142]
+Sach, T. H., Barton, G. R., Doherty, M., Muir, K. R., Jenkinson, C., and Avery,
+A. J. (2007), “The Relationship Between Body Mass Index and HealthRelated Quality of Life: Comparing the EQ-5D, EuroQol VAS and SF-6D,”
+International Journal of Obesity, 31, 189–196. [140,141]
+Shugart, Y. Y., Chen, L., Day, I. N., Lewis, S. J., Timpson, N. J., Yuan, W.,
+Abdollahi, M. R., Ring, S. M., Ebrahim, S., Golding, J., Lawlor, D. A.,
+and Smith, G. D. (2009), “Two British Women Studies Replicated the Association Between the Val66Met Polymorphism in the Brain-Derived Neurotrophic Factor (BDNF) and BMI,” European Journal of Human Genetics,
+17, 1050–1055. [142]
+Small, D. S. (2007), “Sensitivity Analysis for Instrumental Variables Regression with Overidentifying Restrictions,” Journal of the American Statistical
+Association, 102, 1049–1058. [134]
+Solovieff, N., Cotsapas, C., Lee, P. H., Purcell, S. M., and Smoller, J. W. (2013),
+“Pleiotropy in Complex Traits: Challenges and Strategies,” Nature Reviews
+Genetics, 14, 483–495. [133]
+Stock, J. H., Wright, J. H., and Yogo, M. (2002), “A Survey of Weak Instruments
+and Weak Identification in Generalized Method of Moments,” Journal of
+Business and Economic Statistics, 20, 518–520. [138]
+Thomas, D. C., and Conti, D. V. (2004), “Commentary: The Concept of
+‘Mendelian Randomization’,” International Journal of Epidemiology, 33,
+21–25. [132]
+Thorleifsson, G., Walters, G. B., Gudbjartsson, D. F., Steinthorsdottir, V., Sulem,
+P., Helgadottir, A., Styrkarsdottir, U., Gretarsdottir, S., Thorlacius, S., Jonsdottir, I., Jonsdottir, T., Olafsdottir, E. J., Olafsdottir, G. H., Jonsson, T.,
+Jonsson, F., Borch-Johnsen, K., Hansen, T., Andersen, G., Jorgensen, T.,
+Lauritzen, T., Aben, K. K., Verbeek, A. L., Roeleveld, N., Kampman, E.,
+Yanek, L. R., Becker, L. C., Tryggvadottir, L., Rafnar, T., Becker, D. M.,
+Gulcher, J., Kiemeney, L. A., Pedersen, O., Kong, A., Thorsteinsdottir, U.,
+
+144
+and Stefansson, K. (2008), “Genome-Wide Association Yields New Sequence Variants at Seven Loci that Associate With Measures of Obesity,”
+Nature Genetics, 41, 18–24. [142]
+Tibshirani, R. (1996), “Regression Shrinkage and Selection via the Lasso,”
+Journal of the Royal Statistical Society, Series B, 58, 267–288. [136]
+——— (2013), “The Lasso Problem and Uniqueness,” Electronic Journal of
+Statistics, 7, 1456–1490. [136]
+Timpson, N. J., Lawlor, D. A., Harbord, R. M., Gaunt, T. R., Day, I. N., Palmer,
+L. J., Hattersley, A. T., Ebrahim, S., Lowe, G., Rumley, A., and Smith, G. D.
+(2005), “C-reactive Protein and its Role in Metabolic Syndrome: Mendelian
+Randomisation Study,” The Lancet, 366, 1954–1959. [132,133,142]
+Torrance, G. W. (1987), “Utility Approach to Measuring Health-Related Quality
+of Life,” Journal of Chronic Disease, 40, 593–600. [140]
+Trakas, K., Oh, P. I., Singh, S., Risebrough, N., and Shear, N. H. (2001),
+“The Health Status of Obese Individuals in Canada,” International Journal
+of Obesity and Related Metabolic Disorders: Journal of the International
+Association for the Study of Obesity, 25, 662–668. [140,141]
+Tropp, J. A. (2006), “Just Relax: Convex Programming Methods for Identifying
+Sparse Signals in Noise,” IEEE Transactions on Information Theory, 52,
+1030–1051. [136]
+
+Journal of the American Statistical Association, March 2016
+Ukkola, O., Ravussin, E., Jacobson, P., Sjöström, L., and Bouchard, C. (2003),
+“Mutations in the Adiponectin Gene in Lean and Obese Subjects From the
+Swedish Obese Subjects Cohort,” Metabolism, 52, 881–884. [142]
+Wang, J., and Zivot, E. (1998), “Inference on Structural Parameters in Instrumental Variables Regression With Weak Instruments,” Econometrica, 66,
+1389–1404. [134]
+Wehby, G. L., Ohsfeldt, R. L., and Murray, J. C. (2008), “‘Mendelian Randomization’ Equals Instrumental Variable Analysis With Genetic Instruments,”
+Statistics in Medicine, 27, 2745–2749. [132]
+Wooldridge, J. M. (2010), Econometric Analysis of Cross Section and Panel
+Data (2nd ed.), Cambridge, MA: MIT Press. [133,135]
+Yang, W. S., Tsou, P. L., Lee, W. J., Tseng, D. L., Chen, C. L., Peng, C. C.,
+Lee, K. C., Chen, M. J., Huang, C. J., Tai, T. Y., and Chuang, L. M. (2003),
+“Allele-Specific Differential Expression of a Common Adiponectin Gene
+Polymorphism Related to Obesity,” Journal of Molecular Medicine, 81,
+428–434. [142]
+Yang, W. S., Yang, Y. C., Chen, C. L., Wu, I. L., Lu, J. Y., Lu, F. H., Tai, T. Y., and
+Chang, C.-J. (2007), “Adiponectin SNP276 is Associated with Obesity, the
+Metabolic Syndrome, and Diabetes in the Elderly,” The American Journal
+of Clinical Nutrition, 86, 509–513. [142]
+
+

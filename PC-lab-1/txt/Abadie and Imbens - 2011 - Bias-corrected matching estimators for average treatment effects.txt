@@ -1,0 +1,2418 @@
+This article was downloaded by: [Universitaetsbibliothek Freiburg]
+On: 20 November 2012, At: 08:23
+Publisher: Taylor & Francis
+Informa Ltd Registered in England and Wales Registered Number: 1072954 Registered office: Mortimer
+House, 37-41 Mortimer Street, London W1T 3JH, UK
+
+Journal of Business & Economic Statistics
+Publication details, including instructions for authors and subscription information:
+http://www.tandfonline.com/loi/ubes20
+
+Bias-Corrected Matching Estimators for Average
+Treatment Effects
+Alberto Abadie and Guido W. Imbens
+John F. Kennedy School of Government, Harvard University, Cambridge, MA 02138 and
+NBER
+Department of Economics, Harvard University, Cambridge, MA 02138 and NBER
+Version of record first published: 01 Jan 2012.
+
+To cite this article: Alberto Abadie and Guido W. Imbens (2011): Bias-Corrected Matching Estimators for Average
+Treatment Effects, Journal of Business & Economic Statistics, 29:1, 1-11
+To link to this article: http://dx.doi.org/10.1198/jbes.2009.07333
+
+PLEASE SCROLL DOWN FOR ARTICLE
+Full terms and conditions of use: http://www.tandfonline.com/page/terms-and-conditions
+This article may be used for research, teaching, and private study purposes. Any substantial or systematic
+reproduction, redistribution, reselling, loan, sub-licensing, systematic supply, or distribution in any form to
+anyone is expressly forbidden.
+The publisher does not give any warranty express or implied or make any representation that the contents
+will be complete or accurate or up to date. The accuracy of any instructions, formulae, and drug doses
+should be independently verified with primary sources. The publisher shall not be liable for any loss, actions,
+claims, proceedings, demand, or costs or damages whatsoever or howsoever caused arising directly or
+indirectly in connection with or arising out of the use of this material.
+
+Bias-Corrected Matching Estimators for
+Average Treatment Effects
+Alberto A BADIE
+John F. Kennedy School of Government, Harvard University, Cambridge, MA 02138 and NBER
+(alberto_abadie@harvard.edu)
+
+Guido W. I MBENS
+
+Downloaded by [Universitaetsbibliothek Freiburg] at 08:23 20 November 2012
+
+Department of Economics, Harvard University, Cambridge, MA 02138 and NBER (imbens@harvard.edu)
+In Abadie and Imbens (2006), it was shown that simple nearest-neighbor matching estimators include a
+conditional bias term that converges to zero at a rate that may be slower than N 1/2 . As a result, matching estimators are not N 1/2 -consistent in general. In this article, we propose a bias correction that renders matching estimators N 1/2 -consistent and asymptotically normal. To demonstrate the methods proposed in this article, we apply them to the National Supported Work (NSW) data, originally analyzed in
+Lalonde (1986). We also carry out a small simulation study based on the NSW example. In this simulation study, a simple implementation of the bias-corrected matching estimator performs well compared to
+both simple matching estimators and to regression estimators in terms of bias, root-mean-squared-error,
+and coverage rates. Software to compute the estimators proposed in this article is available on the authors’ web pages (http:// www.economics.harvard.edu/ faculty/ imbens/ software.html) and documented in
+Abadie et al. (2003).
+KEY WORDS: Selection on observables; Treatment effects.
+
+1. INTRODUCTION
+
+smoothing techniques, and therefore, involves the choice of a
+smoothing parameter as a function of the sample size. Compared to estimators based on nonparametric regression adjustment without matching (e.g., Hahn 1998; Heckman et al. 1998;
+Imbens, Newey, and Ridder 2005; Chen, Hong, and Tarozzi
+2008) or weighting estimators (Horvitz and Thompson 1952;
+Robins and Rotnitzky 1995; Hirano, Imbens, and Ridder 2003;
+Abadie 2005), bias-corrected matching estimators have the advantage of an additional layer of robustness because matching
+ensures consistency for any given value of the smoothing parameters without requiring accurate approximations to either the
+regression function or the propensity score. However, in contrast to some regression adjustment and weighting estimators,
+bias-corrected matching estimator have the disadvantage of not
+being fully efficient (Abadie and Imbens 2006).
+
+The purpose of this article is to investigate the properties of
+estimators that combine matching with a bias correction proposed in Rubin (1973) and Quade (1982), and derive the large
+sample properties of a nonparametric extension of the biascorrected estimator. We show that a nonparametric implementation of the bias correction removes the conditional bias of
+matching asymptotically to a sufficient degree so that the resulting estimator is N 1/2 -consistent, without affecting the asymptotic variance.
+We apply simple matching estimators and the bias-corrected
+matching estimators studied in the current article to the National Supported Work (NSW) demonstration data, analyzed
+originally by Lalonde (1986) and subsequently by many others, including Heckman and Hotz (1989), Dehejia and Wahba
+(1999), Smith and Todd (2005), and Imbens (2003). For the
+Lalonde dataset we show that conventional matching estimators without bias correction are sensitive to the choice for the
+number of matches, whereas a simple implementation of the
+bias correction using linear least squares is relatively robust
+to this choice. Moreover, in small simulation studies designed
+to mimic the data from the NSW application, we find that the
+simple linear least-squares based implementation of the biascorrected matching estimator performs well compared to both
+matching estimators without bias correction, and to regression
+and weighting estimators, in terms of bias, root-mean-squarederror, and coverage rates for the associated confidence intervals.
+Bias-corrected matching estimators combine some of the advantages and disadvantages of both matching and regression
+estimators. Compared to matching estimators without bias correction, they have the advantage of being N 1/2 -consistent and
+asymptotically normal irrespective of the number of covariates.
+However, bias-corrected matching estimators may be more difficult to implement than matching estimators without bias correction if the bias correction is calculated using nonparametric
+
+2.
+
+MATCHING ESTIMATORS
+
+2.1 Setting and Notation
+Matching estimators are often used in evaluation research to
+estimate treatment effects in the absence of experimental data.
+As is by now common in this literature, we use Rubin’s potential outcome framework (e.g., Rubin 1974). See Rosenbaum
+(1995) and Imbens and Wooldridge (2009) for surveys. For N
+units, indexed by i = 1, . . . , N, let Wi be a binary variable that
+indicates exposure of individual i to treatment, so that Wi = 1
+if individual
+ i was exposed to treatment,
+N and Wi = 0 otherwise.
+Let N0 = N
+(1
+−
+W
+)
+and
+N
+=
+i
+1
+i=1
+i=1 Wi = N − N0 be the
+number of control and treated units, respectively. The variables
+Yi (0) and Yi (1) represent potential outcomes with and without
+© 2011 American Statistical Association
+Journal of Business & Economic Statistics
+January 2011, Vol. 29, No. 1
+DOI: 10.1198/jbes.2009.07333
+1
+
+2
+
+Journal of Business & Economic Statistics, January 2011
+
+treatment, respectively, and therefore, Yi (1) − Yi (0) is the treatment effect for unit i. Depending on the value of Wi , one of the
+two potential outcomes is realized and observed:
+
+Yi (0) if Wi = 0
+Yi =
+Yi (1) if Wi = 1.
+In settings with essentially unrestricted heterogeneity in the effect of the treatment, the typical goal of evaluation research is
+to estimate an average treatment effect. Here, we focus on the
+unconditional (population) average
+τ = E[Yi (1) − Yi (0)].
+In addition, in the applied literature the focus is often on the
+average effect for the treated,
+
+Downloaded by [Universitaetsbibliothek Freiburg] at 08:23 20 November 2012
+
+τtreated = E[Yi (1) − Yi (0)|Wi = 1].
+In the body of the article we will largely focus on τ . In Appendix B we present the corresponding results for τtreated .
+In general, a simple comparison of average outcomes between treated and control units does not identify the average
+effect of the treatment. The reason is that this comparison may
+be contaminated by the effect of other variables that are correlated with the treatment, Wi , as well as with the potential
+outcomes, Yi (1) and Yi (0). The presence of these confounders
+may create a correlation between Wi and Yi even if the treatment has no causal effect on the outcome. Randomization of
+the treatment eliminates the correlation between any potential
+confounder and Wi . In the absence of randomization, the following set of assumptions has been found useful as a basis for
+identification and estimation of τ when all confounders are observed. These observed confounders for unit i will be denoted
+by Xi , a vector of dimension k, with jth element Xij .
+Assumption A.1. Let X be a random vector of dimension k
+of continuous covariates distributed on Rk with compact and
+convex support X, with (a version of the) density bounded and
+bounded away from zero on its support.
+Assumption A.2. For almost every x ∈ X,
+(i) (unconfoundedness) W is independent of (Yi (0), Yi (1))
+conditional on Xi = x;
+(ii) (overlap) η < Pr(Wi = 1|Xi = x) < 1 − η, for some
+η > 0.
+{(Yi , Wi , Xi )}N
+i=1
+
+Assumption A.3.
+from the distribution of (Y, W, X).
+
+are independent draws
+
+Assumption A.4. Let μw (x) = E[Yi (w)|Xi = x] and σw2 (x) =
+E[(Yi − μw (x))2 |Xi = x]. Then, (i) μw (x) and σw2 (x) are Lipschitz in X for w = 0, 1, (ii) E[(Yi (w))4 |Xi = x] ≤ C for some
+finite C, for almost all x ∈ X, and (iii) σw2 (x) is bounded away
+from zero.
+Assumption A.1 requires that all variables in X have a continuous distribution. Notice, however, that discrete covariates
+with a finite number of support points can be easily accommodated in our analysis by conditioning on their values. Assumption A.2(i) states that, conditional on Xi , the treatment Wi is “as
+good as randomized,” that is, it is independent of the potential
+outcomes, Yi (1) and Yi (0). That will be the case, in particular,
+if all potential confounders are included in X. Therefore, conditional on Xi = x, a simple comparison of average outcomes
+
+between treated and control units is equal to the average effect
+of the treatment given Xi = x. This assumption originates in
+the seminal article by Rosenbaum and Rubin (1983). Assumption A.2(ii) is the usual support condition invoked for matching
+estimators. Assumption A.2(i) and Assumption A.2(ii) combined are referred to as “strong ignorability.” Assumption A.3
+refers to the sampling process. Finally, Assumption A.4 collects
+regularity conditions that will be used later. Note that given Assumption A.2(i), μw (x) = E[Yi |Xi = x, Wi = w], and σw2 (x) =
+E[(Yi − E[Yi |Xi = x, Wi = w])2 |Xi = x, Wi = w]. Abadie and
+Imbens (2006) discussed Assumptions A.1 through A.4 in
+greater detail. Identification conditions for matching estimators
+are also discussed in Hahn (1998), Dehejia and Wahba (1999),
+Lechner (2002), and Imbens (2004), among others.
+As in Abadie and Imbens (2006), we consider matching
+“with replacement,” allowing each unit to be used as a match
+more than once. For x ∈ X, and for some positive definite symmetric matrix A, let xA = (x Ax)1/2 be some vector norm.
+Typically the k × k matrix A is choosen to be the inverse of
+the sample covariance matrix of the covariates, corresponding
+to the Mahalanobis metric,
+
+−1
+N
+1
+
+Amaha =
+(Xi − X) · (Xi − X)
+,
+N
+i=1
+
+where X =
+
+N
+1
+Xi ,
+N
+i=1
+
+or the normalized Euclidean distance, the diagonal matrix with
+the inverse of the sample variances on the diagonal (e.g., Abadie
+and Imbens 2006):
+−1
+Ane = diag(A−1
+maha ) .
+
+Let m (i) be the index of the mth match to unit i. That is, among
+the units in the opposite treatment group to unit i, unit m (i) is
+the mth closest unit to unit i in terms of covariate values. Thus,
+m (j) satisfies, (i) Wm (i) = 1 − Wi , and (ii)
+
+
+
+
+1 Xj − Xi A ≤ Xm (i) − Xi A = m,
+j:Wj =1−Wi
+
+where 1{·} is the indicator function, equal to 1 if the expression in brackets is true and zero otherwise. For notational simplicity, we ignore ties in the matching, which happen with
+probability zero if the covariates are continuous. Let JM (i) =
+{1 (i), . . . , M (i)} denote the set of indices for the first M
+matches for unit i, for M such that M ≤ N0 and M ≤ N1 . Finally, let KM (i) denote the number of times unit i is used as a
+match if we match each unit to the nearest M matches:
+KM (i) =
+
+N
+
+
+1{i ∈ JM (l)}.
+
+l=1
+
+Under matching without replacement, Km (i) ∈ {0, 1}, but in our
+setting of matching with replacement, Km (i) can also take on
+integer values larger than 1 if unit i is the closest match for
+multiple units.
+
+Abadie and Imbens: Estimators for Average Treatment Effects
+
+3
+
+2.2 Estimators
+If we were to observe the potential outcomes Yi (0) and
+Y
+(1)
+i
+N for all units, we will simply estimate τ as the average
+i=1 (Yi (1) − Yi (0))/N. The idea behind matching estimators
+is to estimate, for each i = 1, . . . , N, the missing potential outcomes. For each i we know one of the potential outcomes,
+namely Yi (0) if Wi = 0, and Yi (1) otherwise. Hence, if Wi = 0,
+then we choose Ŷi (0) = Yi (0) = Yi , and if Wi = 1, then we
+choose Ŷi (1) = Yi (1) = Yi . The remaining potential outcome
+for unit i is imputed using the average of the outcomes for its
+matches. This leads to
+⎧
+Y
+if Wi = 0
+⎪
+⎨ i 
+1
+and
+Ŷi (0) =
+Yj if Wi = 1
+⎪
+⎩M
+
+Downloaded by [Universitaetsbibliothek Freiburg] at 08:23 20 November 2012
+
+j∈JM (i)
+
+⎧
+1 
+⎪
+⎨
+Yj
+Ŷi (1) = M j∈JM (i)
+⎪
+⎩
+Yi
+
+if Wi = 0
+if Wi = 1.
+
+N
+1
+(Ŷi (1) − Ŷi (0)).
+N
+
+j∈JM (i)
+
+and
+
+⎧
+
+1  
+⎪
+⎨
+Yj + μ̂1 (Xi ) − μ̂1 (Xj )
+Ỹi (1) = M j∈JM (i)
+⎪
+⎩
+Yi
+
+if Wi = 0
+if Wi = 1,
+
+with corresponding estimator
+
+Using this notation, we can write the matching estimators for τ
+based on M matches per unit, with replacement, as
+m
+=
+τ̂M
+
+The matching estimators in Equation (1) are similar to the regression imputation estimators, as they can be interpreted as
+imputing Yi (0) and Yi (1) with a nearest-neighbor estimate of
+μ0 (Xi ) and μ1 (Xi ), respectively. However, because M is held
+fixed under the matching asymptotics, Ŷi (0) and Ŷi (1) do not
+estimate μ0 (Xi ) and μ1 (Xi ) consistently.
+Finally, we consider a bias-corrected matching estimator
+where the difference within the matches is regression-adjusted
+for the difference in covariate values:
+⎧
+if Wi = 0
+⎪
+⎨ Yi 
+
+
+1
+Ỹi (0) =
+Yj + μ̂0 (Xi ) − μ̂0 (Xj ) if Wi = 1
+⎪
+⎩M
+
+bcm
+=
+τ̂M
+
+N
+1
+(Ỹi (1) − Ỹi (0)).
+N
+
+(3)
+
+i=1
+
+(1)
+
+i=1
+
+Using the definition of KM (i), we can also write this estimator
+as a weighted average of the outcomes,
+
+
+N
+1
+KM (i)
+m
+(2Wi − 1) · 1 +
+(2)
+· Yi .
+τ̂M =
+N
+M
+i=1
+
+This representation is useful for deriving the variance of the
+matching estimator.
+In empirical applications, matching estimators are often implemented with small values for M, as small as 1 even in
+reasonably large sample sizes. Therefore, in order to obtain
+an accurate approximation to the finite sample distribution of
+matching estimators in such settings, we focus asymptotic approximations as N increases for fixed M.
+Before introducing the bias-corrected matching estimator, let
+us briefly discuss regression estimators. Let μ̂w (x) be a consistent estimator of μw (x). A regression imputation estimator uses
+μ̂0 (Xi ) and μ̂1 (Xi ) to impute the missing values of Yi (0) and
+Yi (1), respectively. That is, for
+
+if Wi = 0
+Yi
+Y i (0) =
+and
+μ̂0 (Xi ) if Wi = 1
+
+μ̂1 (Xi ) if Wi = 0
+Y i (1) =
+if Wi = 1,
+Yi
+the regression imputation estimator of τ is
+N
+1
+τ̂ reg =
+(Y i (1) − Y i (0)).
+N
+i=1
+
+As in Abadie and Imbens (2006), we classify as regression imputation estimators those for which μ̂w (x) is a consistent estimator of μw (x). Various forms of such estimators were proposed by Hahn (1998), Heckman et al. (1998), Chen, Hong,
+and Tarozzi (2008), and Imbens, Newey, and Ridder (2005).
+
+Rubin (1979) and Quade (1982) discussed such estimators in
+the context of matching without replacement and with linear
+covariance adjustment.
+To further illustrate the difference between the simple matching estimator, the regression estimator, and the bias-corrected
+matching estimator, consider unit i with Wi = 0. For this unit,
+Yi (0) is known, and only Yi (1) needs to be imputed. The simple matching estimator imputes the missing potential outcome
+Yi (1) as
+1 
+Ŷi (1) =
+Yj (1).
+M
+j∈JM (i)
+
+The regression imputation estimator imputes this missing potential outcome as
+Y i (1) = μ̂1 (Xi ).
+The bias-corrected matching estimator imputes the missing potential outcome as
+
+
+1 
+1 
+Ỹi (1) =
+Yj (1) + μ̂1 (Xi ) −
+μ̂1 (Xj )
+M
+M
+j∈JM (i)
+
+j∈JM (i)
+
+
+
+1 
+= Ŷi (1) + μ̂1 (Xi ) −
+μ̂1 (Xj )
+M
+j∈JM (i)
+
+= Y i (1) +
+
+1 
+(Yj (1) − μ̂1 (Xj )).
+M
+j∈JM (i)
+
+The imputation for the bias-corrected matching estimator adjusts the imputation under the simple matching estimator by
+the difference in the estimated regression function at Xi and
+the estimated regression function at the matched values, Xj for
+j ∈ JM (i). Obviously that will improve the estimator if the estimated regression function is a good approximation to the true
+regression function. Even if the estimated regression function is
+noisy, the adjustment will typically be small because Xi − Xj for
+j ∈ JM (i) should be small in large samples. At the same time,
+
+4
+
+Journal of Business & Economic Statistics, January 2011
+
+compared to the regression
+ estimator, the bias-corrected matching estimator adds M1 j∈JM (i) Yj (1) − μ̂1 (Xj ). If the estimated
+regression function is equal to the true regression function, this
+is simply adding noise to the estimator, making it less precise
+without introducing bias. However, if the regression function is
+misspecified, the
+fact that under very weak assumptions the expectation of M1 j∈JM (i) Yj (1) converges to μ1 (Xi ) implies that
+bias correction, relative to imputation estimators, is, in expectation, approximately equal to μ1 (Xi ) − μ̂1 (Xi ), which will eliminate any inconsistency in the regression imputation estimator.
+In other words, the bias-corrected matching estimator is robust
+against misspecification of the regression function.
+
+Downloaded by [Universitaetsbibliothek Freiburg] at 08:23 20 November 2012
+
+2.3 Large Sample Properties of Matching Estimators
+Before presenting some results on the large sample properties
+of the bias-corrected matching estimator, we first collect some
+results on the large sample properties of matching estimators
+derived in Abadie and Imbens (2006), which motivated the use
+of bias-corrected matching estimators.
+First, we introduce some additional notation. Let X be the
+N × k matrix with ith row equal to Xi . Similarly, let W be N × 1
+vector with ith element equal to Wi . Let
+τ (x) = E[Yi (1) − Yi (0)|Xi = x] = μ1 (x) − μ0 (x),
+be the average effect of the treatment conditional on X = x, and
+τ (X) =
+
+N
+1
+(μ1 (Xi ) − μ0 (Xi )),
+N
+
+term does not necessarily satisfy a central limit theorem, and
+our bias-correction approach is geared toward eliminating it.
+Next, we turn to the variance. Note that KM (i) is nonstochastic conditional on X and W. Therefore, Equation (2) implies
+m conditional on X and W is
+that the variance of τ̂M
+
+N 
+1 
+KM (i) 2 2
+m
+m
+V(τ̂M |X, W) = V(DM |X, W) = 2
+σWi (Xi ).
+1+
+M
+N
+i=1
+
+m |X, W) be the corresponding normalized
+= N · V(τ̂M
+Let
+variance. In addition, let V τ (X) = E[(τ (X) − τ )2 ]. The follow-
+
+VE
+
+ing result is given in Abadie and Imbens (2006):
+Theorem 1 (Asymptotic normality for the simple matching
+estimator). Suppose Assumptions A.1–A.4 hold. Then
+−1/2 √
+ E
+d
+m
+N(τ̂M
+− Bm
+V + V τ (X)
+M − τ ) −→ N (0, 1).
+Abadie and Imbens (2006) also proposed a consistent estimator for V E and V τ (X) under Assumptions A.1–A.4.
+The result of Theorem 1 shows that, after subtracting the con1/2 ditional bias terms Bm
+M , the simple matching estimator is N
+consistent and asymptotically normal. Moreover, Abadie and
+Imbens (2006) showed that the same result holds without subtracting the conditional bias terms if matching is done for only
+one covariate (e.g.,√matching on the true propensity score) because in that case NBm
+M = op (1).
+3. BIAS CORRECTED MATCHING
+
+i=1
+
+the average of that over the covariate distribution. For i =
+1, . . . , N, define
+
+
+Bm
+M,i = E Ŷi (1) − Ŷi (0) − (Yi (1) − Yi (0))|X, W
+
+
+2Wi − 1 
+μ1−Wi (Xi ) − μ1−Wi Xj (i)
+M
+M
+
+=
+
+j=1
+
+and
+Bm
+M
+
+N
+1 m
+m
+=
+BM,i = E[τ̂M
+− τ (X)|X, W]
+N
+i=1
+
+=
+
+N
+M
+
+
+1  2Wi − 1 
+μ1−Wi (Xi ) − μ1−Wi Xj (i) .
+N
+M
+i=1
+
+j=1
+
+Now we can write the simple matching estimator minus the average treatment effect using simple algebra as
+m
+m
+− τ = (τ (X) − τ ) + Dm
+τ̂M
+M + BM ,
+
+where
+Dm
+M
+
+
+
+N
+
+1
+KM (i) 
+=
+(2Wi − 1) 1 +
+· Yi − μWi (Xi ) .
+N
+M
+i=1
+
+The first term, τ (X) − τ , captures the variation in the conditional treatment effect. This term is a simple sample average
+and satisfies a central limit theorem. The second term DN has
+expectation zero conditional on X and W. This term also satisfies a central limit theorem (Abadie and Imbens 2006). The
+last term captures the bias conditional on the covariates. This
+
+In this section we analyze the properties of the bias-corrected
+matching estimators, defined in Equation (3). In order to establish the asymptotic behavior of the bias-corrected estimator, we
+consider a nonparametric series estimator for the two regression functions, μ0 (x) and μ1 (x), with K(N) terms in the series,
+where K(N) increases with N. An important disadvantage of
+this estimator is that it will rely on selecting smoothing parameters as functions of the sample size, something that the simple matching estimator allows us to avoid. The advantage of the
+bias-corrected matching estimator is that it is root-N consistent
+for any dimension of the covariates, k. In both these properties
+the bias-corrected matching estimator is similar to the regression imputation estimator. However, it has the same large sample variance as the simple matching estimator, and therefore, it
+is, in general, not as efficient as the regression imputation or
+weighting estimators in large samples. Compared to the regression imputation estimator, the bias-corrected matching estimator is more robust in the sense that it is consistent for a fixed
+value of the smoothing parameters. Because choosing smoothing parameters as functions of the sample size is precisely what
+matching estimators allow us to avoid, in the empirical analysis and simulations of Sections 4 and 5 we investigate the performance of a simple implementation of the bias correction by
+linear least squares.
+Here, we discuss the formal nonparametric implementation
+of the bias adjustment. Let λ = (λ1 , . . . , λk ) be a multi-index
+of dimension k, that is, a k-dimensional vector of nonnegative
+
+λ
+integers, with |λ| = ki=1 λi , and let xλ = x1λ1 , . . . , xk k . Con∞
+sider a series {λ(K)}K=1 containing all distinct such vectors
+such that |λ(K)| is nondecreasing. Let pK (x) = xλ(K) , and let
+
+Abadie and Imbens: Estimators for Average Treatment Effects
+
+5
+
+pK (x) = (p1 (x), . . . , pK (x)) . Following Newey (1995), the nonparametric series estimator of the regression function μw (x) is
+given by
+μ̂w (x) = pK(N) (x)
+
+ 
+
+pK(N) (Xi )pK(N) (Xi )
+
+i:Wi =w
+
+×
+
+−
+
+
+
+pK(N) (Xi )Yi ,
+
+i:Wi =w
+
+where (·)− denotes a generalized inverse. Given the estimated
+regression function, let B̂m
+M be the estimator for the average bias
+term:
+
+Downloaded by [Universitaetsbibliothek Freiburg] at 08:23 20 November 2012
+
+B̂m
+M
+
+N
+M
+
+
+1  2Wi − 1 
+μ̂1−Wi (Xi ) − μ̂1−Wi Xj (i) .
+=
+N
+M
+i=1
+
+Then the bias corrected matching estimator is
+(4)
+
+The following theorem shows that the bias correction removes
+the bias without affecting the asymptotic variance.
+Theorem 2 (Bias-corrected matching estimator). Suppose
+that Assumptions A.1–A.4 hold. Assume also that (i) the support of X, X ⊂ Rk , is a Cartesian product of compact intervals;
+(ii) K(N) = O(N ν ), with 0 < ν < min(2/(4k + 3), 2/(4k2 − k));
+and (iii) there is a constant C such that for each multi-index λ
+the λth partial derivative of μw (x) exists for w = 0, 1 and its
+norm is bounded by C|λ| . Then,
+√
+
+The first result implies that we can estimate the bias faster
+than N 1/2 . This may seem surprising, given that even in parametric settings we can typically not estimate parameters faster
+than N 1/2 . That logic applies to objects of the type μw (x) −
+μw (z); for fixed x and w we cannot estimate μw (x) − μw (z)
+faster than N 1/2 . However, here we are estimating objects of
+the type μw (x) − μw (z) where z − x goes to zero, allowing us
+to obtain a faster rate for the difference μw (x) − μw (z). In other
+−1/k ), giving us adwords, Bm
+M itself is op (1) [in fact, it is Op (N
+ditional room to estimate it at a rate faster than N 1/2 ]. The second result says that the bias-corrected matching estimator has
+the same normalized variance as the simple matching estimator.
+4. AN APPLICATION TO THE EVALUATION OF A
+LABOR MARKET PROGRAM
+
+j=1
+
+bcm
+m
+τ̂M
+= τ̂M
+− B̂m
+M.
+
+Proof. See Appendix A.
+
+p
+
+m
+N(Bm
+and
+M − B̂M ) −→ 0
+√
+ E
+
+d
+1/2
+bcm
+V + V τ (X)
+N(τ̂M
+− τ ) −→ N (0, 1).
+
+In this section we apply the estimators studied in this article to data from the National Supported Work (NSW) demonstration, an evaluation of a subsidized work program first analyzed by Lalonde (1986) and subsequently by Heckman and
+Hotz (1989), Dehejia and Wahba (1999), Imbens (2003), Smith
+and Todd (2005), and others. The specific sample we use here
+is the one employed by Dehejia and Wahba (1999) and is available on Rajeev Dehejia’s website. The dataset we use here contains an experimental sample from a randomized evaluation of
+the NSW program, and also a nonexperimental sample from the
+Panel Study of Income Dynamics (PSID). Using the experimental data we obtain an unbiased estimate of the average effect of
+the program. We then compute nonexperimental matching estimators using the experimental participants and the nonexperimental comparison group from the PSID, and compare them to
+the experimental estimate. In line with previous studies using
+these data, we focus on the average effect for the treated, and
+therefore, only match the treated units.
+Table 1 presents summary statistics for the three groups used
+in our analysis. The first two columns present the summary sta-
+
+Table 1. Summary statistics
+Experimental data
+Treated (185)
+
+Normalized dif.
+
+Controls (260)
+
+PSID (2490)
+
+Mean
+
+(SD)
+
+Mean
+
+(SD)
+
+Mean
+
+(SD)
+
+Treat/
+Contr
+
+Treat/
+PSID
+
+Panel A: Pretreatment variables
+Age
+25.8
+Education
+10.3
+Black
+0.84
+Hispanic
+0.06
+Married
+0.19
+Earnings 13–24
+2.10
+Unemployed 13–24
+0.71
+Earnings ’75
+1.53
+Unemployed ’75
+0.60
+
+(7.2)
+(2.0)
+(0.36)
+(0.24)
+(0.39)
+(4.89)
+(0.46)
+(3.22)
+(0.49)
+
+25.1
+10.1
+0.83
+0.11
+0.15
+2.11
+0.75
+1.27
+0.68
+
+(7.1)
+(1.6)
+(0.38)
+(0.31)
+(0.36)
+(5.69)
+(0.43)
+(3.10)
+(0.47)
+
+34.9
+12.1
+0.25
+0.03
+0.87
+19.43
+0.09
+19.06
+0.10
+
+(10.4)
+(3.1)
+(0.43)
+(0.18)
+(0.34)
+(13.41)
+(0.28)
+(13.60)
+(0.30)
+
+0.08
+0.10
+0.03
+−0.12
+0.07
+−0.00
+−0.07
+0.06
+−0.13
+
+−0.71
+−0.48
+1.05
+0.09
+−1.30
+−1.21
+1.16
+−1.25
+0.87
+
+7.87
+0.43
+
+4.55
+0.35
+
+5.48
+0.48
+
+21.55
+0.11
+
+15.56
+0.32
+
+0.19
+−0.17
+
+−0.87
+0.24
+
+Panel B: Outcomes
+Earnings ’78
+Unemployed ’78
+
+6.35
+0.24
+
+NOTE: Earnings data are in thousands of 1978 dollars. Earnings 13–24 and Unemployed 13–24 refers to earnings and unemployment during the period 13 to 24
+months prior to randomization.
+
+6
+
+Journal of Business & Economic Statistics, January 2011
+
+tistics for the experimental treatment group. The second pair
+of columns presents summary statistics for the experimental
+controls. The third pair of columns presents summary statistics
+for the nonexperimental comparison group constructed from
+the PSID. The last two columns present normalized differences
+between the covariate distributions, between the experimental
+treated and controls, and between the experimental treated and
+the PSID comparison group, respectively. These normalized
+differences are calculated as
+
+Downloaded by [Universitaetsbibliothek Freiburg] at 08:23 20 November 2012
+
+nor-dif = 
+
+X1 − X0
+
+,
+(S02 + S12 )/2
+
+
+where X w = i:Wi =w Xi /Nw and Sw2 = i:Wi =w (Xi − X w )2 /
+(Nw − 1). Note that this differs from the t-statistic for the test of
+the null hypothesis that E[X|W = 0] = E[X|W = 1], which will
+be
+t-stat = 
+
+X1 − X0
+
+.
+
+S02 /N0 + S12 /N1
+
+The normalized difference provides a scale-free measure of the
+difference in the location of the two distributions, and is useful
+for assessing the degree of difficulty in adjusting for differences
+in covariates.
+Panel A contains the results for pretreatment variables and
+Panel B for outcomes. Notice the large differences in background characteristics between the program participants and the
+PSID sample. This is what makes drawing causal inferences
+
+from comparisons between the PSID sample and the treatment
+group a tenuous task. From Panel B, we can obtain an unbiased estimate of the effect of the NSW program on earnings in
+1978 by comparing the averages for the experimental treated
+and controls, 6.35 − 4.55 = 1.80, with a standard error of 0.67
+(earnings are measured in thousands of dollars). Using a normal approximation to the limiting distribution of the effect of
+the program on earnings in 1978, we obtain a 95% confidence
+interval, which is [0.49, 3.10].
+Table 2 presents estimates of the causal effect of the NSW
+program on earnings using various matching, regression, and
+weighting estimators. Panel A reports estimates for the experimental data (treated and controls). Panel B reports estimates
+based on the experimental treated and the PSID comparison
+group. The first set of rows in each case reports matching estimates for M equal to 1, 4, 16, 64, and 2490 (the size of the
+PSID comparison group). The matching estimates include simple matching with no-bias adjustment and bias-adjusted matching, first by matching on the covariates and then by matching
+on the estimated propensity score. The covariate matching estimators use the matrix Ane (the diagional matrix with inverse
+sample variances on the diagonal) as the distance measure. Because we are focused on the average effect for the treated, the
+bias correction only requires an estimate of μ0 (Xi ). We estimate this regression function using linear regression on all nine
+pretreatment covariates in Table 1, panel A, but do not include
+any higher order terms or interactions, with only the control
+units that are used as a match [the units j such that Wj = 0 and
+
+Table 2. Experimental and nonexperimental estimates for the NSW data
+M=1
+Est.
+Panel A:
+Experimental estimates
+Covariate matching
+Bias-adjusted cov matching
+Pscore matching
+Bias-adjusted pscore matching
+Regression estimates
+Mean difference
+Linear
+Quadratic
+Weighting on pscore
+Weighting and linear regression
+Panel B:
+Nonexperimental estimates
+Simple matching
+Bias-adjusted matching
+Pscore matching
+Bias-adjusted pscore matching
+Regression estimates
+Mean difference
+Linear
+Quadratic
+Weighting on pscore
+Weighting and linear regression
+NOTE:
+
+M=4
+
+M = 16
+
+M = 64
+
+M = 2490
+
+(SE)
+
+Est.
+
+(SE)
+
+Est.
+
+(SE)
+
+Est.
+
+(SE)
+
+1.22
+1.16
+1.43
+1.22
+
+(0.84)
+(0.84)
+(0.81)
+(0.81)
+
+1.99
+1.84
+1.95
+1.89
+
+(0.74)
+(0.74)
+(0.69)
+(0.71)
+
+1.75
+1.54
+1.85
+1.78
+
+(0.74)
+(0.75)
+(0.69)
+(0.70)
+
+2.20
+1.74
+1.85
+1.67
+
+(0.70)
+(0.71)
+(0.68)
+(0.69)
+
+1.79
+1.72
+1.79
+1.72
+
+(0.67)
+(0.68)
+(0.67)
+(0.68)
+
+1.79
+1.72
+2.27
+1.79
+1.69
+
+(0.67)
+(0.68)
+(0.80)
+(0.67)
+(0.66)
+
+2.07
+2.42
+2.32
+3.10
+
+(1.13)
+(1.13)
+(1.21)
+(1.21)
+
+1.62
+2.51
+2.06
+2.61
+
+(0.91)
+(0.90)
+(1.01)
+(1.03)
+
+0.47
+2.48
+0.79
+2.37
+
+(0.85)
+(0.83)
+(1.25)
+(1.28)
+
+−0.11
+2.26
+−0.18
+2.32
+
+(0.75)
+(0.71)
+(0.92)
+(0.94)
+
+−15.20
+0.84
+−1.55
+2.00
+
+(0.61)
+(0.63)
+(0.80)
+(0.84)
+
+−15.20
+0.84
+3.26
+1.77
+1.65
+
+(0.66)
+(0.88)
+(1.04)
+(0.67)
+(0.66)
+
+The outcome is earnings in 1978 in thousands of dollars.
+
+Est.
+
+(SE)
+
+Downloaded by [Universitaetsbibliothek Freiburg] at 08:23 20 November 2012
+
+Abadie and Imbens: Estimators for Average Treatment Effects
+
+7
+
+j ∈ JM (i) for some i]. The confidence intervals are based on the
+variance estimator proposed in Abadie and Imbens (2006). This
+variance estimator is formally justified for the case of matching
+on the covariates. It does not cover the case of matching on
+the estimated propensity score. We implement it for the case
+of matching on the estimated propensity score by ignoring the
+estimation error in the propensity score. The next three rows
+of each panel report estimates based on differences in means,
+linear regression including terms for all covariates, and linear
+regression also including quadratic terms and a full set of interactions, respectively. The last two rows in each panel report
+estimates for weighting estimators. Both rows use weights for
+the treated units equal to 1, and weights for the control units
+equal to the propensity score divided by 1 minus the propensity score. Then we normalize the weights in both groups to
+add up to N1 . The first weighting estimator is based solely on
+weighting, the second one uses weighted regression, with the
+nine pretreatment variables included.
+The experimental estimates in Panel A range from 1.16 (biascorrected matching with one match) to 2.27 (quadratic regression). The nonexperimental estimates in Panel B have a
+much wider range, from −15.20 (simple difference) to 3.26
+(quadratic regression). For the nonexperimental sample, using a single match, there is little difference between the simple matching estimator and its bias-corrected version, 2.07 and
+2.42, respectively. However, simple matching without biascorrection produces radically different estimates when the number of matches changes; a troubling result for the empirical
+implementation of these estimators. With M ≥ 16, the simple
+matching estimator produces results outside the experimental
+95% confidence interval. In contrast, the bias-corrected matching estimator shows a much more robust behavior when the
+number of matches changes: only with M = 2490 (that is, when
+all units in the comparison group are matched to each treated)
+the bias-corrected estimate deteriorates to 0.84, still inside the
+experimental 95% confidence interval.
+To see how well the simple matching estimator performs in
+terms of balancing the covariates, Table 3 reports average differences within the matched pairs. First, all the covariates are
+normalized to have zero mean and unit variance. The first two
+
+columns report the averages of the normalized covariates for the
+PSID comparison group and the experimental treated. Before
+matching, the averages for some of the variables are more than
+one standard deviation apart, e.g., the earnings and employment variables. The next pair of columns reports the withinmatched-pairs average difference and the standard deviation of
+this within-pair difference. For all the indicator variables the
+matching is exact. The other, more continuously distributed
+variables are not matched exactly, but the quality of the matches
+appears very high: the average difference within the pairs is
+very small compared to the average difference between treated
+and comparison units before the matching, and it is also small
+compared to the standard deviations of these differences. If we
+increase the number of matches the quality of the matches goes
+down, with even the indicator variables no longer matched exactly, but in most cases the average difference is still very small
+until we get to 16 or more matches. As expected, match quality
+deteriorates when the number of matches increases. This explains why, as shown in Table 2, the bias correction matters
+more for larger M. The last row reports matching differences
+for logistic estimates of the propensity score. Although here
+we match on the covariates directly, rather than on the propensity score, the matching still greatly reduces differences in the
+propensity score. With a single match (M = 1) the average difference in the propensity score is only 0.21, whereas without
+matching the difference between treated and comparison units
+is 8.16, almost 40 times higher.
+5. A MONTE CARLO STUDY
+In this section, we discuss some simulations designed to assess the performance of the various matching estimators. To
+get a realistic sense of the performance of the various estimators, we simulated datasets that aim to resemble actual datasets.
+For other Monte Carlo studies of matching type estimators see
+Zhao (2002), Frölich (2004), and Busso, DiNardo, and McCrary (2009). An additional Monte Carlo study based on data collected by Imbens, Rubin, and Sacerdote (2001) is available in a
+previous version of this article.
+
+Table 3. Mean covariate differences in matched groups
+Average
+
+M=1
+
+M=4
+
+M = 16
+
+M = 64
+
+M = 2490
+
+PSID
+
+Treated
+
+Mean
+
+(SD)
+
+Mean
+
+(SD)
+
+Mean
+
+(SD)
+
+Mean
+
+(SD)
+
+Mean
+
+(SD)
+
+Age
+Education
+Black
+Hispanic
+Married
+Earnings 13–24
+Unemployed 13–24
+Earnings ’75
+Unemployed ’75
+
+0.06
+0.04
+−0.09
+−0.01
+0.12
+0.09
+−0.13
+0.09
+−0.10
+
+−0.80
+−0.54
+1.21
+0.14
+−1.64
+−1.18
+1.72
+−1.18
+1.36
+
+−0.02
+−0.10
+−0.00
+−0.00
+0.00
+−0.01
+0.00
+−0.04
+0.00
+
+(0.65)
+(0.44)
+(0.00)
+(0.00)
+(0.00)
+(0.10)
+(0.00)
+(0.17)
+(0.00)
+
+−0.06
+−0.20
+0.09
+0.00
+−0.06
+−0.01
+0.02
+−0.07
+0.00
+
+(0.60)
+(0.48)
+(0.32)
+(0.00)
+(0.30)
+(0.12)
+(0.17)
+(0.15)
+(0.05)
+
+−0.30
+−0.25
+0.35
+0.00
+−0.33
+−0.05
+0.24
+−0.11
+0.03
+
+(0.41)
+(0.39)
+(0.47)
+(0.00)
+(0.46)
+(0.17)
+(0.40)
+(0.19)
+(0.28)
+
+−0.57
+−0.24
+0.70
+0.01
+−0.90
+−0.15
+0.41
+−0.19
+0.10
+
+(0.57)
+(0.42)
+(0.66)
+(0.03)
+(0.85)
+(0.30)
+(0.72)
+(0.26)
+(0.41)
+
+−0.86
+−0.58
+1.30
+0.15
+−1.76
+−1.26
+1.85
+−1.26
+1.46
+
+(0.68)
+(0.66)
+(0.80)
+(1.30)
+(1.02)
+(0.36)
+(1.36)
+(0.23)
+(1.44)
+
+Log odds
+Prop score
+
+−7.08
+
+1.08
+
+0.21
+
+(0.99)
+
+0.56
+
+(1.13)
+
+1.70
+
+(1.14)
+
+3.20
+
+(1.49)
+
+8.16
+
+(2.13)
+
+NOTE: In this table all covariates have been normalized to have mean zero and unit variance. The first two columns present the averages for the experimental treated and the PSID
+comparison units. The remaining pairs of columns present the average difference within the matched pairs and the standard deviation of this difference for matching based on 1, 4, 16,
+64, and 2490 matches. For the last variable the logarithm of the odds ratio of the propensity score is used. This log odds ratio has mean −6.52 and standard deviation 3.30 in the sample.
+
+8
+
+Journal of Business & Economic Statistics, January 2011
+
+Table 4. Simulation results Lalonde design (10,000 replications)
+
+Downloaded by [Universitaetsbibliothek Freiburg] at 08:23 20 November 2012
+
+M
+
+Estimator
+
+Mean
+bias
+
+Median
+bias
+
+RMSE
+
+MAE
+
+Coverage rate
+
+SD
+
+Mean
+SE
+
+(95% CI)
+
+(90% CI)
+
+1
+
+Covariate matching
+Bias-adj cov match
+
+−0.91
+0.16
+
+−0.81
+0.22
+
+1.36
+1.33
+
+0.86
+0.81
+
+1.02
+1.32
+
+1.44
+1.43
+
+0.97
+0.96
+
+0.94
+0.92
+
+4
+
+Covariate matching
+Bias-adj cov match
+
+−1.33
+0.24
+
+−1.25
+0.28
+
+1.57
+1.18
+
+1.25
+0.75
+
+0.84
+1.15
+
+1.22
+1.20
+
+0.93
+0.95
+
+0.83
+0.91
+
+16
+
+Covariate matching
+Bias-adj cov match
+
+−2.04
+0.43
+
+−2.00
+0.45
+
+2.17
+1.13
+
+2.00
+0.77
+
+0.74
+1.05
+
+1.11
+1.08
+
+0.61
+0.93
+
+0.41
+0.87
+
+64
+
+Covariate matching
+Bias-adj cov match
+
+−3.07
+0.57
+
+−3.08
+0.59
+
+3.13
+1.05
+
+3.08
+0.75
+
+0.61
+0.88
+
+1.01
+0.95
+
+0.09
+0.92
+
+0.02
+0.87
+
+1
+
+Pscore matching
+Bias-adj pscore match
+
+−0.02
+0.09
+
+0.29
+0.22
+
+1.72
+1.38
+
+0.91
+0.84
+
+1.72
+1.38
+
+1.64
+1.64
+
+0.98
+0.98
+
+0.95
+0.96
+
+4
+
+Pscore matching
+Bias-adj pscore match
+
+−0.29
+0.09
+
+−0.07
+0.22
+
+1.36
+1.23
+
+0.77
+0.74
+
+1.33
+1.22
+
+1.43
+1.45
+
+0.98
+0.97
+
+0.96
+0.95
+
+16
+
+Pscore matching
+Bias-adj pscore match
+
+−0.89
+0.14
+
+−0.82
+0.21
+
+1.39
+1.17
+
+0.90
+0.75
+
+1.06
+1.17
+
+1.33
+1.36
+
+0.98
+0.97
+
+0.93
+0.94
+
+64
+
+Pscore matching
+Bias-adj pscore match
+
+−1.69
+0.27
+
+−1.66
+0.31
+
+1.89
+1.06
+
+1.66
+0.72
+
+0.84
+1.03
+
+1.13
+1.16
+
+0.78
+0.96
+
+0.62
+0.92
+
+−22.41
+−0.27
+3.35
+−0.14
+0.15
+
+−22.41
+−0.25
+3.36
+−0.07
+0.19
+
+22.42
+1.33
+3.90
+1.28
+1.09
+
+22.41
+0.88
+3.36
+0.79
+0.68
+
+0.76
+1.30
+1.99
+1.27
+1.08
+
+1.03
+1.48
+2.05
+1.28
+1.13
+
+0.00
+0.97
+0.62
+0.96
+0.97
+
+0.00
+0.94
+0.49
+0.92
+0.94
+
+Mean difference
+Linear regression
+Quadratic regression
+Weighting on pscore
+Weighting and regression
+
+The simulations are designed to mimic the Lalonde data. In
+each of the 10,000 replications we draw 185 treated and 2490
+control observations and calculate 21 estimators for the average
+effect on the treated, τtreated . In the simulation we have eight
+regressors, designed to match the following variables in the
+NSW dataset: age, educ, black, married, re74, u74,
+re75, and u75. In Appendix C we describe the precise data
+generating process for the simulations. For each estimator we
+report the mean and median bias, the root-mean-squared-error
+(RMSE), the median-absolute-error (MAE), the standard deviation, the average estimated standard error, and the coverage
+rates for nominal 95% and 90% confidence intervals based on
+the matching estimator for the variance. We implemented an extremely simple version of the bias adjustment, using only linear
+terms in the covariates. The results are reported in Table 4.
+In terms of RMSE and MAE, the bias-adjusted matching estimator is best with 64 matches, but with this many matches the
+bias is substantial. With four matches the bias is considerably
+smaller, and the actual coverage rates of the 90% and 95% confidence intervals is close to the nominal coverage rate. The simple (not bias-adjusted) matching estimator does not perform as
+well, in terms of bias or RMSE. The pure regression adjustment
+estimators perform poorly. They have high RMSE and substantial bias. Coverage rates of confidence intervals centered on the
+bias-corrected matching estimator are closer to nominal levels
+than those centered on the simple matching estimator. Confidence intervals for the quadratic regression estimator have substantially lower than nominal coverage rates, although coverage
+rates for the linear regression estimator are close to the nominal rates. In this setting the weighting estimators do fairly well,
+both in terms of coverage rates and in terms of RMSE.
+
+6. CONCLUSION
+We propose a nonparametric bias-adjustment that renders
+matching estimators N 1/2 -consistent. In simulations based on
+a realistic setting for nonexperimental program evaluations,
+a simple implementation of this estimator, where the biasadjustment is based on linear regression, performs well compared to both matching estimators without bias-adjustment and
+regression-based estimators in terms of bias and mean-squared
+error. It also has good coverage rates for 90% and 95% confidence intervals, suggesting it may be a useful estimator in practice.
+APPENDIX A: PROOFS
+Before proving Theorem 2 we state two auxiliary lemmas. Let λ be a multi-index of dimension k, that 
+is, a kdimensional vector of nonnegative integers, with |λ| = ki=1 λi ,
+and let l be the set of λ such that |λ| = l. Furthermore, let
+λ
+λ
+xλ = x1λ1 , . . . , xk k , and let ∂ λ g(x) = ∂ |λ| g(x)/∂x1λ1 , . . . , ∂xk k . For
+λ
+d ≥ 0, define |g|d = max|λ≤d| supx |∂ g(x)|.
+Lemma A.1 (Uniform convergence of series estimators of regression functions, Newey 1995). Suppose the conditions in
+Theorem 2 hold. Then for any ξ > 0 and nonnegative integer d,
+
+
+
+|μ̂w − μw |d = Op K 1+2d (K/N)1/2 + K −ξ
+for w = 0, 1.
+Proof. Assumptions 3.1, 4.1, 4.2, and 4.3 in Newey (1995)
+are satisfied for μw (x) and Nw → ∞, implying that Newey’s
+theorems 4.2 and 4.4 apply. The result of the lemma holds because N/Nw = Op (1) for w = 0, 1.
+
+Abadie and Imbens: Estimators for Average Treatment Effects
+
+Lemma A.2 (Unit-level bias correction). Suppose the conditions in Theorem 2 hold. Then
+
+
+ 
+
+
+max μ̂w (Xi ) − μ̂w Xjm (i) − μw (Xi ) − μw Xjm (i) 
+i=1,...,N
+
+
+
+= op N −1/2
+
+λ = o (N −1/k+ε ) for any ε > 0.
+relevant moments exist maxi Um,i
+p
+Now consider the first factor. By Lemma A.1, | sup(∂ λ μ̂w (x) −
+∂ λ μw (x))| is of order Op (K 1+2k ((K/N)1/2 + K −α )). Now, it can
+be easily seen that ν < 2/(4k2 − k) guarantees that the result of
+Lemma A.2 holds.
+
+for w = 0, 1.
+
+Proof of Theorem 2
+
+Proof. Let Um,i = Xjm (i) − Xi . Use a Taylor series expansion
+around Xi to write
+
+
+ 1 
+
+ 
+
+λ
+λ 
+μw Xj (i) − μw (Xi ) −
+∂ μw (Xi )Um,i 
+m
+
+l!
+
+We focus on the result for the average treatment effect. The
+second part of the theorem for the average effect for the treated
+m
+follows the same pattern. The difference |B̂m
+M − BM | can be written as
+
+1≤l≤k−1
+
+≤
+
+Downloaded by [Universitaetsbibliothek Freiburg] at 08:23 20 November 2012
+
+9
+
+λ∈l
+
+
+
+Ck
+k!
+
+λ
+|Um,i
+|≤
+
+Ck
+k!
+
+λ∈k
+
+
+
+Um,i k .
+
+λ∈k
+
+1/k
+
+Because all moments of N1−Wi Um,i  and N/N1−Wi are uniformly bounded, applying Bonferroni’s and Markov’s inequalities, we obtain that for any ε > 0:
+
+
+ 1 
+ 
+
+
+λ
+λ 
+
+max μw Xjm (i) − μw (Xi ) −
+∂ μw (Xi )Um,i 
+i=1,...,N
+l!
+1≤l≤k−1
+
+λ∈l
+
+= op (N −1+ε ).
+Because we can choose ε ≤ 1/2, it follows that the left-hand
+side of the last equation is op (N −1/2 ). Similarly, for any ε > 0:
+
+
+ 1 
+
+ 
+
+λ
+λ 
+μ̂w Xj (i) − μ̂w (Xi ) −
+∂ μ̂w (Xi )Um,i 
+m
+
+l!
+1≤l≤k−1
+
+≤
+
+λ∈l
+
+
+1 
+|μ̂w − μw |k Um,i k +
+Um,i k .
+k!
+k!
+Ck
+
+λ∈k
+
+λ∈k
+
+Therefore, for arbitrary ξ > 0 and ε > 0:
+
+
+ 1 
+ 
+
+
+λ 
+max μ̂w Xjm (i) − μ̂w (Xi ) −
+∂ λ μ̂w (Xi )Um,i
+
+i=1,...,N
+l!
+1≤l≤k−1
+
+λ∈l
+
+
+
+
+= Op K 1+2k (K/N)1/2 + K −ξ op (N −1+ε ) + op (N −1+ε ).
+Because ν < 2/(4k + 3), we can choose ξ and ε so that the lefthand side of the last equation becomes op (N −1/2 ). Therefore,
+ 
+ 
+
+
+
+max μ̂w Xjm (i) − μ̂w (Xi ) − μw Xjm (i) − μw (Xi ) 
+i=1,...,N
+
+
+
+≤ max
+
+i=1,...,N
+
+
+
+1≤l≤k−1
+
++ op N
+
+−1/2
+
+
+
+≤ |μ̂w − μw |k−1
+
+1  λ
+λ
+|∂ μ̂w (Xi ) − ∂ λ μw (Xi )| · |Um,i
+|
+l!
+λ∈l
+
+
+1≤l≤k−1
+
+m
+|B̂m
+M − BM |
+N
+M
+
+
+1  1  
+≤
+μ̂1−Wi (Xi ) − μ̂1−Wi Xjm (i)
+N
+M
+i=1
+i=1
+
+
+
+− μ1−Wi (Xi ) − μ1−Wi Xjm (i) 
+ 
+
+
+μ̂w (Xi ) − μ̂w Xj (i)
+≤ max
+m
+i=1,...,N
+
+w=0,1
+
+
+
+= op N −1/2 ,
+
+
+
+
+− μw (Xi ) − μw Xjm (i) 
+
+by Lemma A.2.
+APPENDIX B: THE AVERAGE EFFECT
+ON THE TREATED
+Here we present the results for the average effect on the
+treated without proof. The formal proofs are similar to those
+for the case of the overall average effect. Estimation of τtreated
+requires weaker assumptions than estimation of τ . In particular,
+Assumptions A.2 and A.3 can be weakened as follows.
+Assumption A.2 . For almost every x ∈ X,
+(i) W is independent of Y(0) conditional on X = x;
+(ii) Pr(W = 1|X = x) < 1 − η, for some η > 0.
+Assumption A.3 . Conditional on Wi = w the sample consists
+of independent draws from Y, X|W = w, for w = 0, 1. For some
+r ≥ 1, N1r /N0 → θ , with 0 < θ < ∞.
+Using the same definition for Ŷi (0) as before, we now estimate τtreated and τcond,treated as
+1 
+m
+=
+(Yi − Ŷi (0))
+τ̂M,treated
+N1
+Wi =1
+
+1 
+max Um,i |λ|
+i=1,...,N
+l!
+λ∈l
+
+
+
++ op N −1/2
+
+
+ 
+
+
+
+= Op K 2k−1 (K/N)1/2 + K −ξ op N −1/k+ε + op N −1/2 ,
+for arbitrary ξ > 0 and ε > 0. Consider for a particular λ ∈ l
+λ . The second factor is, usthe term (∂ λ μ̂w (Xi )−∂ λ μw (Xi ))·Um,i
+ing the same argument as before, of order Op (N −l/k ), Since l ≥
+1, the second factor is at most Op (N −1/k ), and because all the
+
+
+
+1 
+KM (i)
+=
+Yi .
+Wi − (1 − Wi )
+N1
+M
+Wi =1
+
+Define the average bias
+Bm
+M,treated =
+
+N
+M
+
+
+1  Wi  
+μ0 (Xi ) − μ0 Xjm (i) ,
+N1
+M
+i=1
+
+m=1
+
+the estimator for the average bias
+B̂m
+M,treated =
+
+N
+M
+
+
+1  Wi  
+μ̂0 (Xi ) − μ̂0 Xjm (i) ,
+N1
+M
+i=1
+
+m=1
+
+10
+
+Journal of Business & Economic Statistics, January 2011
+
+the bias-corrected estimator for the average effect on the treated
+bcm
+τ̂M,treated
+
+m
+= τ̂M,treated
+
+− B̂m
+M,treated ,
+
+the conditional variance
+m
+V(τ̂M,treated
+|X, W)
+
+
+N 
+KM (i) 2 2
+1 
+σ (Xi , Wi ),
+= 2
+Wi − (1 − Wi )
+M
+N1 i=1
+and its normalized version,
+E
+m
+= N1 · V(τ̂M,treated
+|X, W).
+Vtreated
+τ (X)
+
+Downloaded by [Universitaetsbibliothek Freiburg] at 08:23 20 November 2012
+
+Also define Vtreated = E[(τ (X) − τtreated )2 |W = 1]. Then the
+equivalent of Theorems 1 and 2 is:
+Theorem 1 (Asymptotic normality for the simple matching
+estimator for the average effect on the treated). Suppose Assumptions A.1, A.2 , A.3 , and A.4 hold. Then
+
+ E
+τ (X) −1/2
+N1
+Vtreated + Vtreated
+d
+
+m
+× (τ̂M,treated
+− Bm
+M,treated − τtreated ) −→ N (0, 1).
+
+Theorem 2 (Bias-corrected matching estimator for the average effect on treated). Suppose that Assumptions A.1, A.2 ,
+A.3 , and A.4 hold. Assume also that (i) the support of X, X ⊂
+Rk , is a Cartesian product of compact intervals; (ii) K(N) =
+O(N ν ), with 0 < ν < min(2/(4k + 3), 2/(4k2 − k)); and
+(iii) there is a constant C such that for each multi-index λ the
+λth partial derivative of μw (x) exists for w = 0, 1 and its norm
+is bounded by C|λ| . Then,
+
+p
+m
+N1 (Bm
+M,treated − B̂M,treated ) −→ 0
+and
+
+ E
+d
+τ (X) 1/2
+bcm
+Vtreated + Vtreated
+N1 (τ̂M,treated
+− τtreated ) −→ N (0, 1).
+
+black has a discrete distribution with, among the controls,
+the population fraction of blacks is 0.25. Among the treated the
+fraction is 0.84.
+Among the controls, married has a binary distribution with
+mean 0.87, and among the treated it has a binary distribution
+with mean 0.19.
+Among the controls the pr((u74, u75) = (0, 0)) = 0.88,
+pr((u74, u75) = (0, 1)) = 0.03 pr((u74, u75) = (1, 0)) =
+0.02, and pr((u74, u75) = (1, 1)) = 0.07. Among the treated
+pr((u74, u75) = (0, 0)) = 0.28, pr((u74, u75) = (0, 1)) =
+0.01, pr((u74, u75) = (1, 0)) = 0.12, and pr((u74, u75) =
+(1, 1)) = 0.59.
+Among the controls, conditional on (u74, u75) = (0, 1), the
+log of re75 has a normal distribution with mean 2.32 and standard deviation 1.45, conditional on (u74, u75) = (1, 0), the
+log of re74 has a normal distribution with mean 2.16 and standard deviation 1.20, and conditional on (u74, u75) = (0, 0),
+the log of (re74, re75) has a joint normal
+ distribution
+ with
+0.47
+0.37
+mean (2.88, 2.86) and covariance matrix 0.3700
+0.5000 .
+Among the treated, conditional on (u74, u75) = (0, 1), the
+log of re75 has a normal distribution with mean 0.60 and
+standard deviation 0.88, conditional on (u74, u75) = (1, 0),
+the log of re74 has a normal distribution with mean 1.26 and
+variance 0.78, and conditional on (u74, u75) = (0, 0), the log
+of (re74, re75) has a joint normal
+with mean
+ distribution
+
+1.08 0.57
+(1.53, 0.93) and covariance matrix 0.57 1.42 .
+(ii) Conditional Outcome Distribution Given Covariates.
+Conditional on the covariates, the outcome Yi has a mixed
+discrete/continuous distribution, with separate coefficients for
+the controls and treated. The probability that the outcome is
+positive conditional on the covariate taking on the value x
+is exp(γw h(x))/(1 + exp(γw h(x)), for w = 0, 1. The vector
+of covariates contains 16 elements: an intercept, age, educ,
+black, married, u74, u75, re74, re75, black × u74,
+black × u75, black × re74, black × re75, u75 × u74,
+educ × re75, and re74 × re75. The coefficients γ are
+listed in Table C.1. Conditional on the outcome being positive, its logarithm has a normal distribution with mean βw h(x),
+
+APPENDIX C: DATA GENERATING PROCESSES
+FOR THE SIMULATIONS
+(i) Covariates. We draw separately from the covariate distribution given Wi = 0 and Wi = 1. The covariates are grouped
+into a set of five subsets, and between the subsets the covariates
+are drawn independently. The groups of covariates are {age},
+{educ}, {black}, {married}, and {u74, u75, re74,
+re75}. For each of the joint distributions within a subset the
+distribution follows fairly closely to the corresponding distribution in the Lalonde data.
+Among the control observations, the log of age has a normal distribution with mean 3.50 and standard deviation 0.30.
+Among the treated it has a normal distribution with mean 3.22
+and standard deviation 0.25.
+educ has a discrete distribution with points of support of all
+integers between 4 and 16. The probabilities for the 13 points
+of support for the controls are 0.02, 0.01, 0.02, 0.02, 0.06, 0.04,
+0.07, 0.07, 0.34, 0.05, 0.08, 0.02, and 0.20. For the treated the
+probabilities are 0.02, 0.01, 0.01, 0.01, 0.10, 0.15, 0.17, 0.24,
+0.21, 0.04, 0.02, 0.01, and 0.01.
+
+Table C.1. Data generating process for Lalonde simulations
+
+Const.
+age
+educ
+black
+married
+u74
+u75
+re74
+re75
+black × u74
+black. × u75
+black × re74
+black × re75
+u74 × u75
+educ × re75
+re74 × re75
+σ
+
+γ0
+
+β0
+
+2.7437
+−0.0331
+0.0022
+−0.7322
+0.1582
+−1.5517
+−0.7797
+−0.0110
+0.0931
+1.4475
+−0.1650
+0.0501
+0.0392
+−1.0170
+−0.0007
+−0.0005
+
+1.3486
+−0.0054
+0.0600
+−0.1570
+0.1559
+0.4833
+−0.0372
+0.0271
+0.0494
+−0.9685
+−0.2274
+0.0047
+0.0011
+0.0217
+−0.0017
+−0.0003
+0.5313
+
+γ1
+7.1253
+0.0108
+0.1003
+−7.3174
+0.6020
+−16.3253
+11.9438
+−1.6848
+8.1122
+18.2770
+−12.7834
+1.5954
+−7.1228
+−1.4175
+−0.1118
+0.0361
+
+β1
+1.7159
+0.0023
+0.0472
+−0.6217
+−0.0065
+−0.7556
+1.5019
+−0.2240
+0.0178
+1.1383
+−0.7507
+0.2021
+−0.1245
+−1.1367
+0.0063
+0.0051
+0.9876
+
+Abadie and Imbens: Estimators for Average Treatment Effects
+
+for w = 0, 1, and variance σ 2 , for the same vector of functions
+of the covariates h(x). Again the values for βw are given in
+Table C.1.
+ACKNOWLEDGMENTS
+The authors thank the financial support for this research, generously provided through NSF grants SES-0350645 (Abadie),
+SBR-0452590, and SBR-0820361 (Imbens). A previous version of this article circulated under the title “Simple and BiasCorrected Matching Estimators for Average Treatment Effects”
+(Abadie and Imbens 2002).
+
+Downloaded by [Universitaetsbibliothek Freiburg] at 08:23 20 November 2012
+
+[Received December 2007. Revised August 2009.]
+
+REFERENCES
+Abadie, A. (2005), “Semiparametric Difference-in-Differences Estimators,”
+Review of Economic Studies, 72, 1–19. [1]
+Abadie, A., and Imbens, G. (2002), “Simple and Bias-Corrected Matching Estimators for Average Treatment Effects,” Technical Working Paper T0283,
+NBER. [11]
+(2006), “Large Sample Properties of Matching Estimators for Average
+Treatment Effects,” Econometrica, 74 (1), 235–267. [1-4,7]
+Abadie, A., Drukker, D., Herr, H., and Imbens, G. (2003), “Implementing
+Matching Estimators for Average Treatment Effects in STATA,” The Stata
+Journal, 4 (3), 290–311.
+Busso, M., DiNardo, J., and McCrary, J. (2009), “New Evidence on the Finite
+Sample Properties of Propensity Score Matching and Reweighting Estimators,” unpublished manuscript, Dept. of Economics, UC Berkeley. [7]
+Chen, X., Hong, H., and Tarozzi, A. (2008), “Semiparametric Efficiency in
+GMM Models of Nonclassical Measurement Errors,” The Annals of Statistics, 36 (2), 808–843. [1,3]
+Dehejia, R., and Wahba, S. (1999), “Causal Effects in Nonexperimental Studies:
+Reevaluating the Evaluation of Training Programs,” Journal of the American Statistical Association, 94, 1053–1062. [1,2,5]
+Frölich, M. (2004), “Finite Sample Properties of Propensity-Score Matching
+and Weighting Estimators,” Review of Economics and Statistics, 86 (1), 77–
+90. [7]
+Hahn, J. (1998), “On the Role of the Propensity Score in Efficient Semiparametric Estimation of Average Treatment Effects,” Econometrica, 66 (2),
+315–331. [1-3]
+Heckman, J., and Hotz, J. (1989), “Choosing Among Alternative Nonexperimental Methods for Estimating the Impact of Social Programs: The Case of
+Manpower Training” (with discussion), Journal of the American Statistical
+Association, 84, 862–874. [1,5]
+Heckman, J., Ichimura, H., Smith, J., and Todd, P. (1998), “Characterizing
+Selection Bias Using Experimental Data,” Econometrica, 66, 1017–1098.
+[1,3]
+
+11
+Hirano, K., Imbens, G., and Ridder, G. (2003), “Efficient Estimation of Average
+Treatment Effects Using the Estimated Propensity Score,” Econometrica,
+71, 1161–1189. [1]
+Horvitz, D., and Thompson, D. (1952), “A Generalization of Sampling Without
+Replacement From a Finite Universe,” Journal of the American Statistical
+Association, 47, 663–685. [1]
+Imbens, G. (2003), “Sensitivity to Exogeneity Assumptions in Program Evaluation,” American Economic Review Papers and Proceedings, 93 (2), 126–
+132. [1,5]
+(2004), “Nonparametric Estimation of Average Treatment Effects Under Exogeneity: A Review,” Review of Economics and Statistics, 86, 4–30.
+[2]
+Imbens, G. W., and Wooldridge, J. (2009), “Recent Developments in the Econometrics of Program Evaluation,” Journal of Economic Literature, 47, 5–86.
+[1]
+Imbens, G., Newey, W., and Ridder, G. (2005), “Mean-Squared-Error Calculations for Average Treatment Effects,” unpublished manuscript, Harvard
+University, Dept. of Economics. [1,3]
+Imbens, G., Rubin, D., and Sacerdote, B. (2001), “Estimating the Effect of Unearned Income on Labor Supply, Earnings, Savings and Consumption: Evidence From a Survey of Lottery Players,” American Economic Review, 91,
+778–794. [7]
+Lalonde, R. J. (1986), “Evaluating the Econometric Evaluations of Training
+Programs With Experimental Data,” American Economic Review, 76, 604–
+620. [1,5]
+Lechner, M. (2002), “Some Practical Issues in the Evaluation of Heterogeneous
+Labour Market Programmes by Matching Methods,” Journal of the Royal
+Statistical Society, Ser. A, 165, 59–82. [2]
+Newey, W. (1995), “Convergence Rates for Series Estimators,” in Statistical
+Methods of Economics and Quantitative Economics: Essays in Honor of
+C. R. Rao (eds. G. S. Maddala, P. C. B. Phillips, and T. N. Srinavasan),
+Cambridge: Blackwell. [5,8]
+Quade, D. (1982), “Nonparametric Analysis of Covariance by Matching,” Biometrics, 38, 597–611. [1,3]
+Robins, J., and Rotnitzky, A. (1995), “Semiparametric Efficiency in Multivariate Regression Models With Missing Data,” Journal of the American Statistical Association, 90, 122–129. [1]
+Rosenbaum, P. (1995), Observational Studies, New York: Springer-Verlag. [1]
+Rosenbaum, P., and Rubin, D. (1983), “The Central Role of the Propensity
+Score in Observational Studies for Causal Effects,” Biometrika, 70, 41–55.
+[2]
+Rubin, D. (1973), “The Use of Matched Sampling and Regression Adjustments
+to Remove Bias in Observational Studies,” Biometrics, 29, 185–203. [1]
+(1974), “Estimating Causal Effects of Treatments in Randomized and
+Nonrandomized Studies,” Journal of Educational Psychology, 66, 688–701.
+[1]
+(1979), “Using Multivariate Matched Sampling and Regression Adjustment to Control Bias in Observational Studies,” Journal of the American
+Statistical Association, 74, 318–328. [3]
+Smith, J., and Todd, P. (2005), “Does Matching Address LaLonde’s Critique
+of Nonexperimental Estimators,” Journal of Econometrics, 125, 305–353.
+[1,5]
+Zhao, Z. (2002), “Using Matching to Estimate Treatment Effects: Data Requirements, Matching Metrics and an Application,” unpublished manuscript,
+Dept. of Economics, Johns Hopkins University. [7]
+
+

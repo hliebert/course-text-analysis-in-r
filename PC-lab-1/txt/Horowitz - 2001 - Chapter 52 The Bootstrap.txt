@@ -1,0 +1,4597 @@
+Chapter 52
+
+THE BOOTSTRAP
+JOEL L HOROWITZ
+Departmentof Economics, Northwestern University, Evanston, IL, USA
+
+Contents
+Abstract
+
+3160
+
+Keywords
+1 Introduction
+2 The bootstrap sampling procedure and its consistency
+
+3160
+3161
+3163
+
+2.1 Consistency of the bootstrap
+2.2 Alternative resampling procedures
+
+3166
+3169
+
+3 Asymptotic refinements
+
+3172
+
+3.1 Bias reduction
+3.2 The distributions of statistics
+3.3 Bootstrap critical values for hypothesis tests
+3.4 Confidence intervals
+
+3172
+3175
+3179
+3183
+3184
+3185
+3186
+
+3.5 The importance of asymptotically pivotal statistics
+3.6 The parametric versus the nonparametric bootstrap
+3.7 Recentering
+
+4 Extensions
+4.1
+
+3188
+
+Dependent data
+
+3188
+
+4.1 1 Methods for bootstrap sampling with dependent data
+4.1 2 Asymptotic refinements in GMM estimation with dependent data
+4.1 3 The bootstrap with non-stationary processes
+4.2 Kernel density and regression estimators
+4.2 1 Nonparametric density estimation
+4.2 2 Asymptotic bias and methods for controlling it
+4.2 3 Asymptotic refinements
+4.2 3 1 The error made by first-order asymptotics when nh+
+
+3188
+3191
+3193
+3195
+3196
+3197
+3199
+
+does not converge
+
+to 0
+4.2 4 Kernel nonparametric mean regression
+4.3 Non-smooth estimators
+4.3 1 The LAD estimator for a linear median-regression model
+4.3 2 The maximum score estimator for a binary-response model
+4.4 Bootstrap iteration
+4.5 Special problems
+Handbook of Econometrics, Volume 5, Edited by JJ Heckman and E Leamer
+© 2001 Elsevier Science B V All rights reserved
+
+3201
+3202
+3205
+3205
+3208
+
+3210
+3212
+
+3160
+4.6 The bootstrap when the null hypothesis is false
+
+5 Monte Carlo experiments
+5.1 The information-matrix test
+5.2 The t test in a heteroskedastic regression model
+5.3 The t test in a Box-Cox regression model
+5.4 Estimation of covariance structures
+
+6 Conclusions
+Acknowledgements
+Appendix A Informal derivation of Equation (3 27)
+References
+
+JL Horowitz
+
+3212
+3213
+3214
+3215
+3217
+3218
+3220
+3221
+3221
+3223
+
+Abstract
+The bootstrap is a method for estimating the distribution of an estimator or test
+statistic by resampling one's data or a model estimated from the data Under conditions
+that hold in a wide variety of econometric applications, the bootstrap provides
+approximations to distributions of statistics, coverage probabilities of confidence
+intervals, and rejection probabilities of hypothesis tests that are more accurate than
+the approximations of first-order asymptotic distribution theory The reductions in
+the differences between true and nominal coverage or rejection probabilities can be
+very large The bootstrap is a practical technique that is ready for use in applications.
+This chapter explains and illustrates the usefulness and limitations of the bootstrap in
+contexts of interest in econometrics The chapter outlines the theory of the bootstrap,
+provides numerical illustrations of its performance, and gives simple instructions on
+how to implement the bootstrap in applications The presentation is informal and
+expository Its aim is to provide an intuitive understanding of how the bootstrap works
+and a feeling for its practical value in econometrics.
+
+Keywords
+JEL classification:C 12, C13, C 15
+
+Ch 52:
+
+The Bootstrap
+
+3161
+
+1 Introduction
+The bootstrap is a method for estimating the distribution of an estimator or test
+statistic by resampling one's data It amounts to treating the data as if they were
+the population for the purpose of evaluating the distribution of interest Under mild
+regularity conditions, the bootstrap yields an approximation to the distribution of an
+estimator or test statistic that is at least as accurate as the approximation obtained
+from first-order asymptotic theory Thus, the bootstrap provides a way to substitute
+computation for mathematical analysis if calculating the asymptotic distribution of an
+estimator or statistic is difficult The statistic developed by Hirdle et al (1991) for
+testing positive-definiteness of income-effect matrices, the conditional Kolmogorov test
+of Andrews (1997), Stute's ( 1997) specification test for parametric regression models,
+and certain functions of time-series data lBlanchard and Quah (1989), Runkle (1987),
+West ( 1990)l are examples in which evaluating the asymptotic distribution is difficult
+and bootstrapping has been used as an alternative.
+In fact, the bootstrap is often more accurate in finite samples than first-order
+asymptotic approximations but does not entail the algebraic complexity of higherorder expansions Thus, it can provide a practical method for improving upon firstorder approximations Such improvements are called asymptotic refinements One use
+
+of the bootstrap's ability to provide asymptotic refinements is bias reduction It is not
+unusual for an asymptotically unbiased estimator to have a large finite-sample bias.
+This bias may cause the estimator's finite-sample mean square error to greatly exceed
+the mean-square error implied by its asymptotic distribution The bootstrap can be used
+to reduce the estimator's finite-sample bias and, thereby, its finite-sample mean-square
+error.
+The bootstrap's ability to provide asymptotic refinements is also important in
+hypothesis testing First-order asymptotic theory often gives poor approximations to
+the distributions of test statistics with the sample sizes 'available in applications As a
+result, the nominal probability that a test based on an asymptotic critical value rejects
+a true null hypothesis can be very different from the true rejection probability (RP)
+The information matrix test of White (1982) is a well-known example of a test in which
+large finite-sample errors in the RP can occur when asymptotic critical values are used
+1 There is not general agreement on the name that should be given to the probability that a test rejects
+a true null hypothesis (that is, the probability of a Type I error) The source of the problem is that if
+the null hypothesis is composite, then the rejection probability can be different for different probability
+distributions in the null Hall (1992 a, p 148) uses the word level to denote the rejection probability
+at the distribution that was, in fact, sampled Beran (1988, p 696) defines level to be the supremum
+of rejection probabilities over all distributions in the null hypothesis Other authors lLehmann (1959,
+p 61); Rao (1973, p 456)l use the word size for the supremum Lehmann defines level as a number
+that exceeds the rejection probability at all distributions in the null hypothesis In this chapter, the term
+rejectionprobability or RP will be used to mean the probability that a test rejects a true null hypothesis
+with whatever distribution generated the data The RP of a test is the same as Hall's definition of level.
+The RP is different from the size of a test and from Beran's and Lehmann's definitions of level.
+
+3162
+
+JL Horowitz
+
+lHorowitz (1994), Kennan and Neumann (1988), Orme (1990), Taylor (1987)l Other
+illustrations are given later in this chapter The bootstrap often provides a tractable way
+to reduce or eliminate finite-sample errors in the RP's of statistical tests.
+The problem of obtaining critical values for test statistics is closely related to that
+of obtaining confidence intervals Accordingly, the bootstrap can also be used to
+obtain confidence intervals with reduced errors in coverage probabilities That is, the
+difference between the true and nominal coverage probabilities is often lower when the
+bootstrap is used than when first-order asymptotic approximations are used to obtain
+a confidence interval.
+The bootstrap has been the object of much research in statistics since its introduction
+by Efron (1979) The results of this research are synthesized in the books by Beran
+and Ducharme (1991), Davison and Hinkley (1997), Efron and Tibshirani (1993), Hall
+( 1992a), Mammen ( 1992), and Shao and Tu (1995) Hall (1994), Horowitz ( 1997),
+Jeong and Maddala ( 1993) and Vinod ( 1993) provide reviews with an econometric
+orientation This chapter covers a broader range of topics than do these reviews.
+Topics that are treated here but only briefly or not at all in the reviews include
+bootstrap consistency, subsampling, bias reduction, time-series models with unit roots,
+semiparametric and nonparametric models, and certain types of non-smooth models.
+Some of these topics are not treated in existing books on the bootstrap.
+The purpose of this chapter is to explain and illustrate the usefulness and limitations
+of the bootstrap in contexts of interest in econometrics Particular emphasis is given
+to the bootstrap's ability to improve upon first-order asymptotic approximations The
+presentation is informal and expository Its aim is to provide an intuitive understanding
+of how the bootstrap works and a feeling for its practical value in econometrics.
+The discussion in this chapter does not provide a mathematically detailed or rigorous
+treatment of the theory of the bootstrap Such treatments are available in the books by
+Beran and Ducharme ( 1991) and Hall (1992 a) as well as in journal articles that are
+cited later in this chapter.
+It should be borne in mind throughout this chapter that although the bootstrap
+often provides smaller biases, smaller errors in the RP's of tests, and smaller errors
+in the coverage probabilities of confidence intervals than does first-order asymptotic
+theory, bootstrap bias estimates, RP's, and confidence intervals are, nonetheless,
+approximations and not exact Although the accuracy of bootstrap approximations is
+often very high, this is not always the case Even when theory indicates that it provides
+asymptotic refinements, the bootstrap's numerical performance may be poor In some
+cases, the numerical accuracy of bootstrap approximations may be even worse than
+the accuracy of first-order asymptotic approximations This is particularly likely to
+happen with estimators whose asymptotic covariance matrices are "nearly singular," as
+in instrumental-variables estimation with poorly correlated instruments and regressors.
+Thus, the bootstrap should not be used blindly or uncritically.
+However, in the many cases where the bootstrap works well, it essentially removes
+getting the RP or coverage probability right as a factor in selecting a test statistic or
+method for constructing a confidence interval In addition, the bootstrap can provide
+
+Ch 52:
+
+The Bootstrap
+
+3163
+
+dramatic reductions in the finite-sample biases and mean-square errors of certain
+estimators.
+The remainder of this chapter is divided into five sections Section 2 explains
+the bootstrap sampling procedure and gives conditions under which the bootstrap
+distribution of a statistic is a consistent estimator of the statistic's asymptotic
+distribution Section 3 explains when and why the bootstrap provides asymptotic
+refinements This section concentrates on data that are simple random samples from a
+distribution and statistics that are either smooth functions of sample moments or can
+be approximated with asymptotically negligible error by such functions (the smooth
+function model) Section 4 extends the results of Section 3 to dependent data and
+statistics that do not satisfy the assumptions of the smooth function model Section 5
+presents Monte Carlo evidence on the numerical performance of the bootstrap in a
+variety of settings that are relevant to econometrics, and Section 6 presents concluding
+comments.
+For applications-oriented readers who are in a hurry, the following list of bootstrap
+dos and don'ts summarizes the main practical conclusions of this chapter.
+Bootstrap Dos and Don'ts
+(1) Do use the bootstrap to estimate the probability distribution of an asymptotically
+pivotal statistic or the critical value of a test based on an asymptotically pivotal
+statistic whenever such a statistic is available (Asymptotically pivotal statistics are
+defined in Section 2 Sections 3 2-3 5 explain why the bootstrap should be applied
+to asymptotically pivotal statistics )
+( 2) Don't use the bootstrap to estimate the probability distribution of a nonasymptotically-pivotal statistic such as a regression slope coefficient or standard
+error if an asymptotically pivotal statistic is available.
+( 3) Do recenter the residuals of an overidentified model before applying the bootstrap
+to the model (Section 3 7 explains why recentering is important and how to do it )
+(4) Don't apply the bootstrap to models for dependent data, semi or nonparametric
+estimators, or non-smooth estimators without first reading Section 4 of this
+chapter.
+
+2 The bootstrap sampling procedure and its consistency
+The bootstrap is a method for estimating the distribution of a statistic or a feature of the
+distribution, such as a moment or a quantile This section explains how the bootstrap
+is implemented in simple settings and gives conditions under which it provides a
+consistent estimator of a statistic's asymptotic distribution This section also gives
+examples in which the consistency conditions are not satisfied and the bootstrap is
+inconsistent.
+The estimation problem to be solved may be stated as follows Let the data be a
+random sample of size N from a probability distribution whose cumulative distribution
+
+3164
+
+JL Horowitz
+
+function (CDF) is Fo Denote the data by {Xi: i= 1, ,n} Let Fo belong to a
+finite or infinite-dimensional family of distribution functions,
+Let F denote a
+general member of 3 If 3 is a finite-dimensional family indexed by the parameter O
+whose population value is o00, write Fo(x, 00) for P(X < x) and F(x, 0) for a general
+member of the parametric family Let Tn =T,(Xi, ,X,) be a statistic (that is, a
+function of the data) Let Gn(r, Fo) P(T, < r) denote the exact, finite-sample CDF
+of T, Let G,( ,F) denote the exact CDF of Tn when the data are sampled from the
+distribution whose CDF is E Usually, Gn(T, F) is a different function of r for different
+distributions F An exception occurs if Gn( ,F) does not depend on F in which case
+Tn is said to be pivotal For example, the t statistic for testing a hypothesis about
+the mean of a normal population is independent of unknown population parameters
+and, therefore, is pivotal The same is true of the t statistic for testing a hypothesis
+about a slope coefficient in a normal linear regression model Pivotal statistics are
+not available in most econometric applications, however, especially without making
+strong distributional assumptions (e g , the assumption that the random component of
+a linear regression model is normally distributed) Therefore, Gn( , F) usually depends
+on F and G( , Fo) cannot be calculated if, as is usually the case in applications, Fo is
+unknown The bootstrap is a method for estimating Gn( , Fo) or features of Gn( , Fo)
+such as its quantiles when Fo is unknown.
+Asymptotic distribution theory is another method for estimating G,( ,Fo) The
+asymptotic distributions of many econometric statistics are standard normal or chisquare, possibly after centering and normalization, regardless of the distribution from
+which the data were sampled Such statistics are called asymptoticallypivotal, meaning
+that their asymptotic distributions do not depend on unknown population parameters.
+Let Goo( ,Fo) denote the asymptotic distribution of Tn Let G,( ,F) denote the
+asymptotic CDF of Tn when the data are sampled from the distribution whose CDF
+is F If Tn is asymptotically pivotal, then Go( , F)_ Go ( ) does not depend on E
+Therefore, if N is sufficiently large, Gn(,Fo) can be estimated by G,( ) without
+knowing F This method for estimating G,(,Fo) is often easy to implement and
+is widely used However, as was discussed in Section 1, Go(-) can be a very poor
+approximation to Gn,(, F) with samples of the sizes encountered in applications.
+Econometric parameter estimators usually are not asymptotically pivotal (that is,
+their asymptotic distributions usually depend on one or more unknown population
+parameters), but many are asymptotically normally distributed If an estimator is
+asymptotically normally distributed, then its asymptotic distribution depends on at
+most two unknown parameters, the mean and the variance, that can often be estimated
+without great difficulty The normal distribution with the estimated mean and variance
+can then be used to approximate the unknown G,( , Fo) if N is sufficiently large.
+The bootstrap provides an alternative approximation to the finite-sample distribution
+of a statistic T,(X,, ,Xn) Whereas first-order asymptotic approximations replace
+the unknown distribution function G, with the known function G, the bootstrap
+replaces the unknown distribution function FO with a known estimator Let F, denote
+the estimator of FO Two possible choices of F, are:
+
+Ch 52: The Bootstrap
+
+3165
+
+( 1) The empirical distribution function (EDF) of the data:
+n
+
+Fn(x) =
+
+I(Xi < x),
+n
+
+i=l
+
+where I is the indicator function It follows from the Glivenko-Cantelli theorem
+that Fn(x) Fo(x) as N oo uniformly over x almost surely.
+( 2) A parametric estimator of FO Suppose that Fo()=F(, Oo) for some finitedimensional 00 that is estimated consistently by On If F( , 0) is a continuous
+function of O in a neighborhood of 00, then F(x, On) F(x, 00)
+o as N oc at each x.
+The convergence is in probability or almost sure according to whether 0,n
+in
+probability or almost surely.
+Other possible Fn's are discussed in Section 3 7.
+Regardless of the choice of F,, the bootstrap estimator of Gn( ,Fo) is Gn( ,Fn).
+Usually, Gn( , Fn) cannot be evaluated analytically It can, however, be estimated with
+arbitrary accuracy by carrying out a Monte Carlo simulation in which random samples
+are drawn from F, Thus, the bootstrap is usually implemented by Monte Carlo
+simulation The Monte Carlo procedure for estimating Gn(T, Fo) is as follows:
+Monte Carlo Procedure for Bootstrap Estimation of Gn(T, Fo)
+Step 1: Generate a bootstrap sample of size n, {X*: i= 1, , n}, by sampling the
+distribution corresponding to F, randomly If Fn is the EDF of the estimation
+data set, then the bootstrap sample can be obtained by sampling the estimation
+data randomly with replacement.
+Step 2: Compute T* T,(X*,
+,X*).
+Step 3: Use the results of many repetitions of steps 1 and 2 to compute the empirical
+probability of the event T* < r (that is, the proportion of repetitions in which
+this event occurs).
+Procedures for using the bootstrap to compute other statistical objects are described
+in Sections 3 1 and 3 3 Brown (1999) and Hall ( 1992a, Appendix II) discuss
+simulation methods that take advantage of techniques for reducing sampling variation
+in Monte Carlo simulation The essential characteristic of the bootstrap, however, is
+the use of Fn to approximate Fo in G,( , Fo), not the method that is used to evaluate
+Gn(',Fn).
+
+Since F, and F O are different functions, Gn(,Fn) and Gn,(,Fo) are also different
+functions unless Tn is pivotal Therefore, the bootstrap estimator Gn(, Fn) is only an
+approximation to the exact finite-sample CDF of Tn, G,(, Fo) Section 3 discusses
+the accuracy of this approximation The remainder of this section is concerned with
+conditions under which Gn( ,F,) satisfies the minimal criterion for adequacy as an
+estimator of Gn(, F0), namely consistency Roughly speaking, Gn(,F,) is consistent
+if it converges in probability to the asymptotic CDF of Tn, Go(-,Fo), as N Oo.
+Section 2 1 defines consistency precisely and gives conditions under which it holds.
+
+JL Horowitz
+
+3166
+
+Section 2 2 describes some resampling procedures that can be used to estimate
+G,( , Fo) when the bootstrap is not consistent.
+2.1 Consistency of the bootstrap
+Suppose that F, is a consistent estimator ofFo This means that at each x in the support
+of X, Fn(x) Fo(x) in probability or almost surely as N oc If F O is a continuous
+function, then it follows from Polya's theorem that Fn F O in probability or almost
+surely uniformly over x Thus, F, and F O are uniformly close to one another if n
+is large If, in addition, Gn(, F) considered as a functional of F is continuous in
+an appropriate sense, it can be expected that G(r,F) is close to Gn(r, Fo) when
+n is large On the other hand, if N is large, then G,(,Fo) is uniformly close to the
+asymptotic distribution Go( ,Fo) if Go( ,Fo) is continuous This suggests that the
+bootstrap estimator Gn,(, F,) and the asymptotic distribution function Go( , F 0) should
+be uniformly close if N is large and suitable continuity conditions hold The definition
+of consistency of the bootstrap formalizes this idea in a way that takes account of the
+randomness of the function G,( , Fn) Let 3 denote the space of permitted distribution
+functions.
+Definition 2 1 Let Pn denote the joint probability distribution of the sample {Xi:
+i=l, ,n} The bootstrap estimator G,( ,F,) is consistent if for each > O and
+Fo E 3
+lim P lsup Gn(T, Fn) G,(r,Fo) >l = O
+A theorem by Beran and Ducharme ( 1991) gives conditions under which the bootstrap
+estimator is consistent This theorem is fundamental to understanding the bootstrap.
+Let p denote a metric on the space 3 of permitted distribution functions.
+Theorem 2 1 (Beran and Ducharme 1991) Gn( , Fn) is consistent iffor any > O
+and Fo G 3: (i) lim,,-Pnlp(F,,Fo) > el = O; (ii) G (,F) is a continuous
+function of r for each F E 3; and (iii) for any and any sequence {H,} E 3 such
+p(H, Fo) = 0, G,(r, Hn) Go(T, F0).
+that lim,
+The following is an example in which the conditions of Theorem 2 1 are satisfied:
+Example 2 1 The distribution of the sample average: Let 3 be the set of distribution
+functions F corresponding to populations with finite variances Let X be the average
+where u=E(X) Let
+of the random sample {Xi: i= 1, ,n} Define Tn = nl/ 2(X-),
+r Consider using the bootstrap to estimate Gn(r, Fo).
+G,(T, Fo) = P, lnl/2(X y) Tl
+Let F, be the EDF of the data Then the bootstrap analog of Tn is T* = nl/ 2 (X* -X),
+where X* is the average of a random sample of size N drawn from F, (the bootstrap
+sample) The bootstrap sample can be obtained by sampling the data {Xi} randomly
+with replacement T* is centered at X because X is the mean of the distribution
+
+Ch 52:
+
+3167
+
+The Bootstrap
+
+from which the bootstrap sample is drawn The bootstrap estimator of Gn(r, Fo) is
+Gn(r, Fn)= Pn lnl/2 ( ' * X) < trl, where P* is the probability distribution induced by
+the bootstrap sampling process G,(r, Fn) satisfies the conditions of Theorem 2 1 and,
+therefore, is consistent Let p be the Mallows metric 2 The Glivenko-Cantelli theorem
+and the strong law of large numbers imply that condition (i) of Theorem 2 1 is satisfied.
+The Lindeberg-Levy central limit theorem implies that Tn is asymptotically normally
+distributed The cumulative normal distribution function is continuous, so condition (ii)
+holds By using arguments similar to those used to prove the Lindeberg-Levy theorem,
+it can be shown that condition (iii) holds ·
+A theorem by Mammen (1992) gives necessary and sufficient conditions for the
+bootstrap to consistently estimate the distribution of a linear functional of Fo when
+Fn is the EDF of the data This theorem is important because the conditions are often
+easy to check, and many estimators and test statistics of interest in econometrics are
+asymptotically equivalent to linear functionals of some Fo Hall (1990) and Gill ( 1989)
+give related theorems.
+Theorem 2 2 (Mammen 1992) Let {X : i = 1,
+n} be a random sample from
+a population For a sequence of functions gn and sequences of numbers tn
+and an, define g, = n-'1 n=
+l gn(Xi) and Tn = (gn
+t)/On For the bootstrap
+i= g(X*) and T = (g
+gn)/ 5 .
+sample {X*: i = 1, , n}, define l* = N
+Let Gn(r) = P(T, < T) and G*(r) = P*(T* < r), where P* is the probability
+distribution induced by bootstrap sampling Then G*( ) consistently estimates Gn if
+and only if T,
+N(O, 1) ·
+If Elg,(X)l and Varlg,(X)l exist for each n, then the asymptotic normality condition of
+Theorem 2 2 holds with t = E(gn) and a 2 = Var(gn) or ON2 = n-2 Ei" lgn(X) gnl 2
+Thus, consistency of the bootstrap estimator of the distribution of the centered,
+normalized sample average in Example 2 1 follows trivially from Theorem 2 2.
+The bootstrap need not be consistent if the conditions of Theorem 2 1 are not
+satisfied and is inconsistent if the asymptotic normality condition of Theorem 2 2
+is not satisfied In particular, the bootstrap tends to be inconsistent if Fo is a
+point of discontinuity of the asymptotic distribution function Go(r, ) or a point of
+superefficiency Section 2 2 describes resampling methods that can sometimes be used
+to overcome these difficulties.
+The following examples illustrate conditions under which the bootstrap is inconsistent The conditions that cause inconsistency in the examples are unusual in
+econometric practice The bootstrap is consistent in most applications Nonetheless,
+inconsistency sometimes occurs, and it is important to be aware of its causes Donald
+2 The Mallows metric is defined by p(P, Q)2 = inf {Elj Y -X 112 : Y
+
+P,X
+
+Q} The infimum is over
+
+all joint distributions of (YX) whose marginals are P and Q Weak convergence of a sequence of
+distributions in the Mallows metric implies convergence of the corresponding sequences of first and
+second moments See Bickel and Freedman (1981) for a detailed discussion of this metric.
+
+3168
+
+JL Horowitz
+
+and Paarsch ( 1996), Flinn and Heckman (1982), and Heckman, Smith and Clements
+( 1997) describe econometric applications that have features similar to those of some
+of the examples, though the consistency of the bootstrap in these applications has not
+been investigated.
+Example 2 2 Heavy-tailed distributions: Let FO be the standard Cauchy distribution
+function and {Xi) be a random sample from this distribution Set Tn = X, the sample
+average Then Tn has the standard Cauchy distribution Let F, be the EDF of the
+sample A bootstrap analog of T, is T* = * m, where X* is the average of a
+bootstrap sample that is drawn randomly with replacement from the data {X}i and
+m, is a median or trimmed mean of the data The asymptotic normality condition of
+Theorem 2 2 is not satisfied, and the bootstrap estimator of the distribution of T is
+inconsistent Athreya (1987) and Hall (1990) provide further discussion of the behavior
+of the bootstrap with heavy-tailed distributions ·
+Example 2 3 The distribution of the square of the sample average: Let {Xi:
+i= 1, , n) be a random sample from a distribution with mean / and variance a 2 Let
+X denote the sample average Let Fn be the EDF of the sample Set T, = N1/2(X2 12)
+if y • O and T, = nX 2 otherwise T is asymptotically normally distributed if P X 0,
+but T/oa 2 is asymptotically chi-square distributed with one degree of freedom if = 0.
+The bootstrap analog of Tn is Tn* = nal(X*)2 X 2 l, where a = 1/2 if y O and a=
+otherwise The bootstrap estimator of Gn(r,Fo) =P(Tn T) is Gn(r, F,)=P*(T* < ).
+If g • 0, then T is asymptotically equivalent to a normalized sample average that
+satisfies the asymptotic normality condition of Theorem 2 2 Therefore, G( ,F,)
+consistently estimates Go( ,Fo) if • O If u= 0, then Tn is not a sample average
+even asymptotically, so Theorem 2 2 does not apply Condition (iii) of Theorem 2 1
+is not satisfied, however, if y = 0, and it can be shown that the bootstrap distribution
+function Gn( ,Fn) does not consistently estimate G ( ,Fo) lDatta (1995)l ·
+The following example is due to Bickel and Freedman ( 1981):
+Example 2 4 Distribution of the maximum of a sample: Let {(X: i= 1, , n} be a
+random sample from a distribution with absolutely continuous CDF FoO and support
+l 0, 00 l Let On =max(X1, ,X,), and define T, = n(On 80) Let Fn be the EDF of
+the sample The bootstrap analog of Tn is T,* = n(O,*
+), where 0,* is the maximum
+of the bootstrap sample {X*} that is obtained by sampling {Xj} randomly with
+replacement The bootstrap does not consistently estimate G,(-r, Fo) =Pn(T < -r)
+(r 0) To see why, observe that P,*(T*=O O)=1-( 1-1In)
+*l-e t as noo.
+It is easily shown, however, that the asymptotic distribution function of T is
+G.(-T, F0) = 1 expl-rf( o)l,
+O
+where f(x) = d F(x)/dx is the probability density
+function of X Therefore, P(T, = 0)
+0, and the bootstrap estimator of G,( ,Fo) is
+inconsistent ·
+
+Ch 52:
+
+The Bootstrap
+
+3169
+
+Example 2 5 Parameter on a boundary of the parameter space: The bootstrap
+does not consistently estimate the distribution of a parameter estimator when the true
+parameter point is on the boundary of the parameter space To illustrate, consider
+estimation of the population mean t subject to the constraint # > O Estimate bt by
+mn = XI(X > 0), where X is the average of the random sample {Xi: i= 1, , n}.
+) Let F, be the EDF of the sample The bootstrap analog of
+Set Tn = n/ 2(mn
+mn), where m* is the estimator of M that is obtained from
+T, is T* = n/ 2 (m
+a bootstrap sample The bootstrap sample is obtained by sampling {Xi} randomly
+> 0 and Var(X)< oc, then Tn is asymptotically equivalent to
+with replacement If Mu
+a normalized sample average and is asymptotically normally distributed Therefore,
+it follows from Theorem 2 2 that the bootstrap consistently estimates the distribution
+of Tn If u = 0, then the asymptotic distribution of Tn is censored normal, and it can
+be proved that the bootstrap distribution function Gn(', Fn) does not estimate Gn(', Fo)
+consistently lAndrews (2000)l ·
+The next section describes resampling methods that often are consistent when the
+bootstrap is not They provide consistent estimators of Gn(,Fo) in each of the
+foregoing examples.
+2.2 Alternative resamplingprocedures
+This section describes two resampling methods whose requirements for consistency
+are weaker than those of the bootstrap Each is based on drawing subsamples of
+size m < N from the original data In one method, the subsamples are drawn randomly
+with replacement In the other, the subsamples are drawn without replacement These
+subsampling methods often estimate Gn( ,Fo) consistently even when the bootstrap
+does not They are not perfect substitutes for the bootstrap, however, because they
+tend to be less accurate than the bootstrap when the bootstrap is consistent.
+In the first subsampling method, which will be called replacement subsampling,
+a bootstrap sample is obtained by drawing m <n observations from the estimation
+sample {Xi: i= 1, , n} In other respects, it is identical to the standard bootstrap
+based on sampling F, Thus, the replacement subsampling estimator of G,( ,Fo) is
+Gmn(, F,) Swanepoel (1986) gives conditions under which the replacement bootstrap
+consistently estimates the distribution of Tn in Example 2 4 (the distribution of the
+maximum of a sample) Andrews (2000) gives conditions under which it consistently
+estimates the distribution of T, in Example 2 5 (parameter on the boundary of the
+parameter space) Bickel et al (1997) provide a detailed discussion of the consistency
+and rates of convergence of replacement bootstrap estimators To obtain some intuition
+into why replacement subsampling works, let Fmn be the EDF of a sample of size m
+drawn from the empirical distribution of the estimation data Observe that if m -* oo,
+O,then the random sampling error of F, as an estimator of F O is
+n oc, and m/n
+smaller than the random sampling error of Fn,, as an estimator of F, This makes the
+subsampling method less sensitive than the bootstrap to the behavior of G,( , F) for
+
+JL Horowitz
+
+3170
+
+F's in a neighborhood of FO and, therefore, less sensitive to violations of continuity
+conditions such as condition (iii) of Theorem 2 1.
+The method of subsampling without replacement will be called non-replacement
+subsampling This method has been investigated in detail by Politis and Romano
+(1994) and Politis et al (1999), who show that it consistently estimates the distribution
+of a statistic under very weak conditions In particular, the conditions required for
+consistency of the non-replacement subsampling estimator are much weaker than those
+required for consistency of the bootstrap estimator Politis et al (1997) extend the
+subsampling method to heteroskedastic time series.
+To describe the non-replacement subsampling method, let t,=t,(X 1, ,Xn) be
+an estimator of the population parameter 0, and set T =p(n)(tn 0), where the
+normalizing factor p(n) is chosen so that G(r,Fo)=P(Tn< r) converges to a
+nondegenerate limit G (r, F 0) at continuity points of the latter In Example 2 1
+(estimating the distribution of the sample average), for instance, O is the population
+mean, t = X, and p(n) = N1/2 Let {Xj :j = 1, , m} be a subset of m < N observations
+n} Define Nmn = () to be the total number of
+taken from the sample {Xi: i= 1,
+subsets that can be formed Let t k denote the estimator t evaluated at the kth subset.
+The non-replacement subsampling method estimates G(rT, Fo) by
+G,m() =
+
+1
+
+N,
+
+EIlp(m)(tm,k -,)
+
+<T
+
+(2 1)
+
+Nn k=l
+
+The intuition behind this method is as follows Each subsample {Xij } is a random
+sample of size m from the population distribution whose CDF is F Therefore,
+Gm(, Fo) is the exact sampling distribution of p(m)(t,, 0), and
+Gm(T, Fo) = E{Ilp(m)(tm
+
+0) < Tl}
+
+(2 2)
+
+The quantity on the right-hand side of Equation (2 2) cannot be calculated in an
+application because FO and O are unknown Equation (2 1) is the estimator of the righthand side of Equation (2 2) that is obtained by replacing the population expectation
+by the average over subsamples and O by t, If N is large but m/n is small, then
+random fluctuations in t, are small relative to those in tin Accordingly, the sampling
+distributions of p(m)(tm t,) and p(m)(tm 0) are close Similarly, if Nmn is large, the
+average over subsamples is a good approximation to the population average These
+ideas are formalized in the following theorem of Politis and Romano (1994).
+Theorem 2 3 Assume that G,(r, Fo) G (r, Fo) as n-*oo at each continuity point
+of the latter function Also assume that p(m)/p(n)-O, m-*oo, and m/n-*O as
+n oc Let be a continuity point of Go(r, FO) Then (i) G,,(T)
+Go(r
+T, Fo);
+(ii) if GO( , Fo) is continuous, then sup, IGnm(T) G,(r,Fo)) P O; (iii) let
+c,(l a) = inf {r: Gin(r) > 1 a} and c(1 a, F) = inf {r: GO(T, F) > 1 a).
+If G ( , F) is continuous at c(
+a, Fo), then Plp(n)(t, 0) < c( 11 a)l
+1 a,
+
+Ch 52:
+
+The Bootstrap
+
+and the asymptotic coverage probability of the confidence interval lt
+c,(l a), oo), is
+a.
+
+3171
+p(n) l
+
+Essentially, this theorem states that if Tn has a well-behaved asymptotic distribution,
+then the non-replacement subsampling method consistently estimates this distribution.
+The non-replacement subsampling method also consistently estimates asymptotic
+critical values for Tn and asymptotic confidence intervals for t.
+In practice, Nnm is likely to be very large, which makes Gnm hard to compute This
+problem can be overcome by replacing the average over all N,m subsamples with the
+average over a random sample of subsamples lPolitis and Romano (1994)l These can
+be obtained by sampling the data {Xi: i = 1, , n} randomly without replacement.
+It is not difficult to show that the conditions of Theorem 2 3 are satisfied in all
+of the statistics considered in Examples 2 1, 2 2, 2 4, and 2 5 The conditions are
+also satisfied by the statistic considered in Example 2 3 if the normalization constant
+is known Bertail et al (1999) describe a subsampling method for estimating the
+normalization constant p(n) when it is unknown and provide Monte Carlo evidence
+on the numerical performance of the non-replacement subsampling method with an
+estimated normalization constant In each of the foregoing examples, the replacement
+subsampling method works because the subsamples are random samples of the true
+population distribution of X rather than an estimator of the population distribution.
+Therefore, replacement subsampling, in contrast to the bootstrap, does not require
+assumptions such as condition (iii) of Theorem 2 1 that restrict the behavior of Gn( , F)
+for F's in a neighborhood of Fo.
+The non-replacement subsampling method enables the asymptotic distributions of
+statistics to be estimated consistently under very weak conditions However, the
+standard bootstrap is typically more accurate than non-replacement subsampling
+when the former is consistent Suppose that G,( ,Fo) has an Edgeworth expansion
+through O(n-U2), as is the case with the distributions of most asymptotically normal
+statistics encountered in applied econometrics Then, as will be discussed in Section 3,
+IG,(r, Fn) G,(r, Fo), the error made by the bootstrap estimator of G,(T, Fo), is
+at most O(n /2) almost surely In contrast, the error made by the non-replacement
+subsampling estimator, Gnm(T)-G(r, Fo)l, is no smaller than Op(n- 1/3 ) lPolitis
+and Romano (1994), Politis et al (1999)l 3 Thus, the standard bootstrap estimator
+of G(r,Fo) is more accurate than the non-replacement subsampling estimator in
+a setting that arises frequently in applications Similar results can be obtained for
+statistics that are asymptotically chi-square distributed Thus, the standard bootstrap is
+more attractive than the non-replacement subsampling method in most applications in
+econometrics The subsampling method may be used, however, if characteristics of the
+sampled population or the statistic of interest cause the standard bootstrap estimator
+
+3 Hall and Jing (1996) show how certain types of asymptotic refinements can be obtained through
+non-replacement subsampling The rate of convergence of resulting error is, however, slower than the
+rate achieved with the standard bootstrap.
+
+3172
+
+JL Horowitz
+
+to be inconsistent Non-replacement subsampling may also be useful in situations
+where checking the consistency of the bootstrap is difficult Examples of this include
+inference about the parameters of certain kinds of structural search models lFlinn and
+Heckman (1982)l, auction models lDonald and Paarsch (1996)l, and binary-response
+models that are estimated by Manski's (1975, 1985) maximum score method.
+
+3 Asymptotic refinements
+The previous section described conditions under which the bootstrap yields a consistent
+estimator of the distribution of a statistic Roughly speaking, this means that the
+bootstrap gets the statistic's asymptotic distribution right, at least if the sample size
+is sufficiently large As was discussed in Section 1, however, the bootstrap often
+does much more than get the asymptotic distribution right In a large number of
+situations that are important in applied econometrics, it provides a higher-order
+asymptotic approximation to the distribution of a statistic This section explains how
+the bootstrap can be used to obtain asymptotic refinements Section 3 1 describes
+the use of the bootstrap to reduce the finite-sample bias of an estimator Section 3 2
+explains how the bootstrap obtains higher-order approximations to the distributions of
+statistics The results of Section 3 2 are used in Sections 3 3 and 3 4 to show how the
+bootstrap obtains higher-order refinements to the rejection probabilities of tests and
+the coverage probabilities of confidence intervals Sections 3 5-3 7 address additional
+issues associated with the use of the bootstrap to obtain asymptotic refinements It
+is assumed throughout this section that the data are a simple random sample from
+some distribution Methods for implementing the bootstrap and obtaining asymptotic
+refinements with time-series data are discussed in Section 4 1.
+3.1 Bias reduction
+This section explains how the bootstrap can be used to reduce the finite-sample bias of
+an estimator The theoretical results are illustrated with a simple numerical example To
+minimize the complexity of the discussion, it is assumed that the inferential problem
+is to obtain a point estimate of a scalar parameter O that can be expressed as a
+smooth function of a vector of population moments It is also assumed that O can be
+estimated consistently by substituting sample moments in place of population moments
+in the smooth function Many important econometric estimators, including maximumlikelihood and generalized-method-of-moments estimators, are either functions of
+sample moments or can be approximated by functions of sample moments with an
+approximation error that approaches zero very rapidly as the sample size increases.
+Thus, the theory outlined in this section applies to a wide variety of estimators that
+are important in applications.
+To be specific, let X be a random vector, and set = E(X) Assume that the true
+value of O is 00 = g(p), where g is a known, continuous function Suppose that the data
+
+3173
+
+Ch 52: The Bootstrap
+
+consist of a random sample {Xi: i = 1,
+Then O is estimated consistently by
+
+, n} of X Define the vector X = n- l
+
+n = g(X)
+
+1
+
+Xi=
+Xi.
+
+( 3 1)
+
+If 0, has a finite mean, then E(On) = Elg(X)l However, Elg(X)l g(p) in general
+unless g is a linear function Therefore, E(On) • 00, and On is a biased estimator of 0.
+In particular, E(O,,) • 00 if ON is any of a variety of familiar maximum likelihood or
+generalized method of moments estimators.
+To see how the bootstrap can reduce the bias of O,, suppose that g is four times
+continuously differentiable in a neighborhood of p and that the components of X have
+finite fourth absolute moments Let Gi denote the vector of first derivatives of g and
+G2 denote the matrix of second derivatives A Taylor series expansion of the right-hand
+side of Equation (3 1) about X = y gives
+0N o = G (/)'(X-/2) + (X-/2)'G 2 (P)( -)
+
++Rn,
+
+(3 2)
+
+where R, is a remainder term that satisfies E(R,) = O(n 2) Therefore, taking expectations on both sides of Equation (3 2) gives
+E(On
+
+00) = El(X
+
+)'G2 (U)(X
+
+P)l + O(n 2)
+
+(3 3)
+
+The first term on the right-hand side of Equation ( 3 3) has size O(n-l) Therefore,
+through O(n-') the bias of ON is
+Bn = El(X -/ )'G2 (/)(X
+
+P)l
+
+(3 4)
+
+Now consider the bootstrap The bootstrap samples the empirical distribution of the
+data Let {Xj*: i = 1, , n} be a bootstrap sample that is obtained this way Define
+X* = n-ZEn= X * to be the vector of bootstrap sample means The bootstrap estimator
+of O is 0,* = g(X*) Conditional on the data, the true mean of the distribution sampled
+by the bootstrap is X Therefore, X is the bootstrap analog of P, and On = g(X) is the
+bootstrap analog of 00 The bootstrap analog of Equation (3 2) is
+n On = GO(X)'(X* -X) + (X* -X)G 2 (X)(*
+
+-X)+R*,
+
+(3 5)
+
+where R* is the bootstrap remainder term Let E* denote the expectation under
+bootstrap sampling, that is, the expectation relative to the empirical distribution of
+On,) denote the bias of O,* as an estimator of n,.
+the estimation data Let B* E*(*
+Taking E* expectations on both sides of Equation ( 3 5) shows that
+B = E* l(X* -X)G 2 (X)(X* -X)l + O(n 2)
+
+(3 6)
+
+almost surely Because the distribution sampled by the bootstrap is known, B* can be
+computed with arbitrary accuracy by Monte Carlo simulation Thus, B* is a feasible
+
+JL Horowitz
+
+3174
+
+estimator of the bias of On The details of the simulation procedure are described
+below.
+By comparing Equations (3 4) and (3 6), it can be seen that the only differences
+between B, and the leading term of B* are that X replaces Y in B* and the empirical
+expectation, E*, replaces the population expectation, E Moreover, E(B*) = B, +O(n-2 ).
+Therefore, through O(n l), use of the bootstrap bias estimate B* provides the same bias
+reduction that would be obtained if the infeasible population value B, could be used.
+This is the source of the bootstrap's ability to reduce the bias of On, The resulting biascorrected estimator of O is 0, B* It satisfies E(n, 00 B*) = O(n 2) Thus, the bias
+of the bias-corrected estimator is O(n-2), whereas the bias of the uncorrected estimator
+on is O(n 1)4.
+The Monte Carlo procedure for computing B* is as follows:
+Monte Carlo Procedure for Bootstrap Bias Estimation
+B 1: Use the estimation data to compute n,.
+B 2: Generate a bootstrap sample of size N by sampling the estimation data randomly
+with replacement Compute O* = g(X*).
+B 3: Compute E*O* by averaging the results of many repetitions of step B 2 Set
+B =E*
+n,.
+To implement this procedure it is necessary to choose the number of repetitions, m,
+of step B2 It usually suffices to choose m sufficiently large that the estimate of E* *
+does not change significantly if m is increased further Andrews and Buchinsky (2000)
+discuss more formal methods for choosing the number of bootstrap replications 5.
+The following simple numerical example illustrates the bootstrap's ability to reduce
+bias Examples that are more realistic but also more complicated are presented in
+Horowitz (1998 a).
+Example 3 1 lHorowitz ( 1998a)l: Let X-N( 0,6) and N = 10 Let g(Y) = exp(Y) Then
+00 = 1, and 0, = exp(X) B, and the bias of 0, B* can be found through the following
+Monte Carlo procedure:
+MC 1 Generate an estimation data set of size N by sampling from the N( 0,6) distribution Use this data set to compute n,.
+MC 2 Compute B* by carrying out steps B1-B 3 Form 0,n-B*.
+MC 3 Estimate E(n, Oo) and E(On -B* Oo) by averaging the results of many
+repetitions of steps MC 1-MC2 Estimate the mean square errors of On and ON B by
+averaging the realizations of (On 00)2 and (On B* 00)2.
+4
+
+If E(0,) does not exist, then the "bias reduction" procedure described here centers a higher-order
+
+approximation to the distribution of On
+
+00
+.o
+
+It is not difficult to show that the bootstrap provides bias reduction even if m= 1 However, the
+bias-corrected estimator of Omay have a large variance if m is too small The asymptotic distribution of
+the bias-corrected estimator is the same as that of the uncorrected estimator if m increases sufficiently
+rapidly as N increases See Brown (1999) for further discussion.
+5
+
+Ch 52:
+
+3175
+
+The Bootstrap
+
+The following are the results obtained with 1000 Monte Carlo replications and
+100 repetitions of step B2 at each Monte Carlo replication:
+Bias
+0N
+0, B
+
+Mean-Square Error
+
+0 356
+
+1 994
+
+-0 063
+
+1 246
+
+In this example, the bootstrap reduces the magnitude of the bias of the estimator of O
+by nearly a factor of 6 The mean-square estimation error is reduced by 38 percent ·
+
+3.2 The distributions of statistics
+This section explains why the bootstrap provides an improved approximation to the
+finite-sample distribution of an asymptotically pivotal statistic As before, the data
+are a random sample {Xi: i= 1, , n} from a probability distribution whose CDF
+is FO Let Tn = T,(X 1, ,X,) be a statistic Let Gn(r, Fo)=P(T, < ) denote the
+exact, finite-sample CDF of T As was discussed in Section 2, G,(T, Fo) cannot be
+calculated analytically unless Tn is pivotal The objective of this section is to obtain
+an approximation to Gn(r, Fo) that is applicable when Tn is not pivotal.
+To obtain useful approximations to G,(T, Fo), it is necessary to make certain
+assumptions about the form of the function T,(XI,
+,X,) It is assumed in this
+section that T, is a smooth function of sample moments of X or sample moments
+of functions of X (the smooth function model) Specifically Tn = nl/2lH(21,
+, Zj)
+-H(tz,, , iz J)l, where the scalar-valued function H is smooth in a sense that
+is defined precisely below, Zj = n-l En=l Zj(Xi) for each j=1,
+,J and some
+nonstochastic function Zj, and /tZ = E(Zj) After centering and normalization,
+most estimators and test statistics used in applied econometrics are either smooth
+functions of sample moments or can be approximated by such functions with an
+approximation error that is asymptotically negligible 6 The ordinary least-squares
+estimator of the slope coefficients in a linear mean-regression model and the
+t statistic for testing a hypothesis about a coefficient are exact functions of sample
+moments Maximum-likelihood and generalized-method-of-moments estimators of the
+parameters of nonlinear models can be approximated with asymptotically negligible
+error by smooth functions of sample moments if the log-likelihood function or moment
+conditions have sufficiently many derivatives with respect to the unknown parameters.
+
+The meaning of asymptotic negligibility in this context may be stated precisely as follows Let
+n=fn(Xl, ,Xn) be a statistic, and let T=nl/2 lH(Zl, ,Zj)-H(pz, ,/zj)l Then the error
+made by approximating Tn with T is asymptotically negligible if there is a constant c > O such that
+n2Pln2 I Tn Tn I>cl =O(1) as N oc.
+6
+
+3176
+
+JL Horowitz
+
+Some important econometric estimators and test statistics do not satisfy the
+assumptions of the smooth function model Quantile estimators, such as the leastabsolute-deviations (LAD) estimator of the slope coefficients of a median-regression
+model do not satisfy the assumptions of the smooth function model because their
+objective functions are not sufficiently smooth Nonparametric density and meanregression estimators and semiparametric estimators that require kernel or other forms
+of smoothing also do not fit within the smooth function model Bootstrap methods for
+such estimators are discussed in Section 4 3.
+Now return to the problem of approximating G(r,Fo) First-order asymptotic
+theory provides one approximation To obtain this approximation, write H(ZI, , Zj)
+= H(Z), where Z = (ZI,
+, ZJ)' Define z = E(Z), OH(z) = OH(z)/&z, and
+Q = El(Z yLz)(Z pz)'l whenever these quantities exist Assume that:
+SFM: (i) T, = nl/ 2lH(Z) H(Clz)l, where H(z) is 6 times continuously partially
+differentiable with respect to any mixture of components of z in a neighborhood of
+z (ii) OH(tlz) • O (iii) The expected value of the product of any 16 components of
+Z exists 7.
+Under assumption SFM, a Taylor series approximation gives
+n l/2 lH(Z) H(yz)l = OH(pz)'nl/2 (Z _ l Z) + O( 1)
+(3 7)
+Application of the Lindeberg-Levy central limit theorem to the right hand side of
+Equation (3 7) shows that n/2lH(Z)
+H(uz)l -d N(O, V), where V = OH(luz)'
+2a H(ltz) Thus, the asymptotic CDF of Tn is GO(T,FO) = (r/Vt/2), where
+is
+the standard normal CDF This is just the usual result of the delta method Moreover,
+it follows from the Berry-Esseen theorem that
+sup IG,(r, F)
+
+G (r, Fo) = (n-l/2).
+
+T
+
+Thus, under assumption SFM of the smooth function model, first-order asymptotic
+approximations to the exact finite-sample distribution of Tn make an error of size
+(n-l/2 ) 8.
+
+7 The proof that the bootstrap provides asymptotic refinements is based on an Edgeworth expansion of a
+sufficiently high-order Taylor-series approximation to T, Assumption SFM insures that H has derivatives
+and Z has moments of sufficiently high order to obtain the Taylor series and Edgeworth expansions that
+are used to obtain a bootstrap approximation to the distribution of Tn that has an error of size O(n 2).
+SFM may not be the weakest condition needed to obtain this result It certainly assumes the existence
+of more derivatives of H and moments of Z than needed to obtain less accurate approximations For
+example, asymptotic normality of Tn can be proved if H has only one continuous derivative and Z has
+only two moments See Hall (1992 a, pp 52-56; 238-259) for a statement of the regularity conditions
+needed to obtain various levels of asymptotic and bootstrap approximations.
+8 Some statistics that are important in econometrics have asymptotic chi-square distributions Such
+statistics often satisfy the assumptions of the smooth function model but with H(pz)=O and
+a 2H(z)/zazz =tz O Versions of the results described here for asymptotically normal statistics are also
+available for asymptotic chi-square statistics First-order asymptotic approximations to the finite-sample
+distributions of asymptotic chi-square statistics typically make errors of size O(n' ) Chandra and Ghosh
+(1979) give a formal presentation of higher-order asymptotic theory for asymptotic chi-square statistics.
+
+Ch 52:
+
+3177
+
+The Bootstrap
+
+Now consider the bootstrap The bootstrap approximation to the CDF of T is
+
+Gn( ,F,) Under the smooth function model with assumption SFM, it follows from
+Theorem 3 2 that the bootstrap is consistent Indeed, it is possible to prove the stronger
+result that sup, IG,(r,F)
+G,(T,Fo)l
+O almost surely This result insures that
+the bootstrap provides a good approximation to the asymptotic distribution of T if
+n is sufficiently large It says nothing, however, about the accuracy of G( , F,) as an
+approximation to the exact finite-sample distribution function G,( , Fo) To investigate
+this question, it is necessary to develop higher-order asymptotic approximations to
+G,( ,Fo) and G,(,Fn) The following theorem, which is proved in Hall ( 1992a),
+provides an essential result.
+Theorem 3 1 Let assumption SFM hold Assume also that
+lim sup IElexp(it'Z)l < 1,
+Itllto
+where i = v/-
+
+( 3 8)
+
+Then
+
+G,(r,Fo) =
+
+1
+G (r,Fo)+ I/2 gl(r,Fo)+ -g
+
+1
+2(r,Fo)
+
++
+
+2 g 3 (r, Fo)+ O(n-2)
+
+( 3.9)
+uniformly over
+
+and
+
+1
+1
+G,(r,Fn)= G (r, Fn)+ I gi(T,)+
+N -g 2 (,Fn)+
+1/2
+
+N
+
+1
+g
+
+g3(T, Fn)+ (n 2)
+3/2
+
+( 3.10)
+uniformly over r almost surely Moreover; gl and g 3 are even, differentiablefunctions
+of theirfirst arguments, g 2 is an odd, differentiable, function of itsfirst argument, and
+G,, gl, g 2, and g 3 are continuousfunctions of theirsecond arguments relative to the
+supremum norm on the space of distributionfunctions.
+If Tn is asymptotically pivotal, then G, is the standard normal distribution function.
+Otherwise, Go( , FO) is the N(0, V) distribution function, and GO(-, F,) is the N( 0, V,)
+distribution function, where V, is the quantity obtained from V by replacing population
+expectations and moments with expectations and moments relative to Fn.
+Condition (3 8) is called the Cramer condition It is satisfied if the random vector Z
+has a probability density with respect to Lebesgue measure 9.
+
+9 More generally, Equation (3 8) is satisfied if the distribution of Z has a non-degenerate absolutely
+continuous component in the sense of the Lebesgue decomposition There are also circumstances in which
+Equation (3 8) is satisfied even when the distribution of Z does not have a non-degenerate absolutely
+continuous component See Hall (1992 a, pp 66-67) for examples In addition, Equation (3 8) can be
+modified to deal with econometric models that have a continuously distributed dependent variable but
+discrete covariates See Hall (1992 a, p 266).
+
+3178
+
+JL Horowitz
+
+It is now possible to evaluate the accuracy of the bootstrap estimator G,(r,F,)
+as an approximation to the exact, finite-sample CDF G(r,Fo) It follows from
+Equations (3 9) and ( 3 10) that
+Gj(r,F)
+
+Gn(r,Fo) = lG(Tr,F,) G (r, Fo)l +
+
+1/2
+
+lg (r, F)
+
+gl(r, Fo)l
+
+1
+n
+
+- /3 2 )
++ -lg 2 (r, Fn) g 2 (r, F)l + O(n
+
+( 3.11)
+The leading term on the right-hand side of
+almost surely uniformly over
+Equation (3 11) is lGO(r, F,) G(r,Fo)l The size of this term is O(n 1/2) almost
+surely uniformly over r because F -Fo = O(n- 1/ 2) almost surely uniformly over the
+support of Fo Thus, the bootstrap makes an error of size O(n -1/ 2 ) almost surely, which
+is the same as the size of the error made by first-order asymptotic approximations In
+terms of rate of convergence to zero of the approximation error, the bootstrap has the
+same accuracy as first-order asymptotic approximations In this sense, nothing is lost
+in terms of accuracy by using the bootstrap instead of first-order approximations, but
+nothing is gained either.
+Now suppose that T, is asymptoticallypivotal Then the asymptotic distribution of
+T, is independent of FO, and G,(r,F,)= GO,(T, Fo) for all r Equations (3 9) and
+( 3.10) now yield
+G,(r, Fn)
+
+G,(, Fo) =
+
+lgl(r,F,) gl (T, Fo)l
+
+1/2
+g 2 (T, Fo)l + O(n-
+
++ -lg2 (r, F)
+n
+
+3/ 2)
+
+almost surely The leading term on the right-hand side of Equation (3 12) is
+n 1 /2 lg1 (, Fn) -gl (T, Fo)l It follows from continuity of gl with respect to its second
+Now the
+argument that this term has size O(n' ) almost surely uniformly over
+smaller
+as
+N
+*
+c
+than
+the
+error
+made
+an
+error
+of
+size
+O(n-l),
+which
+is
+bootstrap makes
+by first-order asymptotic approximations Thus, the bootstrap is more accurate than
+first-order asymptotic theory for estimating the distribution of a smooth asymptotically
+pivotal statistic.
+If T, is asymptotically pivotal, then the accuracy of the bootstrap is even greater for
+estimating the symmetrical distribution function P( T I < r) = G,(r, Fo) G,( T,Fo).
+This quantity is important for obtaining the RP's of symmetrical tests and the coverage
+probabilities of symmetrical confidence intervals Let P denote the standard normal
+distribution function Then, it follows from Equation (3 9) and the symmetry of gl,
+g 2, and g 3 in their first arguments that
+2
+G,(, Fo) G,(-, Fo)= lG (r, Fo) G(-r, Fo)l + g 2(r, Fo) + O(n 2 )
+n
+
+= 2 (r))
+
+1 + 2 g 2 (r, Fo) + O(n 2 ).
+
+n
+
+(3.13)
+
+Ch 52:
+
+3179
+
+The Bootstrap
+
+Similarly, it follows from Equation (3 10) that
+G,(r,Fn) G,(-T, Fn) = lG(T,F,) G(-T, F)l + -g 2(T,Fn) + O(n 2 )
+= 2 ¢(r)
+
+1 + 2 g2 (r,Fn) + O(n- 2 )
+
+( 3.14)
+almost surely The remainder terms in Equations (3 13) and (3 14) are O(n-2 ) and
+not O(n-3/ 2 ) because the O(n- 3 / 2) term of an Edgeworth expansion, n-3/2 g3 (r,F), is
+an even function that, like gl, cancels out in the subtractions used to obtain Equations (3 13) and (3 14) from Equations ( 3 9) and (3 10) Now subtract Equation ( 3 13)
+from Equation ( 3 14) and use the fact that Fn Fo = O(n- 1/ 2 ) almost surely to obtain
+l G,(r,F,) G(-r,F,)l
+
+lG,(r, Fo)
+
+G(-T, Fo)l
+
+- 2
+2 lg 2(r, Fn) g 2 (T,Fo)l + O(n
+)
+n
+
+( 3 15)
+
+= O(n 3/2)
+
+almost surely if Tn is asymptotically pivotal Thus, the error made by the bootstrap
+approximation to the symmetrical distribution function P(ITn < r) is O(n-3 / 2)
+compared to the error of O(n- l) made by first-order asymptotic approximations.
+In summary, when T is asymptotically pivotal, the error of the bootstrap
+approximation to a one-sided distribution function is
+G,(T,F,) G(T,Fo) = O(n- l )
+
+(3 16)
+
+almost surely uniformly over r The error in the bootstrap approximation to a
+symmetrical distribution function is
+l G(r,F,) Gn(-T,F)l lGn(T,Fo) G(-, Fo)l = O(n-3/ 2 )
+
+(3 17)
+
+almost surely uniformly over r In contrast, the errors made by first-order asymptotic
+approximations are O(n-/ 12 ) and O(n-'), respectively, for one-sided and symmetrical
+distribution functions Equations (3 16) and (3 17) provide the basis for the bootstrap's
+ability to reduce the finite-sample errors in the RP's of tests and the coverage
+probabilities of confidence intervals Section 3 3 discusses the use of the bootstrap
+in hypothesis testing Confidence intervals are discussed in Section 3 4.
+3.3 Bootstrap critical values for hypothesis tests
+This section shows how the bootstrap can be used to reduce the errors in the RP's of
+hypothesis tests relative to the errors made by first-order asymptotic approximations.
+Let T be a statistic for testing a hypothesis Ho about the sampled population.
+Assume that under Ho, T is asymptotically pivotal and satisfies assumptions SFM
+
+J.L Horowitz
+
+3180
+
+and Equation (3 8) Consider a symmetrical, two-tailed test of Ho This test rejects Ho
+at the a level if T, > Z,, a/2, where Z,, a/2, the exact, finite-sample, a-level critical
+value, is the 1 a/2 quantile of the distribution of T 10 The critical value solves the
+equation
+Gn(Zn, a/2, Fo) G,(-z,, a/2, Fo) = 1
+
+a
+
+(3 18)
+
+Unless T is exactly pivotal, however, Equation ( 3 18) cannot be solved in an
+application because F O is unknown Therefore, the exact, finite-sample critical value
+cannot be obtained in an application if T, is not pivotal.
+First-order asymptotic approximations obtain a feasible version of Equation (3 18)
+by replacing G, with Goo Thus, the asymptotic critical value, zo, a/2, solves
+Goo(zoo,a/2, Fo) Goo(-Zoo, a/2 , Fo) =
+
+a
+
+(3 19)
+
+Since Go, is the standard normal distribution function when T is asymptotically
+pivotal, zoo, ,/ 2 can be obtained from tables of standard normal quantiles Combining
+Equations (3 13), (3 18), and ( 3 19) gives
+lGoo(z,, a/2, Fo)-Go (-z,, a/2, Fo)l-lGo(zo,a/2 , Fo)-Go(-zoo, a/2, Fo)l = O(n-l),
+which implies that Zn,a/2
+
+Z,a/2
+
+= O(n-1) Thus, the asymptotic critical value
+
+approximates the exact finite sample critical value with an error whose size is O(n-l).
+The bootstrap obtains a feasible version of Equation ( 3 18) by replacing FOo with F,.
+Thus, the bootstrap critical value, Z* a/2 , solves
+Gn(Zn, a/2 , Fn) Gn(-Zn, /2 , Fn) =
+
+a
+
+(3 20)
+
+Equation (3 20) 11usually cannot be solved analytically, but z* a/2 can be estimated
+with any desired accuracy by Monte Carlo simulation To illustrate, suppose, as often
+10 Another form of two-tailed test is the equal-tailed test An equal-tailed test rejects Ho if Tn >Zn,,, a/2
+or Tn <Zn,( 1 a/2), where Zn,,(I -a/2) is the a/2-quantile of the finite-sample distribution of T, If the
+distribution of Tn is symmetrical about 0, then equal-tailed and symmetrical tests are the same Otherwise,
+they are different Most test statistics used in econometrics have symmetrical asymptotic distributions,
+so the distinction between equal-tailed and symmetrical tests is not relevant when the RP is obtained
+from first-order asymptotic theory Many test statistics have asymmetrical finite-sample distributions
+however Higher-order approximations to these distributions, such as the approximation provided by the
+bootstrap, are also asymmetrical Therefore, the distinction between equal-tailed and symmetrical tests
+is important in the analysis of asymptotic refinements Note that "symmetrical" in a symmetrical test
+refers to the way in which the critical value is obtained, not to the finite-sample distribution of T,, which
+is asymmetrical in general.
+1 The empirical distribution of the data is discrete, so Equation (3 20) may not have a solution if Fn
+is the EDF of the data However, Hall (1992 a, pp 283-286) shows that there is a solution at a point an
+whose difference from a decreases exponentially fast as N oo The error introduced into the analysis
+by ignoring the difference between an and a is o(n 2) and, therefore, negligible for purposes of the
+discussion in this chapter.
+
+Ch 52:
+
+3181
+
+The Bootstrap
+
+happens in applications, that Tn is an asymptotically normal, Studentized estimator of
+a parameter O whose value under Ho is 00 That is,
+Tn=
+
+n /2 ( n
+
+o0)
+
+Sn
+
+where 0, is the estimator of 0, nl/2(On
+2
+
+estimator of a
+
+00)
+
+N( 0, a 2 ) under Ho and S2 is a consistent
+
+Then the Monte Carlo procedure for evaluating z a,/2 is as follows:
+
+Monte Carlo Procedure for Computing the Bootstrap Critical Value
+TI: Use the estimation data to compute O,.
+T 2: Generate a bootstrap sample of size N by sampling the distribution corresponding
+to Fn For example, if Fn is the EDF of the data, then the bootstrap sample can be
+obtained by sampling the data randomly with replacement If Fn is parametric
+so that Fn(-)=F(, On) for some function E then the bootstrap sample can be
+generated by sampling the distribution whose CDF is F( , On) Compute the
+estimators of O and a from the bootstrap sample Call the results O* and s* The
+*
+bootstrap version of Tn is Tn* = n'/ 2 (
+O n)/s.
+T 3: Use the results of many repetitions of T 2 to compute the empirical distribution
+of IT* Set z*, a/2 equal to the 1 a quantile of this distribution.
+The foregoing procedure does not specify the number of bootstrap replications
+that should be carried out in step T 3 In practice, it often suffices to choose a value
+sufficiently large that further increases have no important effect on Z*, a/2 Hall (1 986 a)
+and Andrews and Buchinsky ( 2000) describe the results of formal investigations of the
+problem of choosing the number of bootstrap replications Repeatedly estimating O in
+step T 2 can be computationally burdensome if On is an extremum estimator Davidson
+and Mac Kinnon (1999 a) and Andrews (1999) show that the computational burden can
+be reduced by replacing the extremum estimator with an estimator that is obtained by
+taking a small number of Newton or quasi-Newton steps from the On value obtained
+in step T 1.
+To evaluate the accuracy of the bootstrap critical value z* 2 as an estimator of
+the exact finite-sample critical value z,a/2, combine Equations (3 13) and (3 18) to
+obtain
+2 (zn,a 2)
+
+1+ -g2 (zn, a/2,FO) = 1 a+O(n-2)
+n
+
+(3 21)
+
+Similarly, combining Equations (3 14) and (3 20) yields
+2
+
+((Zn
+
+22),
+
+/2) 1 + g22(z 2,a/2 ,Fn) = 1
+
+a+O(n2 ),
+
+(3 22)
+
+JL Horowitz
+
+3182
+
+almost surely Equations (3 21) and (3 22) can be solved to yield Cornish-Fisher
+expansions for Zn, a/2 and z*, a/2 The results are lHall (1992 a, p 111)l
+Zn, a/2 = Zoo, a/2
+
+where
+
+1g2 (zo~a/2, Fo)
+n
+
+(Zoa/2
+
+O(z
+
+, /2)
+
+) +O(n-2,
+
+(3
+
+23)
+
+is the standard normal density function, and
+Z f
+
+z, a/2 = zoo, a/2
+
+a/2,Fn)
+N1 g2 (Zoo,
+¢(z , 2)
+
+O(n
+
+2
+
+),
+
+(3 24)
+
+almost surely It follows from Equations (3 23) and (3 24) that
+zn,a/2 = zn, a/2 +O(
+
+3/2),
+
+(3 25)
+
+almost surely Thus, the bootstrap critical value for a symmetrical, two-tailed test
+differs from the exact, finite-sample critical value by O(n-3 / 2 ) almost surely The
+bootstrap critical value is more accurate than the asymptotic critical value, Zc,a/2,
+whose error is O(n- l).
+Now consider the rejection probability of the test based on T, when Ho is true With
+the exact but infeasible a-level critical value, the RP is P( Tn I > zn, a/2)=a With the
+asymptotic critical value, the RP is
+
+P(ITnl > Zo,a/2) = 1 lGn(z, a/ 2,Fo) Gn(-Za/2 ,FOl
+
+(3 26)
+
+= a + O(n-l),
+where the last line follows from setting r = zo, a/2 in Equation (3 13) Thus, with the
+asymptotic critical value, the true and nominal RP's differ by O(n-l).
+Now consider the RP with the bootstrap critical value, P(J Tn I1 zn* a/2) Because
+zna/2 is a random variable, P(I T,
+zn* /2) • 1 lG(zn, a/2, FO) Gn(-zn a/2, Fo)l.
+This fact complicates the calculation of the difference between the true and nominal
+RP's with the bootstrap critical value The calculation is outlined in the Appendix of
+this chapter The result is that
+P( Tn > Z*, a/2) = a + O(n-2)
+
+( 3 27)
+
+In other words, the nominal RP of a symmetrical, two-tailed test with a bootstrap
+critical value differs from the true RP by O(n-2 ) when the test statistic is asymptotically
+pivotal In contrast, the difference between the nominal and true RP's is O(n- l) when
+the asymptotic critical value is used.
+The bootstrap does not achieve the same accuracy for one-tailed tests For such
+tests, the difference between the nominal and true RP's with a bootstrap critical value
+is usually O(n-1), whereas the difference with asymptotic critical values is O(n 1 2).
+See Hall ( 1992a, pp 102-103) for details There are, however, circumstances in which
+
+Ch 52:
+
+The Bootstrap
+
+3183
+
+the difference between the nominal and true RP's with a bootstrap critical value is
+O(n-3/2) Hall (1992 a, pp 178-179) shows that this is true for a one-sided t test
+of a hypothesis about a slope (but not intercept) coefficient in a homoskedastic,
+linear, mean-regression model Davidson and Mac Kinnon (1999 b) show that it is true
+whenever T, is asymptotically independent of g 2(z, a/2, Fn) They further show that
+many familiar test statistics satisfy this condition.
+Tests based on statistics that are asymptotically chi-square distributed behave like
+symmetrical, two-tailed tests Therefore, the differences between their nominal and true
+RP's under Ho are O(n-1) with asymptotic critical values and O(n 2) with bootstrap
+critical values.
+Singh ( 1981), who considered a one-tailed test of a hypothesis about a population
+mean, apparently was the first to show that the bootstrap provides a higher-order
+asymptotic approximation to the distribution of an asymptotically pivotal statistic.
+Singh's test was based on the standardized sample mean Early papers giving results on
+higher-order approximations for Studentized means and for more general hypotheses
+and test statistics include Babu and Singh (1983, 1984), Beran ( 1988) and Hall ( 1986 b,
+1988).
+
+3.4 Confidence intervals
+Let O be a population parameter whose true but unknown value is 00 Let On be
+a nl/2-consistent, asymptotically normal estimator of 0, and let sn be a consistent
+estimator of the standard deviation of the asymptotic distribution of nl/2 (On 00).
+Then an asymptotic -a confidence interval for 00 is O,n-z, ,a/ 2 s/n 1 /2 < 00
+/ 112
+Define Tn =nl/2 (On O0)/Sn Then the coverage probability of the
+n +Zoo,a/2Sn/n
+asymptotic confidence interval is P(I Tn I < Z, a/2) It follows from Equation ( 3 26)
+that the difference between the true coverage probability of the interval and the nominal
+coverage probability, 1 a, is O(n 1).
+If Tn satisfies the assumptions of Theorem 3 1, then the difference between the
+nominal and true coverage probabilities of the confidence interval can be reduced
+by replacing the asymptotic critical value with the bootstrap critical value z* a/2
+o
+,a/2 ln/22 < O
+With the bootstrap critical value, the confidence interval is On Z*
+On +z*a/
+Sn/n
+1/2 The coverage probability of this interval is P(I Tn I < z*a/2) By
+2
+Equation ( 3 27), P(ITn <z* a/2 )=
+1
+a+O(n- 2), so the true and nominal coverage
+-2
+probabilities differ by O(n ) when the bootstrap critical value is used, whereas they
+differ by O(n- 1) when the asymptotic critical value is used.
+Analogous results can be obtained for one-sided and equal-tailed confidence
+intervals With asymptotic critical values, the true and nominal coverage probabilities
+of these intervals differ by O(n-l/2) With bootstrap critical values, the differences are
+O(n 1) In special cases such as the slope coefficients of homoskedastic, linear, meanregressions, the differences with bootstrap critical values are O(n-3/2).
+
+3184
+
+JL Horowitz
+
+The bootstrap's ability to reduce the differences between the true and nominal
+coverage probabilities of a confidence interval is illustrated by the following example,
+which is an extension of Example 3 1.
+Example 3 2 lHorowitz ( 1998a)l: This example uses Monte Carlo simulation to
+compare the true coverage probabilities of asymptotic and bootstrap nominal 95 %
+confidence intervals for Oo in the model of Example 3 1 The Monte Carlo procedure
+is:
+MC 4: Generate an estimation data set of size N= 10 by sampling from the N( 0,6)
+distribution Use this data set to compute 0,.
+MC 5: Compute z* a/2 by carrying out steps T2-T3 of Section 3 3 Determine whether
+00 is contained in the confidence intervals based on the asymptotic and
+bootstrap critical values.
+MC 6: Determine the empirical coverage probabilities of the asymptotic and bootstrap
+confidence intervals from the results of 1000 repetitions of steps MC 4-MC 5.
+The empirical coverage probability of the asymptotic confidence interval was 0 886 in
+this experiment, whereas the empirical coverage probability of the bootstrap interval
+was 0 943 The asymptotic coverage probability is statistically significantly different
+from the nominal probability of 0 95 (p< 0 01), whereas the bootstrap coverage
+probability is not (p > O10) ·
+3.5 The importance of asymptotically pivotal statistics
+The arguments in Sections 3 2-3 4 show that the bootstrap provides higher-order
+asymptotic approximations to distributions, RP's of tests, and coverage probabilities of
+confidence intervals based on smooth, asymptotically pivotal statistics These include
+test statistics whose asymptotic distributions are standard normal or chi-square and,
+thus, most statistics that are used for testing hypotheses about the parameters of econometric models Models that satisfy the required smoothness conditions include linear
+and nonlinear mean-regression models, error-components mean-regression models for
+panel data, logit and probit models that have at least one continuously distributed
+explanatory variable, and tobit models The smoothness conditions are also satisfied by
+parametric sample-selection models in which the selection equation is a logit or probit
+model with at least one continuously distributed explanatory variable Asymptotically
+pivotal statistics based on median-regression models do not satisfy the smoothness conditions Bootstrap methods for such statistics are discussed in Section 4 3 The ability
+of the bootstrap to provide asymptotic refinements for smooth, asymptotically pivotal
+statistics provides a powerful argument for using them in applications of the bootstrap.
+The bootstrap may also be applied to statistics that are not asymptotically pivotal,
+but it does not provide higher-order approximations to their distributions Estimators of
+the structural parameters of econometric models (e g , slope and intercept parameters,
+including regression coefficients; standard errors, covariance matrix elements, and
+autoregressive coefficients) usually are not asymptotically pivotal The asymptotic
+
+Ch 52:
+
+The Bootstrap
+
+3185
+
+distributions of centered structural parameter estimators are often normal with means
+of zero but have variances that depend on the unknown population distribution of the
+data The errors of bootstrap estimates of the distributions of statistics that are not
+asymptotically pivotal converge to zero at the same rate as the errors made by firstorder asymptotic approximations 12
+Higher-order approximations to the distributions of statistics that are not asymptotically pivotal can be obtained through the use of bootstrap iteration lBeran ( 1987, 1988);
+Hall ( 1992a)l or bias-correction methods lEfron (1987)l Bias correction methods are
+not applicable to symmetrical tests and confidence intervals Bootstrap iteration is
+discussed in Section 4 4 Bootstrap iteration is highly computationally intensive, which
+makes it unattractive when an asymptotically pivotal statistic is available.
+3.6 The parametric versus the nonparametric bootstrap
+The size of the error in the bootstrap estimate of a RP or coverage probability is
+determined by the size of F,-Fo Thus, F, should be the most efficient available
+estimator If Fo belongs to a known parametric family F( , 0), F(, On) should be used
+to generate bootstrap samples, rather than the EDF Although the bootstrap provides
+asymptotic refinements regardless of whether F( , On,) or the EDF is used, the results
+of Monte Carlo experiments have shown that the numerical accuracy of the bootstrap
+tends to be much higher with F(-, On) than with the EDE If the objective is to test a
+hypothesis Ho about 0, further gains in efficiency and performance can be obtained
+by imposing the constraints of Ho when obtaining the estimate ,On.
+To illustrate, consider testing the hypothesis Ho: l = O in the Box-Cox regression
+model
+Y() = f
+
+O
+
+x + U,
+
+(3 28)
+
+where (A) is the Box and Cox (1964) transformation of YX is an observed,
+scalar explanatory variable, U is an unobserved random variable, and fio and Pl are
+parameters Suppose that U N(O, Ca2) 13 Then bootstrap sampling can be carried out
+in the following ways:
+( 1) Sample (YX) pairs from the data randomly with replacement.
+
+12 Under mild regularity conditions, the constant that multiplies the rate of convergence of the error of the
+bootstrap estimate of the distribution function of a non-asymptotically-pivotal statistic is smaller than the
+constant that multiplies the rate of convergence of the error that is made by the normal approximation.
+This need not happen, however, with the errors in the RP's of tests and coverage probabilities of
+confidence intervals See Beran (1982) and Liu and Singh (1987).
+13 Strictly speaking, U cannot be normally distributed unless 3 = Oor 1, but the error made by assuming
+normality is negligibly small if the right-hand side of the model has a negligibly small probability of
+being negative Amemiya and Powell (1981) discuss ways to avoid assuming normality.
+
+JL Horowitz
+
+3186
+
+(2) Estimate , fo,
+1 and i 1 in Equation ( 3 28) by maximum likelihood, and obtain
+residuals U Generate Y values from Y = lA,(bo + blX + U*) + 1ll/A-, where ,,
+bo, and bl are the estimates of A,flo, and Pi; and U* is sampled randomly with
+replacement from the U.
+(3) Same as method 2 except U* is sampled randomly from the distribution N(O, S2),
+where S2 is the maximum likelihood estimate of a2.
+(4) Estimate A, o, and a 2 in Equation (3 28) by maximum likelihood subject to the
+constraint fi = O Then proceed as in method 2.
+(5) Estimate A,/5o, and 2 in Equation (3 28) by maximum likelihood subject to the
+constraint /53= O Then proceed as in method 3.
+In methods 2-5, the values of X may be fixed in repeated samples or sampled
+independently of U from the empirical distribution of X
+Method 1 provides the least efficient estimator of F, and typically has the poorest
+numerical accuracy Method 5 has the greatest numerical accuracy Method 3 will
+usually have greater numerical accuracy than method 2 If the distribution of U
+is not assumed to belong to a known parametric family, then methods 3 and 5
+are not available, and method 4 will usually have greater numerical accuracy than
+methods 1-2 Of course, parametric maximum likelihood cannot be used to estimate
+iO
+o, il, and Agif the distribution of U is not specified parametrically.
+If the objective is to obtain a confidence interval for 51 rather than to test a
+hypothesis, methods 4 and 5 are not available Method 3 will usually provide the
+greatest numerical accuracy if the distribution of U is assumed to belong to a known
+parametric family, and method 2 if not.
+One reason for the relatively poor performance of method 1 is that it does not impose
+the condition E(Ul X =x)=O This problem is discussed further in Section 5 2, where
+heteroskedastic regression models are considered.
+3.7 Recentering
+The bootstrap provides asymptotic refinements for asymptotically pivotal statistics
+because, under the assumptions of the smooth function model, sup Gn(,F,,)
+-G,(r,Fo)l converges to zero as n oo more rapidly than supr G,(,Fo) Gn(, Fo)l One important situation in which this does not necessarily happen is
+generalized method of moments (GMM) estimation of an overidentified parameter
+when Fn is the EDF of the sample.
+To see why, let 00o be the true value of a parameter O that is identified by the
+moment condition Eh(X 0) = O Assume that dim(h) > dim(O) If, as is often the case
+in applications, the distribution of X is not assumed to belong to a known parametric
+family, the EDF of X is the most obvious candidate for F, The sample analog of
+Eh(X 0) is then
+n
+
+E*h(X, 0) =
+
+h(X, , 0),
+i=l
+
+Ch 52:
+
+3187
+
+The Bootstrap
+
+where E* denotes the expectation relative to Fn The sample analog of Oo is On,
+the GMM estimator of O In general, E*h(X, On) O in an overidentified model, so
+bootstrap estimation based on the EDF of X implements a moment condition that
+does not hold in the population the bootstrap samples As a result, the bootstrap
+estimator of the distribution of the statistic for testing the overidentifying restrictions
+is inconsistent lBrown et al ( 1997)l The bootstrap does consistently estimate the
+distributions of nl/ 2(On 00)
+o lHahn (1996)l and the t statistic for testing a hypothesis
+about a component of O However, it does not provide asymptotic refinements for the
+RP of the t test or the coverage probability of a confidence interval.
+This problem can be solved by basing bootstrap estimation on the recentered
+moment condition E*h*(X, 0,)=0, where
+n
+
+h*(X, 0) = h(X, 0)
+
+h(X,, n)
+
+(3 29)
+
+Hall and Horowitz ( 1996) show that the bootstrap with recentering provides asymptotic
+refinements for the RP's of t tests of hypotheses about components of O and the test of
+overidentifying restrictions The bootstrap with recentering also provides asymptotic
+refinements for confidence intervals Intuitively, the recentering procedure works
+by replacing the misspecified moment condition E*h(X 0)=0 with the condition
+E*h*(X 0)= 0, which does hold in the population that the bootstrap samples.
+Freedman (1981) recognized the need for recentering residuals in regression models
+without intercepts See also Efron (1979).
+Brown et al (1997) propose an alternative approach to recentering Instead of
+replacing h with h* for bootstrap estimation, they replace the empirical distribution of
+X with an empirical likelihood estimator that is constructed so that E*h(X, On) = O14
+The empirical likelihood estimator assigns a probability mass gr,i to observation
+Xi (i = 1, , n) The rni's are determined by solving the problem
+n
+
+maximize
+nI ,
+
+X
+
+nn
+
+E
+
+log Tni
+
+i=i
+
+n
+
+subject to
+
+Zrnih(Xi, n) = 0,
+
+n
+
+ni = 1,
+
+niO.>
+
+In general, the solution to this problem yields rni n- l, so the empirical likelihood
+estimator of the distribution of X is not the same as the empirical distribution Brown
+et al (1997) implement the bootstrap by sampling {Xi} with probability weights n,i
+
+14 The empirical-likelihood estimator is one of a larger class of estimators of F that are described
+by Brown et al (1997) and that impose the restriction E*h(X, ,)= O All estimators in the class are
+asymptotically efficient.
+
+3188
+
+JL Horowitz
+
+instead of randomly with replacement They argue that the bootstrap is more accurate
+with empirical-likelihood recentering than with recentering by Equation ( 3 29) because
+the empirical-likelihood estimator of the distribution of X is asymptotically efficient
+under the moment conditions Eh(X, 0) = O With either method of recentering, however,
+the differences between the nominal and true RP's of symmetrical tests and between the
+nominal and true coverage probabilities of symmetrical confidence intervals are O(n-2 ).
+Thus, the differences between the errors made with the two recentering methods are
+likely to be small with samples of the sizes typically encountered in applications.
+Brown et al (1997) develop the empirical-likelihood recentering method only for
+simple random samples Kitamura (1997) has shown how to carry out empiricallikelihood estimation with dependent data It is likely, therefore, that empiricallikelihood recentering can be extended to GMM estimation with dependent data The
+recentering method based on Equation (3 29) requires no modification for use with
+dependent data lHall and Horowitz (1996)l Section 4 1 provides further discussion of
+the use of the bootstrap with dependent data.
+4 Extensions
+This section explains how the bootstrap can be used to obtain asymptotic refinements
+in certain situations where the assumptions of Section 3 are not satisfied Section 4 1
+treats dependent data Section 4 2 treats kernel density and nonparametric meanregression estimators Section 4 3 shows how the bootstrap can be applied to certain
+non-smooth estimators Section 4 4 describes how bootstrap iteration can be used to
+obtain asymptotic refinements without an asymptotically pivotal statistic Section 4 5
+discusses additional special problems that can arise in implementing the bootstrap.
+Section 4 6 discusses the properties of bootstrap critical values for testing a hypothesis
+that is false.
+4.1 Dependent data
+With dependent data, asymptotic refinements cannot be obtained by using independent
+bootstrap samples Bootstrap sampling must be carried out in a way that suitably
+captures the dependence of the data-generation process This section describes several
+methods for doing this It also explains how the bootstrap can be used to obtain
+asymptotic refinements in GMM estimation with dependent data At present, higherorder asymptotic approximations and asymptotic refinements are available only when
+the data-generation process is stationary and strongly geometrically mixing Except
+when stated otherwise, it is assumed here that this requirement is satisfied Nonstationary data-generation processes are discussed in Section 4 1 3.
+4.1 1 Methods for bootstrap sampling with dependent data
+Bootstrap sampling that captures the dependence of the data can be carried out
+relatively easily if there is a parametric model, such as an ARMA model, that reduces
+
+Ch 52:
+
+The Bootstrap
+
+3189
+
+the data-generation process to a transformation of independent random variables For
+example, suppose that the series {X, } is generated by the stationary, invertible, finiteorder ARMA model
+A(L, a)X, = B(L, P) Ut,
+
+(4 1)
+
+where A and B are known functions, L is the backshift operator, a and 3 are vectors of
+parameters, and {U,t} is a sequence of independently and identically distributed (i i d )
+random variables Let an and P, be Nl/ 2-consistent, asymptotically normal estimators
+of a and fi, and let {, t} be the centered residuals of the estimated model (4 1) Then
+a bootstrap sample {X } can be generated as
+A(L, an)X,* = B(L, fn) Ut*,
+where {Ut } is a random sample from the empirical distribution of the residuals {Ut }.
+If the distribution of Ut is assumed to belong to a known parametric family (e g , the
+normal distribution), then {U; } can be generated by independent sampling from the
+estimated parametric distribution Bose (1988) provides a rigorous discussion of the
+use of the bootstrap with autoregressions Bose (1990) treats moving average models.
+When there is no parametric model that reduces the data-generation process
+to independent sampling from some probability distribution, the bootstrap can be
+implemented by dividing the data into blocks and sampling the blocks randomly with
+replacement The block bootstrap is important in GMM estimation with dependent
+data, because the moment conditions on which GMM estimation is based usually do
+not specify the dependence structure of the GMM residuals The blocks may be nonoverlapping lCarlstein (1986)1 or overlapping lHall (1985), Kiinsch (1989), Politis
+and Romano (1994)l To describe these blocking methods more precisely, let the data
+consist of observations {Xj: i = 1, , n} With non-overlapping blocks of length l,
+block 1 is observations {Xj: j= 1, , l}, block 2 is observations {Xl+j : j= 1, ,l},
+and so forth With overlapping blocks of length , block 1 is observations {Xj:
+j = l,
+, l}, block 2 is observations {Xj : j=1l, , l}, and so forth The bootstrap
+sample is obtained by sampling blocks randomly with replacement and laying them
+end-to-end in the order sampled It is also possible to use overlapping blocks with
+lengths that are sampled randomly from the geometric distribution lPolitis and Romano
+(1994)l The block bootstrap with random block lengths is also called the stationary
+bootstrap because the resulting bootstrap data series is stationary, whereas it is not
+with overlapping or non-overlapping blocks of fixed (non-random) lengths.
+Regardless of the blocking method that is used, the block length (or average block
+length in the stationary bootstrap) must increase with increasing sample size N to
+make bootstrap estimators of moments and distribution functions consistent The
+asymptotically optimal block length is defined as the one that minimizes the asymptotic
+mean-square error of the block bootstrap estimator The asymptotically optimal block
+length and its rate of increase with increasing N depend on what is being estimated.
+
+3190
+
+AL Horowitz
+
+Hall et al ( 1995) showed that with either overlapping or non-overlapping blocks with
+non-random lengths, the asymptotically optimal block-length is 1 n r , where r= 1/3
+for estimating bias or variance, r = 1/4 for estimating a one-sided distribution function
+(e.g , P(T, < r)), and r= 1/5 for estimating a symmetrical distribution function (e g ,
+P(I T I < T)) Hall et al ( 1995) also show that overlapping blocks provide somewhat
+higher estimation efficiency than non-overlapping ones The efficiency difference is
+likely to be very small in applications, however For estimating a two-sided distribution
+function, for example, the root-mean-square estimation error (RMSE) with either
+blocking method is O(n-6/ 5) The numerical difference between the RMSE's can be
+illustrated by considering the case of a normalized sample average Let T, = (
+P)/ra,
+where X is the sample average of observations {Xi}, # = E(X), and a 2 = Var(X) Then
+the results of Hall et al (1995) imply that for estimating P(I T,I< r), the reduction
+in asymptotic RMSE from using overlapping blocks instead of nonoverlapping ones
+is less than 10 percent.
+Lahiri ( 1999) investigated the asymptotic efficiency of the stationary bootstrap He
+showed that the asymptotic relative efficiency of the stationary bootstrap compared
+to the block bootstrap with non-random block lengths is always less than one
+and can be arbitrarily close to zero More precisely, let RMSESB and RMSENR,
+respectively, denote the asymptotic RMSE's of the stationary bootstrap and the block
+bootstrap with overlapping or non-overlapping blocks with non-random lengths Then
+RMSENR/RMSESB < 1I always and can be arbitrarily close to zero Thus, at least in
+terms of asymptotic RMSE, the stationary bootstrap is unattractive relative to the block
+bootstrap with fixed-length blocks.
+Implementation of the block bootstrap in an application requires a method for
+choosing the block length with a finite sample Hall et al (1995) describe a
+subsampling method for doing this when the block lengths are non-random The
+idea of the method is to use subsamples to create an empirical analog of the meansquare error of the bootstrap estimator of the quantity of interest Let p denote this
+quantity (e g , a two-sided distribution function) Let ip, be the bootstrap estimator of
+ip that is obtained using a preliminary block-length estimate Let m < n Let IPm, i(l')
+(i = 1, , N m) denote the bootstrap estimates of ip that are computed using all the
+n-m runs of length m in the data and block length 1' Let Im be the value of 1'
+that minimizes Ei l,, i(l) p,l 2 The estimator of the asymptotically optimal block
+length is (n/lm)rlm, where r = 1/3 for estimating bias or variance, r = 1/4 for estimating
+a one-sided distribution function, and r= 1/5 for estimating a two-sided distribution
+function.
+Kreiss ( 1992) and Bihlmann ( 1997) have proposed an alternative to blocking for
+use when the data-generation process can be represented as an infinite-order autoregression In this method, called the sieve bootstrap, the infinite-order autoregression
+is replaced by an approximating autoregression with a finite-order that increases at a
+suitable rate as N oc The coefficients of the finite-order autoregression are estimated,
+and the bootstrap is implemented by sampling the centered residuals from the estimated
+finite-order model Buihlmann ( 1997) gives conditions under which this procedure
+
+Ch 52:
+
+The Bootstrap
+
+3191
+
+yields consistent estimators of variances and distribution functions Biihlmann (1998)
+shows that the sieve bootstrap provides an asymptotic refinement for estimating the
+CDF of the t statistic for testing a one-sided hypothesis about the trend function in
+an AR(oo) process with a deterministic trend Choi and Hall (2000) show that the
+error in the coverage probability of a one-sided confidence interval based on the sieve
+bootstrap for an AR(oo) process is O(nl+E)for any e > 0, which is only slightly larger
+than the error of O(n-1) that is available when the data are a random sample.
+If the data are generated by a Markov process, then the bootstrap can be implemented
+by sampling the process generated by a nonparametric estimate of the Markov
+transition density This approach has been investigated by Rajarshi (1990), Datta and
+McCormick (1995), and Paparoditis and Politis (2000) Its ability to achieve asymptotic
+refinements for Studentized statistics is unknown.
+4.1 2 Asymptotic refinements in GMM estimation with dependent data
+This section discusses the use of the block bootstrap to obtain asymptotic refinements
+in GMM estimation with dependent data Lahiri ( 1992) showed that the block bootstrap
+provides asymptotic refinements through O(n-/' 2 ) for normalized sample moments and
+for a Studentized sample moment with m-dependent data Hall and Horowitz (1996)
+showed that the block bootstrap provides asymptotic refinements through O(n- l ) for
+symmetrical tests and confidence intervals based on GMM estimators Their methods
+can also be used to show that the bootstrap provides refinements through O(n 1/2) for
+one-sided tests and confidence intervals Hall and Horowitz ( 1996) do not assume that
+the data-generation process is m-dependent 15
+Regardless of whether overlapping or nonoverlapping blocks are used, block
+bootstrap sampling does not exactly replicate the dependence structure of the original
+data-generation process For example, if nonoverlapping blocks are used, bootstrap
+observations that belong to the same block are deterministically related, whereas
+observations that belong to different blocks are independent This dependence structure
+is unlikely to be present in the original data-generation process As a result, the
+finite-sample covariance matrices of the asymptotic forms of parameter estimators
+obtained from the original sample and from the bootstrap sample are different The
+practical consequence of this difference is that asymptotic refinements through O(n- l )
+cannot be obtained by applying the "usual" formulae for test statistics to the blockbootstrap sample It is necessary to develop special formulae for the bootstrap versions
+of test statistics These formulae contain factors that correct for the differences
+between the asymptotic covariances of the original-sample and bootstrap versions of
+
+15 The regularity conditions required to achieve asymptotic refinements in GMM estimation with
+dependent data include the existence of considerably more higher-order moments than are needed with
+i.i d data as well as a modified version of the Cram 6r condition that takes account of the dependence.
+See Hall and Horowitz (1996) for a precise statement of the conditions.
+
+3192
+
+JL Horowitz
+
+test statistics without distorting the higher-order terms of asymptotic expansions that
+produce refinements.
+Lahiri (1992) derived the bootstrap version of a Studentized sample mean for
+m-dependent data Hall and Horowitz ( 1996) derived formulae for the bootstrap
+versions of the GMM symmetrical, two-tailed t statistic and the statistic for testing
+overidentifying restrictions As an illustration of the form of the bootstrap statistics,
+consider the GMM t statistic for testing a hypothesis about a component of a
+parameter O that is identified by the moment condition Eh(X 0) = O Hall and Horowitz
+( 1996) showed that the corrected formula for the bootstrap version of the GMM
+t statistic is
+T* = (S/Sb)T,
+where T
+7 is the "usual" GMM t statistic applied to the bootstrap sample, S, is the
+"usual" GMM standard error of the estimate of the component of O that is being
+tested, and Sh is the exact standard deviation of the asymptotic form of the bootstrap
+estimate of this component S, is computed from the original estimation sample, not
+the bootstrap sample Hansen (1982) gives formulae for the usual GMM t statistic
+and standard error Sb can be calculated because the process generating bootstrap
+data is known exactly An analogous formula is available for the bootstrap version
+of the statistic for testing overidentifying restrictions but is much more complicated
+algebraically than the formula for the t statistic See Hall and Horowitz (1996) for
+details.
+At present, the block bootstrap is known to provide asymptotic refinements for
+symmetrical tests and confidence intervals based on GMM estimators only if the
+residuals {h(Xi, 00): i = 1,2, } at the true parameter point, 00, are uncorrelated after
+finitely many lags That is,
+Elh(X, Oo)h(Xj, Oo)'l = O if
+
+li-j > M
+
+(4 2)
+
+for some M < oc 16 This restriction is not equivalent to m-dependence because it does
+not preclude correlations among higher powers of components of h that persist at
+arbitrarily large lags (e g , stochastic volatility) Although the restriction is satisfied
+in many econometric applications lsee, e g , Hansen (1982), Hansen and Singleton
+(1982)l, there are others in which relaxing it would be useful The main problem in
+doing so is that without Equation (4 2), it is necessary to use a kernel-type estimator
+of the GMM covariance matrix lsee, e g , Newey and West (1987, 1994), Andrews
+(1991), Andrews and Monahan (1992)l Kernel-type estimators are not functions of
+sample moments and converge at rates that are slower than n- 1/2 However, present
+
+16Tests and confidence regions based on asymptotic chi-square statistics, including the test of
+overidentifying restrictions, are symmetrical Therefore, restriction (4 2) also applies to them.
+
+Ch 52:
+
+3193
+
+The Bootstrap
+
+results on the existence of asymptotic expansions that achieve O(n-l) accuracy with
+dependent data apply only to functions of sample moments that have n- 1/2 rates of
+convergence lGotze and Hipp (1983, 1994)l It will be necessary to extend existing
+theory of asymptotic expansions with dependent data before Equation ( 4 2) can be
+relaxed for symmetrical tests and confidence intervals.
+Condition (4 2) is not needed for one-sided tests and confidence intervals, where
+the bootstrap provides only O(n-/ ' 2 ) refinements G 6tze and Kiinsch (1996) and Lahiri
+( 1996) give conditions under which the moving-block-bootstrap approximation to the
+distribution of a statistic that is Studentized with a kernel-type variance estimator is
+accurate through Op(n-1/2 ) When the conditions are satisfied,
+
+sup IP(T, < r)-P*(T,*
+
+T) = op(n/1 2 ),
+<
+
+(4 3)
+
+T
+
+where T* is the bootstrap analog of the Studentized statistic T,, and the moving block
+bootstrap is used to generate bootstrap samples In G 6tze and Kiinsch (1996), T is
+the Studentized form of a smooth function of sample moments In Lahiri (1996), Tn
+is a Studentized statistic for testing a hypothesis about a slope coefficient in a linear
+mean-regression model Achieving the result ( 4 3) requires, among other things, use
+of a suitable kernel or weight function in the variance estimator G 6 tze and Kiinsch
+( 1996) show that Equation ( 4 3) holds with a rectangular or quadratic kernel but not
+with a triangular one.
+4.1 3 The bootstrap with non-stationaryprocesses
+The foregoing results assume that the data-generation process is stationary Most
+research to date on using the bootstrap with non-stationary data has been concerned
+with establishing consistency of bootstrap estimators of distribution functions, not
+with obtaining asymptotic refinements An exception is Lahiri (1992), who gives
+conditions under which the bootstrap estimator of the distribution of the normalized
+sample average of non-stationary data differs from the true distribution by o(n - 1/ 2 )
+almost surely Thus, under Lahiri's conditions, the bootstrap is more accurate than
+first-order asymptotic approximations Lahiri's result requires a priori knowledge of
+the covariance function of the data and does not apply to Studentized sample averages.
+Moreover Lahiri assumes the existence of the covariance function, so his result does
+not apply to unit-root processes.
+The consistency of the bootstrap estimator of the distribution of the slope coefficient
+or Studentized slope coefficient in a simple unit-root model has been investigated by
+Basawa et al (1991 a,b), Datta ( 1996), and Ferretti and Romo ( 1996) The model is
+Xi = Xi
+
++ Ui; i = 1,2,
+
+, n,
+
+(4 4)
+2
+
+2
+
+where Xo=O and {Ui} is an i i d sequence with E(Uj) = O and E(U, ) = a < oc.
+Let b, denote the ordinary least-squares estimator of fi in Equation (4 4):
+n I Xi Xi_
+
+bn =
+
+2
+
+(45)
+
+JL Horowitz
+
+3194
+
+Let fi Odenote the true but unknown value of fl Consider using the bootstrap to estimate
+the sampling distribution of(b, -/5o) or the t statistic for testing Ho: = o It turns out
+that when Oo = 1 is possible, the consistency of the bootstrap estimator is much more
+sensitive to how the bootstrap sample is drawn than when it is known that I ol < 1.
+Basawa et al (1991 a) investigate the consistency of a bootstrap estimator of the
+distribution of the t statistic in the special case that U~N(O,1) In this case, the
+t statistic is
+tn= (X
+
+(2
+
+(bn -fi)
+
+1
+
+(4 6)
+
+In Basawa et al ( 1991 a), the bootstrap sample {X*: i= 1,
+recursively from the estimated model
+X* = bnX* + Ui*,
+
+,n
+
+is generated
+
+(4 7)
+
+where X* = Oand {U? } is an independent random sample from the N(O, 1) distribution.
+The bootstrap version of the t statistic is
+
+t* = (E~x*
+
+)2)
+
+(b*
+
+n),
+
+where b is obtained by replacing Xi with X* in Equation (4 5) Basawa et al.
+( 1991 a) show that the bootstrap distribution function P*(t* < r) does not consistently
+estimate the population distribution function P,(t < r) This result is not surprising.
+The asymptotic distribution of t is discontinuous at oO= 1 Therefore, condition (iii) of
+Theorem 2 1 is not satisfied if the set of data-generation processes under consideration
+includes ones with and without o = 1.
+5 o= 1, thereby removing the
+This problem can be overcome by specifying that N
+source of the discontinuity Basawa et al (1991 b) investigate the consistency of the
+bootstrap estimator of the distribution of the statistic Z = n(bn 1) for testing the unitroot hypothesis Ho: o= 1 in Equation (4 4) The bootstrap sample is generated by the
+recursion
+Xi* = Xi*
+
++ Ui*,
+
+(4 8)
+
+where X*=O and {U*} is a random sample from the centered residuals of
+U, where
+Equation (4 4) under Ho The centered residuals are Ui = X -Xil
+U = N lin= l (Xi X ) The bootstrap analog of Zn is Z = n(b 1), where b is
+obtained by replacing Xi with X* in Equation (4 5) Basawa et al ( 199 lb) show that
+if Ho is true, then lPn*(Zn* < )-Pn(Zn <z)l =op(l) uniformly over z.
+The discontinuity problem can be overcome without the restriction o= by
+using bootstrap samples consisting of m<n observations lDatta ( 1996)l This
+
+Ch 52:
+
+3195
+
+The Bootstrap
+
+approach has the advantage of yielding a confidence interval for Po that is valid
+for any fo e (-oo, oc) Consider model (4 4) with the additional assumption that
+El Ui 12+ < oo for some > O Let b be the ordinary least-squares estimator of /3,
+and define t, as in Equation (4 6) Let U, = Xi b Xil N l= 1 (Xi b Xi l)
+(i=l, , n) denote the centered residuals from the estimated model, and let {U*:
+i= 1, , m} be a random sample of { i} for some m <n The bootstrap sample is
+generated by the recursion (4 7) but with i = 1, , m instead of i = 1, , n Let b*
+denote the ordinary least-squares estimator of /3 that is obtained from the bootstrap
+sample Define the bootstrap version of t, by
+t
+
+=
+
+(
+
+X
+
+1
+
+1)2)
+
+(b * -bn).
+
+Datta (1996) proves that if lm(log logn)2l/n O as N +o, then P,*(t, < T)P,(tn,< ) =o(l) almost surely as N oo uniformly over z for any f3o e (-oo, 0).
+o
+Ferretti and Romo ( 1996) consider a test of Ho: /o = 1 in Equation (4 4) Let b, be
+the ordinary least-squares estimator of /3, and let
+n
+
+an2
+
+=
+
+1 (Xi
+
+(4 9)
+
+b Xi_ 1)2
+
+i=l
+
+The test statistic is
+n=
+
+i
+
+2 (bn
+
+1)
+
+( 4 10)
+
+The bootstrap sample is generated from the centered residuals of the estimated model
+by using the recursion ( 4 8) Let b* denote the ordinary least-squares estimator of /3
+that is obtained from the bootstrap sample The bootstrap version of the test statistic,
+t*, is obtained by replacing Xi and b, with X* and b* in Equations (4 9) and (4 10).
+Ferretti and Romo ( 1996) show that P*(n* < r) P,(, < )l = o(l), almost surely
+as N o Ferretti and Romo ( 1996) also show how this result can be extended to the
+case in which {Ui} in Equation (4 4) follows an AR( 1) process.
+The results of Monte Carlo experiments lLi and Maddala (1996, 1997)l suggest
+that the differences between the true and nominal RP's of tests of hypotheses about
+integrated or cointegrated data-generation processes are smaller with bootstrap-based
+critical values than with asymptotic ones At present, however, there are no theoretical
+results on the ability of the bootstrap to provide asymptotic refinements for tests or
+confidence intervals when the data are integrated or cointegrated.
+4.2 Kernel density and regression estimators
+This section describes the use of the bootstrap to carry out inference about kernel
+nonparametric density and mean-regression estimators These are not smooth functions
+
+JL Horowitz
+
+3196
+
+of sample moments, even approximately, so the results of Section 3 do not apply
+to them In particular, kernel density and mean-regression estimators converge
+more slowly than n- 1/ 2 , and their distributions have unconventional asymptotic
+expansions that are not in powers of n- 1/ 2 Consequently, the sizes of the asymptotic
+refinements provided by the bootstrap are also not powers of n- 1/2 Sections 4 2 14.2 3 discuss bootstrap methods for nonparametric density estimation Nonparametric
+mean regression is discussed in Section 4 2 4.
+4.2 1 Nonparametric density estimation
+Letf denote the probability density function (with respect to Lebesgue measure) of
+the scalar random variable X The problem addressed in this section is inferring f
+, n}, without assuming that f belongs to
+from a random sample of X, {Xi: i = 1
+a known, finite-dimensional family of functions Point estimation off can be carried
+out by the kernel method The kernel estimator off(x) is
+
+h x)= KK
+
+f(
+
+x-Xi
+
+)
+
+where K is a kernel function with properties that are discussed below and {hn:
+n = 1,2, } is a strictly positive sequence of bandwidths.
+The properties of kernel density estimators are described by Silverman (1986),
+among others To state the properties that are relevant here, let r > 2 be an even integer.
+Assume thatf has r bounded, continuous derivatives in a neighborhood of x Let K be
+a bounded function that is symmetrical about O and has support l-1, 1 l17 In addition,
+let K satisfy
+1 if j=
+Oif 1 j r 1
+AK O ifj = r.
+
+u JK(u)du
+
+(4 11)
+
+Define
+BK
+=
+
+K(u)2 du.
+
+Also define bn(x)=El f(x)-f(x)l and o(x)= Varlf,(x)l Then
+AK
+
+(r)
+
+b,(x) = hn -Kf()(x)
+
++ o(hn)
+
+17 The results stated in this section do not require assuming that r is even or that K is a symmetrical
+function, but these assumptions simplify the exposition and are not highly restrictive in applications.
+
+Ch 52:
+
+3197
+
+The Bootstrap
+
+and
+n2 (x) =
+
+BK
+nh
+
+f (x)+ ol(nh-)l
+
+(4 12)
+
+Moreover, if nh 2r+l is bounded as N
+Z(X)
+
+f(x) -f(
+a.(x)
+
+)
+
+oc, then
+
+fn(x)-Elfn(x)l
+(x)
+4 N( 0, 1)
+A
+an(x)
+
+(4 13)
+
+The fastest possible rate of convergence of fn(x) to f(x) is achieved by setting
+hn ccn - l/( 2r + 1) When this happens, fn(x) -f(x) = Opln-r/(2 r + )l, bn(x) oc nr/(2 r+ I), and
+an(x) oc N r/(2 r+ 1)
+A Studentized statistic that is asymptotically pivotal and can be used to test a
+hypothesis about f(x) or form a confidence interval for f(x) can be obtained from
+Equation (4 13) if suitable estimators of o,2(x) and b,(x) are available The need for
+estimating an asymptotic variance is familiar An estimator of 02 (x) can be formed
+by replacingf(x) withfn(x) on the right-hand side of Equation (4 12) However, the
+asymptotic expansions required to obtain asymptotic refinements are simpler if a 2(x)
+is estimated by a sample analog of the exact, finite-sample variance Offn(x) instead of a
+sample analog of Equation (4 12), which is the variance of the asymptotic distribution
+offn(x) A sample analog of the exact finite-sample variance off,(x) is given by
+
+s(x)
+n-)2
+
+K(x hi)
+
+_
+
+If h
+OOand nhn sc as N co, then (nhn)lsn(x)
+the Studentized form of Zn by
+
+a 2(x)l = Op(l) as N
+
+fn(x) Elfn(x)l
+Sn(X)
+
+oo Define
+
+( 4 14)
+
+Then t, is the asymptotic t statistic for testing a hypothesis about Elfn(x)l or
+forming a confidence interval for Elf,(x)l The asymptotic distribution of t is
+N( 0, 1) However, unless the asymptotic bias bn(x) is negligibly small, tn cannot
+be used to test a hypothesis about f(x) or form a confidence interval for f(x).
+Because a)nl(x) =Ol(nhn)/12l and sl(x) =Opl(nhn)l/2l, bn(x) is negligibly small only
+if (nhn)l/2 bn(x) = o(l) as N Co The problem of asymptotic bias cannot be solved by
+replacing Elfn(x)l with f(x) on the right-hand side of Equation (4 14) because the
+asymptotic distribution of the resulting version of t is not centered at O unless bn(x)
+is negligibly small Section 4 2 2 discusses ways to deal with asymptotic bias.
+4.2 2 Asymptotic bias and methods for controlling it
+Asymptotic bias is a characteristic of nonparametric estimators that is not shared by
+estimators that are smooth functions of sample moments As has just been explained,
+
+JL Horowitz
+
+3198
+
+asymptotic bias may prevent t, from being suitable for testing a hypothesis about
+f(x) or constructing a confidence interval forf(x) Asymptotic bias also affects the
+performance of the bootstrap To see why, let {X*: i = 1, , n} be a bootstrap sample
+that is obtained by sampling the data {(Xi randomly with replacement Then the
+bootstrap estimator off is
+
+K (
+
+fn*(xW
+
+h i)(
+*
+
+4 15)
+
+The bootstrap analog of S2(x) is
+
+s NX()
+
+hI )2
+
+K (
+
+Define the bootstrap analog of t by
+t* fn (x) n(x)
+s*(x)
+It is clear from Equation (4 15) that E*lf,(x)-f(x)l= O Thus, f,*(x) an unbiased
+estimator offn(x) in a finite sample as well as asymptotically, whereas fn(x) is an
+asymptotically biased estimator off(x) It can be shown that the bootstrap distribution
+of t converges in probability to N(O, 1) Therefore, despite the unbiasedness off,*(x),
+t* is a bootstrap t statistic for testing a hypothesis about Elfn(x)l or forming a
+confidence interval for Elfn(x)l It is not a bootstrap t statistic for testing a hypothesis
+aboutf(x) or forming a confidence interval forf(x) unless bn(x) is negligibly small.
+There are two ways to overcome the difficulties posed by asymptotic bias so
+that t and t* become statistics for testing hypotheses about f(x) and forming
+confidence intervals for f(x) instead of Ef(x)l One is the method of explicit
+bias removal It consists of forming an estimator of bn(x), say bn(x), that can be
+subtracted fromf (x) to form the asymptotically unbiased estimatorfn(x) b(x) The
+other method is undersmoothing This consists of setting h, oc n- " with K > 1/(2r + 1).
+With undersmoothing, (nhn) 1 2b,(x)= o( 1) as N oo, so that b,(x) is asymptotically
+negligible Neither method is compatible with achieving the fastest rate of convergence
+of a point-estimator off(x) With undersmoothing, the rate of convergence offn(x) is
+that of an(x) This is n- ( -)/2, which is slower than n- r/( r + 1) Explicit bias removal
+with h oc N l/( 2 r+ 1) and rate of convergence n- r/(2 r + 1) for fn(x) requires f(x) to have
+more than r derivatives Whenf(x) has the required number of derivatives, the fastest
+possible rate of convergence offn(x) is n- /(2 s+ ) for some S > r This rate is achieved
+with h oc N /( 2 s+ 1), but the resulting estimator off(x) is asymptotically biased Thus,
+regardless of the method that is used to remove asymptotic bias, testing a hypothesis
+aboutf(x) or forming a confidence interval requires using a bandwidth sequence that
+2
+
+Ch 52:
+
+3199
+
+The Bootstrap
+
+converges more rapidly than the one that maximizes the rate of convergence of a
+point estimator off(x) Nonparametric point estimation and nonparametric interval
+estimation or testing of hypotheses are different tasks that require different degrees of
+smoothing.
+Hall (1992b) compares the errors in the coverage probabilities of bootstrap
+confidence intervals with undersmoothing and explicit bias removal He shows that
+when the number of derivatives off(x) is held constant, undersmoothing achieves a
+smaller error in coverage probability than does explicit bias removal This conclusion
+also applies to the rejection probabilities of hypothesis tests; the difference between
+true and nominal rejection probabilities can be made smaller with undersmoothing than
+with explicit bias removal Thus, undersmoothing is the better method for handling
+asymptotic bias when the aim is to minimize differences between true and nominal
+rejection and coverage probabilities of bootstrap-based hypothesis tests and confidence
+intervals Accordingly, undersmoothing is used for bias removal in the remainder of
+this section.
+4.2 3 Asymptotic refinements
+The argument showing that the bootstrap provides asymptotic refinements for tests of
+hypotheses and confidence intervals in nonparametric density estimation is similar to
+that made in Section 3 for the smooth function model The main step is proving that
+the distributions of t, and t have Edgeworth expansions that are identical up to a
+sufficiently small remainder The result is stated in Theorem 4 1, which is proved in
+Hall ( 1992a, pp 268-282).
+Theorem 4 1 Assume thatf has r bounded, continuous derivatives in a neighborhood
+of x Let h,-*O and (nh,)/(log n)-*oc as N -4 oo Let K be a boundedfunction that is
+symmetrical about 0, has support l-1, 1l, and satisfies Equation (4 1 ) for some r 2.
+Also, assume that there is a partition ofl-1, 1l, uO =
+< ul <
+< um = 1 such
+that K' exists, is bounded, and is either strictly positive or strictly negative on each
+interval (uj, ujy+) Then there are even functions ql and q3 and an odd function q 2
+such that
+P(tn < T)=((r)+
+
+I(nh)qr)+
+
+q2( r)+ ( N
+
+q3(T)+Ol(nhn)-3/2 +n
+
+1l
+
+(4.16)
+uniformly over T Moreover there are even functions q and qn 3 and an odd
+function q 2 such that qj(T) q(r)->O as n oc uniformly over almost surely
+(j = 1, , 3), and
+P*(t* < r) = P(r)+ (nhqn
+p 2
+
+fl(r)+
+
+uniformly over r almost surely.
+
+h qN2,(2 (r)+
+1 )
+
+3
+q 3 (r)+Ol(nhn)
+)h
+
+2
+
++n-1l
+
+3200
+
+d L Horowitz
+
+Hall (1992 a, pp 211-216) gives explicit expressions for the functions qj and qnj .
+To see the implications of Theorem 4 1, consider a symmetrical test of a hypothesis
+about f(x) The results that will be obtained for this test also apply to symmetrical
+confidence intervals Let the hypothesis be Ho:f(x) =fo A symmetrical test rejects Ho
+as N oo This rate of convergence of
+if Ifn(x) -fo I is large Suppose that nh 'l+
+h, insures that the asymptotic bias offn(x) has a negligibly small effect on the error
+made by the higher-order approximation to the distribution of t, that is used to obtain
+asymptotic refinements 18 It also makes the effects of asymptotic bias sufficiently small
+that t, can be used to test Ho Rejecting Ho if Ifn(x)-fo is large is then equivalent
+to rejecting Ho if Itn l is large, thereby yielding a symmetrical t test of Ho.
+Now suppose that the critical value of the symmetrical t test is obtained from
+the asymptotic distribution of t,, which is N( 0, 1) The asymptotic a-level critical
+value of the symmetrical t test is Za/2, the 1 a/2 quantile of the standard normal
+distribution Theorem 4 1 shows that P(Itl >za/2)=a+Ol(nh,)-ll In other words,
+when the asymptotic critical value is used, the difference between the true and nominal
+rejection probabilities of the symmetrical t test is Ol(nh,)- ll.
+Now consider the symmetrical t test with a bootstrap critical value The bootstrap
+a-level critical value, z*a, 2 satisfies P*(I t* I z* a/2 )=a By Theorem 4 1,
+
+P*(Itn* > r)-P(ItnI >
+
+T)
+
+= ol(nh,)- 'l
+
+(4 17)
+
+almost surely uniformly over
+It can also be shown that P(tnI >z, /2)=a+
+ol(nhn) l Thus, with the bootstrap critical value, the difference between the true and
+nominal rejection probabilities of the symmetrical t test is ol(nh,)-ll The bootstrap
+reduces the difference between the true and nominal rejection probabilities because
+it accounts for the effects of the Ol(nh,)- 'l term of the Edgeworth expansion of the
+distribution of t First-order asymptotic approximations ignore this term Thus, the
+bootstrap provides asymptotic refinements for hypothesis tests and confidence intervals
+based on a kernel nonparametric density estimator provided that the bandwidth h,
+converges sufficiently rapidly to make the asymptotic bias of the density estimator
+negligibly small.
+The conclusion that first-order asymptotic approximations make an error of size
+Ol(nh,)'l assumes that nh r+ _ O If this condition is not satisfied, the error made
+by first-order approximations is dominated by the effect of asymptotic bias and is larger
+than Ol(nh,)' l This result is derived at the end of this section.
+The bootstrap can also be used to obtain asymptotic refinements for one-sided and
+equal-tailed tests and confidence intervals For one-sided tests and confidence intervals
+
+The asymptotic bias contributes a term of size l(nh,)/ 2 bn(x)l2 =O(nhn, l) to the Edgeworth expansion
+of the distribution of Itnl Because t* is unbiased, this term is not present in the expansion of the
+distribution of It* Therefore, the expansions of the distributions of tn Iand It*l agree through Ol(nhn ) l
+only if nh r+
+Oas N-* co.
+18
+
+Ch 52:
+
+3201
+
+The Bootstrap
+
+with bootstrap critical values, the differences between the true and nominal rejection
+and coverage probabilities are Ol(nhn) + (nhn)l/2 hrl These are minimized by setting
+hn OcN3 /( 2r+ 3), in which case the errors are Oln 2 r/( 2r+ 3)l For equal-tailed tests and
+confidence intervals with bootstrap critical values, the differences between the true and
+nominal rejection probabilities and coverage probabilities are Ol(nhn)- ' +nhnr + hnl.
+These are minimized by setting hn cx n- l/(r +1), in which case the errors are Oln-r/(r + )l.
+In contrast, the error made by first-order asymptotic approximations is Ol(nhn)-/ 2l in
+both the one-sided and equal-tailed cases Hall (1992a, pp 220-224) provides details
+and a discussion of certain exceptional cases in which smaller errors can be achieved.
+In contrast to the situation with the smooth function model, the orders of refinement
+achievable in nonparametric density estimation are different for one-sided and equaltailed tests and confidence intervals.
+4.2 3 1 The error made by first-orderasymptotics when nh r + 1 does not converge to 0.
+O too slowly are most easily seen by assuming that on(x)
+The effects of having h,
+is known so that tn is replaced by
+fn(x) -f(x) bn(x)
+an(x)
+
+z=
+
+A symmetrical test of Ho rejects if If,(x)-fol/an(x) is large If Ho is true, then
+
+p (n(X)fo A<
+
+) =P
+
+(
+
+bn(X)j
+
+lZ <
+
+bn()l _p
+
+for any ~, and
+
+lfn(X) -fo I
+l
+
+l=p
+
+Zn<
+
+(x)l
+a,
+
+n(X)
+o=
+
+Un(X)
+
+( 4 18)
+(x)J
+
+Each term on the right-hand side of Equation (4 18) has an asymptotic expansion of
+the form (4 16) except without the q 3 term and the O(n -1) remainder term, which arise
+from random sampling error in S2(X) Specifically,
+
+o
+
+I
+
+n(X) f I
+
+o(x)J
+
+1
++ (nh)
+(n{
+
+n(x)l
+
+I
+
+/2
+
+l
+
+2 lJn(x)l
+
+n(x)l
+W
+
+n(X)
+2+ 5 P ,(xa,(n(X)o
+
+l
+
+Qnn(X)
+W }+
+
+(x)}
+J }X+
+
+}
+l(nh)-/2 l
+(4.19)
+
+3202
+
+JL Horowitz
+
+where p I is an even function and P2 is an odd function Hall (1992 a, p 212) provides
+a proof and the details of p and P2 A Taylor series expansion of the right-hand side
+of Equation (4 19) combined with bn(x)= O(hr) and U,(x)= Ol(nhn) 1 /2 l yields
+
+Pl
+
+)= P( )
+
+n(x fo
+
+(nh)h 2r +(nh)-l 1
+(( +Olhr+
++
+
+(4 20)
+
+The remainder term on the right-hand side of Equation (4 20) is dominated by h,
+O Thus, the error made by
+which is the effect of asymptotic bias, unless nhr +
+first-order asymptotic approximations exceeds Ol(nhn) - 'l unless fn(x) is sufficiently
+undersmoothed to make the asymptotic bias bn(x) negligible, which is equivalent to
+requiring nh + L O as N -* oo.
+
+4.2 4 Kernel nonparametricmean regression
+In nonparametric mean-regression, the aim is to infer the mean of a random variable Y
+conditional on a covariate X without assuming that the conditional mean function
+belongs to a known finite-dimensional family of functions Define G(x)=E(YIX =x) to
+be the conditional mean function Let X be a scalar random variable whose distribution
+has a probability density function f This section explains how the bootstrap can
+be used to obtain asymptotic refinements for tests of hypotheses about G(x) and
+confidence intervals that are based on kernel estimation of G.
+Let the data consist of a random sample, {Yi,Xi: i= 1, ,n}, of the joint
+distribution of (YX) The kernel nonparametric estimator of G(x) is
+n
+G,(x)
+
+h ()
+nhf~(x)
+
+E
+
+Yi K(x hX)
+
+where
+
+A (x
+
+OK (x-X)
+
+K is a kernel function and h J}a sequence of bandwidths The properties of Gn(x)
+are discussed by Hirdle ( 1990) To state the ones that are relevant here, let r > 2 be
+an even integer Assume that G andf each have r bounded, continuous derivatives in
+a neighborhood of x Let K be a bounded function that is symmetrical about 0, has
+support l-1, 1 l, and satisfies Equation (4 11) Define BK and AK as in Section 4 2 1.
+
+Ch 52:
+
+3203
+
+The Bootstrap
+
+Set V(z)=Var(YlX=z), and assume that this quantity is finite and continuous in a
+neighborhood of z =x Also define
+bn(x) =
+K (nO
+b"(x) = An E>( ) {<9 lG(x)(x)l(r)(x)}
+and
+o2g(x
+
+)
+
+BK
+
+(4 21)
+
+V(x)
+
+nhn f(x)'
+
+1
+is bounded as N
+If nhr+
+
+Z(x)
+
+oc, then
+
+bn(x)
+
+G,(x) G(x)
+
+N(0, 1).
+
+on(x)
+The fastest possible rate of convergence of Gn(x) to G(x) is achieved by setting
+hn o n- l/( 2r+ 1) When this happens, G(x) G(x)= Oplnr/(2 r+ 1)l, bn(x) oc n- r/( 2r + 1)
+and on(x) oc N r/( 2 r+)
+
+The issues involved in converting Zn into an asymptotically pivotal statistic that
+can be used to test a hypothesis about G(x) or form a confidence interval for G(x)
+are the same as in kernel density estimation It is necessary to replace an(x) with
+a suitable estimator and to remove the asymptotic bias b(x) As in kernel density
+estimation, asymptotic bias can be removed to sufficient order by undersmoothing.
+Undersmoothing for a symmetrical test or confidence interval consists of choosing hn
+o 19.
+so that nh + O as N
+Now consider estimation of a,2 (x) One possibility is to replace f(x) withfn(x) and
+V(x) with a consistent estimator on the right-hand side of Equation (4 21) The higherorder asymptotics of Gn(x) are simpler, however, if a,2(x) is estimated by a sample
+analog of the exact finite-sample variance of the asymptotic form of Gn(x) G(x) With
+asymptotic bias removed by undersmoothing, the asymptotic form of Gn(x) G(x) is
+Gn(x)-G(x) = nh(
+
+)
+
+oi-G(x)lK
+
++
+
+(l)
+
+(4 22)
+
+The variance of the first term on the right-hand side of Equation (4 22) is then estimated
+by the following sample analog, which will be used here to estimate an
+2(x)20:
+Sn(X)
+
+lnhnf (x)l 2
+
+lYI
+
+Gn(x)l 2K
+
+h
+
+)
+
+19 It is also possible to carry out explicit bias removal in kernel mean-regression Hardle et al (1995)
+compare the methods of explicit bias removal and undersmoothing for a one-sided confidence interval.
+They show that for a one-sided interval, there are versions of the bootstrap and explicit bias removal
+that give better coverage accuracy than the bootstrap with undersmoothing.
+20 Hall (1992 a, p 226) proposes an estimator of o 2(x) that is nl/2-consistent when Y is homoskedastic
+(that is, Var(YX =x) is independent of x) The estimator used here is consistent (but not N1/2 -consistent)
+when Y has heteroskedasticity of unknown form.
+
+3204
+
+JL Horowitz
+
+Now define
+Gn(x)
+
+G(x)
+
+Sn(X)
+
+With asymptotic bias removed through undersmoothing, tn is asymptotically distributed as N(O, 1) and is an asymptotically pivotal statistic that can be used to test
+a hypothesis about G(x) and to form a confidence interval for G(x) The bootstrap
+version of t, is
+G(x)
+(
+
+G (x)
+
+S*(x)
+'
+where G*(x) is obtained from G(x) by replacing the sample {Yi,Xi} with the
+bootstrap sample {Y*,X* }, and S (x) is obtained from s,(x) by replacing the sample
+with the bootstrap sample, fn(x) withf,*(x), and Gn(x) with G,*(x) 21.
+The Edgeworth expansions of the distributions of tn and t are similar in structure to
+those of the analogous statistic for kernel density estimators The result for symmetrical
+tests and confidence intervals can be stated as follows Let E(Y 4 X = z) be finite
+and continuous for all z in a neighborhood of x Let K satisfy the conditions of
+Theorem 4 1 Then there are functions q and qn such that qn q =o(1) uniformly and
+almost surely as N oo,
+P(ltn I < ) = 2 (r)
+
+1
+
+I-q(T)+ ol(nhn) 1 l
+
+( 4 23)
+
+uniformly over , and
+P*(lt,*l <
+
+T)
+
+= 24 (r)-1 + h qn(T)+l(nh ) 'l
+nh,
+
+uniformly over T almost surely It follows that the bootstrap estimator of the
+distribution of Itl is accurate through Ol(nh,)-ll, whereas first-order asymptotic
+approximations make an error of this size Let z a/2 be the bootstrap a-level critical
+value for testing the hypothesis Ho: G(x)= Go Then P*(Itn*l >* a/2)= a, and it can
+be shown that P(It, >Zn*a/,2)=a+ol(nhn)-ll Hall (1992 a, Section 4 5) discusses the
+mathematical details Thus, with the bootstrap critical value, the true and nominal
+rejection probabilities of a symmetrical t test of Ho differ by ol(nh,)- 'l In contrast, it
+follows from Equation (4 23) that the difference is Ol(nh,)- l l if first-order asymptotic
+
+21 The discussion here assumes that the bootstrap sample is obtained by randomly sampling the empirical
+distribution of (YX) If V(z) is a constant (that is, the model is homoskedastic), then bootstrap sampling
+can also be carried out by sampling centered regression residuals conditional on the observed values of
+X See Hall (1992a, Section 4 5).
+
+Ch 52:
+
+3205
+
+The Bootstrap
+
+approximations are used to obtain the critical value The same conclusions hold for
+the coverage probabilities of symmetrical confidence intervals for G(x).
+4.3 Non-smooth estimators
+Some estimators are obtained by maximizing or minimizing a function that is
+discontinuous or whose first derivative is discontinuous Two important examples are
+Manski's ( 1975, 1985) maximum-score (MS) estimator of the slope coefficients of
+a binary-response model and the least-absolute-deviations (LAD) estimator of the
+slope coefficients of a linear median-regression model The objective function of the
+MS estimator and the first derivative of the objective function of the LAD estimator
+are step functions and, therefore, discontinuous The LAD and MS estimators cannot
+be approximated by smooth functions of sample moments, so they do not satisfy the
+assumptions of the smooth function model Moreover, the Taylor-series methods of
+asymptotic distribution theory do not apply to the LAD and MS estimators, which
+greatly complicates the analysis of their asymptotic distributional properties As a
+consequence, little is known about the ability of the bootstrap to provide asymptotic
+refinements for hypothesis tests and confidence intervals based on these estimators.
+Indeed it is not known whether the bootstrap even provides a consistent approximation
+to the asymptotic distribution of the MS estimator.
+This section explains how the LAD and MS estimators can be smoothed in a
+way that greatly simplifies the analysis of their asymptotic distributional properties.
+The bootstrap provides asymptotic refinements for hypothesis tests and confidence
+intervals based on the smoothed LAD and MS estimators In addition, smoothing
+accelerates the rate of convergence of the MS estimator and simplifies even its firstorder asymptotic distribution Smoothing does not change the rate of convergence or
+first-order asymptotic distribution of the LAD estimator The LAD estimator is treated
+in Section 4 3 1, and the MS estimator is treated in Section 4 3 2
+4.3 1 The LAD estimatorfor a linear median-regressionmodel
+A linear median-regression model has the form
+(4 24)
+
+Y = Xf + U,
+
+where Y is an observed scalar, X is an observed xq vector, /3 is a qx vector of
+constants, and U is an unobserved random variable that satisfies median(UIX =x)= O
+almost surely Let {Yi,Xi: i = 1
+, n} be a random sample from the joint distribution
+of (YX) in Equation ( 4 24) The LAD estimator of/3, b , solves
+minimize H,(b)
+
+IY
+b
+n
+
+-Xbl
+N
+
+(Y, -Xb)l 2 I(Y, -Xb > O) 1l,
+i
+
+i
+
+(4 25)
+
+3206
+
+J.L Horowitz
+
+where B is the parameter set and I( ) is the indicator function Bassett and Koenker
+(1978) and Koenker and Bassett ( 1978) give conditions under which the LAD estimator
+and nl/2 (b, -f ) is asymptotically normal.
+is nl/2-consistent
+/,n(b) has cusps and, therefore, a discontinuous first derivative, at points b such
+that Yi =Xib for some i This non-smoothness causes the Edgeworth expansion of the
+LAD estimator to be non-standard and very complicated lDe Angelis et al (1993)l.
+The bootstrap is known to estimate the distribution of nl/2 (bn P) consistently lDe
+Angelis et al (1993), Hahn (1995)l, but it is not known whether the bootstrap provides
+asymptotic refinements for hypothesis tests and confidence intervals based on b 22
+Horowitz (1998 b) suggests removing the cusps in f I by replacing the indicator
+function with a smooth function, thereby producing a modified objective function
+whose derivatives are continuous The resulting smoothed LAD (SLAD) estimator
+is first-order asymptotically equivalent to the unsmoothed LAD estimator but has
+much simpler higher-order asymptotics Specifically, let K be a bounded, differentiable
+function satisfying K(v) = O if v < -1 and K(v) = 1 if v ) 1 Let {h, } be a sequence of
+bandwidths that converges to O as N o The SLAD estimator solves
+minimize H,(b)
+b EB
+
+n
+
+(Y-Xb) 2K
+B
+
+1l
+
+( 4 26)
+
+K is analogous to the integral of a kernel function for nonparametric density estimation.
+K is not a kernel function itself.
+Let b, be a solution to Equation (4 26) Horowitz (1998 b) gives conditions under
+which n/ 2(bn bn) = op(l) Thus, the smoothed and unsmoothed LAD estimators
+are first-order asymptotically equivalent It follows from this asymptotic equivalence
+and the asymptotic normality of LAD estimators that N /2(bn 3) -d N(O, V), where
+V = D-'E(X'X)D-', D = 2ElX'Xf(O x)l, and f( x) is the probability density function
+of U conditional on X =x.
+A t statistic for testing a hypothesis about a component of i or forming a confidence
+interval can be constructed from consistent estimators of D and E(Xt X) D can be
+estimated consistently by D,(b,), where
+D,(b)=
+
+,EXXK' Yi-Xbhi)
+
+(4 27)
+
+E(X'X) can be estimated consistently by the sample average of X'X However, the
+asymptotic expansion of the distribution of the t statistic is simpler if E(X'X) is
+
+22 Janas (1993) shows that a smoothed version of the bootstrap provides asymptotic refinements for a
+symmetrical t test of a hypothesis about a population median (no covariates).
+
+Ch 52:
+
+3207
+
+The Bootstrap
+
+estimated by the sample analog of the exact finite-sample variance of OH,(b)/Ob at
+b=fi This estimator is T(bn), where
+an
+-X)
+
+T ,(b)
+
+X'X { 2K (
+
+h
+
+h
+)
+
++
+
+(Yi
+hn
+
+Y
+K'
+
+Xtt O,
+X
+he
+
+2.
+
+( 4.28)
+It is not difficult to show that V is estimated consistently by V =D,(b )-l T,(bn)
+D,(bn)- l Now let bj and fij, respectively, be the jth components of b and i
+(j=l, ,q) Let V be the (j,j) component of V The t statistic for testing
+N(O,1), so t is
+Ho: fij=ijo is t=n/21 (bj-3fijo)1/V 2 If Ho is true, then tn
+asymptotically pivotal.
+To obtain a bootstrap version of t,, let {Y*,X*: i = 1, , n} be a bootstrap sample
+that is obtained by sampling the data {Yi,Xi} randomly with replacement Let b be
+the estimator of fi that is obtained by solving Equation (4 26) with Y ,X* } in place
+of {Yi,Xi} Let V*j be the version of Vj that is obtained by replacing bn and {Yi,Xi},
+respectively, with b*, and {Y*,X *} in Equations (4 27) and (4 28) Then the bootstrap
+analog of tn is t* = N1/ 2 (b* bnj)l(V) / 12 .
+By using methods similar to those used with kernel density and mean-regression
+estimators, it can be shown that under regularity conditions, tn and t have Edgeworth
+expansions that are identical almost surely through Ol(nh,)-ll Horowitz (1998 b)
+gives the details of the argument In addition, reasoning similar to that used in
+Section 4 2 3 shows that the bootstrap provides asymptotic refinements for hypothesis
+tests and confidence intervals based on the SLAD estimator For example, consider a
+symmetrical t test of Ho Let z* a/2 be the bootstrap a-level critical value for this test.
+That is, Z* a/2 satisfies P*(It*l >Zn, a 2 )=a Then P(Itnl >z*,a/2)=a+ol(nhn)-ll In
+contrast, first-order asymptotic approximations make an error of size Ol(nhn) 'l This
+is because first-order approximations ignore a term in the Edgeworth expansion of the
+distribution of tn, I whose size is Ol(nhn)- ll, whereas the bootstrap captures the effects
+of this term.
+The conditions under which this result holds include: ( 1) for almost every x and
+every u in a neighborhood of 0, f(u Ix) is r 1 times continuously differentiable
+with respect to u; (2) K satisfies Equation ( 4 11) and has four bounded, Lipschitz
+continuous derivatives everywhere; and (3) hnocn - r , where 2/(2r + 1) < < 1/3.
+Complete regularity conditions are given in Horowitz (1998 b) Condition (3) implies
+that r ) 4 Therefore, the size of the refinement obtained by the bootstrap is O(n-C),
+where
+
+< c < 1.
+
+The bootstrap also provides asymptotic refinements for one-sided tests and confidence intervals and for asymptotic chi-square tests of hypotheses about several
+components of f In addition, it is possible to construct a smoothed version of
+Powell's (1984, 1986) censored LAD estimator and to show that the bootstrap provides
+asymptotic refinements for tests and confidence intervals based on the smoothed
+censored LAD estimator Horowitz (1998 b) provides details, a method for choosing hn
+
+JL Horowitz
+
+3208
+
+in applications, and Monte Carlo evidence on the numerical performance of the t test
+with bootstrap critical values.
+4.3 2 The maximum score estimatorfor a binary-response model
+The most frequently used binary-response model has the form Y = I(Xfl + U > 0),
+where X is an observed random vector, f3 is a conformable vector of constants, and U
+is an unobserved random variable The parameter vector fi is identified only up to scale,
+so a scale normalization is needed Here, scale normalization will be accomplished by
+assuming that Jl, I = 1, where fil is the first component of if Let f3 and b denote the
+vectors consisting of all components of 3 and b except the first The maximum-score
+estimator of fl, b, (bl, b)', solves
+n
+
+maximize Rh,(b) =
+bs B
+N
+
+(2 Y
+
+1)I(Xb
+
+0),
+
+(4 29)
+
+i= 1
+
+where {Yi,Xi: i = 1
+n} is a random sample from the joint distribution of (YX),
+and B is a compact parameter set in which the scale normalization holds.
+Manski ( 1975, 1985) shows that if median(UIX=x)=O almost surely, the first
+component of X is continuously distributed with a non-zero coefficient, and certain
+other conditions are satisfied, then (b, b)' t
+almost surely Because bl= 1,
+bl converges to /3 i faster than any power of n Cavanagh ( 1987) and Kim and Pollard
+) has
+(1990) show that b, converges in probability at the rate n- 1/3 and that nl/ 3 (bn
+a complicated, non-normal asymptotic distribution The MS estimator is important
+despite its slow rate of convergence and complicated limiting distribution because
+it is semiparametric (that is, it does not require the distribution of U to belong to
+a known, finite-dimensional family) and it permits the distribution of U to have
+arbitrary heteroskedasticity of unknown form provided that the centering assumption
+median(UIX =x) = O holds.
+The asymptotic distribution of the MS estimator is too complex for use in testing
+hypotheses about /f or constructing confidence intervals Manski and Thompson ( 1986)
+suggested using the bootstrap to estimate the mean-square error of the MS estimator
+and presented Monte Carlo evidence suggesting that the bootstrap works well for this
+purpose However, it is not known whether the bootstrap consistently estimates the
+asymptotic distribution of the MS estimator.
+The MS estimator converges slowly and has a complicated limiting distribution
+because it is obtained by maximizing a step function Horowitz (1992) proposed
+replacing the indicator function on the right-hand side of Equation (4 29) by a
+differentiable function The resulting estimator is called the smoothed maximum
+score (SMS) estimator It solves
+maximize Hn(b) = E(
+be B
+nfl
+
+2Yi
+
+I)K (Xb,
+
+( 4 30)
+
+Ch 52:
+
+3209
+
+The Bootstrap
+
+where K is a bounded, differentiable function satisfying K(v) = 0 if v < 1 and K(v) = 1
+if v> 1, and {hn} is a sequence of bandwidths that converges to 0 as N oo.
+As in SLAD estimation, K is analogous to the integral of a kernel function Let
+3 again be the vector of all components of
+but the first Let b,
+(bnl, bn)'
+be the SMS estimator of (,')'
+Horowitz (1992) gives conditions under which
+(nhn)l/2 (n
+hlA) d N(O, V), where r 2 is an integer that is related to the
+number of times that the CDF of U and the density function of X,8 are continuously
+differentiable, nh 2r + l is bounded as n oc, A is an asymptotic bias, and V is a
+covariance matrix The rate of convergence of the SMS estimator of /i is at least n- 2/ 5
+and can be arbitrarily close to N 1/2 if the CDF of U and density function of X/ have
+sufficiently many derivatives Thus, smoothing increases the rate of convergence of the
+MS estimator.
+To obtain an asymptotically pivotal t statistic for testing a hypothesis about
+a component of
+or forming a confidence interval, it is necessary to remove
+the asymptotic bias of ba and construct a consistent estimator of V Asymptotic
+bias can be removed by undersmoothing For first-order asymptotic approximations,
+undersmoothing consists of choosing h, so that nh 2r +
+0 as N oc However, for
+the reasons explained in the discussion of Equation (4 20), the stronger condition
+nh+ l O is needed to obtain asymptotic refinements through Ol(nh,)-'l V can be
+estimated consistently by V, = Qn(bn)-lDn(bn)Q,(b,) l, where for any b E B
+1
+
+Qn(b) =
+
+DO(b) =
+
+I
+
+, (2/
+E
+
+(2Yj
+
+I)n'/K
+" (Xib'
+l)Xl K"1
+
+K'
+
+Xn)
+
+(4 31)
+
+(4 32)
+
+and X consists of all components of X but the first.
+Now let bj and S-, respectively, be the jth components of ba and
+Let Vj
+be the (j,j) component of V, The t statistic for testing H: /3j = ij is t =
+/ 2
+(nhn)l/2(bj -/jo)/V
+If Ho is true, then tn A N( 0, 1), so t is asymptotically pivotal.
+To obtain a bootstrap version of tn, let {Y*,X*: i= 1, , n} be a bootstrap sample
+that is obtained by sampling the data {Yi,Xi} randomly with replacement Let b be
+the estimator of/ that is obtained by solving Equation (4 30) with {Y*,X* } in place
+of {Yi,Xj} Let V*j be the version of Vnj that is obtained by replacing bn and {Yi,Xi},
+respectively, with b* and {Y*,X* } in Equations (4 31) and (4 32) Then the bootstrap
+analog of t is t* = (nh,) 1 2 (b* n(V )/2
+By using methods similar to those used with kernel density and mean-regression
+estimators, it can be shown that t and t* have Edgeworth expansions that are identical
+almost surely through Ol(nh) l See Horowitz ( 1998 c) for the details of the argument.
+It follows that the bootstrap provides asymptotic refinements for hypothesis tests and
+confidence intervals based on the SMS estimator For a symmetrical t test or confidence
+
+3210
+
+1L Horowitz
+
+interval, the true and nominal rejection or coverage probabilities differ by ol(nh,) - ll
+when bootstrap critical values are used, whereas they differ by Ol(nh,)- 'l when firstorder asymptotic critical values are used First-order approximations ignore a term in
+the Edgeworth expansion of the distribution of It, I whose size is Ol(nh,)-'l, whereas
+the bootstrap captures the effects of this term.
+The conditions under which this result holds include: ( 1) the CDF of U conditional
+on X and the density of X 3 conditional on X have sufficiently many derivatives; (2) K
+satisfies Equation (4 11) for some r > 8 ; and (3) h, oc n- , where 1/(r +1) < < 1/7.
+Complete regularity conditions are given in Horowitz (1998 c) Conditions (2) and
+(3) imply that the size of the refinement obtained by the bootstrap is O(n-C), where
+7 < < 1 The bootstrap also provides asymptotic refinements for one-sided tests and
+confidence intervals and for asymptotic chi-square tests of hypotheses about several
+components of if Horowitz (1998 c) discusses methods for choosing h, in applications
+and gives Monte Carlo evidence on the numerical performance of the t test with
+bootstrap critical values.
+4.4 Bootstrap iteration
+The discussion of asymptotic refinements in this chapter has emphasized the
+importance of applying the bootstrap to asymptotically pivotal statistics This section
+explains how the bootstrap can be used to create an asymptotic pivot when one is not
+available Asymptotic refinements can be obtained by applying the bootstrap to the
+bootstrap-generated asymptotic pivot The computational procedure is called bootstrap
+iteration or prepivoting because it entails drawing bootstrap samples from bootstrap
+samples as well as using the bootstrap to create an asymptotically pivotal statistic.
+The discussion here concentrates on the use of prepivoting to test hypotheses lBeran
+(1988)l Beran (1987) explains how to use prepivoting to form confidence regions.
+Hall ( 1986b) describes an alternative approach to bootstrap iteration.
+Let Tn be a statistic for testing a hypothesis Ho about a sampled population whose
+CDF is Fo Assume that under Ho, T satisfies assumptions SFM and Equation ( 3 8)
+of the smooth function model Define F=Fo if Ho is true, and define F to be the
+CDF of a distribution that satisfies Ho otherwise Let G,(r,F) PF(Tn < ) denote
+the exact, finite-sample CDF of Tn under sampling from the population whose CDF
+is F Suppose that Ho is rejected if Tn is large Then the exact a-level critical value
+of Tn, za, is the solution to G(zna, F) = 1 a under Ho An exact a-level test based
+on Tn can be obtained by rejecting Ho if G (T, F) > 1 a Thus, if F were known,
+gn, G,(T,, F) could be used as a statistic for testing Ho Prepivoting is based on the
+idea of using gn as a test statistic.
+A test based on g, cannot be implemented in an application unless T is pivotal
+because F and, therefore, gn are unknown A feasible test statistic can be obtained
+by replacing F with an estimator F, that imposes the restrictions of Ho and is N /2consistent for Fo if Ho is true Replacing F with F, produces the bootstrap statistic
+g* = G(T,F,) G,( ,F ) and, therefore, G,(T,,F,) can be estimated with arbitrary
+
+3211
+
+Ch 52: The Bootstrap
+
+accuracy by carrying out a Monte Carlo simulation in which random samples are
+drawn from F, Given any r, let Hn(r,Fo) = PF(g,*< ) = PFolGn(T,Fn) Tl.
+An exact test based on g* rejects Ho at the a level if Hn(g*,Fo) > 1 a This test
+cannot be implemented because Fo is unknown If the bootstrap is consistent, however,
+the asymptotic distribution of g* is uniform on l 0, 1l Therefore, Ho is rejected at the
+asymptotic a level if g* > I a Now observe that g* is asymptotically pivotal even if
+Tn is not; the asymptotic distribution of g* is Ul 0, 1l regardless of Fo This suggests
+that asymptotic refinements can be obtained by carrying out a second stage of bootstrap
+sampling in which the bootstrap is used to estimate the finite-sample distribution of
+gn.
+The second stage of bootstrapping consists of drawing samples from each of the
+first-stage bootstrap samples that are used to compute g* Suppose that there are M
+first-stage samples The mth such sample yields a bootstrap version of T,, say Tnm,
+and an estimator Fnm of Fn that is consistent with Ho Fnm can be sampled repeatedly to
+obtain G,(, Fn,,), the EDF of Tn under sampling from Fnm, and gm Gn(Tnm, Fnm).
+Now estimate Hn( ,Fo) by H,( ,Fn), which is the EDF of gnm (m= 1, ,M) The
+iterated bootstrap test rejects Ho at the a level if H,(g*, F,) > 1 a.
+Beran ( 1988) shows that when prepivoting and bootstrap iteration are applied to a
+statistic T,, the true and nominal probabilities of rejecting a correct null hypothesis
+differ by o(n- / 2) for a one-sided test and o(n-') for a symmetrical test even if Tn
+is not asymptotically pivotal By creating an asymptotic pivot in the first stage of
+bootstrapping, prepivoting and bootstrap iteration enable asymptotic refinements to
+be obtained for a non-asymptotically-pivotal T, The same conclusions apply to the
+coverage probabilities of confidence intervals Beran ( 1988) presents the results of
+Monte Carlo experiments that illustrate the numerical performance of this procedure.
+The computational procedure for carrying out prepivoting and bootstrap iteration is
+given by Beran ( 1988) and is as follows:
+(1) Obtain T and Fn from the estimation data {Xi: i= 1, ,n}, which are assumed
+to be a random sample of a possibly vector-valued random variable X.
+(2) Let X1, ,X
+be M bootstrap samples of size N that are drawn from the
+population whose distribution is F, Let Fnm denote the estimate of Fn that is
+obtained from Xm Let Tm be the version of T, that is obtained from Xm The EDF
+of {T,,nm: m = 1, ,M} estimates G,( ,F,) Set g* = Ml' m= I I(T,m
+T,).
+(3) For each m, let Xm, 1
+Xm, K be K further bootstrap samples of size n, each
+
+drawn from the population whose CDF is Fnm Let Tnmk be the version of Tn that
+is obtained from Xmk Set Gn(Tm,,Fm) = K -1 k= l I(Tmk < Tnm) Each of the
+Gn(Tnm, Fnm) (m = 1, , n) is a second-stage estimate of g, Estimate Hn(g*, Fo)
+by Hn(g*,Fn) = Ml Em= IllG(T,,m,Fnm) gn*l Reject Ho at the a level if
+Hn(gn*,Fn) > 1
+
+a.
+
+3212
+
+JL Horowitz
+
+4.5 Specialproblems
+The bootstrap provides asymptotic refinements because it amounts to a one-term
+Edgeworth expansion The bootstrap cannot be expected to perform well when an
+Edgeworth expansion provides a poor approximation to the distribution of interest.
+An important case of this is instrumental-variables estimation with poorly correlated
+instruments and regressors It is well known that first-order asymptotic approximations
+are especially poor in this situation lHillier (1985), Nelson and Startz (1990 a,b),
+Phillips (1983)l The bootstrap does not offer a solution to this problem With poorly
+correlated instruments and regressors, Edgeworth expansions of estimators and test
+statistics involve denominator terms that are close to zero As a result, the higher-order
+terms of the expansions may dominate the lower-order ones for a given sample size,
+in which case the bootstrap may provide little improvement over first-order asymptotic
+approximations Indeed, with small samples the numerical accuracy of the bootstrap
+may be even worse than that of first-order asymptotic approximations.
+The bootstrap also does not perform well when the variance estimator used for
+Studentization has a high variance itself This problem can be especially severe when
+the parameters being estimated or tested are variances or covariances of a distribution.
+This happens, for example, in estimation of covariance structures of economic
+processes lAbowd and Card (1987, 1989), Behrman et al ( 1994), Griliches (1979),
+Hall and Mishkin ( 1982)l In such cases Studentization is carried out with an estimator
+of the variance of an estimated variance Imprecise estimation of a variance also affects
+the finite-sample performance of asymptotically efficient GMM estimators because
+the asymptotically optimal weight matrix is the inverse of the covariance matrix
+of the GMM residuals The finite-sample mean-square error of the asymptotically
+efficient estimator can greatly exceed the mean-square error of an asymptotically
+inefficient estimator that is obtained with a non-stochastic weight matrix Horowitz
+(1998 a) shows that in the case of estimating covariance structures, this problem can
+be greatly mitigated by using a trimmed version of the covariance estimator that
+excludes "outlier" observations See Horowitz (1998 a) for details Section 5 5 presents
+a numerical illustration of the effects of trimming.
+4.6 The bootstrap when the null hypothesis isfalse
+To understand the power of a test based on a bootstrap critical value, it is necessary to
+investigate the behavior of the bootstrap when the null hypothesis being tested, Ho,
+is false Suppose that bootstrap samples are generated by a model that satisfies a
+false Ho and, therefore, is misspecified relative to the true data-generation process.
+If Ho is simple, meaning that it completely specifies the data-generation process, then
+the bootstrap amounts to Monte Carlo estimation of the exact finite-sample critical
+value for testing Ho against the true data-generation process Indeed, the bootstrap
+provides the exact critical value, rather than a Monte Carlo estimate, if G( ,Fn)
+can be calculated analytically Tests of simple hypotheses are rarely encountered in
+econometrics, however.
+
+Ch 52: The Bootstrap
+
+3213
+
+In most applications, Ho is composite That is, it does not specify the value of a
+finite or infinite-dimensional "nuisance" parameter V' In the remainder of this section,
+it is shown that a test of a composite hypothesis using a bootstrap-based critical value
+is a higher-order approximation to a certain exact test The power of the test with a
+bootstrap critical value is a higher-order approximation to the power of the exact test.
+Except in the case of a test based on a pivotal statistic, the exact finite-sample
+distribution of the test statistic depends on 4p Therefore, except in the pivotal case,
+it is necessary to specify the value of ip to obtain exact finite-sample critical values.
+The higher-order approximation to power provided by the bootstrap applies to a value
+of 4' that will be called the pseudo-true value To define the pseudo-true value, let ',n
+be an estimator of 4p that is obtained under the incorrect assumption that Ho is true.
+Under regularity conditions lsee, e g , Amemiya ( 1985), White (1982)l, in, converges
+in probability to a limit p*, and nl/ 2(V'n V*)=Op(l) A* is the pseudo-true value of
+Now let Tn be a statistic that is asymptotically pivotal under Ho Suppose that its
+exact CDF with an arbitrary value of 4p is G,( , lp), and that under Ho its asymptotic
+CDF is Go( ) Suppose that bootstrap sampling is carried out subject to the constraints
+of Ho Then the bootstrap generates samples from a model whose parameter value is
+i,, so the exact distribution of the bootstrap version of Tn is Gn(', 4'n) Under Ho and
+subject to regularity conditions, Gn( , n,)has an asymptotic expansion of the form
+Gn(z, n,)= Go(z) +N j/2 gj(z, 4 '*) +op(n j-/ 2)
+
+(4 33)
+
+uniformly over z, where j= 1 or 2 depending on the symmetry of T, Usually j= 1 if
+T, is a statistic for a one-tailed test andj = 2 if T, is a statistic for a symmetrical, twotailed test G(z, p*) has an expansion identical to Equation ( 4 33) through O(n-i/2).
+Therefore, through Op(n-/2), bootstrap sampling when Ho is false is equivalent
+to generating data from a model that satisfies Ho with pseudo-true values of the
+parameters not specified by Ho It follows that when Ho is false, bootstrap-based critical
+values are equivalent through Op(n -/ 2) to the critical values that would be obtained if
+the model satisfying Ho with pseudo-true parameter values were correct Moreover, the
+power of a test of Ho using a bootstrap-based critical value is equal through O(n-j/ 2 ) to
+the power against the true data-generation process that would be obtained by using the
+exact finite-sample critical value for testing Ho with pseudo-true parameter values.
+
+5 Monte Carlo experiments
+This section presents the results of some Monte Carlo experiments that illustrate the
+numerical performance of the bootstrap as a means of reducing differences between
+the true and nominal rejection probabilities of tests of statistical hypotheses.
+
+3214
+
+JL Horowitz
+
+5.1 The information-matrix test
+White's (1982) information-matrix (IM) test is a specification test for parametric
+models estimated by maximum likelihood It tests the hypothesis that the Hessian
+and outer-product forms of the information matrix are equal Rejection implies that
+the model is misspecified The test statistic is asymptotically chi-square distributed,
+but Monte Carlo experiments carried out by many investigators have shown that
+the asymptotic distribution is a very poor approximation to the true, finite-sample
+distribution With sample sizes in the range found in applications, the true and nominal
+probabilities that the IM test with asymptotic critical values rejects a correct model
+can differ by a factor of 10 or more lHorowitz ( 1994), Kennan and Neumann (1988),
+Orme ( 1990), Taylor (1987)l.
+Horowitz ( 1994) reports the results of Monte Carlo experiments that investigate the
+ability of the bootstrap to provide improved finite-sample critical values for the IM test,
+thereby reducing the distortions of RP's that occur with asymptotic critical values.
+Three forms of the test were used: the Chesher ( 1983) and Lancaster ( 1984) form,
+White's ( 1982) original form, and Orme's (1990) 0) 3 The Chesher-Lancaster form is
+relatively easy to compute because, in contrast to the other forms, it does not require
+third derivatives of the log-density function or analytic expected values of derivatives
+of the log-density However, first-order asymptotic theory gives an especially poor
+approximation to its finite-sample distribution Orme (1990) found through Monte
+Carlo experimentation that the distortions of RP's are smaller with 0 3 than with many
+other forms of the IM test statistic Orme's W3 uses expected values of third derivatives
+of the log-density, however, so it is relatively difficult to compute.
+Table 1
+Empirical rejection probabilities of nominal 0 05-level information-matrix tests of probit and tobit
+models 1
+n
+
+Distribution
+of X
+
+RP using asymptotic critical values
+
+RP using bootstrap-based critical values
+
+White
+
+Chesh -Lan
+
+Orme
+
+White
+
+Chesh -Lan
+
+Orme
+
+N(0, 1)
+
+0 385
+
+0 904
+
+0 006
+
+0 064
+
+0 056
+
+0 033
+
+U(-2,2)
+
+0 498
+
+0 920
+
+0 017
+
+0 066
+
+0 036
+
+0 031
+
+N(0, 1)
+
+0 589
+
+0 848
+
+0 007
+
+0 053
+
+0 059
+
+0 054
+
+U(-2, 2)
+
+0 632
+
+0 875
+
+0 027
+
+0 058
+
+0 056
+
+0 049
+
+N( 0, 1)
+
+0 112
+
+0 575
+
+0 038
+
+0 083
+
+0 047
+
+0 045
+
+U(-2,2)
+
+0 128
+
+0 737
+
+0 174
+
+0 051
+
+0 059
+
+0 054
+
+N(0, 1)
+
+0 065
+
+0 470
+
+0 167
+
+0 038
+
+0 039
+
+0 047
+
+U(-2,2)
+
+0 090
+
+0 501
+
+0 163
+
+0 046
+
+0 052
+
+0 039
+
+Binary probit models
+50
+100
+
+Tobit models
+50
+100
+
+1 Source: Horowitz (1994).
+
+Ch 52:
+
+The Bootstrap
+
+3215
+
+Horowitz's (1994) experiments consisted of applying the three forms of the IM test
+to Tobit and binary probit models Each model had either one or two explanatory
+variables X that were obtained by sampling either the N(0, 1) or the Ul 0, 1 l
+distribution There were 1000 replications in each experiment Other details of the
+Monte Carlo procedure are described in Horowitz (1994) Table I summarizes the
+results of the experiments As expected, the differences between empirical and nominal
+RP's are very large when asymptotic critical values are used This is especially true
+for the Chesher-Lancaster form of the test When bootstrap critical values are used,
+however, the differences between empirical and nominal RP's are very small The
+bootstrap essentially eliminates the distortions of the RP's of the three forms of the
+IM test.
+5.2 The t test in a heteroskedastic regression model
+In this section, the heteroskedasticity-consistent covariance matrix estimator (HCCME)
+of Eicker ( 1963, 1967) and White (1980) is used to carry out a t test of a hypothesis
+about /3 in the model
+
+Y =X 3 + U
+
+( 5 1)
+
+In this model, U is an unobserved random variable whose probability distribution is
+unknown and that may have heteroskedasticity of unknown form It is assumed that
+E(UIX=x)=O and Var(UIX=x) <oo for all x in the support of X.
+Let b, be the ordinary least-squares (OLS) estimator of/3 in Equation ( 5 1), bnj and
+f3i be the ith components of b, and , and Sni be the square root of the (i, i) element
+of the HCCME The t statistic for testing Ho: /3i=/3 io is Tn=(bni-io)sni Under
+regularity conditions, T,
+N( 0, 1) as N ~ co However, Chesher and Jewitt (1987)
+have shown that S2i can be seriously biased downward Therefore, the true RP of a test
+based on Tn is likely to exceed the nominal RP As is shown later in this section, the
+differences between the true and nominal RP's can be very large when N is small.
+The bootstrap can be implemented for model ( 5 1) by sampling observations of
+(YX) randomly with replacement The resulting bootstrap sample is used to estimate
+/3 by OLS and compute T, the t statistic for testing Ho: /3i =b, The empirical
+distribution of T* is obtained by repeating this process many times, and the a-level
+bootstrap critical value for T* is estimated from this distribution Since U may be
+heteroskedastic, the bootstrap cannot be implemented by resampling OLS residuals
+independently of X Similarly, one cannot implement the bootstrap by sampling U
+from a parametric model because Equation ( 5 1) does not specify the distribution of
+U or the form of any heteroskedasticity.
+Randomly resampling (Y,X) pairs does not impose the restriction E(UIX =x)= 0 on
+the bootstrap sample As will be seen later in this section, the numerical performance
+of the bootstrap can be improved greatly through the use of an alternative resampling
+procedure, called the wild bootstrap, that imposes this restriction The wild bootstrap
+
+3216
+
+JL Horowitz
+
+was introduced by Liu (1988) following a suggestion of Wu (1986) Mammen (1993)
+establishes the ability of the wild bootstrap to provide asymptotic refinements for the
+model (5 1) Cao-Abad (1991), Hirdle and Mammen (1993), and Hirdle and Marron
+(1991) use the wild bootstrap in nonparametric regression.
+To describe the wild bootstrap, write the estimated form of Equation ( 5 1) as
+Yi = Xib, + U,i;
+
+i = 1, 2,
+
+, n,
+
+where Yi and Xi are the ith observed values of Y and X, and U,i is the ith OLS
+residual For each i = 1
+, n, let Fi be the unique 2-point distribution that satisfies
+E(ZIFi) = O, E(Z2 1Fi) = U 2i, and E(Z3 lFi) = U3i, where Z is a random variable
+with the CDF Fi Then, Z = (1 V 5)U,i/2 with probability (1 + v/5)/( 2v/5), and
+The wild bootstrap is
+Z = (1 + V 5)U/2 with probability I (I + /5)/(2x/)
+implemented as follows:
+(1) For each i= 1, , n, sample U* randomly from Fi Set Y* =Xibn + U*.
+(2) Estimate Equation (5 1) by OLS using the bootstrap sample {Y*,Xi: i = 1, , n}.
+Compute the resulting t statistic, T.
+(3) Obtain the empirical distribution of the wild-bootstrap version of T* by repeating
+steps 1 and 2 many times Obtain the wild-bootstrap critical value of T* from the
+empirical distribution.
+Horowitz (1997) reports the results of a Monte Carlo investigation of the ability
+of the bootstrap and wild bootstrap to reduce the distortions in the RP of a
+symmetrical, two-tailed t test that occur when asymptotic critical values are used.
+The bootstrap was implemented by resampling (X) pairs, and the wild bootstrap
+was implemented as described above The experiments also investigate the RP of
+the t test when the HCCME is used with asymptotic critical values and when a
+jackknife version of the HCCME is used with asymptotic critical values lMac Kinnon
+and White ( 1985)l Mac Kinnon and White (1985) found through Monte Carlo
+experimentation that with the jackknife HCCME and asymptotic critical values, the
+t test had smaller distortions of RP than it did with several other versions of the
+HCCME.
+The experiments use N = 25 X consists of an intercept and either 1 or 2 explanatory
+variables In experiments in which X has an intercept and one explanatory variable,
+= (1, 0)' In experiments in which X has an intercept and two explanatory variables,
+= ( 1,0, 1)' The hypothesis tested in all experiments is Ho: 2 = O The components
+of X were obtained by independent sampling from a mixture of normal distributions
+in which N( 0,1)
+I was sampled with probability 0 9 and N(2,9) was sampled
+with probability 0 1 The resulting distribution of X is skewed and leptokurtotic.
+Experiments were carried out using homoskedastic and heteroskedastic U's When
+U was homoskedastic, it was sampled randomly from N(0, 1) When U was
+heteroskedastic, the U value corresponding to X =x was sampled from N( 0, Qx), where
+Qx = 1 +x 2 or = 1 +x 2 +x2, depending on whether X consists of 1 or 2 components
+in addition to an intercept Qx is the covariance matrix of U corresponding to the
+
+Ch 52:
+
+3217
+
+The Bootstrap
+
+Table 2
+Empirical rejection probabilities of t tests using heteroskedasticity-consistent
+estimators 1,2(n=25)
+
+covariance matrix
+
+Form of test
+
+1-Variable
+homoskedastic
+model
+
+1-Variable
+random coeff
+model
+
+2-Variable
+homoskedastic
+model
+
+2-Variable
+random coeff.
+model
+
+Asymptotic
+
+0 156
+
+0 306
+
+0 192
+
+0 441
+
+Jackknife
+
+0 096
+
+0 140
+
+0 081
+
+0 186
+
+Bootstrap (YX) pairs
+
+0 100
+
+0 103
+
+0 114
+
+0 124
+
+Wild bootstrap
+
+0 050
+
+0 034
+
+0 062
+
+0 057
+
+i Source: Horowitz (1997).
+2 Empirical RP at nominal 0 05 level.
+
+random-coefficients model Y = Xf + X 6 + V, where V and the components of 6
+are independently distributed as N( 0, 1) There were 1000 Monte Carlo replications in
+each experiment.
+Table 2 shows the empirical RP's of nominal 0 05-level t tests of Ho The differences
+between the empirical and nominal RP's using the HCCME and asymptotic critical
+values are very large Using the jackknife version of the HCCME or critical values
+obtained from the bootstrap greatly reduces the differences between the empirical
+and nominal RP's, but the empirical RP's are still 2-3 times the nominal ones.
+With critical values obtained from the wild bootstrap, the differences between
+the empirical and nominal RP's are very small In these experiments, the wild
+bootstrap essentially removes the distortions of RP that occur with asymptotic critical
+values.
+5.3 The t test in a Box-Cox regression model
+The t statistic for testing a hypothesis about a slope coefficient in a linear regression
+model with a Box-Cox ( 1964) transformed dependent variable is not invariant to
+changes in the measurement units, or scale, of the dependent variable lSpitzer (1984)l.
+The numerical value of the t statistic and the finite-sample RP's of the t test with
+asymptotic critical values vary according to the measurement units or scale that is
+used As a result, the finite-sample RP's of the t test with asymptotic critical values
+can be far from the nominal RP's The bootstrap provides a better approximation to
+the finite-sample distribution and, therefore, better finite-sample critical values.
+Horowitz (1997) reports the results of a Monte Carlo investigation of the finitesample RP of a symmetrical t test of a hypothesis about a slope coefficient in a
+linear regression model with a Box-Cox transformed dependent variable The model
+generating the data is
+y(A) =
+
++ 11X + U,
+
+3218
+
+JL Horowitz
+
+Table 3
+Empirical rejection probabilities of t tests for Box-Cox regression model 1 (nominal RP = 0 05)
+n
+
+50
+
+100
+
+50
+
+100
+
+A
+
+0 01
+
+0 01
+
+10
+
+10
+
+Scale factor
+
+RP using critical values from
+
+Empirical
+
+Bootstrap critical
+
+critical values
+
+values
+
+Asymptotic
+
+Bootstrap
+
+02
+
+0 048
+
+0 066
+
+1 930
+
+1 860
+
+1.0
+
+0 000
+
+0 044
+
+0 911
+
+0 909
+
+5.0
+
+0 000
+
+0 055
+
+0 587
+
+0 571
+
+02
+
+0 047
+
+0 053
+
+1 913
+
+1 894
+
+1.0
+
+0 000
+
+0 070
+
+1 201
+
+1 165
+
+5.0
+
+0 000
+
+0 056
+
+0 767
+
+0 759
+
+02
+
+0 000
+
+0 057
+
+1 132
+
+1 103
+
+1.0
+
+0 000
+
+0 037
+
+0 625
+
+0 633
+
+5.0
+
+0 000
+
+0 036
+
+0 289
+
+0 287
+
+02
+
+0 000
+
+0 051
+
+1 364
+
+1 357
+
+1.0
+
+0 000
+
+0 044
+
+0 836
+
+0 835
+
+5.0
+
+0 000
+
+0 039
+
+0 401
+
+0 391
+
+1 Source: Horowitz (1997).
+
+where Y(A) is the Box-Cox transformed value of the dependent variable Y, U-N(O, 02),
+iO
+o = 2, f3I = O and U 2 = 0 0625 X was sampled from N( 4, 4) and was fixed in repeated
+samples The hypothesis being tested is Ho: ll = O The value of A is either 0 01 or 1,
+depending on the experiment, and the scale of Y was 0 2, 1, or 5 The sample sizes
+were n= 50 and 100 There were 1000 replications in each experiment.
+The results of the experiments are summarized in Table 3 The empirical critical
+value of the t test tends to be much smaller than the asymptotic critical value of 1 96,
+especially in the experiments with a scale factor of 5 As a result, the empirical RP
+of the t test is usually much smaller than its nominal RP The mean bootstrap critical
+values, however, are very close to the empirical critical values, and the RP's based on
+bootstrap critical values are very close to the nominal ones.
+5.4 Estimation of covariance structures
+In estimation of covariance structures, the objective is to estimate the covariance
+matrix of a k x 1 vector X subject to restrictions that reduce the number of unique,
+unknown elements to r <k(k+ 1)/2 Estimates of the r unknown elements can be
+obtained by minimizing the weighted distance between sample moments and the
+estimated population moments Weighting all sample moments equally produces
+the equally-weighted minimum distance (EWMD) estimator, whereas choosing the
+weights to maximize asymptotic estimation efficiency produces the optimal minimum
+distance (OMD) estimator.
+
+Ch 52:
+
+The Bootstrap
+
+3219
+
+The OMD estimator dominates the EWMD estimator in terms of asymptotic
+efficiency, but it has been found to have poor finite-sample properties in applications
+lAbowd and Card (1989)l Altonji and Segal ( 1994, 1996) carried out an extensive
+Monte Carlo investigation of the finite-sample performance of the OMD estimator.
+They found that the estimator is badly biased with samples of the sizes often found in
+applications and that its finite-sample root-mean-square estimation error (RMSE) often
+greatly exceeds the RMSE of the asymptotically inefficient EWMD estimator Altonji
+and Segal also found that the true coverage probabilities of asymptotic confidence
+intervals based on the OMD estimator tend to be much lower than the nominal coverage
+probabilities Thus, estimation and inference based on the OMD estimator can be
+highly misleading with finite samples.
+Horowitz ( 1998a) reports the results of a Monte Carlo investigation the ability
+of the bootstrap to reduce the bias and RMSE of the OMD estimator and reduce
+the differences between true and nominal coverage probabilities of nominal 95 %
+confidence intervals based on this estimator The data-generation processes used in
+the Monte Carlo experiments were taken from Altonji and Segal (1994) In each
+experiment, X has 10 components, and the sample size is N = 500 The jth component
+of X, Xj (j = 1, , 10) is generated by Xj = (Zj +pZj+1)/(l +p2 ) 1/ 2 , where Z 1, ,Zl I
+are i i d random variables with means of 0 and variances of 1, and p=0 5 The Z's
+are sampled from five different distributions depending on the experiment These are
+Ul0, 1l, N(0, 1), Student t with 10 degrees of freedom, exponential, and lognormal It
+is assumed that p is known and that the components of X are known to be identically
+distributed and to follow MA(1) processes The estimation problem is to infer the scalar
+parameter O that is identified by the moment conditions Var(X) = O (j= 1, ,10)
+and Cov(Xj,X_ 1)=p0/(l +p2 ) (j = 2, ,10) Experiments were carried out with the
+EWMD and OMD estimators as well as a version of the OMD estimator that uses a
+trimmed estimator of the asymptotically optimal weight matrix See Horowitz ( 1998a)
+for an explanation of the trimming procedure.
+The results of the experiments are summarized in Table 4 The OMD estimator,
+,, OMD is biased and its RMSE exceeds that of the EWMD estimator, On,EWMD for
+all distributions of Z except the uniform Moreover, the coverage probabilities of
+confidence intervals based on n, OMD with asymptotic critical values are far below
+the nominal value of 0 95 except in the experiment with uniform Z's Bootstrap bias
+reduction greatly reduces both the bias and RMSE of On,OMD In addition, the use
+of bootstrap critical values greatly reduces the errors in the coverage probabilities of
+confidence intervals based on n, OMD In the experiments with normal, Student t, or
+uniform Z's, the bootstrap essentially eliminates the bias of 0,,OMD and the errors
+in the coverage probabilities of the confidence intervals Moreover, the RMSE of the
+bias-corrected On, OMD in these experiments is 12-50 % less than that of On, EWMDWhen Z is exponential or lognormal, the bootstrap reduces but does not eliminate
+the bias of On,OMD and the errors in the coverage probabilities of confidence intervals.
+Horowitz (1998 a) shows that the poor performance of the bootstrap in these cases is
+caused by imprecise estimation of the OMD weight and covariance matrices This
+
+3220
+
+JL Horowitz
+Table 4
+Results of Monte Carlo experiments with estimators of covariance structures
+
+Dist
+
+EWMD
+RMSE
+
+OMD without bootstrap
+Bias
+
+RMSE
+
+Cov
+
+Trimmed OMD 5
+
+OMD with bootstrap
+3
+
+Bias
+
+RMSE
+
+Cov
+
+1,2
+
+4
+
+Bias
+
+RMSE
+
+Cov 4
+
+Uniform
+
+0 019
+
+0 005
+
+0 015
+
+0 93
+
+0 002
+
+0 014
+
+0 96
+
+Normal
+
+0 024
+
+0 016
+
+0 025
+
+0 85
+
+00
+
+0 021
+
+0 95
+
+Student t
+
+0 029
+
+0 024
+
+0 034
+
+0 79
+
+0 002
+
+0 026
+
+0 95
+
+Exponential
+
+0 042
+
+0 061
+
+0 073
+
+0 54
+
+0 014
+
+0 048
+
+0 91
+
+0 004
+
+0 042
+
+0 96
+
+Lognormal
+
+0 138
+
+0 274
+
+0 285
+
+0 03
+
+0 136
+
+0 173
+
+0 76
+
+0 046
+
+0 126
+
+0 91
+
+I Source: Horowitz (1998 a); nominal coverage probability is 0 95 ; based on 1000 replications.
+2 Abbreviations: Dist , distribution; EWMD, equally-weighted minimum distance; OMD, optimal
+minimum distance; RMSE, root-mean-square estimation error.
+3 Coverage probability with asymptotic critical value.
+4 Coverage probability with bootstrap critical value.
+5 Trimmed OMD with bootstrap.
+
+problem is largely eliminated through the use of the trimmed estimator of these
+matrices With trimming, On, OMD with exponential or lognormal Z's has a RMSE that
+is the same as or less than that of the EWMD estimator, and the empirical coverage
+probabilities of confidence intervals are close to the nominal values.
+
+6 Conclusions
+The bootstrap consistently estimates the asymptotic distributions of econometric estimators and test statistics under conditions that are sufficiently general to accommodate
+most applications Subsampling methods usually can be used in place of the standard
+bootstrap when the latter is not consistent Together, the bootstrap and subsampling
+methods provide ways to substitute computation for mathematical analysis if analytical
+calculation of the asymptotic distribution of an estimator or test statistic is difficult or
+impossible.
+Under conditions that are stronger than those required for consistency but still general enough to accommodate a wide variety of econometric applications, the bootstrap
+reduces the finite-sample biases of estimators and provides a better approximation
+to the finite-sample distribution of an estimator or test statistic than does first-order
+asymptotic theory The approximations of first-order asymptotic theory are often quite
+inaccurate with samples of the sizes encountered in applications As a result, the true
+and nominal probabilities that a test rejects a correct hypothesis can be very different
+when critical values based on first-order approximations are used Similarly, the true
+and nominal coverage probabilities of confidence intervals based on asymptotic critical
+values can be very different The bootstrap can provide dramatic reductions in the
+differences between true and nominal rejection and coverage probabilities of tests and
+
+Ch 52:
+
+3221
+
+The Bootstrap
+
+confidence intervals In many cases of practical importance, the bootstrap essentially
+eliminates finite-sample errors in rejection and coverage probabilities.
+This chapter has also emphasized the need for care in applying the bootstrap The
+importance of asymptotically pivotal statistics for obtaining asymptotic refinements
+has been stressed Proper attention also must be given to matters such as recentering,
+correction of test statistics in the block bootstrap for dependent data, smoothing, and
+choosing the distribution from which bootstrap samples are drawn These qualifications
+do not, however, detract from the importance of the bootstrap as a practical tool for
+improving inference in applied econometrics.
+Acknowledgements
+I thank Donald Andrews, James Heckman, Hidehiko Ichimura, John Kennan, Edward
+Learner, Catherine Loader, George Neumann, Harry Paarsch, Bernard Salani 6, and
+Gene Savin for comments on earlier drafts of this chapter Parts of the chapter
+are taken from Horowitz (1997) and are used here with permission from the
+Cambridge University Press The preparation of this chapter was supported in part
+by NSF Grants SBR-9617925 and SES 9910925.
+Appendix A Informal derivation of Equation (3 27)
+To derive Equation ( 3 27), write P(( T, I z*
+P(Tnl > n,a/2)= 1-lP(Tn -< zn,a/2)
+= 1
+
+{PlT
+
+a/2)
+
+P(T
+
+in the form
+-n*,a/2)l
+
+(A 1)
+
+(Z, a/2 -zoo, a/2) < Zo, a/2l
+
+PlTn + (Z,
+
+a/2
+
+Zoo, a/2)
+
+-Zoo, a/2 l}.
+
+2
+
+With an error whose size is almost surely O(n- ), (Zn*,
+a/2 -z,a/2) on the right-hand
+side of (A 1) can be replaced with a Cornish-Fisher expansion that retains terms
+through O(n 3 /2 ) This expansion can be obtained by applying the delta method to
+the difference between Equations ( 3 23) and (3 24) The result is
+Z* a/2 -Za/2
+
+1 g2 (zoo, a/2,Fo)
+
+=
+
+N
+
+O(Zoo,a/2)
+
+1/2
++ 3/2 N1
+
+r3(Z) +O(n-2
+
+(A 2)
+
+1
+where r3 is a smooth function, r3 (pz) = 0, and N/2
+r3(Z) = Op( 1) as N oo.
+Substituting Equation (A 2) into Equation (A 1) yields
+
+P(ITn I > Zn*
+
+/2) =
+
+1 {PlT
+PlTn + n-3/
+
+n2 1
+
+3 2
+
+/nl/
+
+2
+
+r3(Z)
+
+< Zoo,a/2 + N lr2 (Z,
+
+N /2 r 3 (Z) < -zoo, a/2
+
+n-lr2 (zo,
+
+a/2)l
+
+a/2)l} + O(n-2),
+
+(A.3)
+where
+r 2(z)
+
+(A 4)
+
+¢(z)
+The next step is to replace the right-hand side of Equation (A 3) with an Edgeworth
+approximation To do this, it is necessary to provide a detailed specification of the
+
+JL Horowitz
+
+3222
+
+function g 2 in Equations (3 9) and (3 13) Let icj, , denote the jth cumulant of Tn 23,
+Under assumption SFM, cj,,, can be expanded in a power series For a statistic such
+as T, whose asymptotic distribution has a variance of 1,
+Kl n= k1 2 + 13 +O(n_ 5/2
+n l/
+N3/ +
+K2,n = I +
+
+IC3,n =
+
++ O(n-2),
+
+k31
+
+n 1/2
+
+k 32
+
++
+
+-+ + O(n-5/2),
+3/2
+
+and
+K4 , N = k
+
++ O(n-2),
+
+n
+where the coefficients kjk are functions of moments of products of components of Z.
+The function g 2 is then
+g 2 (T, Fo) =
+
+-T
+
+l(k
+
+22
+
++ k 22) +
+
+1
+
+(k 4 +4 k 12 k 31)(T 2 -3)1
+
++
+
+k 1 (T4
+
+10
+
+2
+
++ 15)l
+
+(r).
+
+(A.5)
+See Hall (1992 a, pp 46-56) for details Denote the quantity on the right-hand side of
+Equation (A 5) by g2 (T, Ko), where Ko denotes the kjk coefficients that are associated
+with cumulants of the distribution of T, Let kn denote the kjk coefficients that are
+associated with cumulants of Tn, n-3/2nl/2r3(Z), and let g2 (T, k,n) denote the version
+of g 2 that is obtained by replacing Ko with fk, The difference between the + and
+coefficients is asymptotically negligible Now replace g 2 (T, Fo) in Equation (3 13)
+with g 2(T,',) Also, replace r with z, 0 a/2 + nr 2(zoo a/2 ) in Equation (3 13).
+Substituting the result into the right-hand side of Equation (A 3) gives the following
+Edgeworth approximation to P(ITn, > n, /2):
+
+P(Tnl > z*,a/ 2) = 2{1
+
+Olz,
+
+a/2 + n-lr2(oo, a/2)l}
+
+2n-'g2lzoo,a/2 + n-lr2 (z,
+
+a/2),
+
+nl + O(n-2)
+
+(A
+
+6)
+
+A Taylor-series expansion of the right-hand side of Equation (A 6) combined with
+Equation (A 4) and the fact that 2 l1 P(zoo a/2)l = a gives
+
+P(lT I > Z,, a/2) = a +-lg
+
+2(Zoo,
+
+a/2, Ko)
+
+2 (o
+
+/2, Kn)l + O(n-2)
+
+(A 7)
+
+It is not difficult to show that g2(z, a/2, co)
+2(Zo,a/2, k,) = o(n') (Roughly
+speaking, this is because n-lr3(Z) = o(n- l ) almost surely ) Therefore, the second term
+on the right-hand side of Equation (A 7) is o(n-2), which yields Equation (3 27).
+23 The cumulants of a distribution are coefficients in a power-series expansion of the logarithm of its
+characteristic function The first three cumulants are the mean, variance, and third moment about the
+mean The fourth cumulant is the fourth moment about the mean minus three times the square of the
+variance.
+
+Ch 52:
+
+The Bootstrap
+
+3223
+
+References
+Abowd, J M , and D Card (1987), "Intertemporal labor supply and long-term employment contracts",
+American Economic Review 77:50-68.
+Abowd, J M , and D Card (1989), "On the covariance of earnings and hours changes", Econometrica
+57:411-445.
+Altonji, J G , and L M Segal (1994), "Small sample bias in GMM estimation of covariance structures",
+NBER Technical Working Paper no 156 (National Bureau of Economic Research, Cambridge, MA).
+Altonji, J G , and L M Segal (1996), "Small sample bias in GMM estimation of covariance structures",
+Journal of Business and Economic Statistics 14:353-366.
+Amemiya, T (1985), Advanced Econometrics (Harvard University Press, Cambridge, MA).
+Amemiya, T , and J L Powell (1981), "A comparison of the Box-Cox maximum likelihood estimator
+and the non-linear two-stage least squares estimator", Journal of Econometrics 17:351-381.
+Andrews, D W K (1991), "Heteroskedasticity and autocorrelation consistent covariance matrix
+estimation", Econometrica 59:817-858.
+Andrews, D W K (1997), "A conditional Kolmogorov test", Econometrica 65:1097-1128.
+Andrews, D W K (1999), "Higher-order improvements of a computationally attractive k-step bootstrap
+for extremum estimators", Cowles Foundation discussion paper No 1230 (Cowles Foundation for
+Research in Economics, Yale University).
+Andrews, D W K (2000), "Inconsistency of the bootstrap when a parameter is on the boundary of the
+parameter space", Econometrica 68:399-405.
+Andrews, D W K , and M Buchinsky (2000), "A three-step method for choosing the number of bootstrap
+repetitions", Econometrica 68:23-51.
+Andrews, D W K , and J C Monahan (1992), "An improved heteroskedasticity and autocorrelation
+consistent covariance matrix", Econometrica 59:817-858.
+Athreya, K (1987), "Bootstrap of the meaninthe infinite variancecase",Annals of Statistics 15:724-731.
+Babu, G J , and K Singh (1983), "Inference on means using the bootstrap", Annals of Statistics
+11:999-1003.
+Babu, G J , and K Singh (1984), "On one term correction by Efron's bootstrap", Sankhya Series A
+46:219-232.
+Basawa, I V, A K Mallik, W P McCormick, J H Reeves and R L Taylor (1991 a), "Bootstrapping
+unstable first-order autoregressive processes", Annals of Statistics 19:1098-1101.
+Basawa, 1 V, A K Mallik, W P McCormick, J H Reeves and R L Taylor (1991b), "Bootstrap test of
+significance and sequential bootstrap estimation for unstable first order autoregressive processes",
+Communications in Statistics Theory and Methods 20:1015-1026.
+Bassett, G , and R Koenker (1978), "Asymptotic theory of least absolute error regression", Journal of
+the American Statistical Association 73:618-621.
+Behrman, J R , M R Rosenzweig and P Taubman (1994), "Endowments and the allocation of schooling
+in the family and in the marriage market: the twins experiment", Journal of Political Economy
+102:1131-1174.
+Beran, R (1982), "Estimated sampling distributions: The bootstrap and competitors", Annals of Statistics
+10:212-225.
+Beran, R (1987), "Prepivoting to reduce level error of confidence sets", Biometrika 74:457-468.
+Beran, R (1988), "Prepivoting test statistics: a bootstrap view of asymptotic refinements", Journal of
+the American Statistical Association 83:687-697.
+Beran, R , and G R Ducharme (1991), Asymptotic Theory for Bootstrap Methods in Statistics (Les
+Publications CRM, Centre de recherches math 6matiques, Universit 6 de Montr6al, Montr6al, Canada).
+Bertail, P , D N Politis and J P Romano (1999), "On subsampling estimators with unknown rate of
+convergence", Journal of the American Statistical Association 94:569-579.
+Bickel, P J , and D A Freedman (1981), "Some asymptotic theory for the bootstrap", Annals of Statistics
+9:1196-1217.
+
+3224
+
+JL Horowitz
+
+Bickel, P J , E G 6 tze and W R van Zwet (1997), "Resampling fewer than N observations: gains, losses,
+and remedies for losses", Statistica Sinica 7:1-32.
+Blanchard, O J , and D Quah (1989), "The dynamic effects of aggregate demand and supply disturbances",
+American Economic Review 79:655-673.
+Bose, A (1988), "Edgeworth correction by bootstrap in autoregressions", Annals of Statistics 16:
+1709-1722.
+Bose, A (1990), "Bootstrap in moving average models", Annals of the Institute of Statistical Mathematics
+42:753-768.
+Box, G E P , and D R Cox (1964), "An analysis of transformations", Journal of the Royal Statistical
+Society, Series B 26:211-243.
+Brown, B , W K Newey and S May (1997), "Efficient bootstrapping for GMM", Unpublished manuscript
+(Department of Economics, Massachusetts Institute of Technology).
+Brown, B W (1999), "Simulation variance reduction for bootstrapping", in: R Mariano, T Schuermann,
+and M Weeks, eds , Simulation-Based Econometrics: Methods and Applications (Cambridge University
+Press, New York).
+Biihlmann, P (1997), "Sieve bootstrap for time series", Bernoulli 3:123-148.
+Biihlmann, P (1998), "Sieve bootstrap for smoothing in nonstationary time series", Annals of Statistics
+26:48-83.
+Cao-Abad, R (1991), "Rate of convergence for the wild bootstrap in nonparametric regression", Annals
+of Statistics 19:2226-2231.
+Carlstein, E (1986), "The use of subseries methods for estimating the variance of a general statistic
+from a stationary time series", Annals of Statistics 14:1171-1179.
+Cavanagh, C L (1987), "Limiting behavior of estimators defined by optimization", Unpublished
+manuscript (Department of Economics, Harvard University).
+Chandra, T K , and J K Ghosh (1979), "Valid asymptotic expansions for the likelihood ratio statistic and
+other perturbed chi-square variables", Sankhya Series A 41:22-47.
+Chesher, A (1983), "The information matrix test", Economics Letters 13:45-48.
+Chesher, A , and I Jewitt (1987), "The bias ofa heteroskedasticity consistent covariance matrix estimator",
+Econometrica 55:1217-1222.
+Choi, E , and P Hall (2000), "Bootstrap confidence regions computed from autoregressions of arbitrary
+order", Journal of the Royal Statistical Society, Series B 62:461-477.
+Datta, S (1995), "On a modified bootstrap for certain asymptotically non-normal statistics", Statistics
+and Probability Letters 24:91-98.
+Datta, S (1996), "On asymptotic properties of bootstrap for AR(I) processes", Journal of Statistical
+Planning and Inference 53:361-374.
+Datta, S , and WP McCormick (1995), "Some continuous Edgeworth expansions for Markov chains
+with applications to bootstrap", Journal of Multivariate Analysis 52:83-106.
+Davidson, R , and J G Mac Kinnon (1999 a), "Bootstrap testing in nonlinear models", International
+Economic Review 40:487-508.
+Davidson, R , and J G Mac Kinnon (1999 b), "The size distortion of bootstrap tests", Econometric Theory
+15:361-376.
+Davison, A C , and D V Hinkley (1997), Bootstrap Methods and Their Application (Cambridge University
+Press, Cambridge, U K).
+De Angelis, D , P Hall and G A Young (1993), "Analytical and bootstrap approximations to estimator
+distributions in Ll regression", Journal of the American Statistical Association 88:1310-1316.
+Donald, S G , and H J Paarsch (1996), "Identification, estimation, and testing in empirical models of
+auctions within the independent private values paradigm", Econometric Theory 12:517-567.
+Efron, B (1979), "Bootstrap methods: another look at the jackknife", Annals of Statistics 7:1-26.
+Efron, B (1987), "Better bootstrap confidence intervals", Journal of the American Statistical Association
+82:171-185.
+Efron, B , and R J Tibshirani (1993), An Introduction to the Bootstrap (Chapman & Hall, New York).
+
+Ch 52:
+
+The Bootstrap
+
+3225
+
+Eicker, E (1963), "Asymptotic normality and consistency of the least squares estimators for families of
+linear regressions", Annals of Mathematical Statistics 34:447-456.
+Eicker, E (1967), "Limit theorems for regression with unequal and dependent errors", in: L LeCam
+and J Neyman, eds , Proceedings of the 5th Berkeley Symposium on Mathematical Statistics and
+Probability (University of California Press, Berkeley, CA) 59-82.
+Ferretti, N , and J Romo (1996), "Unit root bootstrap tests for AR(l) models", Biometrika 83:849-860.
+Flinn, C J , and J J Heckman (1982), "New methods for analyzing structural models of labor force
+dynamics", Journal of Econometrics 18:115-168.
+Freedman, D A (1981), "Bootstrapping regression models", Annals of Statistics 9:1218-1228.
+Gill, R D (1989), "Non and semi-parametric maximum likelihood estimators and the von Mises method
+(Part 1)", Scandinavian Journal of Statistics 16:97-128.
+Gotze, E, and C Hipp (1983), "Asymptotic expansions for sums of weakly dependent random vectors",
+Zeitschrift fir Warscheinlichkeitstheorie und verwandte Gebiete 64:211-239.
+G 6 tze, E, and C Hipp (1994), "Asymptotic distribution of statistics in time series", Annals of Statistics
+22:2062-2088.
+Gotze, E, and H R Ktinsch (1996), "Blockwise bootstrap for dependent observations: higher order
+approximations for studentized statistics", Annals of Statistics 24:1914-1933.
+Griliches, Z (1979), "Sibling models and data in economics: beginnings of a survey", Journal of Political
+Economy 87:537-564.
+Hahn, J (1995), "Bootstrapping the quantile regression estimators", Econometric Theory 11:105-121.
+Hahn, J (1996), "A note on bootstrapping generalized method of moments estimators", Econometric
+Theory 12:187-197.
+Hall, P (1985), "Resampling a coverage process", Stochastic Process Applications 19:259-269.
+Hall, P (1986 a), "On the number of bootstrap simulations required to construct a confidence interval",
+Annals of Statistics 14:1453-1462.
+Hall, P (1986 b), "On the bootstrap and confidence intervals", Annals of Statistics 14:1431-1452.
+Hall, P (1988), "Theoretical comparison of bootstrap confidence intervals", Annals of Statistics 16:
+927-953.
+Hall, P (1990), "Asymptotic properties of the bootstrap for heavy-tailed distributions", Annals of
+Probability 18:1342-1360.
+Hall, P (1992 a), The Bootstrap and Edgeworth Expansion (Springer, New York).
+Hall, P (1992b), "Effect of bias estimation on coverage accuracy of bootstrap confidence intervals for a
+probability density", Annals of Statistics 20:675-694.
+Hall, P (1994), "Methodology and theory for the bootstrap", in: R E Engle and D E McFadden, eds ,
+Handbook of Econometrics, vol 4 (Elsevier, Amsterdam).
+Hall, P , and J L Horowitz (1996), "Bootstrap critical values for tests based on generalized-method-ofmoments estimators", Econometrica 64:891-916.
+Hall, P , and B -Y Jing (1996), "On sample reuse methods for dependent data", Journal of the Royal
+Statistical Society Series B 58:727-737.
+Hall, P , J L Horowitz and B -Y Jing (1995), "On blocking rules for the bootstrap with dependent data",
+Biometrika 82:561-574.
+Hall, R E , and ES Mishkin (1982), "The sensitivity of consumption to transitive income: estimates
+from panel data on households", Econometrica 50:461-481.
+Hansen, L P (1982), "Large sample properties of generalized method of moments estimators",
+Econometrica 50:1029-1054.
+Hansen, L P , and K Singleton (1982), "Generalized instrumental variables estimation of nonlinear
+rational expectations models", Econometrica 50:1269-1286.
+Hardle, W (1990), Applied Nonparametric Regression (Cambridge University Press Cambridge, UK).
+Hirdle, W , and E Mammen (1993), "Comparing nonparametric versus parametric regression fits",
+Annals of Statistics 21:1926-1947.
+
+3226
+
+JL Horowitz
+
+HArdle, W , and J S Marron (1991), "Bootstrap simultaneous error bars for nonparametric regression",
+Annals of Statistics 19:778-796.
+Hardle, W , W Hildenbrand and M Jerison (1991), "Empirical evidence on the law of demand",
+Econometrica 59:1525-1550.
+Hardle, W, S Huet and E Jolivet (1995), "Better bootstrap confidence intervals for regression curve
+estimation", Statistics 26:287-306.
+Heckman, J J , J Smith and N Clements (1997), "Making the most out of programme evaluations and
+social experiments: accounting for heterogeneity in programme impacts", Review of Economic Studies
+64:487-535.
+Hillier, G H (1985), "On the joint and marginal densities of instrumental variables estimators in a
+general structural equation", Econometric Theory 1:53-72.
+Horowitz, J L (1992), "A smoothed maximum score estimator for the binary response model",
+Econometrica 60:505-531.
+Horowitz, J L (1994), "Bootstrap-based critical values for the information-matrix test", Journal of
+Econometrics 61:395-411.
+Horowitz, J L (1997), "Bootstrap methods in econometrics: theory and numerical performance", in:
+D.M Kreps and K E Wallis, eds , Advances in Economics and Econometrics: Theory and Applications,
+Seventh World Congress, Vol 3 (Cambridge University Press, Cambridge, UK).
+Horowitz, J L (1998 a), "Bootstrap methods for covariance structures", Journal of Human Resources
+33:39-61.
+Horowitz, J L (1998 b), "Bootstrap methods for median regression models", Econometrica
+66:1327-1351.
+Horowitz, J L (1998 c), "Bootstrap critical values for tests based on the smoothed maximum score
+estimator", Journal of Econometrics, forthcoming.
+Janas, D (1993), "A smoothed bootstrap estimator for a studentized sample quantile", Annals of the
+Institute of Statistical Mathematics 45:317-329.
+Jeong, J , and G S Maddala (1993), "A perspective on application of bootstrap methods in econometrics",
+in: G S Maddala, C R Rao, and H D Vinod, eds , Handbook of Statistics, Vol 11 (North-Holland,
+Amsterdam).
+Kennan, J E, and G R Neumann (1988), "Why does the information matrix test reject so often?" Working
+paper no 88-4 (Department of Economics, University of Iowa).
+Kim, J , and D Pollard (1990), "Cube root asymptotics", Annals of Statistics 18:191-219.
+Kitamura, Y (1997), "Empirical likelihood methods with weakly dependent processes", Annals of
+Statistics 25:2084-2102.
+Koenker, R , and G Bassett (1978), "Regression quantiles", Econometrica 46:33-50.
+Kreiss, J -P (1992), "Bootstrap procedures for AR(oo) processes", in: K H J6ckel, G Rothe and
+W Sender, eds , Bootstrapping and Related Techniques, Lecture Notes in Economics and Mathematical
+Systems 376 (Springer-Verlag, Heidelberg).
+Kiinsch, H R (1989), "The jackknife and the bootstrap for general stationary observations", Annals of
+Statistics 17:1217-1241.
+Lahiri, S (1996), "On Edgeworth expansion and moving block bootstrap for Studentized M-estimators
+in multiple linear regression models", Journal of Multivariate Analysis 56:42-59.
+Lahiri, S N (1992), "Edgeworth correction by 'moving block' bootstrap for stationary and nonstationary
+data", in: R Le Page and L Billard, eds , Exploring the Limits of Bootstrap (Wiley, New York).
+Lahiri, S N (1999), "Theoretical comparisons of block bootstrap methods", Annals of Statistics 27:
+386-404.
+Lancaster, T (1984), "The covariance matrix of the information matrix test", Econometrica
+52:1051-1053.
+Lehmann, E L (1959), Testing Statistical Hypotheses (Wiley, New York).
+Li, H , and G S Maddala (1996), "Bootstrapping time series models", Econometric Reviews 15:115-158.
+
+Ch 52:
+
+The Bootstrap
+
+3227
+
+Li, H , and G S Maddala (1997), "Bootstrapping cointegrating regressions", Journal of Econometrics
+80:297-318.
+Liu, R Y (1988), "Bootstrap procedures under some non-i i d models", Annals of Statistics 16:
+1696-1708.
+Liu, R Y , and K Singh (1987), "On a partial correction by the bootstrap", Annals of Statistics
+15:1713-1718.
+Mac Kinnon, J G , and H White (1985), "Some heteroskedasticity-consistent covariance matrix estimators
+with improved finite sample properties", Journal of Econometrics 29:305-325.
+Mammen, E (1992), When Does Bootstrap Work? Asymptotic Results and Simulations (Springer, New
+York).
+Mammen, E (1993), "Bootstrap and wild bootstrap for high dimensional linear models", Annals of
+Statistics 21:255-285.
+Manski, C E (1975), "Maximum score estimation of the stochastic utility model of choice", Journal of
+Econometrics 3:205-228.
+Manski, C E (1985), "Semiparametric analysis of discrete response: asymptotic properties of the maximum
+score estimator", Journal of Econometrics 27:313-334.
+Manski, C E, and TS Thompson (1986), "Operational characteristics of maximum score estimation",
+Journal of Econometrics 32:85-108.
+Nelson, C R , and R Startz (1990a), "The distribution of the instrumental variable estimator and its
+t ratio when the instrument is a poor one", Journal of Business 63:5125-5140.
+Nelson, C R , and R Startz (1990b), "Some further results on the exact small sample properties of the
+instrumental variable estimator", Econometrica 58:967-976.
+Newey, W K , and K D West (1987), "A simple, positive semi-definite, heteroskedasticity and
+autocorrelation consistent covariance matrix", Econometrica 55:703-708.
+Newey, W K , and K D West (1994), "Automatic lag selection in covariance matrix estimation", Review
+of Economic Studies 61:631-653.
+Orme, C (1990), "The small-sample performance of the information-matrix test", Journal of Econometrics
+46:309-331.
+Paparoditis, E , and D N Politis (2000), "The local bootstrap for Markov processes", Journal of Statistical
+Planning and Inference, forthcoming.
+Phillips, P C B (1983), "Exact small sample theory in the simultaneous equations model", in: Z Griliches
+and M D Intriligator, eds , Handbook of Econometrics, Vol 1 (North-Holland, Amsterdam).
+Politis, D N , and J P Romano (1994), "Large sample confidence regions based on subsamples under
+minimal assumptions", Annals of Statistics 22:2031-2050.
+Politis, D N , J P Romano and M Wolf (1997), "Subsampling for heteroskedastic time series", Journal
+of Econometrics 81:281-317.
+Politis, D N , J P Romano and M Wolf (1999), Subsampling (Springer, New York).
+Powell, J L (1984), "Least absolute deviations estimation for the censored regression model", Journal
+of Econometrics 25:303-325.
+Powell, J L (1986), "Censored regression quantiles", Journal of Econometrics 32:143-155.
+Rajarshi, M B (1990), "Bootstrap in Markov-sequences based on estimates of transition density", Annals
+of the Institute of Statistical Mathematics 42:253-268.
+Rao, C R (1973), Linear Statistical Inference and its Applications, 2nd Edition Wiley, New York.
+Runkle, D E (1987), "Vector autoregressions and reality", Journal of Business and Economic Statistics
+5:437-442.
+Shao, U , and D Tu (1995), The Jackknife and Bootstrap (Springer, New York).
+Silverman, B W (1986), Density Estimation for Statistics and Data Analysis (Chapman and Hall,
+London).
+Singh, K (1981), "On the asymptotic accuracy of Efron's bootstrap", Annals of Statistics 9:1187-1195.
+Spitzer, J J (1984), "Variance estimates in models with the Box-Cox transformation: implications for
+estimation and hypothesis testing", Review of Economics and Statistics 66:645-652.
+
+3228
+
+JL Horowitz
+
+Stute, W (1997), "Nonparametric model checks for regression", Annals of Statistics 25:613-641.
+Swanepoel, J W H (1986), "A note on proving that the (modified) bootstrap works", Communications in
+Statistics Theory and Methods 15:3193-3203.
+Taylor, L W (1987), "The size bias of White's information matrix test", Economics Letters 24:63-67.
+Vinod, H D (1993), "Bootstrap methods: applications in econometrics", in: G S Maddala, C R Rao and
+H.D Vinod, eds , Handbook of Statistics, Vol 11 (North-Holland, Amsterdam).
+West, K D (1990), "The sources of fluctuations in aggregate inventories and GNP", Quarterly Journal
+of Economics 105:939-971.
+White, H (1980), "A heteroscedasticity-consistent covariance matrix estimator and a direct test for
+heteroscedasticity", Econometrica 48:817-838.
+White, H (1982), "Maximum likelihood estimation of misspecified models", Econometrica 50:1-26.
+Wu, C EJ (1986), "Jackknife, bootstrap and other resampling methods in regression analysis", Annals
+of Statistics 14:1261-1295.
+
+

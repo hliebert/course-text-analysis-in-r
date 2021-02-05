@@ -1,0 +1,4206 @@
+arXiv:1702.02896v5 [math.ST] 16 Sep 2019
+
+Efficient Policy Learning
+Susan Athey
+athey@stanford.edu
+
+Stefan Wager
+swager@stanford.edu
+
+Draft version September 2019
+Abstract
+In many areas, practitioners seek to use observational data to learn a treatment assignment policy that satisfies application-specific constraints, such as budget, fairness,
+simplicity, or other functional form constraints. For example, policies may be restricted
+to take the form of decision trees based on a limited set of easily observable individual
+characteristics. We propose a new approach to this problem motivated by the theory
+of semiparametrically efficient estimation. Our method can be used to optimize either
+binary treatments or infinitesimal nudges to continuous treatments, and can leverage
+observational data where causal effects are identified using a variety of strategies, including selection on observables and instrumental variables. Given a doubly robust
+estimator of the causal effect of assigning everyone to treatment, we develop an algorithm for choosing whom to treat, and establish strong guarantees for the asymptotic
+utilitarian regret of the resulting policy.
+Keywords: double robustness, empirical welfare maximization, minimax regret, semiparametric efficiency.
+
+1
+
+Introduction
+
+The problem of learning treatment assignment policies, or mappings from individual characteristics to treatment assignments, is ubiquitous in applied economics and statistics. It
+arises, for example, in medicine when a doctor must decide which patients to refer for a risky
+surgery; in marketing when a company needs to choose which customers to send targeted
+offers to; and in government and policy settings, when assigning students to educational
+programs or inspectors to buildings and restaurants.
+The treatment assignment problem rarely arises in an unconstrained environment. Treatments are often expensive, and so a policy may need to respect budget constraints. Policies
+may need to be implemented in environments characterized by human or machine constraints; for example, emergency medical professionals or police officers may need to implement decision policies in the field, where a simple decision tree might be used. For internet
+We are grateful for helpful conversations with colleagues including Victor Chernozhukov, David Hirshberg, Guido Imbens, Michael Kosorok, Alexander Luedtke, Eric Mbakop, Whitney Newey, Xinkun Nie,
+Molly Offer-Westort, Alexander Rakhlin, James Robins, Max Tabord-Meehan and Zhengyuan Zhou, and for
+feedback from the editor, referees, as well as seminar participants at a variety of universities and workshops.
+We also thank Guido Imbens for sharing the California GAIN dataset with us. Generous financial support
+was provided by the Sloan Foundation, Office of Naval Research grant N00014-17-1-2131, National Science
+Foundation grant DMS-1916163, and a Facebook Faculty Award.
+
+1
+
+or mobile services, algorithms may need to determine the set of information displayed to a
+user very quickly, and a simple lookup table may decrease the time it takes to respond to
+a user’s request. Fairness constraints may require a treatment assignment policy to depend
+only on particular types of covariates (for example, test scores or income), even when other
+covariates are observed.
+This paper is about using observational data to learn policies that respect the types of
+constraints outlined above. The existing literature on policy learning has mostly focused on
+the setting where we want to optimize allocation of a binary treatment using data from a
+randomized trial, or from a study with a known, random treatment assignment policy. In
+many problems, however, one may need to leverage richer forms of observational data to
+learn treatment assignment rules. For example, if we want to learn whom to prescribe a
+drug to based on data from a clinical trial, we need to have methods that deal with noncompliance and resulting endogenous treatment assignments.1 Or, if we are interested in
+offering some customers discounts, then we need methods that let us study interventions to
+continuous variables (e.g., price) rather than just discrete ones. The goal of this paper is
+to develop methods for policy learning that don’t just work in randomized trials (or related
+settings), but can instead work with a rich variety of observational designs.
+Formally, we study the problem where we have access to observational data and want to
+use it to learn a policy that maps a subject’s characteristics Xi ∈ X to a binary decision,
+π : X → {0, 1}. The practitioner has also specified a class Π that encodes problem-specific
+constraints pertaining to budget, functional form, fairness, etc., and requires that our learned
+policy π̂ satisfies these constraints, π̂ ∈ Π. Then, following Manski (2004, 2009) and, more
+recently, Hirano and Porter (2009), Kitagawa and Tetenov (2018) and Stoye (2009, 2012),
+we seek guarantees on the regret R(π̂), i.e., the difference between the expected utility from
+deploying the learned policy π̂ and the best utility that could be achieved from deploying
+any policy in the class Π.
+Our paper builds on a rich literature at the intersection of econometrics, statistics and
+computer science on learning structured treatment assignment rules, including Kitagawa
+and Tetenov (2018), Swaminathan and Joachims (2015) and Zhao, Zeng, Rush, and Kosorok
+(2012). Most closely related to us, Kitagawa and Tetenov (2018) study a special case of our
+problem where treatments are binary and exogenous with known assignment probabilities,
+and show that an algorithm based on inverse-probability weighting achieves regret that
+depends optimally on the sample size and the complexity of the policy class Π.2
+Here, we develop a new family of algorithms that achieve regret guarantees with optimal dependence on sample size and on Π, but under considerably more generality on the
+sampling design. We consider both the classical case where we want to optimize a binary
+treatment, and a related setting where we want to optimize infinitesimal nudges to a continuous treatment (e.g., a price). Moreover, our approach can leverage observational data where
+the treatment assignment mechanism may either be exogenous with unknown assignment
+probabilities, or endogenous, in which case we require an instrument.
+Our approach starts from recent unifying results of Chernozhukov, Escanciano, Ichimura,
+Newey, and Robins (2018b) on semiparametrically efficient estimation. As discussed in more
+1 If we believed that compliance patterns when we deploy our policy would be similar to those in the
+clinical trial, then an intent-to-treat analysis may be a reasonable way to side-step endogeneity concerns.
+However, if we suspect that compliance patterns may change (e.g., if patients may be more likely to adhere
+to a treatment regime prescribed by their doctor than one randomly assigned in a clinical trial), then using
+an analysis that disambiguates received treatment from assigned treatment is necessary.
+2 Kitagawa and Tetenov (2018) also consider the case where treatment assignment probabilities are unknown; in this case, however, their method no longer achieves optimal dependence on the sample size.
+
+2
+
+detail in Section 2, Chernozhukov et al. (2018b) show that in many problems of interest, we
+can construct efficient estimates of average-treatment-effect-like parameters τ as
+n
+
+τ̂ =
+
+1 Xb
+Γi ,
+n i=1
+
+(1)
+
+b i is an appropriate doubly robust score for the intervention of interest. This approach
+where Γ
+can be used to estimate the average effect of a binary treatment, the average derivative of
+a continuous treatment, or other related estimands.
+In this paper we find that, whenever one can estimate the average utility of treating
+everyone3 using an estimator of the type (1) built via the doubly robust construction of
+Chernozhukov et al. (2018b), we can also usefully learn whom to target with the intervention
+via a simple procedure: Given a pre-specified policy class Π (e.g., linear decision rules or
+finite-depth decision trees), we propose using the treatment assignment rule π̂ that solves4
+)
+( n
+1X
+bi : π ∈ Π ,
+(2π(Xi ) − 1) Γ
+(2)
+π̂ = argmax
+n i=1
+b i are the same doubly robust scores as used in (1). Our main result is that, under
+where Γ
+regularity
+conditions, the resulting policies π̂ have regret R(π̂) bounded on the order of
+p
+VC(Π)/n with high probability. Here, VC(Π) is the Vapnik-Chervonenkis dimension of
+the class Π and n is the sample size. We also highlight how the constants in this bound
+depend on fundamental quantities from the semiparametric efficiency literature.
+Our proof combines results from semiparametrics with carefully tailored analysis tools
+that build on classical ideas from empirical process theory. The reason we obtain strong
+guarantees for the approach (2) is closely tied to robustness properties of the estimator (1).
+In the setting where we only want to estimate a single average effect parameter, it is well
+known that non-doubly robust estimators can also be semiparametrically efficient (Hirano,
+Imbens, and Ridder, 2003). Here, however, we need convergence results that are strong
+enough to withstand optimization over the whole class Π. The fact that doubly robust
+estimators are fit for this task is closely related to their ability to achieve semiparametric
+efficiency under general conditions, even if nuisance components are estimated via blackbox machine learning methods for which we can only guarantee fast enough convergence in
+mean-squared error (Chernozhukov et al., 2018a; van der Laan and Rose, 2011).
+We spell out our general framework in Section 2. For intuition, however, it is helpful
+to first consider this approach in the simpler case where we want to study the effect of a
+binary treatment Wi ∈ {0, 1} on an outcome Yi ∈ R interpreted as a utility and are willing
+to assume selection on observables: We have potential outcomes {Yi (0), Yi (1)} such that
+Yi = Yi (Wi ) and {Yi (0), Yi (1)} ⊥
+⊥ Wi Xi (Imbens and Rubin, 2015). Then, the utilitarian
+regret of deploying a policy π ∈ Π is (Manski, 2009)
+R(π) = max {E [Yi (π 0 (Xi ))] : π 0 ∈ Π} − E [Yi (π(Xi ))] ,
+3 Throughout
+
+(3)
+
+this paper, we assume that there is no intereference, i.e., assigning one unit to treatment
+doesn’t affect outcomes for others. For a discussion of treatment effect estimation under intereference, see
+Hudgens and Halloran (2008), Manski (2013), Sobel (2006), and references therein.
+4 If this optimization problem has multiple solutions, we set π̂ to an arbitrary maximizer of the objective.
+Our formal results apply simultaneously to all solutions of (2).
+
+3
+
+and we can construct our estimator (2) using the well known augmented inverse-propensity
+weighted scores of Robins, Rotnitzky, and Zhao (1994, 1995),
+Wi − ê(Xi )
+b i = m̂(Xi , 1) − m̂(Xi , 0) +
+(Yi − m̂(Xi , Wi )) ,
+Γ
+ê(Xi )(1 − ê(Xi ))
+
+
+
+
+e(x) = P Wi = 1 Xi = x , m(x, w) = E Yi (w) Xi = x .
+
+(4)
+
+In this setup, our result implies that—under regularity
+conditions—the estimator (2) with
+p
+scores (4) has regret (3) bounded on the order of VC(Π)/n.
+Even in this simplest case, our result is considerably stronger than results currently
+available in the literature. The main result of Kitagawa and Tetenov (2018) is that, if
+treatment propensities e(Xi ) are known,
+pthen a variant of inverse-propensity weighted policy
+learning achieves regret on the order of VC(Π)/n. However, in observational studies where
+the treatment propensities are unknown, the bounds of Kitagawa and Tetenov (2018)
+√depend
+n. The
+on the rate at which we
+can
+estimate
+e(·),
+and
+will
+generally
+decay
+slower
+than
+1/
+√
+only other available 1/ n-bounds for policy learning in observational studies with a binary
+treatment that we are aware of are a result of van der Laan, Dudoit, and van der Vaart (2006)
+for the case where Π consists of a finite set of policies whose cardinality grows with n, and
+a result of Kallus (2017a) in the special case m(·, w) is assumed to belong to a reproducing
+kernel Hilbert space. The idea of using doubly robust scores to learn optimal treatment
+assignment of a binary treatment has been previously discussed in Dudı́k, Langford, and
+Li (2011) and Zhang, Tsiatis, Davidian, Zhang, and Laber (2012); however, neither paper
+provides a regret bound for this approach.
+In the more general case where the observed treatment assignments Wi may be continuous and/or we may need to use instrumental variables to identify causal effects, both the
+methods and regret bounds provided here are new. By connecting the policy learning problem to the semiparametric efficiency literature, we are able to develop a general framework
+that applies across a variety of settings.
+The rest of the paper proceeds as follows. We discuss related work in more detail below.
+Next, we formalize the connection between evaluating a single policy, and optimizing over
+a set of policies. Section 2 spells out how several commonly studied settings map into
+our framework and presents our main regret bound. Technical tools and lower bounds are
+developed in Sections 3 and 4. In Section 5, we study an empirical application to the problem
+of assigning individuals to a training program in California, and conduct simulation studies
+to illustrate the application to settings with instrumental variables or nudge interventions
+to continuous treatments.
+
+1.1
+
+Related Work
+
+The literature on optimal treatment allocation has been rapidly expanding across several
+fields. In the econometrics literature, the program of learning regret-optimal treatment rules
+was started by Manski (2004, 2009). One line of work considers the case where the policy
+class is unrestricted, and the optimal treatment assignment rule simply depends on the sign
+of the conditional average treatment√effect for each individual unit. In this setting, Hirano
+and Porter (2009) show that when 1/ n-rate estimation of the conditional average treatment
+effect function is possible, then treatment assignment rules obtained by thresholding an
+efficient estimate of the conditional average treatment effect are asymptotically minimaxoptimal. Meanwhile, Stoye (2009) derives finite sample minimax decision rules in a class
+
+4
+
+of problems where both the response surfaces and the policies π may depend arbitrarily
+on covariates. Further results are given in Armstrong and Shen (2015), Bhattacharya and
+Dupas (2012), Chamberlain (2011), Dehejia (2005), Kasy (2016), Stoye (2012) and Tetenov
+(2012).
+Building on this line of work, Kitagawa and Tetenov (2018) study policy learning in a
+non-parametric setting where the learned policy π̂ is constrained to belong to a structured
+class Π and show that, in this case, we can obtain regret bounds relative to the best policy
+in Π that scale with the complexity of the class Π. A key insight from Kitagawa and
+Tetenov (2018) is that,√when propensity scores are known and Π has finite VC dimension,
+even if the
+it is possible to get 1/ n-rate regret bounds for policy learning over a class Π √
+conditional average treatment effect function itself cannot be estimated at a 1/ n-rate; in
+other words, we can reliably find a nearly best-in-class policy without needing to accurately
+estimate a model that describes all causal effects. As discussed above, our paper builds
+on this work by considering rate-optimal regret bounds for best-in-class policy learning in
+observational studies where propensity scores are unknown and treatment assignment may
+be endogenous, etc.
+One difference between our results and those of Kitagawa and Tetenov (2018) is that
+the latter provide finite sample regret bounds, whereas our results are asymptotic in the
+sample size n. The reason for this is that our bounds rely on results from the literature
+on semiparametric estimation (Bickel, Klaassen, Ritov, and Wellner, 1998; Chernozhukov,
+Escanciano, Ichimura, Newey, and Robins, 2018b; Chen, Hong, and Tarozzi, 2008; Hahn,
+1998; Newey, 1994; Robins and Rotnitzky, 1995), which themselves are asymptotic. Recently, Armstrong and Kolesár (2017) showed that, in a class of average treatment effect
+estimation problems, finite sample conditionally minimax linear estimators are asymptotically efficient, thus providing a connection between desirable finite sample guarantees and
+asymptotic optimality. It would be interesting to examine whether similar connections are
+possible in the policy learning case.
+Policy learning from observational data has also been considered in parallel literatures
+developed in both statistics (Chen, Zeng, and Kosorok, 2016; Luedtke and van der Laan,
+2016a,b,c; Luedtke and Chambaz, 2017; Qian and Murphy, 2011; Zhang, Tsiatis, Davidian,
+Zhang, and Laber, 2012; Zhao, Zeng, Rush, and Kosorok, 2012; Zhou, Mayer-Hamblett,
+Khan, and Kosorok, 2017) and machine learning (Beygelzimer and Langford, 2009; Dudı́k,
+Langford, and Li, 2011; Kallus, 2017a,b; Swaminathan and Joachims, 2015). Two driving
+themes behind these literatures are the development of performant algorithms for solving
+the empirical maximization problems (and relaxations thereof) that underlie policy learning,
+and the use of doubly robust objectives for improved practical performance. Kallus (2017a),
+Swaminathan and Joachims (2015), Zhao et al. (2012) and Zhou √
+et al. (2017) also prove
+regret bounds for their methods; however, they do not achieve a 1/ n sample dependence,
+with the exception of Kallus (2017a) in the special case of the reproducing kernel Hilbert
+space setting described above. Finally, Luedtke
+and Chambaz (2017) propose a class of
+√
+regret bounds that decay faster than 1/ n by exploiting non-uniform asymptotics; see
+Section 4 for a further discussion.
+The problem of optimal treatment allocation can also be seen as a special case of the
+broader problem of optimal data-driven decision making. From this perspective, our result
+is related to the work of Ban and Rudin (2018) and Bertsimas and Kallus (2014), who
+study data-driven rules for optimal inventory management and related problems. Much like
+in our case, they advocate learning with a loss function that is directly tied to a utility-based
+criterion.
+
+5
+
+Another relevant line of work studies the online “contextual bandit” setup where a practitioner seeks to learn a decision rule while actively making treatment allocation decisions
+for incoming subjects (e.g., Agarwal, Hsu, Kale, Langford, Li, and Schapire, 2014; Auer,
+Cesa-Bianchi, Freund, and Schapire, 2002; Bastani and Bayati, 2015; Dimakopoulou, Athey,
+and Imbens, 2017; Lai and Robbins, 1985; Perchet and Rigollet, 2013; Rakhlin and Sridharan, 2016). Despite aiming for a similar goal, the contextual bandit problem is quite
+different from ours: On one hand, it is harder because of an exploration/exploitation tradeoff that arises in sequential trials; on the other hand, it is easier, because the experimenter
+has perfect control over the treatment assignment mechanism at each step of the procedure.
+Finally, we also note a growing literature on estimating conditional average treatment
+effects (Athey and Imbens, 2016; Athey, Tibshirani, and Wager, 2019; Chen, 2007; Künzel,
+Sekhon, Bickel, and Yu, 2017; Nie and Wager, 2017; Wager and Athey, 2018). Although the
+goal is similar to that of learning optimal treatment assignment rules, the specific results
+themselves differ; they focus on squared-error loss rather than utilitarian regret.
+
+2
+
+From Efficient Policy Evaluation to Learning
+
+Our goal is to learn a policy π ∈ Π that maps a subject’s features Xi ∈ X to a treatment
+decision: π : X → {0, 1}. In order to do so, we assume that we have independent and
+identically distributed samples (Xi , Yi , Wi , Zi ), where Yi ∈ R is the outcome we want to
+intervene on, Wi is the observed treatment assignment, and Zi is an (optional) instrument
+used for identifying causal effects. In cases where Wi is exogenous, we simply take Zi = Wi .
+Throughout our analysis, we interpret Yi as the utility resulting from our intervention on
+the i-th sample, e.g., Yi could measure the benefit accrued by a subject minus any cost of
+treatment. We then seek policies that make the expected value of Yi large.
+We define the causal effect of the intervention π(·) in terms of the potential outcomes
+model (Neyman, 1923; Rubin, 1974), whereby the {Yi (w)} correspond to utilities we would
+have observed for the i-th sample had the treatment been set to Wi = w, and Yi = Yi (Wi ).
+When instruments are present, we always assume that the exclusion restriction holds so
+that this notation is well specified. We consider both examples with a binary treatment
+Wi ∈ {0, 1} and with a continuous treatment Wi ∈ R.
+In the case where Wi is binary, we follow the existing literature (Hirano and Porter,
+2009; Kitagawa and Tetenov, 2018; Manski, 2004; Stoye, 2009), and study interventions
+that directly specify the treatment level. In this case, the utility of deploying a policy π(·)
+relative to treating no one is (Manski, 2009)
+V (π) = E [Yi (π(Xi )) − Yi (0)] ,
+
+(5)
+
+and the corresponding policy regret relative to the best possible policy in the class Π is
+R(π) = max {V (π 0 ) : π 0 ∈ Π} − V (π).
+
+(6)
+
+As discussed in the introduction, in this binary setting, Kitagawa and Tetenov (2018)
+show that if Wi is exogenous with known treatment propensities, then we√can use inversepropensity weighting to derive a policy π̂ whose regret R(π̂) decays as 1/ n, with
+)
+( n
+1 X 1 ({Wi = π(Xi )}) Yi
+
+ :π∈Π .
+π̂IP W = argmax
+(7)
+n i=1 P Wi = π(Xi ) Xi
+6
+
+Here, we develop methods that can also be used in observational studies where treatment
+propensities may be unknown, and where we may need to use instrumental variables to
+identify V (π) from (5).
+Meanwhile, when Wi is continuous, we study infinitesimal interventions on the treatment
+level motivated by the work of Powell, Stock, and Stoker (1989). We define the utility of
+such an infinitesimal intervention as
+
+
+d
+E [Yi (Wi + νπ(Xi ))]
+,
+(8)
+V (π) =
+dν
+ν=0
+and then define regret in terms of V (π) as in (6). One interesting conceptual difference that
+arises in this case is that, now, our interventions π(Xi ) ∈ {0, 1} and observed treatment
+assignments Wi ∈ R take values in different spaces. For example, in an example where we
+want to target some customers with personalized discounts, we may have access to past
+prices Wi that take on a continuum of values, but are considering a new class of policies
+that only allow us to make a binary decision π(Xi ) ∈ {0, 1} on whether to offer customers
+a small discount or not. The fact that we can still learn low-regret policies via the simple
+strategy (2) even when these two spaces are decoupled highlights the richness of the policy
+learning problem.5
+With both binary and continuous treatments, the regret of a policy π can be written in
+terms of a conditional average treatment effect function,
+
+
+
+
+
+d 
+E Yi (Wi + ν) Xi = x
+, (9)
+τ (x) = E Yi (1) − Yi (0) Xi = x or τ (x) =
+dν
+ν=0
+such that V (π) = E [π(Xi )τ (Xi )] and regret R(π) is as in (6). Our analysis pertains to any
+setup with a regret function R(π) that admits such a representation.
+Given these preliminaries, recall that our goal is to learn low regret policies, i.e.,
+√ to use
+observational data to derive a policy π̂ ∈ Π with a guarantee that R(π̂) = OP (1/ n). In
+order to do so, we need to make assumptions on the observational data generation distribution that allow for identification and adequate estimation of V (π), and also control the
+size of Π in a way that makes emulating the best-in-class policy a realistic objective. The
+following two subsections outline these required conditions; our main result is then stated
+in Section 2.3.
+
+2.1
+
+Identifying and Estimating Causal Effects
+
+In order to learn a good policy π̂, we first need to be able to evaluate V (π) for any specific
+policy π. Our main assumption, following Chernozhukov, Escanciano, Ichimura, Newey, and
+Robins (2018b), is that we can construct a doubly robust score for the average treatment
+effect θ = E [τ (Xi )]. At the end of this section we discuss how this approach applies to three
+important examples, and refer the reader to Chernozhukov et al. (2018b) for a more general
+discussion of when such doubly robust scores exist.
+
+
+Assumption 1. Write m(x, w) = E Yi (w) Xi = x ∈ M for the counterfactual response
+surface. We assume that m(x, w) induces a treatment effect function τm (x, w) with the
+following properties:
+5 Another interesting question one could ask is how best to optimize the assignment of W globally rather
+i
+than locally (i.e., the case where we can set the treatment level w to an arbitrary level, rather than simply
+nudge the pre-existing levels of Wi ). This question would require different formal tools, however, as the
+results developed in this paper only apply to binary decisions.
+
+7
+
+1. The functional m(·) → τm (·) is linear in m, and there exists a weighting function
+g(x, z) that identifies τm (·) via
+
+
+E τm
+e i , Wi ) Xi = 0,
+(10)
+e (Xi , Wi ) − g(Xi , Zi )m(X
+for any counterfactual response surface m(x,
+e
+w) ∈ M.
+2. Policy value can be defined in terms of moments of
+ τm (Xi , Wi ), such that V (π) =
+E [π(Xi )τ (Xi )] with τ (x) = E τm (Xi , Wi ) Xi = x for all π : X → {0, 1}.
+In some examples τm (x, w) does not depend on w, and we simply omit the w-argument of
+τm (·).
+Given this setup, Chernozhukov et al. (2018b) propose first estimating g(·) and m(·),
+and then consider
+n
+
+θ̂ =
+
+1 Xb
+b i = τm̂ (Xi , Wi ) + ĝ (Xi , Zi ) (Yi − m̂ (Xi , Wi )) .
+Γi , Γ
+n i=1
+
+(11)
+
+√
+They show that this estimator is n-consistent and asymptotically unbiased Gaussian for
+θ, provided that the nuisance estimates ĝ(·) and m̂(·) converge sufficiently fast and that
+we use cross-fitting (Chernozhukov et al., 2018a; Schick, 1986). This estimator is also
+semiparametrically efficient under general conditions (Newey, 1994).6
+b i in (11); however, instead of using
+Here, we also start with the doubly robust scores Γ
+them for simply estimating θ, we use them for policy learning by plugging them into (2).
+Our main result will establish that we can get strong regret bounds for learning policies
+under conditions that are similar to those used by Chernozhukov et al. (2018b) to show
+asymptotic normality of (11) and, more broadly, that build on assumptions often made
+in the literature on semiparametric efficiency (Bickel, Klaassen, Ritov, and Wellner, 1998;
+Chen, Hong, and Tarozzi, 2008; Hahn, 1998; Newey, 1994; Robins and Rotnitzky, 1995).
+As in the recent work of Chernozhukov et al. (2018a) on double machine learning or
+that of van der Laan and Rose (2011) on targeted learning, we take an agnositic view on
+how the nuisance estimates ĝ(·) and m̂(·) are obtained, and simply impose high level conditions on their rates of convergence. Given sufficient regularity, we can construct estimators
+that satisfy the rate condition (13) via, e.g., sieve-based methods (Chen, 2007; Negahban,
+Ravikumar, Wainwright, and Yu, 2012) or kernel regression (Caponnetto and De Vito, 2007;
+Mendelson and Neeman, 2010). Moreover, in applications, we may want to consider several
+different machine learning methods for each component, or potentially combinations thereof,
+and then use cross-validation to choose which method to use. As discussed in van der Laan,
+Polley, and Hubbard (2007), this strategy will in general recover the rate of convergence of
+the best method under consideration. For completeness, we allow problem specific quantities to change with
+the sample size n, and track this dependence with a subscript n, e.g.,
+
+mn (x, w) = En Yi (w) Xi = x , etc.
+Assumption
+2. In the setting
+1, assume
+
+ 2 of Assumption
+
+ 2that second
+ moments are controlled
+as En m2n (Xi , Wi ) , En τm
+(X
+,
+W
+)
+<
+∞
+and
+E
+g
+(X
+,
+Z
+)
+< ∞ for all n = 1, 2, ....
+i
+i
+n
+i
+i
+n
+n
+√
+results don’t depend on efficiency of (11); rather, we only use n-consistency. In cases where (11)
+may not be efficient, our regret bounds
+  still hold verbatim; the only difference being that we can no longer
+interpret the terms of the form E Γ2i appearing in the bound as related to the semiparametric efficient
+variance for θ.
+6 Our
+
+8
+
+Moreover, we assume that we have access to uniformly consistent estimators of these nuisance components,
+sup {|m̂n (x, w) − mn (x, w)|} , sup {|τm̂n (x, w) − τmn (x, w)|} →p 0,
+x, w
+
+x, w
+
+sup {|ĝn (x, z) − gn (x, z)|} →p 0,
+
+(12)
+
+x, z
+
+whose L2 errors decay as follows, for some 0 < ζm , ζe < 1 with ζm + ζe ≥ 1 and some
+a(n) → 0, where (X, W, Z) is taken to be an independent test example drawn from the
+same distribution as the training data:7
+h
+i
+h
+i a(n)
+2
+2
+E (m̂n (X, W ) − mn (X W )) , E (τm̂n (X, W ) − τmn (X, W )) ≤ ζm ,
+n
+(13)
+h
+i a(n)
+2
+E (ĝn (X, Z) − gn (X, W )) ≤ ζg .
+n
+We end this section by verifying that Assumption 1 in fact covers several settings of
+interest, and is closely related to several standard approaches to semiparametric inference.
+In cases with selection on observables we do not need an instrument (or can simply set
+Zi = Wi ), so for simplicity of notation we replace all instances of Zi with Wi .
+Binary treatment with selection on observables. Most existing work on policy
+learning, including Kitagawa and Tetenov (2018), have focused on the setup where Wi
+is binary and unconfounded, i.e., {Yi (0), Yi (1)} ⊥
+⊥ Wi Xi . In this case, weighting by
+the inverse propensity score lets us recover
+the
+average
+treatment
+effect, i.e., g(x, w) =
+
+
+(w − e(x))/(e(x)(1 − e(x))) with e(x) = P Wi = 1 Xi = x identifies the conditional average treatment effect τm (x) = m(x, 1) − m(x, 0) via (10). Moreover, the estimation strategy
+(11) yields
+
+n 
+1X
+Wi − ê(Xi )
+θ̂ =
+m̂(Xi , 1) − m̂(Xi , 0) +
+(Yi − m̂ (Xi , Wi )) ,
+(14)
+n i=1
+ê(Xi )(1 − ê(Xi )
+and thus recovers augmented inverse propensity weighting (Robins, Rotnitzky, and Zhao,
+1994, 1995).
+Continuous treatment with selection on observables. In the case where Wi is continuous and unconfounded {Yi (w)} ⊥
+⊥ Wi Xi , we can derive a representer g(·) via integration by parts (Powell, Stock, and Stoker, 1989). Under regularity conditions, the τ -function
+τm (x, w) = [d/dν m(x, w + ν)]ν=0 can be identified via (10) using
+Z Z
+Z Z
+d
+[m(Xi , Wi )]w=W dFWi |Xi dFXi =
+g(Xi , Wi )m(Xi , Wi )dFWi |Xi dFXi ,
+dw
+(15)
+
+d 
+log f w Xi w=Wi ,
+g(Xi , Wi ) = −
+dw
+7 A notable special case of this assumption is when ζ
+m = ζg = 1/2; this is equivalent to the standard
+assumption in the semiparametric estimation literature that all nuisance components (i.e., in our case,
+both the outcome and weighting regressions) are o(n−1/4 )-consistent in terms of L2 -error. The weaker
+requirement (13) reflects the fact that doubly robust treatment effect estimators can trade-off accuracy of
+the m-model with accuracy of the g-model, provided the product of the error rates is controlled (Farrell,
+2015).
+
+9
+
+where f (· x) denotes the conditional density of Wi given Xi = x. Although closely related
+to existing proposals, including one by Ai and Chen (2007), the resulting doubly robust
+estimator was to our knowledge first derived via the general approach of Chernozhukov
+et al. (2018b).
+Binary, endogenous treatment with binary treatment and instrument. Instead
+of unconfoundedness, now suppose that Zi is a valid instrument conditionally on features
+Xi in the sense of Assumption 2.1 of Abadie (2003). Suppose moreover that treatment
+effects are homogenous, meaning that the conditional average treatment effect matches the
+conditional local average treatment effect (Imbens and Angrist, 1994),8
+
+
+Cov Yi , Zi Xi = x
+
+.
+(16)
+τm (x) = m(x, 1) − m(x, 0) =
+Cov Wi , Zi Xi = x
+Then we can use a weighting function g(·) defined in terms of the compliance score (Abadie,
+2003; Aronow and Carnegie, 2013),
+
+
+1
+Zi − z(Xi )
+g(Xi , Zi ) =
+, z(x) = P Zi = 1 Xi = x ,
+∆(Xi ) z(Xi )(1 − z(Xi )
+
+
+
+
+∆(x) = P Wi = 1 Zi = 1, Xi = x − P Wi = 1 Zi = 0, Xi = x ,
+
+(17)
+
+to identify this τ -function using (10). We note that our formal results all require that g(·)
+be bounded, which implicitly rules out the case of weak instruments (since if ∆ approaches
+0, the g(·)-weights blow up).
+
+2.2
+
+Assumptions about the Policy Class
+
+√
+Next, in order to obtain regret bounds that decay as 1/ n, we need some control over the
+complexity of the class Π (and again let Π potentially change with n for generality). The
+Vapnik-Chervonenkis (VC) approach (Vapnik, 2000) presents us with a natural way to do
+so. Recall that the VC-dimension of a class Π of binary decision rules is the largest value of
+d ∈ N such that there exists a set of d point x1 , ..., xd ∈ X that is “shattered” by Π in the
+d
+following sense: For each 2d of the binary vectors v ∈ {0, 1} , there exists a policy πv ∈ Π
+such that πv (Xi ) = vi for all i = 1, ..., d.
+Throughout our analysis, we control the complexity of Πn by assuming that its VCdimension does not grow too fast with the sample size n. As is familiar from thep
+literature on
+classification, we will find that the best possible uniform regret bounds scale as VC(Πn )/n
+(Vapnik, 2000).
+Assumption 3. We assume that there are constants 0 < β < 1/2 and N ≥ 1 such that the
+Vapnik-Chervonenkis dimension of Πn is bounded as VC(Πn ) ≤ nβ for all n ≥ N .
+In order to illustrate this assumption, we give two examples of policy classes that have
+a finite VC dimension, and one that does not. In all three examples below, we assume that
+the features Xi take values in X = Rp for some p ≥ 1.
+8 As discussed above, our notation has potential outcomes Y (W ) that only depend on treatment W ,
+i
+i
+i
+and do not involve the instrument Zi . This is only meaningful when the exclusion restriction holds.
+
+10
+
+Linear Rules The VC-dimension of the class of linear decision rules is (Wainwright, 2019,
+p. 116) VC(Π) = p + 1 for Π = {πv,c : πv,c (x) = 1 ({v · x ≥ c}) , v ∈ Rp , c ∈ R}. Thus, our
+approach applies to linear decision rules in dimension pn ≤ nβ for some β < 1/2.
+Decision Trees Trees represent decision rules recursively (Breiman, Friedman, Olshen,
+and Stone, 1984). A depth-0 decision tree T0 is a trivial decision rule, T0 (x) = a for some
+a ∈ {0, 1} and all x ∈ X . For any L ≥ 1, a depth-L decision tree TL is specified via
+a splitting variable j ∈ 1, ..., p, a threshold t ∈ R, and two depth-(L − 1) decision trees
+T(L−1),A and T(L−1),B , such that TL (x) = T(L−1),A (x) if xj ≤ t, and T (x) = T(L−1),B (x)
+else. See Figure 1 for an example of a decision tree. The class of depth-L
+ decision trees over
+e 2L log(p) .9 Thus, our results
+Rp has VC dimension bounded on the order of VC(Π) = O
+apply to trees whose depth may grow as Ln = bκ log2 (n)c for some κ < 1/2.
+Monotone Rules We have x ∈ [0, 1]2 and units get treated if x2 exceeds some increasing
+function of x1 , i.e., Π = {πf : πf (x) = 1 ({x2 ≥ f (x1 )}) , f is monotone increasing}. This
+d
+class has infinite VC dimension, because any set of points {xi }i=1 with xi = (αi , αi2 ) and
+0 < α1 < . . . < αd < 1 can be shattered using Π. Thus, our results do not apply to
+monotone rules over [0, 1]2 .
+We note that the difficulty here is not a mere technicality: Monotone decision rules can
+match arbitrary decision rules along the curve (α, α2 ) for α ∈ [0, 1], and so it is impossible to
+establish any non-trivial learning rates over monotone decision rules without making further
+assumptions on the distribution of the features Xi . In particular, we need assumptions that
+guarantee that all observations cannot concentrate around the the curve (α, α2 ).
+In this paper, we do not consider results that require specific distributional assumptions
+over the features Xi . We note, however, recent work by Mbakop and Tabord-Meehan
+(2016), who establish polynomial rates of convergence for learning monotone rules under an
+assumption that the Xi have a bounded density under Lebesgue measure on [0, 1]2 .
+
+2.3
+
+Bounding Asymptotic Regret
+
+We are now ready to state our main result on the asymptotic regret of policy learning using
+doubly robust scores. Following Chernozhukov et al. (2018a,b) we assume that we run our
+method with scores obtained via cross-fitting, which is a type of data splitting that can
+be used to verify asymptotic normality given only high-level conditions on the predictive
+accuracy of the methods used to estimate nuisance components. In particular, cross-fitting
+allows for the use of black-box machine learning tools provided we can verify that they are
+accurate in mean-squared error as in Assumption 2.
+We proceed as follows: First divide the data into K evenly-sized folds and, for each
+fold k = 1, ..., K, run an estimator of our choice on the other K − 1 data folds to esti(−k)
+mate the functions mn (x, w) and gn (x, z); denote the resulting estimates m̂n (x, w) and
+(−k)
+ĝn (x, z). Throughout, we will only assume that these nuisance estimates are accurate
+in the sense of Assumption 2. Then, given these pre-computed values, we choose π̂n by
+9 This
+
+bound follows Lemma 4 of Zhou, Athey, and Wager (2018), paired with the alternative charace
+terization of the VC dimension given in Appendix A. The notation f (n) = O(g(n))
+means that there is a
+function h(·) that scales poly-logarithmically in its argument for which f (n) ≤ h(g(n))g(n).
+
+11
+
+maximizing a doubly robust estimate of A(π) = 2V (π) − E [τ (Xi )],
+n
+n
+o
+X
+bn (π) : π ∈ Πn , A
+bn (π) = 1
+bi ,
+π̂n = argmax A
+(2π(Xi ) − 1) Γ
+n i=1
+
+
+b i = τ (−k(i)) (Xi , Wi ) + ĝn(−k(i)) (Xi , Zi ) Yi − m̂(−k(i))
+Γ
+(X
+,
+W
+)
+,
+i
+i
+n
+m̂
+
+(18)
+
+n
+
+where k(i) ∈ {1, ..., K} denotes the fold containing the i-th observation. The K-fold algorithmic structure used in (18) was proposed in an early paper by Schick (1986) as a general
+purpose tool for efficient estimation in semiparametric models, and has also been used in
+Robins et al. (2008, 2017), Wager et al. (2016) and Zheng and van der Laan (2011).
+Finally, we assume that the weighting function gn (x, z) is bounded uniformly as below. In the case of a binary exogenous treatment, this is equivalent to the “overlap”
+assumption
+in the causal inference literature (Imbens and Rubin, 2015), whereby η ≤
+
+P Wi = 1 Xi = x ≤ 1 − η for all values of x. In our setting, the condition below acts
+as a generalization of the overlap assumption (Hirshberg and Wager, 2018).
+Assumption 4. There is an η > 0 such that gn (x, z) ≤ η −1 for all x, z, n.
+We also define the following quantities, where where Sn bounds the second moment of
+the scores, and Sn∗ is the asymptotic variance of (11) for estimating the policy improvement
+A(π) of the best policy in Πn :10
+h
+i
+2
+Sn = E (τmn (Xi , Wi ) − gn (Xi , Zi ) (Yi − mn (Xi , Wi ))) ,
+(19)
+Sn∗ = inf {Var [(2π(Xi ) − 1) (τmn (Xi , Wi ) − gn (Xi , Zi ) (Yi − mn (Xi , Wi )))] : π ∈ Πn } .
+We note that, unless we have an exceptionally large signal-to-noise ratio, we will have
+Sn∗ ≥ Sn /4 and so the rounded log-term in (20) below is just 0. A proof of Theorem 1 is
+given in the following section.
+Theorem 1. Given Assumptions 1, 2 and 4, define π̂n as in (18).11 Suppose moreover that
+the irreducible noise εi = Yi −m(Xi , Wi ) is both uniformly sub-Gaussian
+conditionally onXi
+
+and Wi and has second moments uniformly bounded from below, Var εi Xi = x, Wi = w ≥
+s2 , and that the treatment effect function τmn (x, w) is uniformly bounded in x, w and n.
+Finally, suppose that Πn satisfies Assumption 3 with parameter β ≤ min {ζm , ζg }, where
+√ the
+ζ are as defined in Assumption 2. Then, for any sequence ψn ≥ 0 with limn→∞ ψn n = 0,
+h
+n
+n
+o
+oi
+bn (π) ≥ max A
+bn (π) : π ∈ Πn − ψn , π ∈ Πn
+lim sup E sup Rn (π) : A
+n→∞
+,s
+
+
+  .  .
+(20)
+Sn
+VC(Πn )Sn∗ 1 + log4
+9
+n
+≤
+60,
+Sn∗
+where Rn (·) denotes regret for the n-th data-generating distribution.
+10 By expanding the square, we see that policies with higher values have lower variance of their scores,
+∗ corresponds to the asymptotic variance for evaluating an optimal policy. Moreover, in the case
+and so Sn
+∗ is the
+where arguments from Newey (1994) imply that the doubly robust estimator (11) is efficient, then Sn
+semiparametric efficient variance for evaluating an optimal policy.
+11 We assume that the rates of convergence specified in Assumption 2 apply to the nuisance components
+estimated for each fold k = 1, ..., K in (18).
+
+12
+
+bn (π) over π ∈ Πn is unique,
+In the simplest case where ψn = 0 and the maximizer of A
+the statement in (20) simplifies to a bound on E [Rn (π̂n )], where π̂n is as defined in (18).
+bn (π) may have many maximizers. Moreover, the optimization probHowever, in practice, A
+lem (18) is not convex and so—given a reasonable computational budget—we may only be
+able to solve it to within some tolerance ψn > 0. The more comprehensive form of our result
+given above highlights the fact that, in this case, our regret bound in fact applies uniformly
+over all approximate solutions to (18).
+
+3
+
+Upper Bounds
+
+In this section, we present a series of results that culminate in a proof of Theorem 1, given
+in Section 3.3. All other proofs are deferred to Appendix B. Recall that we study policy
+learning for a class of problems where regret can be written as in (6) using a function
+Vn (π) = En [π(Xi )τn (Xi )], and we obtain π̂n by maximizing a cross-fitted doubly robust
+estimate of An (π) = 2Vn (π) − En [τn (Xi )] defined in (18) over the class Πn . If we could use
+bn (π) = An (π), then (18) would directly yield the regret-minimizing policy in the class
+A
+Πn ; but of course we never know An (π) in applications. Thus, the main focus of our formal
+bn (π) − An (π) for π ∈ Πn ,
+results is to study stochastic fluctuations of the empirical process A
+and examine how they affect the quality of policies learned via (18).
+
+3.1
+
+Rademacher Complexities and Oracle Regret Bounds
+
+We start our analysis by characterizing concentration of an ideal version of the objective in
+(18) based on the true influence scores Γi , rather than doubly robust estimates thereof:
+n
+
+X
+en (π) = 1
+(2π(Xi ) − 1) Γi , Γi = τmn (Xi , Wi ) + gn (Xi , Zi ) (Yi − mn (Xi , Wi )) . (21)
+A
+n i=1
+en (π) − An (π) over the
+The advantage of studying concentration of the empirical process A
+set π ∈ Πn is that it allows us, for the time being, to abstract away from the estimation tools
+bn (π), and instead to focus on the complexity of empirical maximization
+used to obtain A
+over the class Πn .
+A convenient way to bound the supremum of this empirical process over any class Π is
+by controlling its Rademacher complexity Rn (Π), defined as12
+"
+( n
+)
+#
+1X
+n
+Rn (Π) = E sup
+ξi Γi (2π(Xi ) − 1)
+{Xi , Γi }i=1
+(22)
+n i=1
+π∈Π
+where the ξi are independent Rademacher (i.e., sign) random variables ξi = ±1 with probability 1/2 each (Bartlett and Mendelson, 2002). For intuition as to why Rademacher
+complexity is a natural complexity measure, note that Rn (Π) characterizes the maximum
+(weighted) in-sample classification accuracy on randomly generated labels ξi over classifiers
+π ∈ Π; thus, Rn (Π) measures how much we can overfit to random coin flips using Π.
+n
+12
+Pn Note that, conditionally on {Xni , Γi }i=1 and the Rademacher variables ξi , the sum
+distinct values. Thus, the definition of Rn (Π) does not
+i=1 ξi Γi (2π(Xi ) − 1) can only take 2
+entail any measure theoretic problems.
+
+13
+
+Following this proof strategy, we bound the Rademacher complexity of “slices” of our
+policy class Πn , defined as
+Πλn = {π ∈ Πn : Rn (π) ≤ λ} .
+
+(23)
+
+The reason we focus on slices of Πn is that, when we use doubly robust scores, low-regret
+policies can generally be evaluated more accurately than high-regret policies, and using this
+en (π)] = Sn − A2n (π),
+fact allows for sharper bounds. Specifically, we can check that nVar[A
+and so
+n
+h
+o
+i
+en (π) : π ∈ Πλn := Snλ ≤ Sn∗ + 4λ sup {An (π) : π ∈ Πn } ,
+n sup Var A
+(24)
+where Sn and Sn∗ are defined in (19). This type of slicing technique is common in the literature, and has been used in different contexts by, e.g., Bartlett, Bousquet, and Mendelson
+(2005) and Giné and Koltchinskii (2006).
+The following result provides such a bound in terms of the second moments of the
+doubly robust score, specifically Snλ and Sn . This bound is substantially stronger than
+corresponding bounds used in existing results on policy learning.
+√ Kitagawa and Tetenov
+(2018) build their result on bounds that depend on max {Γi } / n, which can only be used
+with scores that
+p are uniformly bounded in order to get optimal rates. Meanwhile, bounds
+that scale as Snλ log(n)/n are developed by Cortes, Mansour, and Mohri (2010), Maurer
+and Pontil (2009) and Swaminathan and Joachims (2015); however, the additional log(n)
+factor makes these bounds inappropriate for asymptotic analysis.
+Lemma 2. Suppose that the class Πn satisfies Assumption 3, and that the scores Γi in (21)
+are drawn from a sequence of uniformly sub-Gaussian distributions with variance bounded
+from below,
+
+
+2
+Pn [|Γi | > t] ≤ Cν e−νt for all t > 0, Varn Γi Xi = x ≥ s2 ,
+for some constants Cν , ν, s > 0 and all n = 1, 2, ... Then, for any λ,
+s
+
+
+  . 
+
+
+Sn
+VC(Πn )
+λ
+λ
+2
+lim sup E Rn Πn
+(Sn + 4λ ) 1 + log4
+9
+≤ 20.
+λ
+S
+n
+n→∞
+n
+
+(25)
+
+(26)
+
+Given this Rademacher complexity bound, we can obtain a uniform concentration bound
+en (π) using standard methods. Here, we refine an argument of Bartlett and Mendelson
+for A
+(2002) using Talagrand’s inequality to obtain a bound that depends on second momens of
+Γi rather than sup |Γi |.
+en (π) is
+Corollary 3. Under the conditions of Lemma 2, the expected maximum error of A
+bounded as
+h
+n
+oi
+en (π) − An (π) : π ∈ Πλn
+lim sup E sup A
+n→∞
+,s
+
+
+  . 
+(27)
+VC(Πn )
+Sn
+(Snλ + 4λ2 ) 1 + log4
+9
+≤
+40.
+Snλ
+n
+
+14
+
+Furthermore, this error is concentrated around its expectation: There is a sequence cn → 0
+such that, for any δ > 0,
+o
+n
+en (π) − An (π) : π ∈ Πλn
+sup A
+!
+r
+oi
+h
+n
+(28)
+2Snλ log(δ −1 )
+λ
+e
+≤ (1 + cn ) E sup An (π) − An (π) : π ∈ Πn +
+n
+with probability at least 1 − δ.
+In our final argument, we will apply Corollary 3 for different λ-slices, and verify that we
+can in fact focus on those slices where λ is nearly 0. Before that, however, we also need
+bn (π) and the oracle surrogate
+to control the discrepancy between the feasible objective A
+e
+An (π) studied here.
+
+3.2
+
+Uniform Coupling with the Doubly Robust Score
+
+In the previous section, we established risk bounds that would hold if we could optimize the
+en (π); we next need to extend these bounds to cover the situation
+infeasible value function A
+where we optimize a feasible value function. As discussed above, we focus on the doubly
+robust estimator (18), obtained using cross-fitting as in Chernozhukov et al. (2018a,b). As
+preliminaries, we note that the results of Chernozhukov et al. (2018b) immediately imply
+bn (1) is an asymptotically normal estimate of An (1), where we
+that, given Assumption 2, A
+use “1” as shorthand for the “always treat” policy. Furthermore, it is easy to check that
+given any fixed policy π,
+
+√ 
+bn (π) − A
+en (π) →p 0,
+n A
+(29)
+meaning that the discrepancy between the two value estimates decays faster than the variance of either.
+However, in our setting, the analyst gets to optimize over all policies π ∈ Πn , and so
+coupling results established for a single pre-determined policy π are not strong enough. The
+following lemma extends the work of Chernozhukov et al. (2018b) to the case where we seek
+to establish a coupling of the form (29) that holds simultaneously for all π ∈ Πn .
+Lemma 4. Under the conditions of Lemma 2, suppose that Assumptions 1 and 4 hold,
+bn (π) using cross-fitted estimates of nuisance components satisfying
+and that we obtain A
+Assumption 2. Then
+h
+n
+oi
+√
+!
+r
+bn (π) − A
+en (π) : π ∈ Πn
+n E sup A
+VC(Πn )
+(30)
+=O 1+
+,
+a ((1 − K −1 ) n)
+nmin{ζm , ζg }
+where the O(·) term hides a dependence on the overlap parameter η from Assumption 4 and
+the sub-Gaussianity parameter ν specified in Lemma 2.
+The above result is perhaps surprisingly strong: Provided that the dimension VC(Πn ) of
+Πn does not grow too fast with n, the bound (30) is the same coupling bound as we might
+expect to obtain for a single policy π, and the dimension of the class Πn does not affect the
+en (π)
+leading-order constants in the bound. In other words, in terms of the coupling of A
+15
+
+bn (π), we do not lose anything by scanning over a continuum of policies π ∈ Πn rather
+and A
+than just considering a single policy π.
+The doubly robust form used here is not the only way to construct efficient estimators
+for the value of a single policy π—for example, Hirano, Imbens, and Ridder (2003) show
+that inverse-propensity weighting with non-parametrically estimated propensity scores may
+also be efficient—but it plays a key role in the proof of Lemma 4. In particular, under
+Assumption 2, the natural bound for the bias term due to misspecification of the nuisance
+components in fact holds simultaneously for all π ∈ Π, and this helps us pay a smallerthan-expected price for seeking a uniform result as in (30). It is far from obvious that other
+efficient methods for evaluating a single policy π, such as that of Hirano et al. (2003), would
+lead to equally strong uniform couplings over the whole class Πn .
+
+3.3
+
+Proof of Theorem 1
+
+Given that Assumption 1, 2 and 3 hold with parameters β < min {ζm , ζg }, a combination
+bn (·) concentrates around An (·) over
+of results from Corollary 3 and Lemma 4 implies that A
+Πλn . To conclude, it now remains to apply these bounds at two different values of λ. First
+we choose λ∗ > 0 such as to satisfy 4(λ∗ )2 + 4λ∗ sup {A(π) : π ∈ Πn } ≤ Sn∗ , so that the
+following holds via (24):
+∗
+
+Snλ + 4(λ∗ )2 ≤ Sn∗ + 4(λ∗ )2 + 4λ∗ sup {A(π) : π ∈ Πn } ≤ 2Sn∗ .
+Then, by Corollary 3 and Lemma 4, we find that the limsup of the following expression is
+bounded by 1 as n goes to infinity:
+s 
+!
+,
+
+  . 
+h
+n
+oi
+∗
+S
+VC(Π
+)
+n
+n
+λ
+bn (π) − An (π) : π ∈ Π
+.
+9
+E sup A
+60 Sn∗ 1 + log4
+n
+Sn∗
+n
+Now, recall that if any two functions h(·) and ĥ(·) are uniformly coupled as |h(u) − ĥ(u)| ≤ b
+for all u ∈ U and ĥ(û) ≥ sup{ĥ(u) : u ∈ U } − ψ, then
+h(û) ≥ ĥ(û) − b ≥ ĥ(u) − b − ψ ≥ h(u) − 2b − ψ
+for any u ∈ U . Thus, the above implies that (recall that An (π) scales with 2Rn (π))
+h
+n
+n
+o
+oi
+bn (π) ≥ max A
+bn (π) : π ∈ Πλn∗ − ψn , π ∈ Πλn∗
+lim sup E sup Rn (π) : A
+n→∞
+s 
+,
+!
+
+  . 
+ψn
+Sn
+VC(Πn )
+∗
++ 60 Sn 1 + log4
+9
+≤ 1,
+2
+Sn∗
+n
+
+(31)
+
+and we note that ψn decays fast enough by assumption that it can be omitted from (31)
+without altering the result. In other words, if we knew that our learned policy approximately
+bn (π) and has regret less than λ∗ , then we could guarantee that its regret decays
+maximizes A
+at the desired rate.
+bn (·)
+To prove our result, it remains to show that all approximate maximizers of A
+∗
+have regret bounded by λ enough for (31) to capture the leading-order behavior of regret. To do so, we apply a similar argument as above, but at a different value of λ. We
+
+16
+
+λ
+
+use λ+ = 3 lim supn→∞ sup {Rn (π) : π ∈ Πn }, and note that Πn+ = Πn for large enough n.
+Then, by (28) we know that
+
+
+o
+n
+∗
+√
+en (π) − An (π) : π ∈ Πn ≥ λ = 0,
+lim n P sup A
+(32)
+n→∞
+5
+while from (30) paired with Markov’s inequality we know that
+ !
+
+o λ∗ 
+n
+a 1 − K −1 n
+b
+e
+√
+.
+P sup An (π) − An (π) : π ∈ Πn ≥
+=O
+5
+n
+By combining these two bounds, we see that
+n
+n
+o
+o
+√
+bn (π) ≥ max A
+bn (π) : π ∈ Πn − ψn
+lim n P π ∈ Πn : A
+n→∞
+
+\
+∗
+{π ∈ Πn : Rn (π) ≥ λ } =
+6 ∅ = 0,
+
+(33)
+
+(34)
+
+and moreover, because τmn (x, w) is uniformly bounded, we find that the contribution of
+events where (34) fails to hold to (20) is vanishingly small as n gets large.
+
+4
+
+Lower Bounds
+
+To complement the upper bounds given in Theorem 1, we also present lower bounds on the
+minimax risk for policy learning. Our goal is to show that our bounds are the best possible
+regret bounds that flexibly account for the distribution of the observed data and depend on
+the policy class Π through the Vapnik-Chervonenkis dimension VC(Π). For simplicity, we
+here only consider the case where Wi is binary and unconfounded; lower bounds for other
+cases considered in this paper can be derived via analogous arguments.
+To establish our result, we consider lower bounds over sequences of problems defined
+as follows. Let Xs := [0, 1]s denote the s-dimensional unit cube for some positive integer
+s, and let f (x) and e(x) be ds/2 + 1e times continuously differentiable functions over Xs .
+Moreover, let σ 2 (x) and τ (x) be functions on Xs such that σ 2 (x) is bounded away from 0
+and ∞, and |τ (x)| is bounded away from ∞. Then, we define an asymptotically ambiguous
+problem sequence as one where {Xi , Yi , Wi } are independently and identically distributed
+drawn as
+Xi ∼ P, Wi Xi ∼ Bernoulli(e(Xi )),
+
+
+τ (Xi )
+Yi Xi , Wi ∼ N f (Xi ) + (Wi − e(Xi )) √ , σ 2 (Xi ) .
+n
+
+(35)
+
+Because of the number of derivatives assumed on f (x) and e(x), it is well known that simple
+series estimators satisfy Assumption 2.13 Thus, because the magnitude of the treatment
+13 See Nickl and Pötscher (2007) for an argument that holds for arbitrary distributions P supported
+on [0, 1]s . We also note that, for a complete argument, one needs to address the fact that we have not
+assumed the treatment effect function τ (x) to be differentiable. To address this issue, note that in our
+data-generating process (35) we have E [Yi |Xi = x] = f (x) regardless of n. Thus, because both e(x) and
+f (x) are sufficiently differentiable, we can use standard results about series estimation to obtain oP (n−1/4 )consistent estimators ê(x) and fˆ(x) for these quantities.
+Next,
+
+√ for the purpose of our policy learner, we
+simply set m̂(x, 0) = m̂(x, 1) = fˆ(x); and because E τ 2 (Xi )/ n = O(1/n), these regression adjustments
+in fact satisfy Assumption 2.
+
+17
+
+effects shrinks in (35), Sn∗ and Sn both converge to SP as defined below, and so Theorem 1
+immediately implies that, under unconfoundedness,
+
+
+r
+SP VC (Π)
+σ 2 (Xi )
+≤ 60, SP = EP
+(36)
+lim sup Rn (π̂n )
+n
+e(Xi ) (1 − e(Xi ))
+n→∞
+for any policy class Π with finite VC dimension. The following result shows that (36) is
+sharp up to a universal constant (whose value is less than 200).14
+Theorem 5. Let f (x), e(x), and σ(x) be functions over Xs satisfying the conditions discussed above, and let Π be a class of functions over Xs with finite VC dimension. Then,
+there exists a distribution P supported on [0, 1]s (and a constant C) such that the minimax
+risk for policy learning over the data generating distribution (35) (with unknown |τ (x)| ≤ C)
+and the policy class Π is bounded from below as
+(
+))
+(
+p
+√
+sup {E [Rn (π̂n )]}
+≥ 0.33 SP VC (Π).
+n inf
+(37)
+lim inf
+n→∞
+
+π̂n
+
+|τ (x)|≤C
+
+Here, the√fact that we focus on problems where the magnitude of the treatment effect
+scales as 1/ n is important, and closely mirrors the type of
+√ asymptotics used by Hirano
+and Porter (2009). If treatment effects decay faster than 1/ n, then learning better-thanrandom policies is effectively impossible—but
+√ this does not matter, because of course all
+decision rules have regret decaying
+as
+o(1/
+n) and so Theorem 1 is loose. Conversely, if
+√
+treatment effects dominate the 1/ n scale, then in large samples it is all but obvious who
+should be treated and who should not, and it is possible to get regret bounds that decay
+at superefficient rates (Luedtke and Chambaz,
+2017), again making Theorem 1 loose. But
+√
+if the treatment effects obey the Θ(1/ n) scaling of Hirano and Porter (2009), then the
+problem of learning good policies is neither trivial nor impossible, and the value of using
+doubly robust policy evaluation for policy learning becomes apparent.
+Finally we note that not all other popular methods, e.g., inverse-propensity weighting
+as advocated by Kitagawa and Tetenov (2018), are asymptotically sharp in the above sense.
+Even when propensity scores are known, Kitagawa and Tetenov (2018) assume
+that |Yi | ≤ M
+p
+andpη ≤ e(Xi ) ≤ 1 − η, and then prove regret bounds that scale as M/η VC(Π)/n instead
+of SP VC(Π)/n in (36). Now, the bound of Kitagawa and Tetenov (2018) is of course
+sometimes sharp, e.g., it is optimal if all we know is that |Yi | ≤ M and η ≤ e(Xi ) ≤ 1 − η,
+but it is not adaptively sharp for asymptotically ambiguous sequences of problems as in
+(35). In particular, the ratio of the
+√ upper bound of Kitagawa and Tetenov (2018) and the
+lower bound (37) scales as M/(η SP ), and there exist sequences of type (35) where this
+ratio may be arbitrarily large.15
+14 The strategy of proving lower bounds relative to an adversarial feature distribution P is standard in the
+machine learning literature; see, e.g., Devroye and Lugosi (1995). If we fix the distribution P a-priori, then
+regret bounds for empirical risk minimization over Π based on structural summaries of Π (such as the VC
+dimension) may be loose (Bartlett and Mendelson, 2006); however, it is not clear how to exploit this fact
+other than by conducting ad-hoc analyses for specific choices of Π.
+15 Using the techniques developed in this paper, we can sharpen the bounds of Kitagawa and Tetenov
+
+1/2
+(2018) and asymptotically replace M/η by E Yi2 /(e(Xi )(1 − e(Xi )))
+. However, even this improved
+bound may exceed (37) by an arbitrarily large factor.
+
+18
+
+5
+
+Implementation and Experiments
+
+We now illustrate the value of doubly robust scoring techniques for policy learning using
+both an example from program evaluation and simulation studies. In Section 5.1 we revisit
+a randomized evaluation of California’s GAIN program, Section 5.2 presents a simulation
+study with endogenous treatment assignment, and Section 5.3 has a simulation on nudge
+interventions to a continuous treatment variable.
+Recall that our approach to policy involves a 3-step algorithm. We start with a set of n
+independent and identically distributed training examples (Xi , Yi , Wi , Zi ) and a class Π of
+acceptable policies. Then, we
+1. Estimate the nuisance components m(x, w) and g(x, z) defined in Section 2.1,
+b i = τm̂ (Xi , Wi ) + ĝ(Xi , Zi )(Yi − m̂(Xi , Wi )), with
+2. Form doubly robust scores16 Γ
+cross-fitting as discussed in Section 2.3, and
+nP
+o
+n
+bi : π ∈ Π .
+3. Select π̂ ∈ argmax
+(2π(X
+)
+−
+1)
+Γ
+i
+i=1
+The main points of freedom left to the analysts involve the choice of estimator for m(·) and
+g(·) in Step 1, and the implementation of the optimization problem in Step 3. We emphasize
+that the choice of estimator for m(x, w) and g(x, z) in Step 1 and the choice of policy class
+Π along with the optimizer used in Step 3 can be made fully independently.
+For Theorem 1 to apply, the main requirement on the method used to estimate m(x, w)
+and g(x, z) in Step 1 is that its error decays fast enough in mean-squared error, as detailed
+in Assumption 2. Here, one option is to use non-parametric estimators for which we can
+precisely spell out when they satisfy Assumption 2, such as sieve-based methods (Chen,
+2007; Negahban, Ravikumar, Wainwright, and Yu, 2012) or kernel regression (Caponnetto
+and De Vito, 2007; Mendelson and Neeman, 2010). Another option is to use more heuristic
+methods from the statistical learning literature, such as boosting, random forests, or neural
+networks, in the hope that they will empirically be more accurate in finite samples than sieve
+or kernel-based methods. One possible approach is to run both classical methods known to
+satisfy Assumption 2 asymptotically and some more heuristic statistical learning tools, and
+then synthesize the output of all models via cross-validation. As argued in van der Laan,
+Polley, and Hubbard (2007), this approach essentially matches the finite-sample accuracy
+of the best method under consideration while preserving the asymptotic guarantees of the
+classical ones.
+Meanwhile, the optimization problem in Step 3 is not a convex optimization problem,
+and so solving it can be computationally challenging. Several authors, including Beygelzimer
+and Langford (2009), Kitagawa and Tetenov (2018), Zhang, Tsiatis, Davidian, Zhang, and
+Laber (2012) and Zhao, Zeng, Rush, and Kosorok (2012), have noted that this optimization
+problem is numerically equivalent to a weighted classification problem,
+)
+( n
+ 
+1X
+b i , Hi = sign Γ
+bi ,
+λi Hi (2π(Xi ) − 1) , λi = Γ
+π̂ = argmaxπ∈Π
+(38)
+n i=1
+where we train a classifier π(·) with response Hi using sample weights λi . Given this
+formalism, we can build on existing tools for weighted classification to learn π̂, e.g., bestsubset empirical risk minimization (Chen and Lee, 2016; Greenshtein, 2006) or optimal trees
+16 Recall
+
+that τm (·) does not depend on w in the case of binary treatments, and we omit the redundant
+argument in this case.
+
+19
+
+(Bertsimas and Dunn, 2017). In practice, it may also be interesting to consider the empirical
+performance of computationally less demanding methods that solve an approximation to the
+weighted classification problem, e.g., support vector machines (Cortes and Vapnik, 1995) or
+recursive partitioning (Breiman, Friedman, Olshen, and Stone, 1984); however, we caution
+that our formal results only apply to methods that solve the problem (38) exactly.
+In all our experiments, we set Π to be a class of finite-depth decision trees (see Section
+2.2 for a definition), and solve the optimization problem in Step 3 using an “evolutionary” algorithm implemented in the package evtree (Grubinger, Zeileis, and Pfeiffer, 2014).
+Meanwhile, in Sections 5.1 and 5.2, we estimate nuisance components for Step 1 using appropriate variants of random forests, as implemented in the package grf (Athey, Tibshirani,
+and Wager, 2019).17 In Section 5.3, we use a penalized series estimator. All computations
+are carried out in R (R Core Team, 2019).
+
+5.1
+
+The California GAIN Program
+
+The Greater Avenues for Independence (GAIN) program, started in 1986, is a welfare-towork program that provides participants with a mix of educational resources and job search
+assistance. Between 1988 and 1993, the Manpower Development Research Corporation
+conducted a randomized study to evaluate the program. As described in Hotz, Imbens,
+and Klerman (2006), randomly chosen registrants were eligible to receive GAIN benefits
+immediately, whereas others were embargoed from the program until 1993. All experimental subjects were followed for a 9-year post-randomization period and, as documented by
+Hotz et al. (2006), eligibility for GAIN had a significant impact on mean quarterly income
+averaged over this 9-year period.
+Our current question is whether we can find ways to prioritize treatment to some subgroups of GAIN registrants particularly likely to benefit from it. We consider data from four
+counties, Alameda, Riverside, Los Angeles and San Diego, resulting in n = 19, 170 samples,
+and use p = 28 covariates, including demographics, education, and per-quarter earnings for
+10 quarters preceding treatment. As in Hotz et al. (2006), we use average quarterly income
+over the 9-year post-randomization period (in $1000s) as our outcome.
+Each county participating in the GAIN evaluation conducted its own randomized controlled trial, and the counties had considerable freedom in how they carried out the randomization. In particular, counties had flexibility in choosing whom to enroll in the randomized
+trial, and which fraction of participants to randomize into treatment. The data reflects this
+heterogeneity in study specifications: The per-county average outcome for controls varied
+from 0.64 to 1.04 thousand dollars per quarter, while the per-county fraction of treated units
+varied from 0.50 to 0.86.
+We use this dataset to design a semi-synthetic observational study by pooling the data
+from all four counties under consideration. Because the mean control outcome and treatment fraction vary from county to county (and are in fact correlated), we expect that an
+uncorrected analysis of the pooled data would suffer from confounding. In an attempt to
+correct for the confounding that arises from pooling we pursue a selection-on-observables
+17 Random forests are a type of adaptive nearest neighbor estimator that use an ensemble of trees to
+define a relevant neighborhood function for each query point; see Athey and Wager (2019) for a discussion
+of random forests in the context of doubly robust methods for causal inference. We emphasize that, for our
+purposes, random forests are simply used as a convenient non-parametric estimator of m(x, z) and g(x, z),
+and could seamlessly be replaced with other methods such as boosting or neural networks. The shape of
+the learned policy π̂ is determined in the optimization step 3, which only depends on the random forests
+bi .
+through the predictions used to form doubly robust scores Γ
+
+20
+
+strategy, and assume that controlling for the p = 28 covariates described above is enough
+to correct for the different study specifications used in different counties.
+Our method starts by computing doubly robust scores for the treatment effect, and learning policies by empirical maximization as in (2). We use the augmented inverse-propensity
+weighted scores of Robins, Rotnitzky, and Zhao (1994), with nuisance component estimates
+from generalized random forests (Athey, Tibshirani, and Wager, 2019),18
+)
+( n
+
+
+1X
+bi − C : π ∈ Π ,
+(2π(Xi ) − 1) Γ
+(39)
+π̂ = argmax
+n i=1
+b i = τ̂ (−i) (Xi )
+Γ
+
+(40)
+(−i)
+
++
+
+Wi − ê
+(−i)
+ê
+(Xi ) 1
+
+(Xi )
+− ê(−i) (Xi )
+
+
+
+
+ Yi − fˆ(−i) (Xi ) − (Wi − ê(−i) (Xi ))τ̂ (−i) (Xi ) ,
+
+where fˆ(x) and ê(x) are random forest estimates of E[Yi Xi = x] and E[Wi Xi = x] respectively, τ̂ (·) is an causal forest19 estimate of the conditional average treatment effect, and
+C is a parameter measuring the cost of treatment. Tuning parameters for all forests were selected by leave-one-out cross-validation as implemented with the built-in tune.parameters
+= TRUE option in grf.20 Here, we set C = 0.14 to roughly match the average treatment
+effect with the goal of ensuring that the optimal treatment rule is not trivial (i.e., we can
+only achieve non-zero utility gains by exploiting treatment heterogeneity).
+Before starting to optimize policies we first run a brief sanity check on our selection-onobservables strategy, and confirm the ability of estimators that build on this assumption to
+accurately recover the average treatment effect we would get using a proper randomizationbased estimator that does not pool data across counties. ThePnatural doubly robust estin
+b i /n, with scores Γ
+b i as
+mator of the average treatment effect in our setting is τ̂DR = i=1 Γ
+in (40). We compare it to a naive difference-in-means estimator τ̂DM = avg {Yi : Wi = 1} −
+avg {Yi : Wi = 0} that does not attempt to correct for bias due to pooling, and to an “oracle” doubly robust estimator that does not estimate propensity
+from covariates but
+Pn bscores
+∗
+∗
+= i=1 Γ
+/n
+with
+instead uses the true per-county treated fractions: τ̂DR
+i
+
+∗ 
+W
+−
+ê
+i
+i
+ˆ(−i) (Xi ) − (Wi − ê∗ )τ̂ (−i) (Xi ) ,
+b ∗i = τ̂ (−i) (Xi ) +
+Γ
+Y
+−
+f
+i
+i
+ê∗i (1 − ê∗i )
+n
+n
+(41)
+.X
+X
+ê∗i =
+Wj 1 ({Gj = Gi })
+1 ({Gj = Gi }) ,
+j=1
+
+j=1
+
+where Gi ∈ {Alameda, Riverside, Los Angeles, San Diego} denotes the county-membership
+∗
+∗
+of the i-th sample. Because τ̂DR
+uses the true per-county treatment fractions
+√ êi and estimates nuisance components using cross-fitting, the point estimates will be n-consistent
+18 The one major deviation between how we compute scores below and the assumptions of Theorem 1
+is that, here, we use leave-one-out (or out-of-bag) estimates for τ (Xi ), etc., whereas Theorem 1 assumed
+K-fold estimation. The reason for this choice is that, as discussed in Breiman (2001), random forests are
+particularly well suited for leave-one-out estimation, and allow the analyst to obtain such estimates at
+essentially no additional computational cost.
+19 Causal forests use the adaptive neighborhood function implied by a forest to fit a partially linear model
+using the method of Robinson (1988). See Nie and Wager (2017) for formal results motivating the use of
+local partially linear modeling for heterogeneous treatment effect estimation, and Section 1.3 of Athey and
+Wager (2019) for a discussion of how this partially linear modeling is carried out in causal forests.
+20 The regression surfaces fˆ(x) and ê(x) were tuned to optimize mean-squared error. As advocated in Nie
+and Wager (2017), the conditional average treatment effect function was tuned to optimize the error of a
+local residual-on-residual regression.
+
+21
+
+fraction treated
+mean control outcome
+
+non-white
+76%
+0.79
+
+white
+81%
+0.90
+
+Table 1: Outcome is mean quarterly income (in $1000) averaged over 9 years postintervention. Differences in mean responses between white and non-white respondents are
+both significant at the 0.05 level using a Welch two-sample t-test.
+
+depth 1 policy
+
+depth 2 policy
+
+is high school graduate
+
+was paid 3 quarters ago
+
+don’t treat
+(n = 9, 477)
+
+treat
+(n = 9, 693)
+
+has children
+
+don’t treat
+(n = 2, 486)
+
+treat
+(n = 2, 757)
+
+is high school graduate
+
+don’t treat
+(n = 7, 325)
+
+treat
+(n = 6, 602)
+
+Figure 1: Example of optimal depth-1 and -2 policy trees learned by optimizing the augmented inverse-propensity weighting loss function. The “yes” branches are to the right.
+
+and the associated confidence intervals asymptotically valid essentially without assumptions
+(Rothe, 2018; Wager, Du, Taylor, and Tibshirani, 2016). The resulting point estimates for
+the average treatment effect (±1 standard error) are: τ̂DR = 0.141 ± 0.026 for the feasible
+∗
+= 0.146 ± 0.028 for the oracle doubly-robust estimator, and
+doubly-robust estimator, τ̂DR
+τ̂DM = 0.208 ± 0.028 for the naive difference in means. Thus, it appears that pooling county
+information results in confounding, but that controlling for available covariates helps a lot.
+A similar observation was made by Hotz, Imbens, and Klerman (2006).
+We now move to learning a policy π̂. In doing so, however, we note that caution is
+warranted because we have measured features pertaining to race and gender. On the one
+hand, these features cannot legally be used for treatment allocation but, on the other hand,
+they appear to act as counfounders. For example, as shown in Table 1, white GAIN registrants were randomized to treatment at higher rates than non-white registrants, and also
+white controls had higher outcomes than non-white controls. Our approach allows us to
+seamlessly use race and gender information for deconfounding without using it for policy
+allocation: We use these variables when estimating the nuisance components in (40), but
+then omit them from the maximization step (39) that produces the policy.
+For our policy class Π, we consider decision trees of depth either 1 or 2, and optimize
+(39) using evtree (Grubinger, Zeileis, and Pfeiffer, 2014). The learned decision rules are
+shown in Figure 1. Interestingly, the depth-1 and 2 trees make the same decisions for the
+roughly 3/4 of GAIN registrants who were paid 3 quarters prior to randomization, but the
+depth-2 tree chooses to switch to a different rule for those who weren’t paid 3 quarters prior.
+In order to choose tree depth and, more broadly, to evaluate the accuracy of the policy
+learning procedure, we recommend cross-validation. We randomly divide the data into K
+folds Sk , k = 1, ..., K and, for each fold, learn a policy π̂ (−k) (·) using all but the data in
+22
+
+IPW
+IPW
+AIPW
+AIPW
+
+method
+plug-in
+depth 1
+depth 2
+depth 1
+depth 2
+
+estimated improvement
+fitted propensities true propensities
+0.089 ± 0.026
+0.076 ± 0.028
+0.099 ± 0.026
+0.078 ± 0.028
+0.096 ± 0.026
+0.078 ± 0.028
+0.046 ± 0.026
+0.038 ± 0.028
+0.117 ± 0.026
+0.101 ± 0.028
+
+Table 2: Estimate of the utility improvement of various policies over a random assignment
+baseline, ±1 standard error. The plug-in policy simply thresholds causal forest predictions at τ̂ (−i) (Xi ) > C, the inverse-propensity weighted trees (IPW) are following Kitagawa and Tetenov (2018), and the trees scored via augmented inverse propensity-weighting
+(AIPW) are instances of the method studied here. The left column estimates improvement
+via (42), whereas the right column brings in county membership information to obtain a
+randomization-based estimator of improvement (43).
+Sk . Here, we use K = 10. Finally, we estimate improvement over a random baseline as
+K X 
+
+X
+bi .
+bCV = 1
+2π̂ (−k) (Xi ) − 1 Γ
+A
+n
+
+(42)
+
+k=1 i∈Sk
+
+Table 2 shows the estimated improvement of our depth-1 and -2 trees, as well as two baselines: A variant of the inverse-propensity weighted method of Kitagawa and Tetenov (2018)
+using the propensities used to construct (40), as well as a plug-in policy that does not obey
+our functional form restriction, and simply treats all samples with τ̂ (−i) (Xi ) > C. Our
+depth-2 trees achieve markedly better performance than the depth-1 trees. Interestingly,
+the depth-2 is also competitive with the unconstrained plug-in estimator. Based on this
+analysis, we prefer the depth-2 tree in Figure 1.
+One potential concern with this analysis is that our evaluation hinges on validity of the
+b i from
+selection-on-observables assumption, as well as accuracy of the doubly robust scores Γ
+(40). To assuage this concern, we also computed a version of the improvement measure (42),
+b ∗ computed using the true per-county treatment fractions as in (41):
+but with scores Γ
+i
+K X 
+
+X
+(−k)
+b∗ = 1
+b∗ .
+A
+2π̂
+(X
+)
+−
+1
+Γ
+i
+CV
+i
+n
+
+(43)
+
+k=1 i∈Sk
+
+As seen in the second rightmost column of Table 2, our feasible evaluation discussed above
+gave the correct ordering for the methods, but was somewhat optimistic in terms of the
+quality of the learned policies.
+We note that policies learned on different subsets of the data will in general be different
+from the policies learned on the full data, and it can be interesting to examine them to gain
+intuition for the stability of the learned rule. Figure 2 shows, for each training example
+and for AIPW-based trees, the fraction of hold-out policies π̂ (−k) (·) that agree with policy
+π̂(·) learned on the full dataset. Interestingly, we see that our method with depth-2 trees is
+more stable than our method with the depth-1 trees,21 despite optimizing over a larger class
+21 When
+
+we ran hold-out evaluation for depth-1 trees trained with doubly robust scores, we got policies
+
+23
+
+8000
+
+6000
+
+6000
+
+policy
+4000
+
+count
+
+count
+
+8000
+
+0
+1
+
+2000
+
+policy
+4000
+
+0
+1
+
+2000
+
+0
+
+0
+0.00
+
+0.25
+
+0.50
+
+0.75
+
+1.00
+
+0.00
+
+mean holdout policy
+
+0.25
+
+0.50
+
+0.75
+
+1.00
+
+mean holdout policy
+
+AIPW depth 1
+
+AIPW depth 2
+
+Figure 2: Distribution of the agreement between full data policies π̂(·) and hold-out versions
+π̂ (−k) (·) for the doubly robust tree-based methods described in Table 2.
+
+b
+of decision rules. This may be indicative of our objective A(π)
+having a more prominent
+optimum over the space of depth-2 versus depth-1 trees.
+Finally, recall that cross-validation is a means of evaluating the quality of the policy
+learning procedure, not the decision that was produced by a specific realization of the
+procedure. If we want an accuracy assessment that is valid conditionally on the learned
+rule π̂(·), one can either use a single test-train split, or use the more sophisticated data
+carving approach of Fithian, Sun, and Taylor (2014). The formal properties of treatment
+rules whose complexity is tuned via cross-validation are considered by Mbakop and TabordMeehan (2016).
+
+5.2
+
+Simulation Study with Binary, Endogenous Treatments
+
+In order to develop a richer quantitative understanding of the behavior of our method, we
+now turn to a simulation study. Here, we consider a setting with a binary, endogenous
+treatment Wi and a binary instrument Zi and P
+assume homogeneity as in (16). In this case,
+n
+b i : π ∈ Π}, where Γ
+b i is a
+our method chooses the policy π̂ = argmax{ n1 i=1 (2π(Xi ) − 1) Γ
+cross-fit doubly robust score with estimates of the compliance weights as in (17):
+
+
+b i = τ̂ (−i) (Xi ) + ĝ (−i) (Xi , Zi ) Yi − fˆ(−i) (Xi ) − (Wi − ê(−i) (Xi ))τ̂ (−i) (Xi ) ,
+Γ
+(44)
+Zi − ẑ (−i) (Xi )
+,
+b (−i) (Xi ) ẑ (−i) (Xi )(1 − ẑ (−i) (Xi ))
+∆
+
+
+
+
+where ∆(x) = P Wi = 1 Zi = 1, Xi = x − P Wi = 1 Zi = 0, Xi = x  is the condi
+tional average effect of the instrument on the treatment, z(x) = P Zi = 1 Xi = x ,
+ĝ (−i) (Xi , Zi ) =
+
+1
+
+π̂ (−k) (·) that matched the full data policy (i.e., treat high-school graduates) in 7/10 folds, whereas 3/10
+folds learned to treat people who have children. Intriguingly, the depth-2 rule in Figure 1 chooses to use
+each of these depth-1 rules in different parts of feature space.
+
+24
+
+0.5
+0.3
+
+●
+●
+●
+●
+●
+
+●
+
+0.3
+A
+
+●
+
+●
+●
+●
+●
+●
+●
+●
+●
+
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+
+●
+
+0.0
+
+−0.1
+
+1000
+
+●
+
+●
+
+●
+
+500
+
+●
+
+●
+
+0.1
+
+0.2
+
+0.2
+
+●
+●
+●
+●
+
+●
+●
+●
+
+●
+
+●
+
+0.1
+
+●
+
+0.0
+
+A
+
+0.4
+
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+●
+
+2000
+
+4000
+
+8000 16000
+
+●
+●
+●
+●
+●
+
+500
+
+n
+
+1000
+
+2000
+
+4000
+
+8000 16000
+
+n
+
+τ (·) as in (46)
+
+τ (·) as in (47)
+
+Figure 3: Distribution of the improvement A(π) = E [(2π(Xi ) − 1)τ (Xi )] for policies learned
+by optimizing the scores (44) over the class Π of depth-2 trees, for different values of sample
+size n. Each box plot summarizes the distribution of A(π̂) over 200 simulation replications,
+while the solid line shows the average of A(π̂). The lower horizontal line shows A(π) for the
+best policy that does not use the features Xi (i.e., either always treat or never treat), and
+the upper horizontal line shows the supremum of A(π) over the class Π.
+
+
+
+
+
+f (x) = E Yi Xi = x , e(x) = P Wi = 1 Xi = x , and τ (x) is the conditional average
+treatment effect as specified in (16). We estimate all nuisance components via random
+forest methods with the package grf, and use an instrumental forest for τ (·), a causal forest
+for ∆(·), and a regression forest for f (·), e(·) and z(·).
+In this simulation experiment, we generate data independently as follows, for various
+choices of n and τ (·):
+
+X ∼ N (0, I10×10 ) , Z X ∼ Bernoulli 1/ 1 + e−X3 ,
+
+(45)
+ε X, Z ∼ N (0, 1) , Q X, Z, ε ∼ Bernoulli 1/ 1 + e−ε−X4 ,
+W = Q ∧ Z, Y = (X3 + X4 )+ + W τ (X) + ε.
+Note that W is in fact endogenous, because Q (and thus also W ) is more likely to be 1 when
+the noise term ε is large. Given this setup, we consider τ (·) functions
+
+τ (x) = (x1 )+ + (x2 )+ − 1 /2 and
+(46)
+τ (x) = sign (x1 x2 ) /2.
+
+(47)
+
+In both cases, we learn π(·) over the class Π of depth-2 trees and note that best nonparametric policy π ∗ (x) = 1 ({τ (x) > 0}) belongs to Π in case (47) but not in case (46).
+In Figure 3, we display the improvement A(π) = E [(2π(Xi ) − 1)τ (Xi )] of our learned
+policies relative to a random assignment baseline, for different values of n. Over all, we see
+that the regret of the learned policies improves with n, and approaches best-in-class regret
+25
+
+as n gets large. We also note an interesting difference in the behavior of the learned rules
+in settings (46) and (47). In the first case, τ (·) is continuous, and regret improves smoothly
+with sample size. Conversely, in the second case where τ (·) has sharp jumps, we observe
+something of a phase transition between n = 2, 000 and n = 4, 000, as our trees become able
+to consistently make splits that roughly match the jumps in τ (·).
+
+5.3
+
+Simulation Study with Continuous, Exogenous Treatments
+
+Finally, we examine another simulation example where, now, the treatment dose Wi ∈ R is
+continuous. As discussed in Section 2.1, we consider policies that infinitesimally nudge the
+treatment dose Wi for select samples; the value V (π) of a policy π is then:
+
+
+
+
+d
+Yi (Wi + ν)
+−C
+,
+(48)
+π : X → {0, 1} ,
+V (π) = E π(Xi )
+dν
+ν=0
+where C is a cost of treatment.
+i to be exogenous. As always, we learn our
+Pn We assume Wb
+b
+policy π̂ via π̂ = argmax{ n1 i=1 (2π(Xi ) − 1) (Γ
+i − C) : π ∈ Π}, and the Γi are appropriate
+cross-fit doubly robust scores (15),
+
+
+d (−i)
+b
+Γi =
+m̂
+(Xi , w)
+dw
+w=Wi
+(49)
+
+
+i
+d h  ˆ(−i)
+(−i)
+−
+log f
+w Xi
+Yi − m̂
+(Xi , Wi ) ,
+dw
+w=Wi
+where
+f (· x) denotes the conditional density of Wi given Xi = x, and m(x, w) =
+
+E Yi Xi = x, Wi = w .
+Unlike in our previous examples, the non-parametric regression problems underlying (49)
+have not received much attention in the statistical learning literature. First, (49) requires
+estimating derivatives of conditional response-functions; but many popular machine learning
+methods, such as random forests or boosted trees, do not have differentiable predictive
+surfaces. Second, the problem of estimating a conditional density function f (· x) presents
+its own numerical challenges.
+Here, we approach the problem as follows. In order to make sure that the derivatives
+of m̂(·) and fˆ(·) are good estimates of m(·) and f (·) respectively, we use penalized series
+estimators throughout. We fit m̂(Xi , Wi ) by penalized regression on 3rd-order Hermite
+polynomials in (Xi , Wi ). Meanwhile, we fit the conditional density function f (· Xi ) by
+adapting Lindsey’s method, a technique for estimating distribution functions using software
+for generalized linear modeling (Efron and Tibshirani, 1996; Lindsey, 1974). In the case
+without covariates, Lindsey’s method involves first discretizing the support of Wi into a
+union of non-overlapping equal-length intervals and, as with a histogram, counting the
+number of samples Wi that fall within each interval. Then, these histogram counts are
+fit via Poisson regression using a series expansion of Wi . As shown in Efron (2011), the
+log-derivative of the estimated density function is well-behaved as an estimate of the logderivative of the true density. Now, in the case with covariates, we again discretize the
+support of Wi into K non-overlapping intervals. However, instead of making a histogram, we
+now duplicate each sample K times: For each sample i = 1, ..., n and interval k = 1, ..., K
+we create a datapoint (Xi , wk , Lik ), where wk is the mid-point of the k-th interval and
+Lik is an indicator for whether the Wi is in the k-th interval. Finally, we fit this model
+by penalized logistic regression on full interactions between 3rd-order Hermite polynomials
+26
+
+in Xi and an appropriate basis expansion b(w) in w discussed further below. In all cases,
+we fit penalized regression via glmnet (Friedman, Hastie, and Tibshirani, 2010), with the
+amount of penalization tuned via cross-validation.
+We consider the following simulation designs, loosely motivated by a probit choice model
+in a pricing application (i.e., where Wi acts as a price and Yi is a choice to purchase). In
+all cases, we generate independent samples as below, with p = 6:
+
+.
+Xi ∼ N (0, Ip×p ) , Ui = 5
+1 + 3e−(Xi1 +Xi2 ) − 0.5,
+(50)
+Wi Xi ∼ Lw (Xi ), Yi Ui , Wi ∼ Bernoulli (Φ(Wi − Ui )) ,
+where Φ(·) is the standard Gaussian cumulative distribution function. We consider two
+choices for the conditional distribution Lw of Wi conditionally on Xi :
+.
+
+Gaussian:
+Wi = 3
+1 + 3e−(Xi1 +Xi3 ) + εi , εi Xi ∼ N (0, 1) , and (51)
+.
+
+Non-Gaussian: Wi = 3
+1 + 3e−(Xi1 +Xi3 +ηi ) + εi ,
+(εi , ηi ) Xi ∼ N (0, I2×2 ) . (52)
+In principle, the Gaussian case appears substantially easier than the non-Gaussian case, because the logistic regression problem underlying Lindsey’s method as above is well-specified
+with a quadratic expansion in w, i.e., b(w) = (1 w w2 ). In the non-Gaussian case, no
+similar simplifications apply. In our experiments, we in fact set b(w) to be the quadratic
+expansion in the Gaussian case; in the non-Gaussian case, we set b(w) to a 5th order natural
+spline basis.
+Before evaluating the accuracy of policy learning in this setting, we present some
+performance
+on the associated doubly robust average derivative estimator
+Pn diagnostics
+b i /n as, despite attracting a fair amount of interest in the literature on
+θ̂DR =
+Γ
+i=1
+asymptotic estimation (including Chernozhukov, Escanciano, Ichimura, Newey, and Robins,
+2018b; Chernozhukov, Newey, and Robins, 2018c; Hirshberg and Wager, 2018), we are not
+aware of existing Monte Carlo evaluations of this estimator in the literature.22 We report bias and root-mean squared
+error for the doubly robust estimator θ̂DR , the pure rePn
+gression estimator θ̂reg = i=1 d/dw m̂(−i) (Xi , Wi )/n, and the pure weighting estimator
+Pn
+θ̂weight = i=1 d/dw log fˆ(−i) (Xi , Wi ) Yi /n. We also report mean-squared standardized erPn b
+ror S = E[(θ̂DR − θ)2 /σ̂ 2 ]1/2 with σ̂ 2 = i=1 Γ
+i /(n(n − 1)) which, under the conditions of
+Assumption 2, should converge as limn→∞ S = 1.
+Table 3 shows results for both average derivative estimation as described above, and for
+policy learning with doubly robust scores. For policy learning, we use a cost of treatment
+parameter C = 0.2. First, encouragingly, we see that the doubly robust estimator of the
+average derivative, θ̂DR , converges with sample size n, and that the value of our learned
+policies improves with n. Furthermore, we see that the doubly robust estimator out-performs
+the pure regression adjustment and weighting estimators here. However, even the doublyrobust estimator is still bias-dominated here, and the root-mean squared standardized error
+S is much bigger than 1 in all considered settings—especially the challenging ones with a
+non-Gaussian distribution of Wi Xi . This suggests that the simulation problem considered
+here is a difficult non-parametric problem where semiparametric efficiency asymptotics kick
+in slowly at best. It is plausible that a a more carefully tailored estimator of the weighting
+22 The closest experiments we are aware from are from Graham and Pinto (2018) and Hirshberg and Wager
+(2018), who report results results for doubly robust
+estimation in a closely related (but more restricted)
+
+model with a conditionally linear specification E Yi Xi = x, Wi = w = m(x) + wτ (x).
+
+27
+
+setup 1
+setup 2
+
+n
+600
+1800
+5400
+16200
+600
+1800
+5400
+16200
+
+regression
+bias
+RMSE
+-0.057
+0.058
+-0.035
+0.036
+-0.019
+0.020
+-0.013
+0.014
+-0.060
+0.062
+-0.039
+0.040
+-0.023
+0.024
+-0.015
+0.015
+
+weighted
+bias
+RMSE
+-0.130
+0.131
+-0.096
+0.096
+-0.080
+0.080
+-0.073
+0.073
+-0.059
+0.060
+-0.053
+0.054
+-0.054
+0.054
+-0.055
+0.055
+
+doubly robust
+bias
+RMSE
+S
+-0.037
+0.039
+4.81
+-0.017
+0.018
+2.74
+-0.009
+0.010
+2.36
+-0.006
+0.006
+2.49
+-0.044
+0.045
+7.20
+-0.026
+0.028
+6.53
+-0.014
+0.015
+5.34
+-0.009
+0.009
+5.40
+
+policy
+value
+0.014
+0.024
+0.028
+0.029
+0.022
+0.032
+0.035
+0.036
+
+Table 3: Simulation results in the setting (50), with conditional distribution of Wi Xi as in
+(51) (setup 1) and (52) (setup 2). We report bias and root-mean squared error for the average
+derivate θ based on the regression estimator θ̂reg , the weighted estimator θ̂weighted , and the
+doubly robust estimator θ̂DR . The root mean-squared standardized error S captures the
+asymptotic behavior of standard Gaussian confidence intervals for θ based on θ̂DR . Finally,
+the last column reports policy value obtained by learning with doubly robust scores over
+the class Π of depth-2 trees.
+function d/dw log f (x, w) following the lines of, e.g., Chernozhukov, Newey, and Robins
+(2018c) or Hirshberg and Wager (2018) could improve performance here.
+
+6
+
+Discussion
+
+In this paper, we proposed an approach to policy learning in the observational study setting
+that builds on classical ideas for semiparametrically efficient treatment effect estimation.
+Our main result is that doubly robust estimators of average treatment effects can be adapted
+for policy evaluation, and that the policy that maximizes the resulting doubly robust value
+estimate over a pre-specified class Π satisfies rate-optimal guarantees for minimax regret.
+Our approach decouples estimation of nuisance components used for the doubly robust
+scores from optimization of the doubly robust value function, and thus allows practitioners
+flexibility in how they implement each step.
+Our formal discussion focused on regret bounds for policy learning. A natural follow-up
+question is to ask for confidence sets guaranteed to contain an optimal policy: For example,
+if Π is the set of depth-L decision trees, can we identify a subset of Π guaranteed to contain
+a value-maximizing policy in Π with high probability? Some early results in this direction
+are reported by Rai (2018). Meanwhile, Armstrong and Shen (2015) consider the related
+task of identifying a subset of the population we are confident will benefit from the policy
+intervention.
+Another natural direction to extend our results is towards dynamic decision making
+problems, where the policy maker needs to make a sequence of decisions, potentially depending on time-varying covariates. The problem of doubly robust policy evaluation in this
+setting has been considered by Thomas and Brunskill (2016) and Zhang, Tsiatis, Laber,
+and Davidian (2013). Nie, Brunskill, and Wager (2019) proposed a method for learning
+observational stopping rules from observational data that is both computationally feasible
+and robust to confounding. Obtaining a more comprehensive landscape of the problem of
+dynamic policy learning in observational studies would be of considerable interest.
+28
+
+Finally, all results presented here relied on point-identification of treatment effects, either
+via a selection on observables assumption or via an instrument that satisfies conditional
+homogeneity. Some applications, however, do not allow for such clean assumptions, and thus
+call for methods for policy learning that are robust to failures of identifying assumptions.
+Kallus and Zhou (2018) consider the problem of policy learning under an approximate
+selection-on-observables assumption in the sense of Rosenbaum (2002). It would also be of
+interest to study what can be done if we only have access to a monotone instrument, as in
+Manski and Pepper (2000).
+
+References
+A. Abadie. Semiparametric instrumental variable estimation of treatment response models.
+Journal of Econometrics, 113(2):231–263, 2003.
+A. Agarwal, D. Hsu, S. Kale, J. Langford, L. Li, and R. Schapire. Taming the monster: A
+fast and simple algorithm for contextual bandits. In Proceedings of The 31st International
+Conference on Machine Learning, pages 1638–1646, 2014.
+C. Ai and X. Chen. Estimation of possibly misspecified semiparametric conditional moment
+restriction models with different conditioning variables. Journal of Econometrics, 141(1):
+5–43, 2007.
+T. B. Armstrong and M. Kolesár. Finite-sample optimal estimation and inference on average
+treatment effects under unconfoundedness. arXiv preprint arXiv:1712.04594, 2017.
+T. B. Armstrong and S. Shen. Inference on optimal treatment assignments. 2015.
+P. M. Aronow and A. Carnegie. Beyond late: Estimation of the average treatment effect
+with an instrumental variable. Political Analysis, 21(4):492–506, 2013.
+S. Athey and G. Imbens. Recursive partitioning for heterogeneous causal effects. Proceedings
+of the National Academy of Sciences, 113(27):7353–7360, 2016.
+S. Athey and S. Wager. Estimating treatment effects with causal forests: An application.
+Observational Studies, 5:36–51, 2019.
+S. Athey, J. Tibshirani, and S. Wager. Generalized random forests. The Annals of Statistics,
+47(2):1148–1178, 2019.
+P. Auer, N. Cesa-Bianchi, Y. Freund, and R. E. Schapire. The nonstochastic multiarmed
+bandit problem. SIAM Journal on Computing, 32(1):48–77, 2002.
+G.-Y. Ban and C. Rudin. The big data newsvendor: Practical insights from machine learning. Operations Research, forthcoming, 2018.
+P. L. Bartlett and S. Mendelson. Rademacher and Gaussian complexities: Risk bounds and
+structural results. Journal of Machine Learning Research, 3:463–482, 2002.
+P. L. Bartlett and S. Mendelson. Empirical minimization. Probability Theory and Related
+Fields, 135(3):311–334, 2006.
+P. L. Bartlett, O. Bousquet, and S. Mendelson. Local Rademacher complexities. Annals of
+Statistics, pages 1497–1537, 2005.
+H. Bastani and M. Bayati. Online decision-making with high-dimensional covariates. 2015.
+D. Bertsimas and J. Dunn. Optimal classification trees. Machine Learning, 106(7):1039–
+1082, 2017.
+D. Bertsimas and N. Kallus. From predictive to prescriptive analytics. arXiv preprint
+arXiv:1402.5481, 2014.
+
+29
+
+A. Beygelzimer and J. Langford. The offset tree for learning with partial labels. In Proceedings of the 15th ACM SIGKDD international conference on Knowledge discovery and
+data mining, pages 129–138. ACM, 2009.
+D. Bhattacharya and P. Dupas. Inferring welfare maximizing treatment assignment under
+budget constraints. Journal of Econometrics, 167(1):168–196, 2012.
+P. Bickel, C. Klaassen, Y. Ritov, and J. Wellner. Efficient and Adaptive Estimation for
+Semiparametric Models. Springer-Verlag, 1998.
+O. Bousquet. A Bennett concentration inequality and its application to suprema of empirical
+processes. Comptes Rendus Mathematique, 334(6):495–500, 2002.
+L. Breiman. Random forests. Machine Learning, 45(1):5–32, 2001.
+L. Breiman, J. Friedman, R. A. Olshen, and C. J. Stone. Classification and Regression
+Trees. CRC press, 1984.
+A. Caponnetto and E. De Vito. Optimal rates for the regularized least-squares algorithm.
+Foundations of Computational Mathematics, 7(3):331–368, 2007.
+G. Chamberlain. Bayesian aspects of treatment choice. In The Oxford Handbook of Bayesian
+Econometrics. 2011.
+G. Chen, D. Zeng, and M. R. Kosorok. Personalized dose finding using outcome weighted
+learning. Journal of the American Statistical Association, (just-accepted), 2016.
+L.-Y. Chen and S. Lee. Best subset binary prediction. arXiv preprint arXiv:1610.02738,
+2016.
+X. Chen. Large sample sieve estimation of semi-nonparametric models. Handbook of Econometrics, 6:5549–5632, 2007.
+X. Chen, H. Hong, and A. Tarozzi. Semiparametric efficiency in GMM models with auxiliary
+data. The Annals of Statistics, pages 808–843, 2008.
+V. Chernozhukov, D. Chetverikov, M. Demirer, E. Duflo, C. Hansen, W. Newey, and
+J. Robins. Double/debiased machine learning for treatment and structural parameters.
+The Econometrics Journal, 21(1):C1–C68, 2018a.
+V. Chernozhukov, J. C. Escanciano, H. Ichimura, W. K. Newey, and J. M. Robins. Locally
+robust semiparametric estimation. arXiv preprint arXiv:1608.00033, 2018b.
+V. Chernozhukov, W. Newey, and J. Robins. Double/de-biased machine learning using
+regularized riesz representers. arXiv preprint arXiv:1802.08667, 2018c.
+C. Cortes and V. Vapnik. Support-vector networks. Machine learning, 20(3):273–297, 1995.
+C. Cortes, Y. Mansour, and M. Mohri. Learning bounds for importance weighting. In
+Advances in Neural Information Processing Systems, pages 442–450, 2010.
+R. H. Dehejia. Program evaluation as a decision problem. Journal of Econometrics, 125(1):
+141–173, 2005.
+L. Devroye and G. Lugosi. Lower bounds in pattern recognition and learning. Pattern
+recognition, 28(7):1011–1018, 1995.
+M. Dimakopoulou, S. Athey, and G. Imbens. Estimation considerations in contextual bandits. arXiv preprint arXiv:1711.07077, 2017.
+M. Dudı́k, J. Langford, and L. Li. Doubly robust policy evaluation and learning. In Proceedings of the 28th International Conference on Machine Learning, pages 1097–1104,
+2011.
+R. M. Dudley. The sizes of compact subsets of Hilbert space and continuity of Gaussian
+processes. Journal of Functional Analysis, 1(3):290–330, 1967.
+B. Efron. Tweedie’s formula and selection bias. Journal of the American Statistical Association, 106(496):1602–1614, 2011.
+
+30
+
+B. Efron and R. Tibshirani. Using specially designed exponential families for density estimation. The Annals of Statistics, 24(6):2431–2461, 1996.
+M. H. Farrell. Robust inference on average treatment effects with possibly more covariates
+than observations. Journal of Econometrics, 189(1):1–23, 2015.
+W. Fithian, D. Sun, and J. Taylor. Optimal inference after model selection. arXiv preprint
+arXiv:1410.2597, 2014.
+J. Friedman, T. Hastie, and R. Tibshirani. Regularization paths for generalized linear models
+via coordinate descent. Journal of Statistical Software, 33(1):1, 2010.
+E. Giné and V. Koltchinskii. Concentration inequalities and asymptotic results for ratio
+type empirical processes. The Annals of Probability, 34(3):1143–1216, 2006.
+B. S. Graham and C. C. d. X. Pinto. Semiparametrically efficient estimation of the average
+linear regression function. Technical report, National Bureau of Economic Research, 2018.
+E. Greenshtein. Best subset selection, persistence in high-dimensional statistical learning
+and optimization under l1 constraint. The Annals of Statistics, 34(5):2367–2386, 2006.
+T. Grubinger, A. Zeileis, and K.-P. Pfeiffer. evtree: Evolutionary learning of globally optimal
+classification and regression trees in r. 61(1), 2014.
+J. Hahn. On the role of the propensity score in efficient semiparametric estimation of average
+treatment effects. Econometrica, pages 315–331, 1998.
+D. Haussler. Sphere packing numbers for subsets of the Boolean n-cube with bounded
+Vapnik-Chervonenkis dimension. Journal of Combinatorial Theory, Series A, 69(2):217–
+232, 1995.
+K. Hirano and J. R. Porter. Asymptotics for statistical treatment rules. Econometrica, 77
+(5):1683–1701, 2009.
+K. Hirano, G. W. Imbens, and G. Ridder. Efficient estimation of average treatment effects
+using the estimated propensity score. Econometrica, 71(4):1161–1189, 2003.
+D. A. Hirshberg and S. Wager. Augmented minimax linear estimation. arXiv preprint
+arXiv:1712.00038, 2018.
+V. J. Hotz, G. W. Imbens, and J. A. Klerman. Evaluating the differential effects of alternative welfare-to-work training components: A reanalysis of the california GAIN program.
+Journal of Labor Economics, 24(3), 2006.
+M. G. Hudgens and M. E. Halloran. Toward causal inference with interference. Journal of
+the American Statistical Association, 103(482):832–842, 2008.
+G. W. Imbens and J. D. Angrist. Identification and estimation of local average treatment
+effects. Econometrica, 62(2):467–475, 1994.
+G. W. Imbens and D. B. Rubin. Causal Inference in Statistics, Social, and Biomedical
+Sciences. Cambridge University Press, 2015.
+N. Kallus. Balanced policy evaluation and learning. arXiv preprint arXiv:1705.07384, 2017a.
+N. Kallus. Recursive partitioning for personalization using observational data. In International Conference on Machine Learning, pages 1789–1798, 2017b.
+N. Kallus and A. Zhou. Confounding-robust policy improvement. In Advances in Neural
+Information Processing Systems, pages 9269–9279, 2018.
+M. Kasy. Partial identification, distributional preferences, and the welfare ranking of policies.
+Review of Economics and Statistics, 98(1):111–131, 2016.
+T. Kitagawa and A. Tetenov. Who should be treated? Empirical welfare maximization
+methods for treatment choice. Econometrica, 86(2):591–616, 2018.
+
+31
+
+S. R. Künzel, J. S. Sekhon, P. J. Bickel, and B. Yu. Meta-learners for estimating heterogeneous treatment effects using machine learning. arXiv preprint arXiv:1706.03461,
+2017.
+T. L. Lai and H. Robbins. Asymptotically efficient adaptive allocation rules. Advances in
+Applied Mathematics, 6(1):4–22, 1985.
+J. Lindsey. Comparison of probability distributions. Journal of the Royal Statistical Society:
+Series B (Methodological), 36(1):38–47, 1974.
+A. Luedtke and A. Chambaz.
+Faster rates for policy learning.
+arXiv preprint
+arXiv:1704.06431, 2017.
+A. R. Luedtke and M. J. van der Laan. Optimal individualized treatments in resource-limited
+settings. The International Journal of Biostatistics, 12(1):283–303, 2016a.
+A. R. Luedtke and M. J. van der Laan. Statistical inference for the mean outcome under a
+possibly non-unique optimal treatment strategy. The Annals of Statistics, 44(2):713–742,
+2016b.
+A. R. Luedtke and M. J. van der Laan. Super-learning of an optimal dynamic treatment
+rule. The international journal of biostatistics, 12(1):305–332, 2016c.
+C. F. Manski. Statistical treatment rules for heterogeneous populations. Econometrica, 72
+(4):1221–1246, 2004.
+C. F. Manski. Identification for Prediction and Decision. Harvard University Press, 2009.
+C. F. Manski. Identification of treatment response with social interactions. The Econometrics Journal, 16(1):S1–S23, 2013.
+C. F. Manski and J. V. Pepper. Monotone instrumental variables: With an application to
+the returns to schooling. Econometrica, 68:997–1010, 2000.
+A. Maurer and M. Pontil. Empirical Bernstein bounds and sample variance penalization.
+In Conference on Learning Theory, 2009.
+E. Mbakop and M. Tabord-Meehan. Model selection for treatment choice: Penalized welfare
+maximization. arXiv preprint arXiv:1609.03167, 2016.
+S. Mendelson and J. Neeman. Regularization in kernel learning. The Annals of Statistics,
+38(1):526–565, 2010.
+S. N. Negahban, P. Ravikumar, M. J. Wainwright, and B. Yu. A unified framework for highdimensional analysis of M -estimators with decomposable regularizers. Statistical Science,
+27(4):538–557, 2012.
+W. K. Newey. The asymptotic variance of semiparametric estimators. Econometrica: Journal of the Econometric Society, 62(6):1349–1382, 1994.
+J. Neyman. Sur les applications de la théorie des probabilités aux experiences agricoles:
+Essai des principes. Roczniki Nauk Rolniczych, 10:1–51, 1923.
+R. Nickl and B. M. Pötscher. Bracketing metric entropy rates and empirical central limit
+theorems for function classes of besov-and sobolev-type. Journal of Theoretical Probability,
+20(2):177–199, 2007.
+X. Nie and S. Wager. Learning objectives for treatment effect estimation. arXiv preprint
+arXiv:1712.04912, 2017.
+X. Nie, E. Brunskill, and S. Wager. Learning when-to-treat policies. arXiv preprint
+arXiv:1905.09751, 2019.
+A. Pakes and D. Pollard. Simulation and the asymptotics of optimization estimators. Econometrica, pages 1027–1057, 1989.
+V. Perchet and P. Rigollet. The multi-armed bandit problem with covariates. 41(2):693–721,
+2013.
+
+32
+
+J. L. Powell, J. H. Stock, and T. M. Stoker. Semiparametric estimation of index coefficients.
+Econometrica, pages 1403–1430, 1989.
+M. Qian and S. A. Murphy. Performance guarantees for individualized treatment rules.
+Annals of Statistics, 39(2):1180, 2011.
+R Core Team. R: A Language and Environment for Statistical Computing. R Foundation
+for Statistical Computing, Vienna, Austria, 2019. URL https://www.R-project.org/.
+Y. Rai. Statistical inference for treatment assignment policies. Unpublished Manuscript,
+2018.
+A. Rakhlin and K. Sridharan. Bistro: An efficient relaxation-based method for contextual
+bandits. 2016.
+J. Robins, L. Li, R. Mukherjee, E. Tchetgen, and A. van der Vaart. Minimax estimation of
+a functional on a structured high dimensional model. Annals of Statistics, forthcoming,
+2017.
+J. Robins and A. Rotnitzky. Semiparametric efficiency in multivariate regression models
+with missing data. Journal of the American Statistical Association, 90(1):122–129, 1995.
+J. Robins, A. Rotnitzky, and L. P. Zhao. Estimation of regression coefficients when some
+regressors are not always observed. Journal of the American statistical Association, 89
+(427):846–866, 1994.
+J. Robins, A. Rotnitzky, and L. P. Zhao. Analysis of semiparametric regression models for
+repeated outcomes in the presence of missing data. Journal of the American Statistical
+Association, 90(1):106–121, 1995.
+J. Robins, L. Li, E. Tchetgen, and A. van der Vaart. Higher order influence functions and
+minimax estimation of nonlinear functionals. In Probability and Statistics: Essays in
+Honor of David A. Freedman, pages 335–421. Institute of Mathematical Statistics, 2008.
+P. M. Robinson. Root-n-consistent semiparametric regression. Econometrica: Journal of
+the Econometric Society, pages 931–954, 1988.
+P. R. Rosenbaum. Observational Studies. Springer Science & Business Media, 2002.
+C. Rothe. Flexible covariate adjustments in randomized experiments, 2018.
+D. B. Rubin. Estimating causal effects of treatments in randomized and nonrandomized
+studies. Journal of Educational Psychology, 66(5):688, 1974.
+A. Schick. On asymptotically efficient estimation in semiparametric models. The Annals of
+Statistics, pages 1139–1151, 1986.
+M. E. Sobel. What do randomized studies of housing mobility demonstrate? causal inference
+in the face of interference. Journal of the American Statistical Association, 101(476):1398–
+1407, 2006.
+J. Stoye. Minimax regret treatment choice with finite samples. Journal of Econometrics,
+151(1):70–81, 2009.
+J. Stoye. Minimax regret treatment choice with covariates or with limited validity of experiments. Journal of Econometrics, 166(1):138–156, 2012.
+A. Swaminathan and T. Joachims. Batch learning from logged bandit feedback through
+counterfactual risk minimization. Journal of Machine Learning Research, 16:1731–1755,
+2015.
+A. Tetenov. Statistical treatment choice based on asymmetric minimax regret criteria.
+Journal of Econometrics, 166(1):157–165, 2012.
+P. Thomas and E. Brunskill. Data-efficient off-policy policy evaluation for reinforcement
+learning. In International Conference on Machine Learning, pages 2139–2148, 2016.
+
+33
+
+M. J. van der Laan and S. Rose. Targeted Learning: Causal Inference for Observational and
+Experimental Data. Springer Science & Business Media, 2011.
+M. J. van der Laan, S. Dudoit, and A. W. van der Vaart. The cross-validated adaptive
+epsilon-net estimator. Statistics & Decisions, 24(3):373–395, 2006.
+M. J. van der Laan, E. C. Polley, and A. E. Hubbard. Super learner. Statistical applications
+in genetics and molecular biology, 6(1), 2007.
+V. Vapnik. The nature of statistical learning theory. Springer Information Science and
+Statistics, 2000.
+S. Wager and S. Athey. Estimation and inference of heterogeneous treatment effects using
+random forests. Journal of the American Statistical Association, 113(523):1228–1242,
+2018.
+S. Wager, W. Du, J. Taylor, and R. J. Tibshirani. High-dimensional regression adjustments
+in randomized experiments. Proceedings of the National Academy of Sciences, 113(45):
+12673–12678, 2016.
+M. J. Wainwright. High-dimensional statistics: A non-asymptotic viewpoint, volume 48.
+Cambridge University Press, 2019.
+B. Zhang, A. A. Tsiatis, M. Davidian, M. Zhang, and E. Laber. Estimating optimal treatment regimes from a classification perspective. Stat, 1(1):103–114, 2012.
+B. Zhang, A. A. Tsiatis, E. B. Laber, and M. Davidian. Robust estimation of optimal
+dynamic treatment regimes for sequential treatment decisions. Biometrika, 100(3):681–
+694, 2013.
+Y. Zhao, D. Zeng, A. J. Rush, and M. R. Kosorok. Estimating individualized treatment
+rules using outcome weighted learning. Journal of the American Statistical Association,
+107(499):1106–1118, 2012.
+W. Zheng and M. J. van der Laan. Cross-validated targeted minimum-loss-based estimation.
+In Targeted Learning, pages 459–474. Springer, 2011.
+X. Zhou, N. Mayer-Hamblett, U. Khan, and M. R. Kosorok. Residual weighted learning for
+estimating individualized treatment rules. Journal of the American Statistical Association,
+112(517):169–187, 2017.
+Z. Zhou, S. Athey, and S. Wager. Offline multi-action policy learning: Generalization and
+optimization. arXiv preprint arXiv:1810.04778, 2018.
+
+34
+
+A
+
+Characterizing the VC Dimension
+
+As a preliminary to our technical argument, we start by reviewing some practical characterizations of the VC dimension in terms of covering numbers in Hamming distance. For any
+discrete set of points {X1 , ..., Xm } and any ε > 0, define the ε-Hamming covering number
+NH (ε, Π, {X1 , ..., Xm }) as the smallest number of policies π : {X1 , ..., Xm } → {0, 1} (not
+necessarily contained in Π) required to ε-cover Π under Hamming distance,
+m
+
+H(π1 , π2 ) =
+
+1 X
+1 ({π1 (Xj ) 6= π2 (Xj )}) .
+m j=1
+
+(53)
+
+Then, define the ε-Hamming entropy of Π as log (NH (ε, Π)), where
+NH (ε, Π) = sup {NH (ε, Π, {X1 , ..., Xm }) : X1 , ..., Xm ∈ X ; m ≥ 1}
+
+(54)
+
+is the number of functions needed to ε-cover Π under Hamming distance for any discrete
+set of points. We note that this notion of entropy is purely geometric, and does not depend
+on the distribution used to generate the Xi .
+As argued in Pakes and Pollard (1989), a class Π has a finite VC dimension if and only
+if there is a constant κ for which
+log (NH (ε, Πn )) ≤ κ log ε−1
+
+
+
+for all 0 < ε <
+
+1
+.
+2
+
+(55)
+
+Moreover, there are simple quantitative bounds for Hamming entropy in terms of the VC
+dimension: If Π is a VC class of dimension VC(Π), then (Haussler, 1995)
+
+
+log (NH (ε, Π)) ≤ VC(Π) log ε−1 + log(2) + 1 + log (VC(Π) + 1) + 1
+(56)
+
+1
+≤ 5 VC(Π) log ε−1 for all 0 < ε <
+2
+whenever VC(Π) ≥ 2. Conversely, recall that if Π has VC-dimension d it can shatter a set
+of d points, and so we must have NH (1/d, Π) ≥ 2d . Thus, the VC dimension d of any class
+whose Hamming entropy satisfies (55) must be bounded via the relationship
+d log(2) ≤ κ log(d).
+
+(57)
+
+Whenever we invoke Assumption 3 in our proof, we actually work in terms of the covering
+number bound (56) and assume that VC(Π) ≥ 2 (the case with VC(π) = 1, corresponding
+to non-personalized decision rules, is trivial).
+
+B
+B.1
+
+Proofs
+Proof of Lemma 2
+
+Our proof of this result follows the outline of the classical chaining argument of Dudley
+(1967), whereby we construct a sequence of approximating sets of increasing precision for
+en (π) with π ∈ Πλ , and then use finite sample concentration inequalities to establish the
+A
+n
+en (π) over this approximation set. The improvements in our results relative
+behavior of A
+to existing bounds described in the body of the text come from a careful construction of
+35
+
+approximating sets targeted to the problem of doubly robust policy evaluation—for example,
+our use of chaining with respect to the random distance measure defined in (58)—and the
+use of sharp concentration inequalities.
+Given these preliminaries, we start by defining the conditional 2-norm distance between
+two policies π1 , π2 as
+Dn2 (π1 , π2 ) =
+
+n
+X
+
+Γ2i (π1 (Xi ) − π2 (Xi ))
+
+2
+
+i=1
+
+n
+X
+
+Γ2i ,
+
+(58)
+
+i=1
+
+and let NDn (ε, Πλn , {Xi , Γi }) be the
+number in this distance. To bound NDn ,
+ ε-covering
+m
+n
+imagine creating another sample Xj0 j=1 , with Xj0 contained in the support of {Xi }i=1 ,
+such that
+n
+X
+
+j ∈ 1, ..., m : Xj0 = Xi − m Γ2i /
+Γ2j ≤ 1.
+j=1
+
+We immediately see that, for any two policies π1 and π2 ,
+m
+
+1 X 
+1 π1 (Xj0 ) 6= π2 (Xj0 ) = Dn2 (π1 , π2 ) + O
+m j=1
+
+
+
+1
+m
+
+
+.
+
+Moreover, recall that the Hamming covering number NH as used in (55) does not depend
+on sample size, so we can without reservations make m arbitrarily large, and conclude that
+
+NDn (ε, Πn , {Xi , Γi }) ≤ NH ε2 , Πn .
+(59)
+In other words, we have found that we can bound the Dn -entropy of Πn with respect to its
+distribution-independent Hamming entropy which is controlled via Assumption 3.
+Our proof strategy involves a chaining argument with respect to Dn . The lemma below
+describes the chaining that we use in our argument; we defer the proof of Lemma 6 to the
+end of this section.
+Lemma 6. For any J ≥ 1, there exists a chain of approximators Ψj : Πλn → Πλn for
+j = 1, ..., J, such that the following properties hold for all values of j = 1, ..., J (we use the
+notational shorthand ΨJ+1 (π) = π):
+• The approximation is accurate, i.e., Dn (Ψj (π), Ψj+1 (π)) ≤ 2−j for all π ∈ Πλn ;
+• There is no branching, such that Ψj (π) = Ψj (Ψj+1 (π)) for all π ∈ Πλn ; and
+
+• The set Πλn (j) := Ψj (π) : π ∈ Πλn of j-th order approximating policies has cardinality
+at most NDn (2−(j+1) , Πn , {Xi , Γi }).
+
+
+We now move to our main task, i.e., bounding the Rademacher complexity E Rn (Πλn ) .
+In order to do so, we use a two-step strategy. We first prove the following weaker result
+below, with a bound that depends only on the worst-case variance Sn rather than the sliceadapted variance Snλ ≤ Sn . We then use this bound to sharpen our argument and prove the
+desired bound (26).
+Lemma 7. Under the conditions of Lemma 2 and for any λ,
+r
+
+
+Sn VC(Πn )
+λ
+lim sup E Rn Πn
+≤ 52.
+n
+n→∞
+36
+
+(60)
+
+Proof. To start, it is helpful to decompose the random variable into several parts using the
+chaining established in Lemma 6. In doing so, the following thresholds play a key role:
+J0 := 1,
+
+
+ 
+J(n) := log2 (n) (3 − 2β) 8 , and J+ (n) := blog2 (n) (1 − β)c .
+
+(61)
+
+We then apply Lemma 6 to create a chain with J = J+ (n) terms and note that
+n
+
+n
+
+1X
+1X
+ξi Γi (2π(Xi ) − 1) =
+ξi Γi (2ΨJ0 (π)(Xi ) − 1)
+n i=1
+n i=1
+J(n)
+
++
+
+X
+j=J0 +1
+J+ (n)
+
++
+
+n
+
+2X
+ξi Γi (Ψj (π)(Xi ) − Ψj−1 (π)(Xi ))
+n i=1
+
+X
+j=J(n)+1
+
+n
+
+(62)
+
+2X
+ξi Γi (Ψj (π)(Xi ) − Ψj−1 (π)(Xi ))
+n i=1
+
+n
+
+
+2X
++
+ξi Γi π(Xi ) − ΨJ+ (n) (π)(Xi ) ,
+n i=1
+for any π ∈ Πλn . Note that, for now, the first threshold J0 = 1 is trivial; however, once we
+want to prove the stronger bound (26) instead of (60) we will need a more careful choice of
+J0 , so we already introduce this flexibility now for notational
+√ consistency.
+We now proceed to successively control the behavior 1/ n-scale behavior of all four terms
+above, uniformly over all π ∈ Πλn . The result will be that the first term√can be characterized
+directly via Bernstein’s inequality; the second term is controlled
+to 1/ n-scale by chaining;
+√
+the third term is shown to stochastically vanish
+at
+1/
+n-scale
+by chaining; and the last
+√
+term is shown to deterministically vanish at 1/ n-scale.
+Before embarking on this task, we recall Bernstein’s inequality, which will be frequently
+used throughout the proof:
+"
+#
+"
+!#
+
+n
+n
+1 X
+−t2
+1 X  2
+Mt
+P √
+Ui ≥ t ≤ 2 exp
+E Ui + √
+,
+(63)
+2
+n i=1
+n i=1
+3 n
+for any independent, mean-zero variables Ui with |Ui | ≤ M , and any constant t > 0. To
+make use of this inequality, it is helpful to restrict ourselves to a study of Rn (Πλn ) on the
+event
+
+
+2
+1−2β
+d [(2π(Xi ) − 1) Γi ] ≥ s for all π ∈ Πλ (J0 ) ,
+Bn = Mn ≤ n 16 and Var
+(64)
+n
+2
+where Mn = maxi=1, ..., n {|Γi |} and 0 < β < 1/2 is
+from Assumption 3. Recall
+ the constant
+
+that, by assumption, Γi is sub-Gaussian and Var Γi Xi > s2 , and so a simple calculation
+can be used to check that limn→∞ P [Bn ] = 1 and furthermore
+
+
+
+
+
+√
+n E Rn (Πλn ) − E Rn Πλn 1 (Bn ) = 0.
+(65)
+Thus, for the rest of this proof, we will assume that the event Bn has occurred when
+convenient.
+
+37
+
+First Term Because the chaining created in Lemma 6 has no branching, we see that
+( n
+)
+1X
+ξi Γi (2ΨJ0 (π)(Xi ) − 1) : π ∈ Π
+sup
+n i=1
+( n
+)
+(66)
+1X
+λ
+= sup
+ξi Γi (2π(Xi ) − 1) : π ∈ Πn (J0 ) .
+n i=1
+Then, applying a union bound with Bernstein’s inequality
+(63) on the event Bn in (64), we
+p
+see that, for all large enough n and all t ≤ 2Sb0.5 log(n) + log (2 |Πλn (J0 )|)
+"
+( n
+)
+#
+√
+1X
+λ
+1 (Bn ) P
+n sup
+ξi Γi (2π(Xi ) − 1) : π ∈ Πn (J0 ) ≥ t {Xi , Γi }
+n i=1
+ 2
+
+t
+− 7+2β
+λ
+(67)
+b
+S + t n 16 / 3
+≤ 2 Πn (J0 ) exp −
+2
+ 2
+t
+λ
+,
+≤ 2 Πn (J0 ) exp −
+4Sb
+Pn
+where Sb = i=1 Γ2i /n. Now, to bound expectations, we note the following fact: If a nonnegative P
+random variable satisfies X ≤ ck with probability 1 − 2−k for all k = 1, 2, . . ., then
+∞
+E [X] ≤ k=1 2−k ck . Thus, applying the above bound for the choice
+q
+tk = 2 Sb0.5 min {k log(2), log(n)} + log (2 |Πλn (J0 )|), k = 1, 2, ..., dlog(n)/ log(2)e
+we then find that (the last term corresponds to a loose max |Γi |/n when all events fail)
+"
+( n
+)
+#
+√
+1X
+λ
+1 (Bn ) E
+n sup
+ξi Γi (2π(Xi ) − 1) : π ∈ Πn (J0 )
+{Xi , Γi }
+n i=1
+!
+∞
+q
+X
+p
+7+2β
+−k
+0.5
+log |Πλn (J0 )| +
+2
+(k + 1) log(2) + n− 16
+≤ 2 Sb
+(68)
+k=1
+p
+
+7+2β
+≤ 2 Sb0.5
+log NH (1/16, Πn ) + 1.5 + n− 16
+q
+p
+
+7+2β
+− 7+2β
+0.5
+b
+16
+≤ 2S
+5 log(16) VC(Πn ) + 1.5 + n
+≤ 11 Sb VC(Πn ) + n− 16 ,
+where for the third line we used Lemma 6 and (59) whereas for the last line we used
+Assumption 3 together with (56). Finally, noting that
+hp i p
+E
+Sb ≤ Sn
+(69)
+by concavity of the square-root function, we see that
+"
+( n
+)#
+r
+n
+1X
+λ
+lim sup E 1 (Bn )
+sup
+ξi Γi (2π(Xi ) − 1) : π ∈ Πn (J0 )
+≤ 11. (70)
+Sn VC(Πn )
+n i=1
+n→∞
+
+38
+
+Second Term
+have
+"
+P
+
+First, we check that, for any choice of π ∈ Πλn , j = 1, ..., J and t > 0, we
+n
+
+p
+1 X
+√
+Γi ξi (Ψj (π)(Xi ) − Ψj+1 (π)(Xi )) ≥ t 2−j Sb {Xi , Γi }
+n i=1
+
+!−1 
+j
+2
+1 Mn t 2
+−t
+,
+p
+1+
+≤ 2 exp 
+2
+3
+nSb
+
+#
+(71)
+
+Pn
+where Sb = i=1 Γ2i /n, Mn = max {|Γi | : 1 ≤ i ≤ n}. This can be verified using Bernstein’s
+inequality (63), which establishes that, for any choice of t > 0, π ∈ Πλn and j = 1, 2, ..., J,
+#
+"
+n
+p
+1 X
+−j
+b
+Γi ξi (Ψj (π)(Xi ) − Ψj+1 (π)(Xi )) ≥ t 2
+S {Xi , Γi }
+P √
+n i=1
+p !#
+"
+
+n
+−t2 4−j Sb
+1X 2
+Mn t 2−j Sb
+√
+≤ 2 exp
+Γ 1 ({Ψj (π)(Xi ) 6= Ψj+1 (π)(Xi )}) +
+2
+n i=1 i
+3 n
+p !#
+"
+
+−j
+−t2 −j b
+Sb
+M
+t
+2
+n
+√
+= 2 exp
+.
+4 S
+Dn2 (Ψj (π), Ψj+1 (π)) Sb +
+2
+3 n
+Finally recall that, by Lemma 6, Dn2 (Ψj (π), Ψj+1 (π)) ≤ 4−j ; thus
+p !
+!−1
+
+−j
+j
+b
+M
+t
+2
+S
+1
+M
+t2
+n
+n
+−j b
+2
+√
+4 S
+Dn (Ψj (π), Ψj+1 (π)) Sb +
+≥ 1+ p
+,
+3
+3 n
+nSb
+and so (71) follows.
+Now, or every j ≥ J0 and δ > 1/(2n), define the event
+)
+(
+n
+p
+1 X
+−j
+b
+Γi ξi (Ψj (π)(Xi ) − Ψj+1 (π)(Xi )) ≥ 2 tj, δ S
+Ej, δ := sup √
+n i=1
+π∈Πλ
+n
+s
+ 2
+2j
+.
+tj, δ := 2 7(j + 2) VC(Πn ) + log
+δ
+
+(72)
+
+By (71), we immediately see that
+
+
+P Ej, δ
+
+
+
+−t2j, δ
+{Xi , Γi } ≤ 2 Πλn (j + 1) exp 
+2
+
+1 Mn tj, δ 2j
+p
+1+
+3
+nSb
+
+!−1 
+.
+
+(73)
+
+By invoking Assumption 3, Lemma 6 and (59) along with the fact that 5 log(4) < 7, we see
+that
+
+
+
+
+log Πλn (j + 1) ≤ log NH 4−(j+2) , Πn
+≤ 7(j + 2) VC(Πn ).
+(74)
+Moreover, on the event Bn from (64) and recalling Assumption 3 along with the definition
+
+39
+
+of J(n), we see that
+1−2β
+16
+
+p
+
+7(J(n) + 2) VC(Πn ) + log(2nJ(n)2 )2J(n)
+p
+ns2 /2
+
+
+
+1 − 2β
+β
+3 − 2β
+1
+= exp log(n)
++ +
+−
+· polylog(n)
+16
+2
+8
+2
+
+2n
+1 Mn tj, δ 2j
+p
+≤
+3
+3
+nSb
+
+2β−1
+16
+
+=n
+
+· polylog(n) ≤ 1
+
+for large enough values of n, simultaneously for all j ≤ J(n) and δ ≥ 1/(2n), because
+β < 1/2. Thus, for large enough values of n, the bound (73) simplifies dramatically, and we
+get
+
+
+δ
+(75)
+1 (Bn ) P Ej, n {Xi , Γi } ≤ 2 .
+j
+Applying this bound simultaneously to j = J0 , ..., J(n) − 1:
+
+
+J(n)−1
+J(n)−1
+X δ
+[
+
+
+1 (Bn ) P
+Ej, n {Xi , Γi } ≤
+≤ 2δ.
+(76)
+j2
+j=J0
+
+j=J0
+
+Thus, for large enough n, we can directly verify that, with probability at least 1 − 2δ,
+√
+
+n
+
+J(n)−1
+
+X
+2X
+Γi ξi
+(Ψj+1 (π) − Ψj (π)) (Xi )
+n i=1
+π∈Πλ
+n
+j=J0
+s
+ 2
+p J(n)−1
+X
+2j
+−j
+b
+≤4 S
+2
+7(j + 2) VC(Πn ) + log
+δ
+j=J0
+
+
+J(n)−1
+J(n)−1
+p
+X
+X
+p
+p
+p
+p
+≤ 4 Sb  7 VC(Πn )
+2−j j + 2 +
+2−j log (2j 2 ) + 21−J0 log (δ −1 ) .
+
+n1 (Bn ) sup
+
+j=J0
+
+j=J0
+
+Moreover, we can check by calculus that, for all J0 ≥ 2,
+J(n)−1
+
+X
+
+2−j
+
+p
+
+j + 2 ≤ 2−J0
+
+∞
+X
+
+p
+
+j=0
+
+j=J0
+J(n)−1
+
+X
+
+2−j
+
+2
+
+−j
+
+p
+
+log (2j 2 )
+
+≤2
+
+−J0
+
+∞
+X
+
+−j
+
+2
+
+j+2
+J0 + √
+2 J0
+q
+
+log (2J02 )
+
+j=0
+
+j=J0
+
+≤ 2−J0
+
+∞
+X
+j=0
+
+= 2 × 2−J0
+
+2−j
+
+q
+
+
+
+log (2J02 ) +
+
+= 2 × 2−J0
+
+p
+J0 + 3 × 2−J0 ,
+
+2 log(J0 + j) − 2 log(J0 )
+p
++
+2 log (2J02 )
+!
+j
+
+!
+
+p
+log (2J02 )
+!
+q
+p
+1
+−J0
+log (2J02 ) + p
+≤
+4
+×
+2
+J0 ;
+J0 log (2J02 )
+J0
+
+moreover, the same final upper bounds can be verified directly for J0 = 1. Thus the above
+expression can further be bounded by
+p
+p
+ p
+
+
+p
+p
+b −J0
+. . . ≤ 4 S2
+7 VC(Πn ) 2 J0 + 3 + 4 J0 + 2 log(δ −1 ) .
+40
+
+Next, we bound expectations
+as in (68), and apply the above bound separately for the
+
+sequences 2δ = max 2−k , 1/n for k = 1, 2, ... to show that, again for large enough n,
+
+
+J(n)−1
+n
+X
+X
+√
+2
+nE 1 (Bn ) sup
+Γi ξi
+(Ψj+1 (π) − Ψj (π)) (Xi ) 
+n
+λ
+π∈Πn
+i=1
+j=J0
+!
+∞
+ p
+
+hp i
+X
+p
+p
+p
+≤ 4 × 2−J0
+7 VC(Πn ) 2 J0 + 3 + 4 J0 + 2
+2−k (k + 1) log(2) E
+Sb
+k=1
+−J0
+
+≤2
+
+p
+
+
+
+VC(Πn ) 38
+
+p
+
+
+
+hp i
+ p
+
+p
+J0 + 44 E
+Sb ≤ 2−J0 Sn VC(Πn ) 38 J0 + 44 ,
+(77)
+
+where we note
+√ that the contribution of terms on the residual with-probability-1/n scale as
+Mn /n  1/ n on Bn (64), and for the last inequality we also use (69). We thus conclude
+that
+
+
+r
+J(n)−1
+n
+X
+X
+1
+n
+E 1 (Bn ) sup
+Γi ξi
+(Ψj+1 (π) − Ψj (π)) (Xi )  ≤ 41,
+lim sup
+Sn VC(Πn )
+n
+λ
+n→∞
+π∈Πn
+i=1
+j=J0
+
+(78)
+recalling our choice of J0 = 1 from (61).
+Third Term We now verify that terms Ψj (π)(Xi ) − Ψj+1 (π)(Xi ) in (62) with J(n) ≤
+j < J+ (n) are asymptotically negligible. To do so, we collapse all approximating policies
+with J(n) ≤ j < J+ (n), and directly compare ΨJ(n) (π) to ΨJ+ (n) (π). Because of our “no
+branching” construction, we know that ΨJ(n) (π) = ΨJ(n) (ΨJ+ (n) (π)) for all policies π ∈ Πλn ,
+and so
+"
+(
+)
+#
+n
+p
+
+1 X
+λ
+−J(n)
+b
+P sup √
+Γi ξi ΨJ(n) (π)(Xi ) − ΨJ+ (n) (π)(Xi ) : π ∈ Πn ≥ 2 × t 2
+S
+n i=1
+)
+#
+"
+(
+n
+p
+
+1 X
+Γi ξi ΨJ(n) (π)(Xi ) − π(Xi ) : π ∈ Πλn (J+ (n)) ≥ 2 × t 2−J(n) Sb
+= P sup √
+n i=1
+
+!−1 
+2
+J(n)
+−t
+1
+M
+t
+2
+n
+,
+p
+≤ 2 Πλn (J+ (n)) exp 
+1+
+2
+6
+b
+nS
+where the last inequality follows from Bernstein’s inequality using exactly the same arguments as those used to establish (71). By Lemma 6, Assumption 3 and (56), we get
+
+
+log Πλn (J+ (n)) ≤ log NDn 2−(J+ (n)+1) , Πn , {Xi , Γi }
+
+
+(79)
+≤ log NH 4−(J+ (n)+1) , Πn ≤ 5 log(4)(J+ (n) + 1)nβ .
+The next step is to plug t2 = 4J(n) n(2β−1)/4 /Sb into the previous bound. Given this choice
+along with Assumption 3 and (61) we see that, on event Bn from (64),
+√
+2β−5
+−1+2β
+1−2β
+t2J(n) / n ≥ ×22J(n) n 8 n 16 ≥ n 16 /4
+41
+
+which grows with n, and so the bound simplifies on event Bn and for large enough n:
+p
+"
+#
+i
+h
+
+2β−1
+−(3/2)t nSb
+λ
+λ
+≤ 1 (Bn ) 2 Πn (J+ (n)) exp J(n)
+P 1 (Bn ) ∆mid Πn ≥ 2n 8
+2
+max {Mn , 1}
+
+
+
+√
+3 6β−3
+n 5 log(4)(J+ (n) + 1)nβ−1/2 − n 16
+, where
+≤ 2 exp
+2
+)
+(
+n
+X
+
+
+1
+∆mid Πλn = sup √
+Γi ξi ΨJ(n) (π)(Xi ) − ΨJ+ (n) (Xi ) : π ∈ Πλn .
+n i=1
+Thus, noting that β < 1/2, we see that
+ 
+
+
+5+6β
+2β−1
+3
+lim sup n 16 log P 1 (Bn ) ∆mid Πλn ≥ 2n 8
+≤− .
+2
+n→∞
+
+√
+Meanwhile, we also know that 1 (Bn ) ∆mid Πλn / n ≤ n(1−2β)/16 , and so we conclude that
+"
+(
+)#
+n
+
+1 X
+λ
+lim E sup √
+Γi ξi ΨJ(n) (π)(Xi ) − ΨJ+ (n) (Xi ) : π ∈ Πn
+= 0,
+n→∞
+n i=1
+meaning that the third group of terms in the chaining (62) in fact do not contribute to the
+first-order behavior of the Rademacher complexity.
+√
+Fourth Term Finally, the last term in (62) can be shown to vanish at 1/ n-scale determinisitically. By Cauchy-Schwarz,
+v
+u n
+n
+u1 X
+
+2
+1X
+Γi ξi π(Xi ) − ΨJ+ (n) (π)(Xi ) ≤ t
+Γ2 π(Xi ) − ΨJ+ (n) (π)(Xi )
+n i=1
+n i=1 i
+p
+p
+b
+Sb ≤ 2−J+ (n) S.
+= Dn π, ΨJ+ (n) (π)
+Furthermore, recalling the definition of J+ (n) from (61) and on the event where Mn is
+controlled as in (64),
+p
+√
+√
+1−2β
+14β−7
+lim n2−J+ (n) Sb ≤ 2 nnβ−1 n 16 = n 16 = 0,
+n→∞
+
+because β < 1/2 by Assumption 3.
+Wrapping Up Lemma 7 Combining (70) with (78) with our above results showing that
+the third and fourth terms in (62) are asymptotically negligible, we recover (60).
+We now turn to proving Lemma 2 itself, and specifically the bound (26). In doing so, we
+follow the proof of Lemma 7 closely, but with slightly stronger concentration bounds that
+are unlocked by the result we already have in Lemma 7. We also replace the choice J0 = 1
+in (61) with
+
+ 
+J0 := 9 + log4 Sn Snλ .
+(80)
+In the resulting new√decomposition (62), we note that the third and fourth terms are still
+vanishing at the 1/ n-scale, so we do not need to revisit those. Thus, our only task is to
+sharpen our bounds on the first and second terms.
+42
+
+The main additional work we need to do is in bounding the first term. Starting from
+(66) we note that, because the ξi are all mean-zero,
+)#
+"
+( n
+1X
+λ
+ξi Γi (2π(Xi ) − 1) : π ∈ Πn (J0 )
+E sup
+n i=1
+"
+( n
+)#
+(81)
+1X
+∗
+λ
+= E sup
+ξi (Γi (2π(Xi ) − 1) − An ) : π ∈ Πn (J0 )
+,
+n i=1
+
+where A∗n = sup An (π) : π ∈ Πλn . Then, applying Bernstein’s inequality as in (67), we get
+p
+0.5
+log(n) + log (2 |Πλn (J0 )|),
+that for all large enough n and all t ≤ 2Sbmax
+( n
+"
+)
+#
+√
+1X
+λ
+n sup
+1 (Bn ) P
+ξi Γi (2π(Xi ) − 1) : π ∈ Πn (J0 ) ≥ t {Xi , Γi }
+n i=1
+
+
+t2
+λ
+≤ 2 Πn (J0 ) exp −
+,
+(82)
+4Sbmax
+)
+( n
+1X
+2
+(Γi (2π(Xi ) − 1) − A∗n ) : π ∈ Πλn (J0 ) .
+Sbmax := sup
+n i=1
+Then, following (68), we get that
+"
+( n
+#
+)
+√
+1X
+λ
+1 (Bn ) E
+n sup
+{Xi , Γi }
+ξi Γi (2π(Xi ) − 1) : π ∈ Πn (J0 )
+n i=1
+q
+
+
+7+2β
+0.5
+≤ 2 Sbmax
+log NH 4−(J0 +1) , Πn + 1.5 + n− 16
+
+p
+7+2β
+0.5
+5 log(4) VC(Πn )(J0 + 1) + 1.5 + n− 16
+≤ 2 Sbmax
+q
+
+ 
+7+2β
+≤ 6 Sbmax VC(Πn ) 10 + log4 Sn Snλ
++ n− 16 .
+
+(83)
+
+Now, combining the bound we already have from Lemma 7 with the proof of Lemma 4, we
+see that under the conditions of Lemma 2 and provided that Sn VC(Πn )/n → 0, we have
+that
+q
+ q
+
+b
+lim sup E
+Smax
+S λ + 4λ2 ≤ 1;
+n
+
+n
+
+to check this, we also used the fact that, by (24),
+n h
+i
+o
+2
+sup E (2(π(Xi ) − 1)Γi − A∗n ) : π ∈ Πλn
+n
+o
+2
+= sup Var [2(π(Xi ) − 1)Γi ] + (An (π) − A∗n ) : π ∈ Πλn ≤ Snλ + 4λ2 .
+
+(84)
+
+Thus, we conclude that
+( n
+)#
+"
+r
+n
+1X
+λ
+ξi Γi (2π(Xi ) − 1) : π ∈ Πn (J0 )
+lim sup E 1 (Bn )
+sup
+(Snλ + 4λ2 ) VC(Πn )
+n i=1
+n→∞
+!
+r
+.
+  .
+
+1 + 18 1 + log4 Sn Snλ
+9 ≤ 1.
+(85)
+43
+
+Meanwhile, for the second term, we proceed exactly as before up to (77). Here, however,
+we invoke the new (larger) choice of J0 and, noting that
+s
+
+
+ ! s
+  .
+Sn
+Sn
+−8
+≤
+9,
+2
+1
++
+log
+44 + 38 9 + log4
+4
+λ
+Sn
+Snλ
+we get
+
+
+J(n)−1
+n
+X
+X
+1
+n
+(Ψj+1 (π) − Ψj (π)) (Xi ) 
+lim sup
+E 1 (Bn ) sup
+Γi ξi
+Snλ VC(Πn )
+n
+n→∞
+π∈Πλ
+n
+i=1
+j=J0
+s
+
+  .
+Sn
+9 ≤ 1.
+1 + log4
+Snλ
+r
+
+(86)
+
+Finally, we establish (26) by combining this bound with (85), and the fact that clipping as
+in (64) has an asymptotically negligible effect.
+Proof of Lemma 6
+We construct the chaining by backwards recursion, as follows. First, for the largest index J
+under consideration, we do the following:
+1. Let Ψ0J : Πn → {X → {0, 1}} be an optimal 2−(J+1) covering of Πn , such that
+ the
+cardinality of the set {Ψ0J (π) : π ∈ Πn } is at most NDn 2−(J+1) , Πn , {Xi , Γi } .
+2. For every approximating policy π 0 ∈ {Ψ0J (π) : π ∈ Πn }, construct a function
+neighbor(·) such that neighbor(π 0 ) ∈ π ∈ Πλn : Dn (π, π 0 ) ≤ 2−(J+1) if this set is
+non-empty, and neighbor(π 0 ) = ∅ else.
+3. Define ΨJ : Πλn → Πλn via ΨJ (π) = neighbor(Ψ0j (π)).
+We can see by construction that ΨJ (π) ∈ Πλn for all π ∈ Πλn (because no element in Πλn can
+be mapped by Ψ0J to an element π 0 with neighbor(π 0 ) = ∅), and that the
+ cardinality of the
+set Πλn (J) = ΨJ (π) : π ∈ Πλn is at most NDn 2−(J+1) , Πn , {Xi , Γi } . Furthermore, by
+the triangle inequality, Dn (ΨJ (π), π) ≤ 2−J for all π ∈ Πλn .
+Next, for every 1 ≤ j < J, we first define the mapping Ψj as a 2−j -approximation of
+λ
+Πn (j + 1)using exactly the same construction as above. Thus, Ψj : Πλn (j + 1) → Πλn (j + 1),
+Πλn (j) = Ψj (π) : π ∈ Πλn (j + 1) has cardinality at most NDn 2−(j+1) , Πn , {Xi , Γi } , and
+Dn (Ψj (π), π) ≤ 2−j for all π ∈ Πλn (j + 1). Finally, we extend the mappings Ψj to the
+whole domain Πλn via the relationship Ψj (π) = Ψj (Ψj+1 (π)) for all π ∈ Πλn . Note that
+this extension does not grow the size of the set Πλn (j), and that the mapping Ψj has no
+branching by construction.
+
+B.2
+
+Proof of Corollary 3
+
+First, as argued by Bartlett and Mendelson (2002) in the proof of their Theorem 8,
+h
+n
+oi
+
+
+en (π) − An (π) : π ∈ Πλn ≤ 2E Rn Πλn ,
+E sup A
+
+44
+
+(87)
+
+en (π) − An (π) | in terms of its
+Then, to check concentration, we needPto bound supπ∈Πn |A
+−1
+e
+expectation. Recall that An (π) = n
+Γi (2π(Xi ) − 1), and that the Γi are uniformly subGaussian. Because the Γi are not bounded, it is convenient to define truncated statistics
+n
+
+X (−)
+(−)
+e(−) (π) = 1
+Γ (2π(Xi ) − 1), Γi = Γi 1 ({|Γi | ≤ log(n)}) .
+A
+n
+n i=1 i
+(−)
+
+Here, we of course have that |Γi | ≤ log(n), and so we can apply Talagrand’s inequality as
+described in Bousquet (2002) to these truncated statistics. We see that, for any δ > 0, with
+probability at least 1 − δ,
+#
+"
+(−)
+(−)
+(−)
+(−)
+en (π) − An (π) + log(n) log(δ)
+en (π) − An (π) ≤ E sup A
+sup A
+3n
+λ
+λ
+π∈Πn
+π∈Πn
+v
+#!
+"
+u
+h
+i 2 log(n)
+u
+(−)
+(−)
+t
+−1
+e
+e
+,
+E sup An (π) − An (π)
++ 2 log (δ ) sup Var An (π) +
+n
+π∈Πλ
+π∈Πλ
+n
+n
+(−)
+e(−)
+where we used the short-hand An (π) = E[A
+n (π)]. Moreover, because the Γi are uniformly sub-Gaussian, we can immediately verify that
+#
+"
+(−)
+e
+e(−)
+E sup A
+n (π) − An (π) − sup An (π) − An (π)
+π∈Πn
+
+π∈Πλ
+n
+
+h
+i
+en (π) − Snλ also decays exponendecays exponentially fast in n; similarly, n supπ∈Πλn Var A
+
+
+tially fast. Using (87) and noting that, by Lemma 2 and Assumption 3, E Rn Πλn decays
+polynomially in n, we conclude that with probability at least 1 − δ,
+o
+n
+en (π) − An (π) : π ∈ Πλn
+sup A
+!
+r
+h
+n
+oi
+(88)
+2Snλ log (δ −1 )
+λ
+e
+≤ (1 + o(1)) E sup An (π) − An (π) : π ∈ Πn +
+,
+n
+thus establishing our second claim.
+
+B.3
+
+Proof of Lemma 4
+
+b
+In the argument below, we omit all n-subscripts for readability, e.g., we write A(π)
+instead
+bn (π). For any fixed policy π, we begin by expanding out the difference of interest as
+of A
+b
+e
+A(π)
+− A(π)
+n
+
+
+1X
+(2π(Xi ) − 1) (Yi − m(Xi , Wi )) ĝ (−k(i)) (Xi , Zi ) − g (−k(i)) (Xi , Zi )
+=
+n i=1
+n
+
++
+
+
+
+
+1X
+(2π(Xi ) − 1) τm̂(−k) (Xi Wi ) − τm (Xi , Wi ) − g(Xi , Zi ) m̂(−k(i)) (Xi , Wi ) − m(Xi , Wi )
+n i=1
+
+−
+
+
+
+
+1X
+(2π(Xi ) − 1) m̂(−k(i)) (Xi , Wi ) − m(Xi , Wi ) ĝ (−k(i)) (Xi , Zi ) − g (−k(i)) (Xi , Zi ) .
+n i=1
+
+n
+
+45
+
+Denote these three summands by D1 (π), D2 (π) and D3 (π). We will bound all 3 summands
+separately.
+To bound the first term, it is helpful separate out the contributions of the K different
+folds:
+1 X
+(k)
+(2π(Xi ) − 1) (Yi − m(Xi , Wi ))
+D1 (π) =
+n
+{i:k(i)=k}
+(89)
+
+
+(−k(i)
+(−k(i)
+ĝ
+(Xi , Zi ) − g
+(Xi , Zi ) .
+Now, because ĝ (−k) (·) was only computed using data from the K − 1 folds, we can condition
+on the value of this function estimate to make the individual terms in the above sum
+independent. By Assumption 2, we know that
+
+
+sup ĝ (−k) (x, z) − g(x, z) ≤ 1
+x∈X
+
+with probability tending to 1, and so the individual summands in (89) are all ν-sub-Gaussian
+with probability tending to 1. Then, writing
+
+
+2
+
+ (−k)
+(−k)
+Vn (k) = E ĝ
+(Xi ) − g(Xi ) Var Yi − m(Xi , Wi ) Xi ĝ
+(·)
+(k)
+
+for the variance of D1 (π) conditionally on the model ĝ (−k) (·) fit on the other K − 1 folds,
+we can apply Corollary 3 to establish that
+s
+
+#
+"
+n
+V
+(k)
+n
+(k)
+,
+(90)
+E sup D1 (π) ĝ (−k) (·) = O  VC (Πn )
+nk
+nk
+π∈Π
+where nk = |{i : k(i) = k}| denotes the number of observations in the k-th fold. Since we
+compute our doubly robust scores using a finite number of evenly-sized folds, nk /n → 1/K,
+we can use our risk bounds in Assumption 2 to check that
+
+
+
+2
+ĝ (−k) (·)
+E [Vn (k)] ≤ E ν 2 E ĝ (−k) (Xi ) − g(Xi )
+ 
+
+
+(91)
+K −1
+=O a
+n n−ζg .
+K
+Then, applying (90) separately to all K folds and using Jensen’s inequality, we find that
+!
+r
+
+
+a((1 − K −1 )n)
+E sup |D1 (π)| = O ν VC (Πn )
+,
+(92)
+n1+ζg
+π∈Π
+thus bounding the first term.
+ Meanwhile, recall that by the properties
+ of our weighting function (10), we know that
+E τm̃ (Xi , Wi ) − g(Xi , Zi )m̃(Xi , Wi ) Xi = 0 for any conditional response function m̃(·),
+which in particular means that, by cross-fitting,
+h
+E τm̂(−k) (Xi , Wi ) − τm (Xi , Wi )
+
+
+i
+− g(Xi , Zi ) m̂(−k(i)) (Xi , Wi ) − m(Xi , Wi ) Xi , m̂−k(i) (·) = 0.
+
+46
+
+Thus, by a similar argument as before, we find that
+!
+r
+
+
+a((1 − K −1 )n)
+1
+VC (Πn )
+,
+E sup |D2 (π)| = O
+η
+n1+ζm
+π∈Π
+
+(93)
+
+where η is the uniform “overlap” bound on the weighting function g(·).
+It now remains to bound the final term, D3 (π). Here, we can use the Cauchy-Schwarz
+inequality to verify that
+n
+
+|D3 (π)| =
+
+
+
+1X
+(2π(Xi ) − 1) m̂(−k(i)) (Xi , Wi ) − m(Xi , Wi )
+n i=1
+
+
+ĝ (−k(i) (Xi , Zi ) − g (−k(i) (Xi , Zi )
+
+v
+u n
+u1 X
+2
+m̂(−k(i)) (Xi , Wi ) − m(Xi , Wi )
+≤t
+n i=1
+v
+u n
+u1 X
+2
+t
+ĝ (−k(i) (Xi , Zi ) − g (−k(i) (Xi , Zi ) .
+n i=1
+This bound is deterministic and does not depend on π; thus, it also holds as a bound for
+the supremum of |D3 (π)| over all π. Then, applying Cauchy-Schwarz again to the above
+product, we see that
+
+ r h
+2 i
+n supπ∈Π |D3 (π)|
+E
+≤ E m̂(−k(i)) (Xi , Wi ) − m(Xi , Wi )
+|{i : Wi = 1}|
+r h
+2 i
+E ĝ (−k(i) (Xi , Zi ) − g (−k(i) (Xi , Zi )
+
+ . s
+
+K −1
+K −1
+≤a
+n
+n ,
+K
+K
+The desired conclusion now follows from combining these three bounds.
+
+B.4
+
+Proof of Theorem 5
+
+Writing VC(Π) = d, we know that there exists a collection of d non-overlapping sets Aj for
+d
+j = 1, ..., d such that Π shatters this collection of sets, i.e., for any vector v ∈ {0, 1} , there
+exist a policy πv ∈ Π such that πv (x) = vj for all x ∈ Aj . Our proof starts with such a
+d
+collection of sets {Aj }j=1 and a distribution P over Xs such that
+
+
+SP
+σ 2 (Xi )
+=
+for j = 1, ..., d,
+(94)
+EP 1 ({Xi ∈ Aj })
+e(Xi )(1 − e(Xi ))
+d
+where SP is as defined in (36). We will establish our result by studying learning over Π
+with features drawn from this distribution P.
+Now, to lower-bound the minimax risk for policy learning for unknown bounded treatment effect functions τ (·), it is sufficient to bound minimax risk over a smaller class of
+47
+
+policies T , as minimax risk increases with the complexity of the class T . Noting this fact,
+we restrict our analysis to treatment functions T such that
+  2
+
+σ (x) 1 ({Xi ∈ Aj })
+σ 2 (x) cj
+E
+τ (x) =
+e(x)(1 − e(x))
+e(Xi )(1 − e(Xi ))
+for all x ∈ Aj , where cj ∈ R is an unknown coefficient for each j = 1, ..., d. If we knew the
+values of cj for j = 1, 2, ..., d, the optimal policy π ∗ ∈ Π would be treat only those j-groups
+with a positive cj , i.e., π ∗ (x) = 1 ({cj > 0}) for all x ∈ Aj .
+Now, following the argument of Hirano and Porter (2009) (we omit details for brevity),
+the minimax policy learner is of the form π̂ ∗ (x) = 1({ĉ∗j > 0}) for all x ∈ Aj , where ĉ∗j is
+an efficient estimator for cj . Moreover, in this example, we can use (94) to verify that the
+∗
+semiparametric efficient variance for estimating cj is SP /d. Thus, the efficient
+p estimator ĉj
+will incorrectly estimate the sign of cj with probability tending to Φ(−cj d/SP ), where
+Φ(·) denotes the standard Gaussian cumulative distribution
+function. (Recall that, in our
+√
+sampling model (35), the signal also decays as 1/ n.)
+By construction, we suffer an expected utility loss of 2 |cj | from failing to accurately
+estimate the sign of cj . Thus, by the above argument, given fixed values of cj , the efficient
+policy learner will suffer an asymptotic regret
+lim
+
+√
+
+n→∞
+
+nE [Rn ] =
+
+d
+X
+
+
+
+p
+2 |cj | Φ − |cj | d/SP ,
+
+j=1
+
+p
+using an efficient estimator ĉ∗j . Setting |cj | = 0.75 SP /d, this limit becomes
+lim
+
+n→∞
+
+√
+
+p
+nE [Rn ] = 1.5Φ(−0.75) d SP ,
+
+which, noting that 1.5Φ(−0.75) ≥ 0.33, concludes the proof.
+
+48
+
+

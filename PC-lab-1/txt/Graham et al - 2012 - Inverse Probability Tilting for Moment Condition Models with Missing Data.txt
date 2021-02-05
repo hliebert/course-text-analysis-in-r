@@ -1,0 +1,2619 @@
+Review of Economic Studies (2012) 79, 1053–1079
+doi:10.1093/restud/rdr047
+© The Author 2012. Published by Oxford University Press on behalf of The Review of Economic Studies Limited.
+Advance access publication 20 April 2012
+
+Inverse Probability Tilting
+for Moment Condition Models
+with Missing Data
+CRISTINE CAMPOS DE XAVIER PINTO
+Escola de Economia de São Paulo, FGV
+
+and
+DANIEL EGEL
+RAND Corporation
+First version received March 2009; final version accepted May 2011 (Eds.)
+We propose a new inverse probability weighting (IPW) estimator for moment condition models
+with missing data. Our estimator is easy to implement and compares favourably with existing IPW
+estimators, including augmented IPW estimators, in terms of efficiency, robustness, and higher-order
+bias. We illustrate our method with a study of the relationship between early Black–White differences in
+cognitive achievement and subsequent differences in adult earnings. In our data set, the early childhood
+achievement measure, the main regressor of interest, is missing for many units.
+Key words: Missing data, Semiparametric efficiency, Double robustness, (Augmented) Inverse probability
+weighting (IPW), Higher-order comparisons, Black–White gap, Causal inference, Average treatment
+effect (ATE)
+JEL Codes: C14, C21, C23, J15, J70
+
+1. INTRODUCTION
+Missing data are ubiquitous in applied econometric research. When data are missing at random
+(MAR), or selection is on observables, a simple consistent procedure is to (i) reweight those
+units without any missing data by the inverse of the probability of selection or the propensity
+score and (ii) apply standard estimation methods to this reweighted subsample (e.g. Wooldridge,
+2007). Inverse probability weighting (IPW) is widely used to address attrition in panel data (e.g.
+Abowd, Crépon and Kramarz, 2001), program evaluation under exogenous treatment assignment
+(e.g. Hirano, Imbens and Ridder, 2003), and to control biases caused by missing and/or mismeasured regressors (e.g. Robins, Rotnitzky and Zhao, 1994). Chen, Hong and Tarozzi (2004) and
+Wooldridge (2007) survey additional applications of IPW.
+In this paper, we propose a modified version of IPW, which we call inverse probability tilting
+(IPT). Our procedure coincides with the IPW estimator of, e.g. Wooldridge (2007), except that
+we replace the conditional maximum likelihood estimate (CMLE) of the propensity score with
+1053
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+BRYAN S. GRAHAM
+University of California, Berkeley and NBER
+
+1054
+
+REVIEW OF ECONOMIC STUDIES
+
+1. To be more specific, IPW is locally efficient at a rather peculiar data-generating process (DGP). Unfortunately,
+this DGP is difficult to interpret and a priori implausible. We discuss this point below.
+2. While perhaps less familiar to econometricians, although Hirano and Imbens (2001), Imbens (2004), and
+Wooldridge (2007) are notable exceptions, AIPW methods are widely studied (and used) by statisticians. Tsiatis (2006)
+provides a book length treatment.
+3. Given the severity of the missing data problem in our sample, one may reasonably question the plausibility of
+the MAR assumption. We emphasize that the goal of our empirical application is illustrative.
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+an alternative method-of-moments estimate. We show that if the unconditional moments used
+to estimate the propensity score parameter are appropriately chosen, our procedure (i) is locally
+efficient and (ii) remains consistent even if the propensity score is misspecified. These properties,
+local efficiency and double robustness, which we carefully define below, are not shared by the
+standard IPW estimator.1
+A key appeal of IPW is its conceptual and operational simplicity. IPT preserves this advantage, while offering improvements in terms of estimator efficiency and robustness. However,
+other modifications of IPW exist. A leading one, which shares IPT’s local efficiency and double
+robustness properties, is the augmented inverse probability weighting (AIPW) estimator introduced by Robins, Rotnitzky and Zhao (1994).2 We characterize the N −1 order asymptotic bias
+of IPT and a class of AIPW estimators under conditions where they are first-order equivalent.
+We find that IPT has smaller bias than AIPW in this setting. To our knowledge, these are the first
+higher-order comparisons in the missing data literature.
+In an illustrative empirical application, we revisit the analysis of Johnson and Neal (1998)
+of the Black–White wage gap for young men in the U.S. They find that approximately 60% of
+the Black–White gap can be predicted by group differences in cognitive skills acquired prior
+to labour market entry at age 18. We study the predictive value of group differences in skills
+acquired prior to adolescence (i.e. by age 12). We find that preadolescent skill differences can
+account for about 40% of the overall wage gap and two-thirds of pre-market effect found by
+Johnson and Neal (1998).
+Our analysis is complicated by the fact that a preadolescence test score is available for just
+11% of respondents.3 In addition to being few in number, these complete cases are unrepresentative of the sample as a whole. An analysis that ignores these facts may be both inconsistent
+and imprecise. The IPT estimate of the wage gap conditional on the preadolescence test score
+corrects for the unrepresentativeness of the complete cases. The IPT point estimate is also precisely determined. Its standard error is, respectively, one-third and one-half, the length of the
+corresponding unweighted complete case and IPW ones. Our application provides a concrete
+example of the type of efficiency gains IPT can provide. These gains arise despite the fact that
+we implement IPW with a heavily overparameterized propensity score model, which theory suggests should lead to a precisely determined point estimate (Hirano, Imbens and Ridder, 2003;
+Wooldridge, 2007).
+The next section formally defines the class of problems to which our IPT procedure applies.
+In Section 3, we present our estimator and characterize its large-sample properties. Section 4
+compares the higher-order bias of IPT with that of the class of AIPW estimators introduced
+by Robins, Rotnitzky and Zhao (1994). Section 5 presents the empirical application. Section 6
+ends with some suggestions for further research. Selected proofs are collected in the
+Appendix, which also includes details on computation. Additional proofs, further details on
+the empirical application, and a full set of Monte Carlo experiments can be found in the Supplemental Web Appendix. Software implementing our procedure is available online at
+http://elsa.berkeley.edu/∼bgraham/.
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1055
+
+2. A SEMIPARAMETRIC MISSING DATA MODEL
+Here we describe a general moment condition model with data MAR. Our set-up is as in
+Wooldridge (2007) except that our parameter is the solution to a moment condition, as opposed
+to a population optimization, problem. Let Z = (Y10 , X 0 )0 be a random vector, γ0 an unknown
+parameter, and assume the following.
+Assumption 2.1 (Identification). For some known K × 1 vector of functions ψ(z, γ ),
+E[ψ(Z , γ0 )] = 0,
+
+Assumption 2.1 provides a standard setPof conditions under which the full-sample method-ofN
+ψ(Z i , γ̂ )/N = 0, will be consistent and asympmoments estimate of γ0 , the solution to i=1
+totically normal (cf. Newey and McFadden, 1994, Theorems 2.6 and 3.4). Our interest is in
+identification and estimation when Y1 is not observed for all units. Let D be a binary indicator variable. When D = 1, we observe Y1 and X , while when D = 0, we observe only X . Our
+benchmark model is defined by Assumption 2.1 as well as the following assumptions.
+N
+Assumption 2.2 (Random sampling). {Di , X i , Y1i }i=1
+is an independently and identically
+distributed random sequence. We observe D, X , and Y = DY1 for each sampled unit.
+
+Assumption 2.3 (Missing at random). Pr(D = 1|X, Y1 ) = Pr(D = 1|X ).
+Assumption 2.4 (Strong overlap). Let p0 (x) = Pr(D = 1 | X = x), then 0 < κ ≤ p0 (x) ≤ 1
+for some 0 < κ < 1 and all x ∈ X ⊂ Rdim(X ) .
+∗
+
+Assumption 2.5 (Propensity score model). There is a unique δ0∗ ∈ int(D∗ ) with D∗ ⊂ Rdim(δ )
+and compact, known vector r (X ) of linearly independent functions of X , and known function
+G(∙) such that (i) G(∙) is strictly increasing, continuously differentiable, and maps into the unit
+interval with limv→−∞ G(v) = 0 and limv→∞ G(v) = 1, (ii) p0 (x) = G(r (x)0 δ0∗ ) for all x ∈ X ,
+and (iii) 0 < κ ≤ G(r (x)0 δ ∗ ) ≤ 1 for all δ ∗ ∈ D∗ and x ∈ X .
+We refer to the model defined by Assumptions 2.1–2.5 as the semiparametric missing data
+model. Chen, Hong and Tarozzi (2008) study this model without maintaining Assumption 2.5,
+i.e. with the propensity score left non-parametric. As is well known, removing Assumption 2.5
+from the prior restriction does not affect the asymptotic precision with which γ0 may be estimated (Hahn, 1998). We nevertheless maintain it when deriving our local efficiency result
+(Theorem 3.1). Doing so is important for establishing regularity of our estimator. We also assess
+the properties of IPT when Assumption 2.5 fails (Theorem 3.2).
+To get a sense of the range of problems to which our methods may be applied, it is helpful to
+consider a few specific examples.
+Example 2.1 (Mean of a variable missing at random). Let Y1 be a binary indicator for
+an individual’s HIV status, let D = 1 if an individual is tested and zero otherwise; Y1 is logically observable only when D = 1. We would like to estimate the population prevalence of HIV:
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+with (i) E[ψ(Z , γ )] 6= 0 for all γ 6= γ0 , γ ∈ G ⊂ R K , and G compact with γ0 ∈ int(G), (ii)
+|ψ(z, γ )| ≤ b(z) for all z ∈ Z with b(z) a non-negative function on Z and E[b(Z )] < ∞, (iii)
+ψ(z, γ ) is continuous on G for each z ∈ Z and continuously differentiable in a neighbourhood
+of γ0 , (iv) E[kψ(Z , γ0 )k2 ] < ∞, and (v) E[supγ ∈G k∇γ ψ(Z , γ )k] < ∞.
+
+1056
+
+REVIEW OF ECONOMIC STUDIES
+
+γ0 = E[Y1 ]. This corresponds to setting ψ(Z , γ ) = Y1 − γ . Assumption 2.3 says that the testing
+decision is independent of HIV status in subpopulations homogenous in X . This may be plausible if X includes measures of risk-taking behaviour and other background characteristics so
+that it closely approximates an individual’s own information set regarding their status. Assumption 2.4 requires that at least some individuals in every subpopulation defined in terms of X = x
+get tested. Assumption 2.5 presumes the availability of a parametric model for the testing decision. This example is closely related to that of average treatment effect (ATE) estimation under
+exogenous treatment assignment (see Section 6 below).
+
+Other examples of the semiparametric missing data model defined by Assumptions 2.1–2.5
+include panel data models with attrition, certain forms of censored durations, and M-estimation
+under variable probability sampling. Chen, Hong and Tarozzi (2004) and Wooldridge (2007)
+survey additional examples. See also Section 6 below.
+
+3. INVERSE PROBABILITY TILTING
+Our first result shows that standard IPW, where the propensity score is estimated by CMLE,
+is typically inefficient under Assumptions 2.1–2.5. This motivates our search for an efficient
+variant of IPW. The maximal asymptotic precision with which γ0 can be estimated under these
+assumptions was characterized by Robins, Rotnitzky and Zhao (1994) and is given by the inverse
+of
+I(γ0 ) = 000 3−1
+0 00 ,
+with
+00 = E
+
+
+
+
+∂ψ(Z , γ0 )
+,
+∂γ 0
+
+30 = E
+
+
+
+
+6(X ; γ0 )
++ q(X ; γ0 )q(X ; γ0 )0 ,
+p0 (X )
+
+(1)
+
+(2)
+
+where 6(x; γ ) = V(ψ(Z , γ )|X = x) and q(X ; γ ) = E[ψ(Z , γ )|X = x]. We seek an estimator
+that attains this bound.
+To describe the textbook IPW estimator, we require some notation. Let ri = r (X i ), ψi (γ ) =
+ψ(Z i , γ ), and ψi = ψ(Z i , γ0 ). Similarly, let G i (δ ∗ ) = G(ri0 δ ∗ ) and G i = G(ri0 δ0∗ ). Denote
+a random unit’s contribution to the score of the propensity score log-likelihood evaluated at
+δ ∗ = δ0∗ by
+Sδ ∗ =
+
+D−G
+G 1r ,
+G(1 − G)
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+Example 2.2 (Regression function estimation with missing regressors). Let X 1 be a vector of demographic characteristics, X 2 log earnings, Y1 armed forces qualification test (AFQT)
+score, and X 3 a vector of always observed surrogates or proxies for Y1 (e.g. scores on subcomponents of the test, on earlier tests, etc.). Let D = 1 if a unit’s test score is available and
+zero otherwise. Let X = (X 10 , X 20 , X 30 )0 , γ = (γ10 , γ20 )0 and ψ(Z , γ ) = (X 10 , Y10 )0 (X 2 − X 10 γ1 −
+Y10 γ2 ). Here γ corresponds to the coefficient vector indexing the linear predictor of log earnings given demographics and AFQT score as in Johnson and Neal (1998). This corresponds
+to a linear regression model where the covariate of interest is subject to item non-response.
+Assumption 2.3 requires that across individuals with identical earnings (X 2 ), demographics
+(X 1 ), and test proxies (X 3 ), the probability of observing the AFQT score is independent of
+its value.
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1057
+
+with G s (v) = ∂ s G(v)/∂v s for s = 1, 2.4 Finally, let q(X i ; γ ) = E[ψ(Z i , γ )|X i ] and
+qi = q(X i ; γ0 ). The inverse probability weighted estimate of γ0 is given by the solution to
+N
+1 X Di ψ(Z i , γ̂IPW )
+= 0,
+∗ )
+N
+G(r (X i )0 δ̂ML
+i=1
+
+(3)
+
+∗
+the CMLE estimate of δ0∗ . Proposition 3.1 summarizes the first-order asymptotic
+with δ̂ML
+properties of γ̂IPW .
+
+AVar(γ̂IPW ) = I(γ0 )−1
++ 0 −1 E
+
+for 5 S = E
+stants k.
+
+D
+
+0
+G ψ Sδ ∗
+
+(4)
+
+
+
+
+D
+− 1 q − 5 S Sδ ∗
+G
+
+ 
+
+
+
+D
+− 1 q − 5 S Sδ ∗
+G
+
+0 
+
+0 −10 ,
+
+ 
+−1
+E Sδ ∗ Sδ0 ∗
+and (ii) k 0 [AVar(γ̂IPW ) − I(γ0 )−1 ]k ≥ 0 for any vector of con-
+
+Proof. See the Supplemental Web Appendix.
+
+k
+
+While the inefficiency of IPW, part (ii) of Proposition 3.1, is well known, the asymptotic variance expression (4) provides new insight into its large-sample properties. Observe
+that 5 S Sδ ∗
+
+D
+equals the best (i.e. mean squared error minimizing)
+linear
+predictor
+of
+−
+1
+q
+given
+Sδ ∗ .5 If
+G
+
+D
+∗
+Sδ happens to be a good predictor of G − 1 q, then IPW will be nearly efficient. Consider the
+case where the propensity score takes
+ a logit form so that G(v) = exp(v)/[1 + exp(v)]. Some
+D
+− 1 G ∙ r ; therefore, if it so happens that q can be written as a
+basic calculations give Sδ ∗ = G
+linear function of G ∙ r , then the asymptotic variance of IPW will coincide with that of an efficient estimator. An interpretation of Hirano, Imbens and Ridder (2003) is that if the dimension
+of r is allowed to grow with the sample size, then q will eventually be arbitrarily well approximated by a linear function of G ∙ r, so that this coincidence holds generally (i.e. for all DGPs).
+Wooldridge (2007) makes a related point: equation (4) cannot increase if the dimension of
+r increases.
+In practice, the researcher is only able to fit a finite-dimensional model for the propensity
+score. Proposition 3.1 indicates that, except under very special circumstances, the resulting IPW
+2.1–2.5. Expression (4) indicates that this inefestimate of γ0 is inefficient under Assumptions
+
+D
+ficiency is most acute when G
+− 1 q is poorly approximated by a linear combination of Sδ ∗ ,
+the vector of estimating equations for the propensity score parameter δ ∗ . This suggests that
+changing the estimating
+equations for δ ∗ , such that a linear combination of them closely approx
+D
+imates G − 1 q, might improve estimator precision. This conjecture turns out to be correct. To
+show this result, we begin by positing a working model for the conditional mean of ψ(Z , γ0 )
+given X .
+4. To economize on notation, we often omit an argument of a function when it is being evaluated at the “truth”.
+For example G 1 = G 1 (r (X )0 δ0∗ ) = ∂ G(r (X )0 δ0∗ )/∂v.
+5. Note that by the conditional mean zero property of the score function and Assumption 2.3,
+
+
+
+
+
+
+
+D
+D 0
+D
+E
+− 1 q Sδ0 ∗ = E
+q Sδ ∗ = E
+ψ Sδ0 ∗ .
+G
+G
+G
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+Proposition 3.1 (Asymptotic sampling distribution of γ̂ IPW ). Suppose Assumptions 2.1–2.5
+√
+D
+hold, then (i) N (γ̂IPW − γ0 ) → N (0, AVar(γ̂IPW )) with
+
+1058
+
+REVIEW OF ECONOMIC STUDIES
+
+Assumption 3.1 (Moment Conditional Expectation Function (CEF) model). For some
+unique matrix 5∗0 and vector of linear independent functions t ∗ (X ) with a constant in the first
+row, we have
+E[ψ(Z , γ0 )|X ] = 5∗0 t ∗ (X ).
+
+so that selecting t ∗ (X ) requires formulating models for the first and second conditional moments
+of Y1 .6
+When ψ(Z , γ ) is non-linear in γ choosing t ∗ (X ) such that Assumption 3.1 holds is more
+difficult. In this case, one can think of t ∗ (X ) as a vector of approximating functions as in the
+literature on non-parametric sieve estimation (e.g. Chen, 2007; see also Section 6 below). We
+emphasize that any approach to missing data that involves imputation also requires formulating
+a model for E[ψ(Z , γ0 )|X ] (e.g. Little and Rubin, 2002).
+Let t (X ) denote the union of all linearly independent elements in t ∗ (X ) and r (X ) (recall that
+r (X ) are the functions of X entering the propensity score model in Assumption 2.5). Let 1 + M
+equal the dimension of t (X ); this vector will include a constant and M known functions of X .
+Note that t (X ) = (r (X )0 ,r ∗ (X )0 )0 , where r ∗ (X ) is the relative complement of r (X ) in t ∗ (X ).
+Letting δ0 = (δ0∗0 , η00 )0 , where η0 = 0, we have under Assumptions 2.1 to 2.5 the following
+just-identified unconditional moment problem:
+
+
+D
+E
+ψ(Z , γ0 ) = 0,
+(5)
+G(t (X )0 δ0 )
+
+
+
+D
+− 1 t (X ) = 0.
+(6)
+E
+G(t (X )0 δ0 )
+0 , δ̂ 0 )0 to set the sample analogue of equations (5)
+Our proposed estimator chooses β̂IPT = (γ̂IPT
+IPT
+and (6) equal to zero:
+N
+1 X
+Di
+ψ(Z i , γ̂IPT ) = 0,
+0
+N
+G(t
+(X
+i ) δ̂IPT )
+i=1
+
+
+N 
+Di
+1 X
+− 1 t (X i ) = 0.
+N
+G(t (X i )0 δ̂IPT )
+i=1
+
+(7)
+
+(8)
+
+Several features of this estimator merit comment. First, as with the standard IPW estimator,
+γ̂IPT is the solution to an inverse probability weighted method-of-moments problem (compare
+equation (7) with equation (3)). However, the fitted propensity score values used to construct
+6. To be explicit, assume that E[Y1 |X ] = h 1 (X )0 π1 and vech(E[Y1 Y10 |X ]) = h 2 (X )0 π2 . Let h 3 (X ) consist
+of h 1 (X ) and all non-redundant interactions between its elements and those of X 1 and X 2 , then setting t ∗ (X ) =
+(h 2 (X )0 , h 3 (X )0 )0 with any redundant entries removed is sufficient for Assumption 3.1 to hold.
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+The precise content of Assumption 3.1 depends on the form of ψ(Z , γ ). If ψ(Z , γ ) = Y1 −γ ,
+as in Example 2.1, then it is equivalent to assuming that the conditional mean of Y1 is a linear
+function of t ∗ (X ). Example 2.2 provides a more complicated illustration. In that case,
+!
+X 1 X 2 − X 1 X 10 γ1 − X 1 E[Y1 |X ]0 γ2
+,
+E[ψ(Z , γ0 )|X ] =
+E[Y1 |X ]X 2 − E[Y1 |X ]X 10 γ1 − E[Y1 Y10 |X ]γ2
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1059
+
+the weights are not CMLEs. Instead, δ̂IPT is the solution to a method-of-moments problem.7
+Importantly, under
+Assumption 3.1, a linear combination of the estimating equations for δ̂IPT
+
+D
+equals G
+− 1 q, which Proposition 3.1 suggests might be important for efficiency.8
+Second, if r (X ) is not contained within t ∗ (X ), then we add moments to the propensity score
+estimating equation, replacing t ∗ (X ) with t (X ). These additional moments do not improve the
+precision of γ̂IPT , but they do ensure that equation (6) contains a sufficient number of moment
+restrictions to pin down the propensity score parameter. Third, in the opposite case where t ∗ (X )
+is not contained within r (X ), we enrich the propensity score model, replacing r (X )0 δ0∗ with
+t (X )0 δ0 in G(∙). The effect of this replacement is to eliminate any overidentifying restrictions.
+To see this note that
+
+where, by Assumption 2.5, η0 = 0. Nevertheless, including r ∗ (X ) in the propensity score model
+ensures that the combined dimension of equations (5) and (6) coincides with dim(γ0 ) + dim(δ0 )=
+K + 1 + M so that β0 = (γ00 , δ00 )0 is just-identified. This approach to overidentification appears
+to be novel.9 Theorem 4.1 below shows that it results in attractive higher-order properties.
+An example helps to fix ideas. Let ψ(Z , γ ) = Y1 − γ as in Example 2.1 with X scalar. We
+assume that Assumption 2.5 holds with r (X ) = (1, X )0 so that the propensity score is, e.g. logit
+with an index linear in X . In choosing t ∗ (X ) such that Assumption 3.1 holds, we are concerned
+about possible non-linearities in E[Y1 |X = x], therefore we set t ∗ (X ) = (1, X, X 2 )0 . This gives
+t (X ) = t ∗ (X ) and r ∗ (X ) = X 2 . In this case, we fit a propensity score model with an index that
+is quadratic in X despite the fact that Assumption 2.5 says that a linear one will suffice. We fit
+this model not by CMLE but by choosing δ̂IPT to solve equation (8). Once we have fitted our
+propensity score, we compute γ̂IPT by choosing it to solve (7).
+Now consider the case where the analyst believes that the propensity score might vary sharply
+with X so that Assumption 2.5 requires r (X ) = (1, X, X 2 )0 but that E[Y1 |X = x] is linear in X
+so that Assumption 3.1 requires only t ∗ (X ) = (1, X )0 . In this case, t (X ) = r (X ) and r ∗ (X )
+is empty. Here the added moment serves only to tie down the propensity score parameter; it
+does not increase the precision of γ̂IPT . There is no need to overfit the propensity score in
+this case.
+The main difference between IPW and IPT is that the latter approach (i) overfits the propensity score if Assumption 3.1 requires us to do so and (ii) we do not use CMLE to fit the propensity
+score. In Appendix A, we show that the first step of our procedure requires solving a globally
+concave programming problem with unrestricted domain. In theory, this is no harder than computing the CMLE associated with a binary choice logit model, and in practice, we have found
+this step to be straightforward. The second step of our procedure, as with the standard IPW one,
+can be completed by any M-estimation program that is able to accept user-specified weights.
+The next two theorems characterize the first-order asymptotic properties of γ̂IPT . The first
+result shows that when Assumptions 2.1–2.5 and Assumption 3.1 hold, the asymptotic variance
+of γ̂IPT equals I(γ0 )−1 . More precisely, γ̂IPT is locally efficient for γ0 in the semiparametric
+model defined by Assumptions 2.1–2.5 at DGPs which also satisfy Assumption 3.1.
+7. Consequently, δ̂IPT is an inefficient estimate of δ0 = (δ0∗0 , 00 )0 .
+8. An earlier version of this paper derived equation (6) as the solution to an optimal instrumental variable problem
+based on the conditional moment formulation of the semiparametric missing data model studied by Graham (2011). For
+brevity, this derivation is omitted here.
+9. It is similar in spirit to the introduction of “tilting” parameters in the context of generalized empirical likelihood
+(GEL) estimation of overidentified moment condition models (e.g. Imbens, 1997). This observation is the source of IPT’s
+name.
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+t (X )0 δ0 = r (X )0 δ0∗ + r ∗ (X )0 η0 ,
+
+1060
+
+REVIEW OF ECONOMIC STUDIES
+
+Equation (1) is the information bound for γ0 without imposing the additional auxiliary Assumption 3.1. This assumption imposes restrictions on the joint distribution of the data not implied by the baseline model. If these restrictions are added to the prior used to calculate the
+efficiency bound, then it is generally possible to estimate γ0 more precisely. We emphasize that
+our estimator is not efficient with respect to this augmented model. Rather it attains the bound
+defined by equation (1) if Assumption 3.1 happens to be true in the population being sampled
+from but is not part of the prior restriction used to calculate the bound. Newey (1990, p. 114),
+Robins, Rotnitzky and Zhao (1994, pp. 852–853), and Tsiatis (2006) discuss the concept of local efficiency in detail. In what follows, we will, for brevity, say that γ̂IPT is locally efficient at
+Assumption 3.1.
+
+Proof. See Appendix A.
+
+k
+
+Theorem 3.1 indicates that γ̂IPT has good efficiency properties. By choosing the estimating equation for the propensity score with the properties of E[ψ(Z , γ0 )|X ] in mind, efficiency
+improvements over the standard IPW estimator are possible.10
+Our next theorem shows that IPW has a double robustness property (cf. Bang and Robins,
+2005; Tsiatis, 2006; Wooldridge, 2007). Restrictions (5) and (6) were derived under the baseline
+missing data model defined by Assumptions 2.1–2.5. Consequently, regardless of whether Assumption 3.1 also holds, γ̂IPT will be consistent for γ0 and asymptotically normal.11 This is the
+first part of double robustness.
+Now consider a DGP where Assumptions 2.1–2.4 and 3.1, but not 2.5, hold. That is, a situation where the propensity score is misspecified but the implicit moment CEF model is not. In
+p
+this case, δ̂ → δ∗ , where δ∗ is the pseudo-true value which solves equation (6). This pseudo-true
+value has an interesting property. Rearranging equation (6), we get
+
+
+D
+E
+t (X ) = E[t (X )].
+(9)
+G(t (X )0 δ∗ )
+The inverse probability weighted mean of t (X ) in the D = 1 subpopulation coincides with its
+full population mean, E[t (X )]. This property holds regardless of whether the true propensity
+score is of the form G(t (X )0 δ) for some δ = δ0 .
+In the sample, rearranging equation (8), we get
+N
+X
+i=1
+
+π̂IPT,i t (X i ) =
+
+N
+1 X
+t (X i ),
+N
+i=1
+
+π̂IPT,i =
+
+1
+Di
+,
+N G(t (X i )0 δ̂IPT )
+
+(10)
+
+10. We comment that the standard IPW estimator is also locally efficient. However, this occurs not at DGPs which
+satisfy Assumption 3.1, but rather at ones where E[ψ(Z , γ0 )|X ] is linear in r (X ) ∙ G(r (X )0 δ0∗ ). We find this condition
+a bit awkward from a modelling standpoint, however it does help to explain why IPW is often nearly efficient in Monte
+Carlo experiments where the outcome equation is a direct function of the propensity score (e.g. Busso, DiNardo and
+McCrary, 2009). If the data are missing completely at random (MCAR) such that p0 (x) = Pr(D = 1) = Q 0 for all
+x ∈ X , then IPW and IPT will be locally efficient at the same DGPs as long as r (X ) = t ∗ (X ).
+11. Its asymptotic variance, however, will lie above I(γ0 )−1 , in the matrix sense, unless Assumption 3.1 also
+holds.
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+Theorem 3.1 (Local semiparametric efficiency of γ̂ IPW ). Consider the semiparametric missing data model defined by Assumptions 2.1–2.5, then for γ̂IPT the solution to equation (7), (i)
+√
+D
+γ̂IPT is regular and (ii) locally efficient at Assumption 3.1 with N (γ̂IPT −γ0 ) → N (0, I(γ0 )−1 ).
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1061
+
+so that the inverse probability weighted mean of t (X ) in the D = 1 complete case subsample
+coincides with its full-sample mean. By choosing the propensity score parameter to solve equation (8), we ensure that the estimated inverse probability weights satisfy an exact balancing
+property. For example, if t (X i ) = (1, X, X 2 )0 with X scalar, then, after reweighting the complete case sample with π̂IPT,i , the mean and variance of X will coincide with their full-sample
+counterparts. Since the first element of t (X i ) is a constant, the π̂IPT,i weights will also sum
+to 1.12
+Let F(x, y1 ) be the joint distribution of X, Y1 , then
+N
+X
+i=1
+
+π̂IPT,i 1(X i ≤ x)1(Y1i ≤ y1 ),
+
+(11)
+
+is the estimate for the joint distribution of X and Y1 implied by the IPT estimator (cf. Back
+and Brown, 1993; Imbens, 1997). By equation (10), this distribution function satisfies the exact
+balancing condition
+Z
+Z
+t (x)d F̂IPT (x, y1 ) =
+
+t (x)d FN (x),
+
+(12)
+
+where FN (x) is the full-sample empirical distribution function of X . Since FN (x) is an efficient
+estimate of the distribution of X , it is reassuring that F̂IPT (x, y1 ) satisfies equation (12). We
+discuss the properties of F̂IPT (x, y1 ) further in Section 4.
+The exact balancing property of F̂IPT (x, y1 ) implies that γ̂IPT may be consistent for γ0 , even
+if the maintained propensity score model is incorrect. Let 50 = (5∗0 , 0), under Assumption 3.1
+we have 50 E[t (X )] = E[5∗0 t ∗ (X )] = E[ψ(Z , γ0 )]. Using this equality, Assumption 2.3, and
+exact balancing (9), we get
+
+
+
+
+Dψ(Z , γ )
+p0 (X )ψ(Z , γ )
+E
+=
+E
+− E[ψ(Z , γ0 )]
+G(t (X )0 δ∗ )
+G(t (X )0 δ∗ )
+
+
+p0 (X )ψ(Z , γ )
+− 50 E[t (X )]
+=E
+G(t (X )0 δ∗ )
+
+
+
+
+p0 (X )
+p0 (X )
+ψ(Z , γ ) − 50 E
+t (X )
+=E
+G(t (X )0 δ∗ )
+G(t (X )0 δ∗ )
+
+
+p0 (X )
+=E
+{E[ψ(Z
+,
+γ
+)|X
+]
+−
+E[ψ(Z
+,
+γ
+)|X
+]}
+= 0.
+(13)
+0
+G(t (X )0 δ∗ )
+Therefore, γ = γ0 is a solution to the inverse probability weighted population moment even if
+there is no δ0 such that G(t (x)0 δ0 ) = p0 (x) for all x ∈ X . This is the second part of double
+robustness.
+If ψ(Z , γ ) is linear in γ , as in Examples 2.1 and 2.2 above, then γ = γ0 uniquely solves
+equation (13). In the general non-linear case, ensuring uniqueness of the solution to equation (13)
+may require the imposition of additional conditions, depending on the form of ψ(Z , γ ). As such
+conditions are model specific, we do not formulate them here, but note that doing so is facilitated
+by the fact that Assumption 2.4 and part (iv) of Assumption 2.5 ensure that p0 (x)/G(t (x)0 δ∗ )
+PN
+12. Equation (10) highlights that the existence of δ̂IPT requires that i=1
+t (X i )/N lie within the convex hull of
+the complete case subsample (a condition that is easy to check). Under Assumption 2.4, this will be true in large enough
+samples but may not be in small samples, particularly when overlap is poor.
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+F̂IPT (x, y1 ) =
+
+1062
+
+REVIEW OF ECONOMIC STUDIES
+
+is bounded below by some positive constant.13 Proceeding under the assumption that γ = γ0
+uniquely solves equation (13), we get our second result.
+Theorem 3.2 (Double robustness of γ̂ IPW ). Suppose Assumptions 2.1–2.4, either Assumption
+√
+D
+2.5 or 3.1, and γ = γ0 uniquely solve equation (13), then N (γ̂IPT − γ0 ) → N (0, 90 ), where
+the form of 90 depends on whether Assumption 2.5 or 3.1 holds (see Appendix A).
+Proof. See Appendix A.
+
+k
+
+4. OTHER ALTERNATIVES TO IPW AND HIGHER-ORDER COMPARISONS
+Theorems 3.1 and 3.2 provide one argument for routine use of IPT: it is (i) more robust than
+either standard IPW or parametric imputation and (ii) locally efficient at Assumption 3.1. Computationally, it is no harder than standard IPW (see Appendix A). Finally, the exact balancing
+property is likely to be attractive to applied researchers. It is consistent with the intuition that
+reweighting makes the complete case subsample more like the full sample. Tables that assess
+balance after IPW are commonly featured in applied work (e.g. Hirano and Imbens, 2001; see
+also Table 14 in the Supplemental Web Appendix).
+While the argument privileging IPT over IPW appears to be straightforward, other alternatives to IPW exist. One such alternative is the class of AIPW estimators introduced by Robins,
+Rotnitzky and Zhao (1994). Like IPT, AIPW is locally efficient at Assumption 3.1. It is also doubly robust. In this section we present two theoretical arguments for privileging our IPT method
+over AIPW ones. First, we show that the implicit estimate of the joint distribution of X and Y1
+associated with IPT is attractive relative to the ones associated with AIPW. Second, we compare
+the higher-order bias of the two types of estimators.
+4.1. A class of iterated AIPW estimators
+Several versions of AIPW are now available (see Tan, 2010, for a recent survey). Here we
+describe a general set-up which captures many of them. Let ωi (δ) = ω(X i , δ) and νi (δ) =
+ν(Di , X i , δ) be known, scalar-valued, non-negative weight functions. We require that ν(Di , X i , δ)
+is such that E[ν(Di , X i , δ)|X ] = 1. Our family of AIPW estimators will be indexed by these
+13. Wooldridge (2001, pp. 458–459) develops conditions for consistency of unweighted M-estimators when the
+underlying sample is a stratified random one. His argument could be adapted to the current setting for cases where
+E[ψ(Z , γ0 )] = 0 corresponds to the first-order condition of a population optimization problem.
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+Our formulation of the IPT estimator was undertaken with efficiency considerations at the
+forefront. This led to an approach where the propensity score was parameterized with two concerns in mind. First, the parametric propensity score family needs to be rich enough to contain the true score. Second, it needs to be rich enough to balance those functions of X which
+enter the CEF of ψ(Z , γ0 ). Theorem 3.2 shows that the dividend to this approach extends beyond local efficiency. Even if the propensity score is misspecified, IPT will remain consistent
+if E[ψ(Z , γ0 )|X ] is linear in t (X ). More heuristically, Theorem 3.2 suggests that IPT will perform well for moderately rich forms of t (X ) when either the propensity score or the conditional
+expectation of ψ(Z , γ0 ) is smooth in X . Researchers should choose t (X ) to be rich enough so
+that it accurately approximates whichever function, either p0 (x) or q0 (x) = E[ψ(Z , γ0 )|X = x],
+is believed to be the least smooth. The double robustness properties of IPT are illustrated via a
+series of Monte Carlo experiments, summarized in the Supplemental Web Appendix.
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1063
+
+TABLE 1
+Weight functions for different AIPW estimators
+AIPW estimator
+
+ωi (δ)
+
+νi (δ)
+
+Robins, Rotnitzky and Zhao (1994)
+
+G i (δ)
+
+Newey (1994)
+Cao, Tsiatis and Davidian (2009)
+Hirano and Imbens (2001)/Wooldridge (2007)
+
+Locally efficient?
+
+Doubly robust?
+
+Di
+G i (δ)
+
+Yes
+
+Yes
+
+1
+
+1
+
+Yes
+
+No
+
+1−G i (δ)
+G i (δ)
+
+Di
+G i (δ)
+Di
+G i (δ)
+
+Yes
+
+Yes
+
+Yes
+
+Yes
+
+1
+
+i=1
+
+with δ̂ML the CMLE of the propensity score parameter and
+q̂(υ,ω) (x; γ ) =
+
+"
+
+# "
+#−1
+N
+N
+1 X Di
+1 X
+0
+0
+ω̂i ψi (γ )ti ×
+ν̂i ω̂i ti ti
+t (x),
+N
+N
+i=1 Ĝ i
+i=1
+
+with Ĝ i = G i (δ̂ML ), ν̂i = νi (δ̂ML ), and ω̂i = ωi (δ̂ML ). Note that q̂(υ,ω) (x; γ ) is the fitted value
+associated with a weighted least squares fit of ψi (γ ) onto ti .
+Setting νi (δ) = Di /G i (δ) and ωi (δ) = G i (δ), we get the original AIPW estimator of Robins,
+Rotnitzky and Zhao (1994); νi (δ) = 1 and ωi (δ) = 1 yield Newey’s (1994, Section 5.3) estimator,
+while νi (δ) = Di /G i (δ) and ωi (δ) = (1 − G i (δ))/G i (δ) give the estimator suggested by Cao,
+Tsiatis and Davidian (2009) (see Table 1).14
+Hirano and Imbens (2001) and Wooldridge (2007) propose a doubly robust estimator for the
+ATE under exogenous treatment assignment.15 It turns out that setting νi (δ) = Di /G i (δ) and
+ωi (δ) = 1 gives their estimator. In the general moment model case, their approach chooses γ̂HIW
+to solve
+N
+1 X
+q̂HIW (X i ; γ̂HIW ) = 0,
+(15)
+N
+i=1
+
+where q̂HIW (x; γ ) is the weighted least squares fit
+q̂HIW (x; γ ) =
+
+"
+
+# "
+#−1
+N
+N
+1 X Di
+1 X Di 0
+0
+ψi (γ )ti ×
+ti ti
+t (x).
+N
+N
+i=1 Ĝ i
+i=1 Ĝ i
+
+(16)
+
+The following Proposition shows that equation (15) is also a member of our class of AIPW
+estimators.
+14. Many of the estimators listed in Table 1 were originally proposed in the context of a specific form for ψ(Z , γ ).
+We adapt to the general case as necessary. Newey (1994) derives the large sample properties of his estimator where the
+dimension of t (X ) grows with N . Here we consider his estimator with the dimension of t (X ) held fixed.
+15. Wooldridge’s (2007) estimator is actually slightly more general than the one described here in that q̂HIW (x; γ )
+need not correspond to a least squares fit.
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+two weight functions. Let γ̂(ν,ω) be an AIPW estimate in the family, which is defined as the
+solution to
+
+N 
+Di
+1 X
+q̂(υ,ω) (X i ; γ̂(ν,ω) )
+ψ(Z i , γ̂(ν,ω) ) −
+(Di − G i (δ̂ML )) = 0,
+(14)
+N
+G i (δ̂ML )
+G i (δ̂ML )
+
+1064
+
+REVIEW OF ECONOMIC STUDIES
+
+Proposition 4.1. The solution to equation (15) is numerically identical to γ̂(ν,ω) with νi (δ) =
+Di /G i (δ) and ωi (δ) = 1.
+Proof. Since the first element of ti is a constant, we have, by the first-order condition associated with (16),
+N
+1 X Di
+{ψ(Z i , γ̂ ) − q̂HIW (x; γ )} = 0.
+(17)
+N
+Ĝ i
+i=1
+
+Adding the left-hand side of equation (17) to equation (15) and rearranging give the result.
+
+k
+
+A useful way to understand the properties of first-order equivalent estimators is in terms of
+their implicit distribution function estimates. After some simple algebra, we can show that the
+solution to (14) coincides with that to
+N
+X
+i=1
+
+π̂(υ,ω),i ψ(Z i , γ̂(υ,ω) ) = 0,
+
+where
+π̂(υ,ω),i =
+with
+ζ̂(υ,ω),i
+
+1 Di
+ζ̂(υ,ω),i
+N Ĝ i
+
+
+#−1
+ # " X
+N 
+N
+
+1 X Di
+1
+= 1−
+− 1 ti0 ×
+ν̂i ω̂i ti ti0
+× ω̂i ti ,
+
+
+N
+N
+i=1 Ĝ i
+i=1
+
+
+
+"
+
+(18)
+
+(19)
+
+for i = 1, . . . , N . This implies that the estimate of the joint distribution associated with γ̂(υ,ω) is
+F̂(υ,ω) (x, y1 ) =
+
+N
+X
+i=1
+
+π̂(υ,ω),i 1(X i ≤ x)1(Y1i ≤ y1 )
+
+(20)
+
+(see Back and Brown, 1993, Proposition 1).
+This distribution function has several interesting properties. First, if νi = Di /G i (δ), which
+is true for all the estimators listed in Table 1 except Newey’s (1994), then
+Z
+Z
+t (x)d F̂(υ,ω) (x, y1 ) = t (x)d FN (x).
+The re-weighted mean t (X ) in the complete case (D = 1) subsample coincides with its unweighted full-sample mean. Since the unweighted full-sample mean of t (X ) is an efficient estimate of its population analogue, then so is the re-weighted complete case sample mean. In
+this sense, the F̂(υ,ω) (x, y1 ) inherits some of the efficiency properties of FN (x). SinceR the first
+element of t (X i ) is 1, the AIPW distribution function estimate also integrates to 1 i.e. d F̂(υ,ω)
+(x, y1 ) = 1 .
+As noted in the previous section, the IPT distribution function estimate (11) also exactly
+balances the mean of t (X i ) and integrates to 1. However, it differs from F̂(υ,ω) (x, y1 ) in that
+it is guaranteed to be non-decreasing, whereas F̂(υ,ω) (x, y1 ) may be decreasing in x and/or y1
+over some ranges. Put differently, some of the π̂(υ,ω),i weights may be negative, while the π̂IPT,i
+weights are positive by construction.
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+4.2. Implicit distribution function estimates
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1065
+
+To gain further insight into this problem, consider the distribution function estimator
+associated with standard IPW (e.g. Imbens, 2004):
+F̂IPW (x, y1 ) =
+
+N
+X
+i=1
+
+π̂IPW,i 1(X i ≤ x)1(Y1i ≤ y1 ),
+
+π̂IPW,i =
+
+1 Di
+.
+N Ĝ i
+
+(21)
+
+Now consider a random sample where
+(22)
+
+In this case, the IPW estimate of the mean of t (X i ) exceeds its unweighted full-sample counterpart. The fact that the latter mean is efficient implies that the former is not. The AIPW
+distribution function estimator corrects this inefficiency by adjusting the IPW weights as
+follows:
+π̂(υ,ω),i = π̂IPW,i × ζ̂(υ,ω),i ,
+with ζ̂(υ,ω),i as defined in equation (19). Under equation (22), large realizations of t (X ) are
+“too frequent” in the complete case subsample (even after re-weighting by the inverse of the
+estimated propensity score). In such a situation, ζ̂(υ,ω),i will be less than one for D = 1 units
+with large values of t (X ) and greater than one for units with small values. In extreme cases,
+the resulting π̂(υ,ω),i may be negative or exceed one. Condition (22) is especially likely to occur
+when the propensity score model is misspecified.
+In that case, Ĝ i corresponds to a quasi-MLE
+PN
+(Di /Ĝ i − 1)t (X i ) may differ from zero even in
+propensity score estimate, and hence, N1 i=1
+large samples.
+In practice, the IPW and AIPW distribution functions can generate non-sensical estimates.
+Let ψ(Z , γ ) = Y1 − γ . Neither γ̂IPW nor γ̂(υ,ω) is guaranteed to lie within the convex hull of the
+data. If Y1 ∈ {0, 1}, e.g. this means it is possible for γ̂IPW and γ̂(υ,ω) to exceed one. In contrast,
+γ̂IPT will lie in the convex hull of the data by construction. In our view, an estimator that sets a
+weighted mean of ψ(Z , γ ) equal to zero, where these weights need not lie on the unit interval,
+is a priori unattractive (cf. Robins et al., 2007; Tan, 2010).
+4.3. Higher-order bias
+Another way IPT and AIPW can be compared is in terms of their higher-order bias. In this
+section, we present higher-order bias expressions for both IPT and AIPW when Assumptions
+2.1–2.5 and 3.1 hold. Bias comparisons are interesting in this case because IPT and AIPW are
+first-order equivalent. Theorem 4.1, which is based on an application of Lemma A.4 of Newey
+and Smith (2004), gives the result.
+Theorem 4.1 (Higher-order bias). Suppose Assumptions 2.1–2.5, Assumption 3.1, and additional regularity conditions hold, then as N → ∞
+γ̂(υ,ω) = γ0 +
+γ̂IPT = γ0 +
+
+C O C V (υ, ω)
++
++ O(N −2 ),
+N
+N
+
+(23)
+
+CO
++ O(N −2 ),
+N
+
+(24)
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+
+N 
+N
+N
+X
+1 X Di
+1 X
+− 1 t (X i ) > 0 →
+π̂IPW,i t (X i ) >
+t (X i ).
+N
+N
+Ĝ
+i
+i=1
+i=1
+i=1
+
+1066
+
+REVIEW OF ECONOMIC STUDIES
+
+where
+ 2
+
+K
+∂ ψ
+1 X −1
+CO = −
+0 E
+I(γ0 )−1 ek
+2
+∂γk ∂γ 0
+k=1
+
+
+
+
+1 −1
+∂ψ −1 1
+∂ψ −1
+{ψ − q} + 0 E
++0 E
+0
+0 q ,
+∂γ 0
+p
+N
+∂γ 0
+
+
+D
+−1
+−1
+C V (υ, ω) = −0 E 2 6(X )3 5 S Sδ
+p
+
+
+
+ 
+D
+1
+−1
+0 −1
++0 E
+2ω −
+− ωv qq 3 5 S Sδ
+p
+p
+
+
+ 
+
+D
+D
+−1
+0 −1
++0 E ω
+−ν
+− 1 qt F0 t ,
+p
+p
+−1
+
+
+
+Proof. See Appendix A and the Supplemental Web Appendix.
+
+k
+
+To understand Theorem 4.1, it is helpful to consider the asymptotic properties of an infeasible “oracle” estimator. This estimator chooses γ̂ to set the optimal (i.e. asymptotic variance
+minimizing) linear combination of the sample mean of
+(
+)
+D
+p0 (X ) ψ(Z , γ0 )
+I
+ψ (Z , γ0 ) =
+(25)
+( p0D(X ) − 1)q0 (X )
+equal to zero. This estimator is infeasible because (i) p0 (X ) and q0 (X ) are unknown and (ii) the
+optimal linear combination is also unknown. An implication of Graham (2011, Theorem 3.1) is
+that the efficient Generalized Method of Moments (GMM) estimator based on equation (25) is
+also semiparametrically efficient for the missing data problem defined by Assumptions 2.1–2.5.
+A direct application of Theorem 4.1 of Newey and Smith (2004) to equation (25) gives
+an asymptotic bias for this estimator of C O . This bias coincides with that of γ̂IPT , despite the
+fact that the oracle estimator is based on the true propensity score, p0 (X ), conditional mean
+moment vector, q0 (X ), and optimal GMM weight matrix. In contrast, the bias expression for
+the AIPW estimate γ̂(υ,ω) contains additional terms. The additional terms arise from AIPW’s
+separation of the tasks of propensity score estimation and imposition of the optimal set of balancing restrictions implied by Assumption 3.1. The first task generates no gains in terms of
+asymptotic precision, while at the same time introducing sampling error into the vector of estimating equations for γ̂(υ,ω) . The second task results in an overidentified system of moment
+equations. The finite sample properties of γ̂(υ,ω) may degrade as a result. It is straightforward to
+construct stylized examples where the bias of γ̂(υ,ω) increases with M, the dimension of t (X ),
+while that of γ̂IPT does not. This will be especially true if the distribution of t (X ) is skewed
+and/or that of ψ(Z , γ0 ) is heteroscedastic (see the Supplemental Web Appendix for Monte Carlo
+examples).
+The contrast between the higher-order bias of γ̂IPT and γ̂(υ,ω) in some ways parallels that
+between empirical likelihood (EL) and two-step GMM for general moment condition models
+(Newey and Smith, 2004). The EL estimator transforms an overidentified moment condition
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+0
+with ek denoting
+aK
+
+ × 1 vector with a 1 in the kth row and zeros elsewhere, p = G(t (X ) δ0 ),
+and F0 = E 1−p p tt 0 .
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1067
+
+problem into a just-identified one by introducing a vector of tilting parameters (cf. Imbens,
+1997). Our approach to overidentification, in contrast, involves overparameterizing the propensity score. The idea of overfitting a nuisance function to eliminate overidentification appears to
+be novel.
+An alternative to IPT would be to apply GEL directly to the set of moment conditions
+underlying the AIPW estimator (cf. Qin, Zhang and Leung, 2009). Let L r = dim(r (X )) and
+L t ∗ = dim(t ∗ (X )). Such an approach would apply GEL to the K + L t ∗ + L r system of moments
+
+
+
+
+
+
+
+− 1 t ∗ (X )
+ = 0.
+
+
+D−G(r (X )0 δ0∗ )
+∗
+0
+G(r (X )0 δ ∗ )[1−G(r (X )0 δ ∗ )] G 1 (r (X ) δ0 )r (X )
+D
+G(r (X )0 δ0∗ )
+
+0
+
+0
+
+Computation of γ̂GEL would involve solving a saddle point problem with 2(K + L r ) + L t ∗ parameters (Newey and Smith, 2004, Section 3). In contrast, computing γ̂IPT requires solving a
+1 + M ≤ L t ∗ + L r dimensional globally concave problem and a just-identified moment condition problem with K parameters. Our approach involves a smaller parameter and sidesteps the
+need to solve a saddle point problem.
+5. BASIC SKILLS AND THE BLACK–WHITE WAGE GAP
+In an important pair of papers, Neal and Johnson (1996) and Johnson and Neal (1998) document
+that Black–White skill differences present prior to labour market entry (i.e. by age 18) can
+account for a substantial portion of the corresponding gap in adult hourly earnings. In particular,
+they find that three-fifths of the raw 28% Black–White gap in average hourly earnings can be
+predicted by differences in AFQT scores, a measure of basic skills used by the military.
+Here we repeat the analysis of Johnson and Neal (1998) after replacing AFQT scores with
+measures of cognitive skills acquired prior to adolescence. The idea is to measure how much of
+Black–White differences in hourly earnings can be accounted for by differences in skills across
+the two groups already manifest prior to adolescence. If a substantial portion of the wage gap
+can be so accounted for, then educational interventions which aim to ameliorate racial inequality
+might be more appropriately targeted towards younger children.16
+We reconstruct the National Longitudinal Survey of Youth 1979 (NLSY79) extract analysed
+by Johnson and Neal (1998). This sample is a stratified random sample of young men from the
+U.S. born between 1962 and 1964. Measurements of average hourly wages over the 1990–1993
+period, race, as well as AFQT scores are available for each individual. The NLSY79 also collected data from respondents’ school records. In some cases, these records included (nationally
+normed) percentile scores on IQ tests taken at various ages. We use those scores corresponding
+to tests taken between the ages of 7 and 12 as measures of cognitive skills acquired prior to adolescence. Unfortunately, these scores are missing for almost 90% of individuals. An unweighted
+analysis based on those individuals with complete information would be problematic for two
+reasons: (i) there are few complete cases making precise inference difficult and (ii) the complete
+cases are not representative of the full sample in terms of always-observed characteristics. Our
+IPT estimator is designed to address both of these problems.
+16. Interpreting any predictive relationship between early childhood test scores and subsequent labour market
+earnings causally involves a number of subtleties. As our purposes are primarily illustrative, we do not dwell on this
+issue here. See Neal and Johnson (1996) for a discussion of some of the issues involved.
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+
+
+E
+
+
+D
+G(r (X )0 δ0∗ ) ψ(Z , γ0 )
+
+1068
+
+REVIEW OF ECONOMIC STUDIES
+
+TABLE 2
+Replication of Table 14-1 of Johnson and Neal (1998) and unweighted complete case analysis with preadolescent
+test score
+(1)
+OLS
+Y EARO F B IRTH
+B LACK
+AFQT
+
+R2
+N
+
+—
+0∙062
+1371
+
+−0∙0466
+(0∙0147)∗∗
+−0∙1079
+(0∙0284)∗∗
+0∙1645
+(0∙0146)∗∗
+—
+
+(3)
+CC-OLS
+
+(4)
+CC-OLS
+
+−0∙0947
+(0∙0464)∗
+−0∙2708
+(0∙0833)∗∗
+—
+
+−0∙0940
+(0∙0470)∗
+−0∙1606
+(0∙0900)+
+—
+
+—
+
+0∙1011
+(0∙0540)+
+0∙11
+144
+
+0∙183
+1371
+
+0∙068
+144
+
+Notes: Estimation samples are as described in the main text. The 1979 baseline sampling weights are used in place of
+the empirical measure when computing all estimates. “∗∗ ”, “∗ ” and “+ ” denote that a point estimate is significantly
+different from zero at the 1%, 5%, and 10% levels. Standard errors (in parentheses) allow for arbitrary patterns of
+heteroscedasticity and dependence across units residing in the same household at baseline.
+
+Columns 1 and 2 of Table 2 replicate Columns 1 and 2 of Table 14-1 in Johnson and Neal
+(1998, p. 483) (with the exception that we exclude Hispanics from our analysis).17 The first
+column reports the least squares fit of L OG WAGE onto a constant, Y EARO F B IRTH, and B LACK.
+The estimated wage gap between Blacks and Whites of the same age is 28%. Column 2 adds
+AQFT to the set of explanatory variables. The wage gap between Blacks and Whites of the
+same age with the same pre-market AFQT score is only 11%. Seventeen percentage points of
+the unconditional Black–White hourly wage gap can be accounted for by average differences in
+pre-market AFQT scores across the two groups. That a substantial portion of racial differences
+in hourly wages can be accounted for by differences in skills acquired prior to entry into the
+labour market is the central result of Neal and Johnson (1996).
+Columns 3 and 4 of Table 2 replicate Columns 1 and 2 after replacing AFQT with our preadolescence test score (E ARLY T EST). This is an unweighted analysis based on the 144 complete
+cases. Conditioning on age alone, racial wage gaps in the complete case subsample are very
+similar to those computed using the full sample (Column 3). The wage gap conditional on the
+preadolescent test score is substantially lower (Column 4). Unfortunately, these wage gap estimates are very imprecise; their standard errors are almost four times those of their Columns 1
+and 2 counterparts. A second problem with this analysis is that those individuals with early test
+scores differ systematically from those without them (See Table 11 in the Supplemental Web
+Appendix).
+To address bias due to non-randomness in the missingness process as well as to improve
+precision, we re-estimated the Table 2, Column 4 model using our IPT procedure. To appropriately use IPT, we require that E ARLY T EST is MAR (Assumption 2.3). That is, conditional
+on Y EARO F B IRTH, B LACK, L OG WAGE, and AFQT, we require that the probability of observing E ARLY T EST is independent of its value. Given the severity of missingness in our data set,
+this assumption is potentially problematic. We nevertheless maintain it in order to illustrate the
+practical application of IPT.
+17. See also Columns 1 and 3 of Table 1 in Neal and Johnson (1996, p. 875).
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+E ARLY T EST
+
+−0∙0458
+(0∙0151)∗∗
+−0∙2776
+(0∙0261)∗∗
+—
+
+(2)
+OLS
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1069
+
+6. SUMMARY AND EXTENSIONS
+The IPT procedure proposed in this paper is a promising alternative to standard IPW- and AIPWbased approaches to missing data. We end by outlining some possible extensions to IPT that
+might merit further research.
+18. Given the near-normal distribution of AFQT and L OG WAGE in our sample focusing on the first two moments
+of these variables seemed appropriate.
+19. Our choice of t (X ) ensures that all those moments used to compute the full-sample least squares fit of L OG WAGE onto a constant, Y EARO F B IRTH, B LACK, and AFQT are exactly balanced. Consequently, the corresponding
+IPT-weighted least squares fit based on the 144 complete cases alone will be numerically identical to the unweighted
+full-sample fit.
+20. In this particular example, the implicit AIPW distribution function estimates are reasonably similar to the IPT
+one; AIPW does not give inordinate weight to any particular respondent and negative weight is attached to only a handful
+of units. The exception is Newey’s (1994) variant of AIPW. Theorem 4.1 suggests that this variant of AIPW is more
+biased than the others, consistent with our empirical results.
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+The joint support of Y EARO F B IRTH and B LACK contains 3 × 2 = 6 points. We included
+in t (X ) five non-redundant dummy variables for Y EARO F B IRTH-by-B LACK cell (Whites born
+in 1962 are the excluded group). This resulted in full distributional balance for the discretely
+valued components of X. We also balanced the means, variances, and covariance of AFQT and
+L OG WAGE conditional on race alone, and age alone, but not their interaction.18 That is, t (X )
+also included AFQT, L OG WAGE , AFQT2 , L OG WAGE2 , and AFQT×L OG WAGE as well as
+the interactions of these variables with B LACK and the 2 years of birth dummies (1962 being the
+excluded cohort). This led to a specification of t (X ) with 26 elements.
+Our choice of t (X ) was informed by two considerations. First, we wanted t (X ) to be rich
+enough to allow for complex forms of selection into missingness (see Assumption 2.5) as well
+as for the conditional mean and variance of E ARLY T EST (see Assumption 3.1 and Example 2.2).
+Second, we wanted to re-weight the 144 complete cases such that an analyst with access to these
+data alone would numerically exactly reproduce the results of Johnson and Neal (1998) (i.e. the
+point estimates in Columns 1 and 2 of Table 2).19
+Column 2 of Table 3 reports IPT estimates of the best linear predictor of L OG WAGE given,
+Y EARO F B IRTH, B LACK , and E ARLY T EST. For comparison, the unweighted complete case estimates are reproduced in Column 1 of the table, while the standard inverse probability weighted
+(IPW) estimates are given in Column 3. Relative to the unweighted complete case one, the
+IPT estimate of the Black–White wage gap, conditional on skills acquired prior to adolescence
+(E ARLY T EST), is larger in absolute value with a standard error almost two-thirds smaller. Recall
+that the wage gap conditional on age alone was 28% (Table 2, Column 1). Conditioning on skills
+acquired prior to adolescence, this gap falls to 18%. This is larger than the 11% gap present after
+conditioning on the later AFQT score but substantially smaller than the unconditional gap. Put
+differently, roughly 40% of the raw Black–White wage gap can be accounted for by differences
+in average skill levels across the two groups manifest prior to adolescence. This represents about
+two-thirds of the pre-market effect found by Neal and Johnson (1996).
+Column 3 of Table 3 reports IPW estimates of the same model. The IPW estimate of the
+Black–White wage gap is imprecisely determined with a standard error over twice as large as
+the IPT one. This provides a concrete example of the efficiency gains IPT can provide relative
+to IPW (see Proposition 3.1 and Theorem 3.1). Columns 4 through 7 report estimates based
+on the four implementations of AIPW described in Section 4. The AIPW point estimates, with
+the exception of Newey’s (1994), are very similar to their IPT counterpart, albeit with standard
+errors about 10% larger.20
+
+−0∙0537
+(0∙0162)∗∗
+−0∙1837
+(0∙0356)∗∗
+0∙1112
+(0∙0296)∗∗
+
+−0∙0940
+(0∙0470)∗
+−0∙1606
+(0∙0900)+
+0∙1011
+(0∙0540)+
+
+−0∙0970
+(0∙0303)∗∗
+−0∙2136
+(0∙0795)∗
+0∙1221
+(0∙0362)∗∗
+
+(3)
+IPW
+−0∙0533
+(0∙0165)∗∗
+−0∙1834
+(0∙0419)∗∗
+0∙1050
+(0∙0358)∗∗
+
+(4)
+AIPWRRZ
+
+−0∙0339
+(0∙0541)
+−0∙0745
+(0∙157)
+0∙0951
+(0∙0361)
+
+(5)
+AIPWNEWEY
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+(7)
+AIPWCTD
+−0∙0543
+(0∙0167)∗∗
+−0∙1837
+(0∙0390)∗∗
+0∙1144
+(0∙0344)∗∗
+
+(6)
+AIPWHIW
+−0∙0535
+(0∙0166)∗∗
+−0∙1871
+(0∙0392)∗∗
+0∙1072
+(0∙0346)∗∗
+
+Notes: Samples are as described in the main text. The 1979 baseline sampling weights are used when computing all estimates. “∗∗ ”, “∗ ”, and “+ ” denotes that a coefficient is
+significantly different from zero at the 1%, 5%, and 10% levels. Standard errors (in parentheses) allow for arbitrary patterns of heteroscedasticity and dependence across units residing
+in the same household at baseline.
+
+E ARLY T EST
+
+B LACK
+
+Y EARO F B IRTH
+
+(2)
+IPT
+
+(1)
+CC-OLS
+
+TABLE 3
+IPT, IPW, and AIPW estimates of the Black–White wage gap conditional on preadolescent skills
+
+1070
+REVIEW OF ECONOMIC STUDIES
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1071
+
+6.1. Program evaluation and related problems
+Thus far we have focused on problems where Z is completely observed if D = 1. Now consider
+the case where Z = (X 0 , Y00 , Y10 )0 with D, X , and Y = (1 − D)Y0 + DY1 observed. That is we
+observe Y0 if D = 0 and Y1 if D = 1. Let the moment function take the separable form
+ψ(z, γ ) = ψ1 (y1 , x, γ ) − ψ0 (y0 , x, γ ).
+
+Many problems fall into this basic set-up.
+
+which corresponds to setting ψ1 (Y1 , X, γ ) = Y1 and ψ0 (Y0 , X, γ ) = Y0 + γ . Since each unit can
+only be exposed to one intervention, either Y1 or Y0 is missing for all units. Graham, Pinto and
+Egel (2011) discuss the application of IPT to this problem in detail and outline an implementation in STATA.
+Example 6.2 (Two-sample instrumental variables (TSIV) estimation with compatible
+samples). Assume that dim(X ) ≥ dim(Y0 ) and consider the following instrumental variables
+model
+Y1 = Y00 γ0 + U, E[U X ] = 0.
+
+This suggests a moment function with ψ1 (Y1 , X, γ ) = X Y1 and ψ0 (Y0 , X, γ ) = X Y00 γ . Two independent random samples of size N1 and N0 from the same population are available. In the
+first sample, N1 values of Y1 and X are recorded, while in the second N0 values of Y0 and X are
+recorded. For asymptotic analysis, we assume that lim N1 ,N0 →∞ N1 /(N1 + N0 ) = Q 0 > 0. This
+is the TSIV model analysed by Angrist and Krueger (1992). Ridder and Moffitt (2007) provide a
+technical and historical overview. This model is equivalent to a special case of the semiparametric missing data model, an observation that is apparently new. Assume that N units are randomly
+drawn from some target population. With probability Q 0 , the i th unit’s values for Y1 and X are
+recorded, while with probability 1 − Q 0 its values of Y0 and X are recorded. The indicator variable D denotes which set of variables are measured. The only difference between this sampling
+scheme and that of Angrist and Krueger (1992) is that in the latter N1 and N0 are fixed by the
+researcher, while in the missing data formulation they are random variables. An adaptation of
+the argument given by Imbens and Lancaster (1996, Sections 2.1–2.2) shows that this difference
+does not affect inference.
+0 , δ̂ 1 , and γ̂
+To apply IPT to these problems, we find the δ̂IPT
+IPT which solve
+IPT
+)
+(
+N
+1 X Di ψ1 (Y1i , X i , γ̂IPT ) (1 − Di )ψ0 (Y0i , X i , γ̂IPT )
+−
+= 0,
+0 )
+1 )
+N
+G(t (X i )0 δ̂IPT
+1 − G(t (X i )0 δ̂IPT
+i=1
+
+!
+N
+1 − Di
+1 X
+− 1 t (X i ) = 0,
+0 )
+N
+1 − G(t (X i )0 δ̂IPT
+i=1
+!
+N
+Di
+1 X
+− 1 t (X i ) = 0.
+1 )
+N
+G(t (X i )0 δ̂IPT
+i=1
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+Example 6.1 (Average treatment effects (ATEs)). Let D = 1 and D = 0, respectively, denote
+assignment to an active and control program or intervention and Y1 and Y0 the corresponding
+potential outcomes. The ATE is
+γ0 = E[Y1 − Y0 ],
+
+1072
+
+REVIEW OF ECONOMIC STUDIES
+
+6.2. E[ψ(Z , γ0 )|X ] non-linear
+If there is no t (X ) such that E[ψ(Z , γ0 )|X ] is linear in t (X ), then neither our local efficiency
+nor double robustness result can exactly hold (although our procedure, like IPW, will still be
+consistent if the propensity score is correctly specified). Although, in practice, E[ψ(Z , γ0 )|X ]
+may be well approximated by a function linear in t (X ), it is of interest to allow E[ψ(Z , γ0 )|X ] to
+be intrinsically non-linear. As a concrete example, assume that we seek to estimate the marginal
+mean of the binary-valued Y1 . We posit the working model Pr(Y1 = 1|X ) = F(X 0 η) and choose
+η̂ to maximize the log-likelihood
+N
+X
+i=1
+
+Di {Y1i log F(X i0 η) + (1 − Y1i ) log(1 − F(X i0 η))}.
+
+Note that we use only the complete cases (D = 1 units) for this computation.
+Observe that if t (X ) included F(X 0 η0 ) as an element, then Assumption 3.1 would hold by
+construction. We approximate this ideal by including the estimate F(X 0 η̂) as an element of t (X )
+(along with the elements of r (X ) and possibly other known functions of X ). Denote t (X ), so
+defined, by t (X ; η̂ M L ). Using this vector of balancing functions, we estimate the propensity
+score parameter by solving
+
+N 
+Di
+1 X
+− 1 t (X i ; η̂ML ) = 0.
+N
+G(t (X i ; η̂ML )0 δ̂IPT )
+i=1
+The IPT estimate of γ0 is solved for as before. The main difference between the IPT procedure
+introduced in Section 3 and the one sketched above is the inclusion of a generated regressor in
+the propensity score model. It is possible that sampling error in η̂ML could affect the asymptotic properties of γ̂IPT . We conjecture that, appropriately restated, Theorems 3.1 and 3.2 would
+remain valid but that our higher-order bias calculations would be affected.
+6.3. Data dependent choice of t (X ) when E[ψ(Z , γ0 )|X ] is non-parametric
+Assume that the propensity score is known but that prior knowledge on the form of
+E[ψ(Z , γ0 )|X ] is unavailable (i.e. it is non-parametric). If the first element of t (X ) is
+G −1 ( p0 (X )), then γ̂IPT will be consistent. The choice of what other functions of X to include
+in t (X ) has implications for efficiency alone (and perhaps finite-sample bias). In this special
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+Note that this involves computing two propensity score parameter estimates. One which bal1 ) and one
+ances the mean of t (X ) in the D = 1 subsample with its full-sample mean (δ̂IPT
+0 ).
+which balances the mean of t (X ) in the D = 0 subsample with its full-sample mean (δ̂IPT
+Each of these propensity score estimates may be computed using the algorithm described in
+Appendix A. The second step of estimation involves solving a just-identified moment condition
+problem.
+It is straightforward to extend the arguments given above to show that the above estimator is
+locally efficient and doubly robust. As before t (X ) should be rich enough to adequately model
+the propensity score. Local efficiency requires that E[ψ0 (Y0 , X, γ )|X ] and E[ψ1 (Y1 , X, γ )|X ]
+be linear in t (X ) (this is also the condition for double robustness). As in the examples outlined
+above, the form of t (X ) is often suggested by the structure of the problem. Consider efficient
+estimation of the ATE by IPT. This requires choosing t (X ) such that the true propensity score is
+contained in the parametric family G(t (X )0 δ) and the true potential outcome CEFs are linear in
+t (X ). Consistency requires only one of these two restrictions to be true.
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1073
+
+case, the problem of choosing t (X ) is closely related to that of moment selection in conditional
+moment problems (e.g. Donald, Imbens and Newey, 2008). Hirano, Imbens and Ridder (2003)
+also suggest incorporating a known propensity score in a similar fashion but do not make the
+connection between overparameterization of the propensity score and moment selection. This
+connection is made, by construction, explicit in the IPT setting. When the propensity score is
+also non-parametric, choosing t (X ) is no longer analogous to a pure moment selection problem since t (X ) also determines the quality with which the propensity score is approximated. It
+would be interesting to explore automated, data-dependent procedures for choosing the components and dimension of t (X ) in the above settings.
+6.4. Estimation of overidentified moment condition models
+
+APPENDIX A
+This appendix outlines the proofs of the results given in the main text. Throughout the Appendix we assume that t (X ) =
+t ∗ (X ) = r (X ) so that 50 = 5∗0 and δ0 = δ0∗ . This is done only to simplify the notation and is without loss of generality.
+We also drop “0” subscripts, used to denote (true) population values, when doing so causes no confusion. A Supplemental
+Web Appendix, available at http://elsa.berkeley.edu/∼bgraham/, contains additional proofs, Monte Carlo results, and
+empirical application details.
+Local efficiency and double robustness of γ̂IPT (Theorems 3.2 and 3.1)
+Consistency and double robustness. When Assumptions 2.1–2.5 hold, consistency follows from arguments
+analogous to those of Wooldridge (2007) for IPW. If Assumptions 2.1–2.4 and 3.1 hold, but not 2.5 (we do assume
+that the G(∙) function satisfies the stated regularity conditions; in particular that G(t (x)0 δ) > 0 for all x ∈ X and δ ∈
+p
+D), we have δ̂ → δ∗ , where δ∗ is the pseudo-true value which solves E[(D/G(t (X )0 δ∗ ) − 1)t (X )] = 0. This gives
+E[ p0 (X )t (X )/G(t (X )0 δ∗ )] = E[t (X )] so that under Assumptions 2.3 and 3.1, we have equation (13) of the main text.
+Therefore, γ = γ0 is a solution to the IPW population moment. If ψ(Z , γ ) is linear in γ , then this solution is also unique.
+Otherwise uniqueness follows by hypothesis.
+Asymptotic normality. Asymptotic normality of γ̂IPT follows from Theorem 6.1 of Newey and McFadden
+(1994). Let β = (γ 0 , δ 0 )0 . The K + 1 + M × 1 moment vector and derivative matrix equal
+
+
+
+
+Di ∂ψi (γ )
+Di G 1i (δ)
+Di
+− G (δ)
+ψi (γ )ti0
+ψi (γ )
+0
+G
+(δ)
+(δ)
+G
+G
+(δ)
+∂γ
+i
+i
+i
+i
+.
+m i (β) =  D
+(A.1)
+  , Mi (β) = 
+Di G 1i (δ) 0
+i
+0
+− G (δ)
+G (δ) − 1 ti
+G (δ) ti ti
+i
+
+i
+
+i
+
+First consider the case where Assumptions 2.1–2.5 hold. Let M = E[Mi (β0 )] and  = E[m i (β0 )m i (β0 )0 ],
+√
+D
+then N (γ̂ − γ0 ) → N (0, 90 ) for 90 = {(M 0 −1 M)−1 }1:K ,1:K (where A1:K ,1:K is the upper left-hand K × K block
+of A). The covariance of m i = m i (β0 ) equals
+!
+ψψ 0
+ = E[ G0 ] E 0 ,
+(A.2)
+E 0 F0
+
+
+
+1−G 0
+ψt ,
+G
+Then the population mean of Mi = Mi (β0 ) equals
+with
+
+E0 = E
+
+M=
+
+0
+0
+
+F0 = E
+
+
+
+
+1−G 0
+tt .
+G
+
+G
+!
+−E G1 ψt 0
+G
+ .
+−E G1 tt 0
+
+(A.3)
+
+(A.4)
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+If dim(ψ(Z , γ )) > dim(γ ), the procedure outlined above is not directly applicable. One approach to overidentification would be to estimate the inverse probability tilt as described above.
+In Step 2, the analyst could then apply two-step GMM (or GEL) using the IPT re-weighted
+data. We conjecture that this procedure would be locally efficient and doubly robust. It would be
+interesting to construct a one-step estimator for overidentified models.
+
+1074
+
+REVIEW OF ECONOMIC STUDIES
+
+√
+Using equations (A.2) and (A.4), we get a limiting sampling variance for N (β̂ − β0 ) equal to
+
+G
+G
+
+−1
+−1
+0
+−1 0  −10
+0 −1 E ψψ
++ 0 −1 E G1 tt 0 100 F0 10 E G1 tt 0 0 −10
+G − E 0 F0 E 0 0
+
+−1
+−10
+=
+M M
+−1 
+ G
+−1 0 −10
+G
+G
+−E G1 tt 0
+F0 E 0 F0−1 − E G1 ψt 0 E G1 tt 0
+0
+
+G
+G
+
+ G
+−1
+−1
+
+−0 −1 E 0 F0−1 − E G1 ψt 0 E G1 tt 0
+F0 E G1 tt 0
+,
+VM M (δ)
+
+where
+
+10 = E
+
+
+D
+(ψ − E 0 F0−1 t)Sδ0 ,
+G
+
+VM M (δ0 ) = E
+
+
+
+
+
+
+G 1 0 −1
+G 1 0 −1
+tt
+tt
+F0 E
+.
+G
+G
+
+(A.6)
+
+Now consider the case where Assumptions 2.1–2.4 and 3.1 hold, but not 2.5. Let β∗ = (γ00 , δ∗0 )0 , with δ∗ the
+pseudo-true propensity score parameter. Let G ∗ = G(t (X )0 δ∗ ), etc. Under this set of assumptions, we have
+
+
+E
+
+ p0 (X )
+G 2∗
+
+ψψ 0
+
+
+
+E
+
+ p0 (X ) 1−G ∗  0 
+ψt
+G∗
+
+G∗
+
+
+
+
+
+∗ =  
+ 0  ,
+p (X ) 1−G ∗  0   p0 (X )
+p0 (X )
+tψ
+E
+−
+2
++
+1
+tt
+E 0G
+2
+G
+G
+∗
+
+and
+
+∗
+
+G∗
+
+∗
+
+ 
+ p0 (X ) G 1∗ 0  
+p (X ) ∂ψ 
+E 0G ∂γ
+0 −E G ∗
+G ∗ ψt 
+∗
+
+M∗ = 
+ p0 (X ) G 1∗ 0   ,
+0
+−E G
+G ∗ tt
+∗
+
+−1
+so that 90 = {(M∗0 −1
+∗ M∗ ) }1:K ,1:K .
+
+Local efficiency. If Assumption 3.1 also holds, we have E[ψ|X ] = 50 t = q so that E 0 F0−1 = 50 and hence
+E 0 F0−1 E 00 = E
+
+
+
+
+
+
+1−G 0
+1−G
+50 tt 0 500 = E
+qq ,
+G
+G
+
+(A.7)
+
+
+
+0
+− E 0 F0−1 E 00 0 −10 = I(γ0 )−1 . In that case, we also have 10 = 0 since
+which gives the equality 0 −1 E ψψ
+G
+E[ψ|D, X ] = E 0 F0−1 t. Under these conditions, equation (A.5) simplifies to
+M −1 M −10 = diag(I(γ0 )−1 , VM M (δ0 )).
+
+(A.8)
+
+Local efficiency at Assumption 3.1 follows if we can show that IPT is regular under Assumptions 2.1–2.5. The
+score function for a parametric submodel of the semiparametric missing data model is (e.g. Chen, Hong and Tarozzi,
+2008)
+sη (y, x, d; η) = dsη (y1 |x; η)
++
+
+ 
+d − G(t (x)0 δ)
+0 δ)t (x) × ∂δ + r (x; η).
+G
+(t
+(x)
+η
+1
+G(t (x)0 δ)[1 − G(t (x)0 δ)]
+∂η
+
+Under Assumption 2.1, we have, differentiating under the integral and using iterated expectations,
+
+
+∂γ (η0 )
+∂ log f (Y1 , X ; η0 )
+= −0 −1 E ψ(Z , γ0 )
+∂η
+∂η
+= −0 −1 {E[ψ(Z , γ0 )sη (Y1 |X ; η0 )] + E[q(X ; γ )rη (X ; η0 )]}.
+
+Under Assumptions 2.1–2.5, standard calculations yield an asymptotically linear representation of γ̂ equal to
+γ̂ = γ0 −
+
+
+
+
+
+N
+1 X −1 Di ψ(Z i , γ0 )
+Di
+−1
+− M12 M22
+− 1 t (X i ) + o p (N −1/2 ),
+0
+0
+0
+N
+G(t (X i ) δ0 )
+G(t (X i ) δ0 )
+i=1
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+
+
+(A.5)
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1075
+
+where −0 −1 times the term in {∙} is the influence function and M12 and M22 denote the upper right-hand K × 1 + M
+and lower right-hand 1 + M × 1 + M blocks of M as given in equation (A.4) above. Let φ denote this influence function;
+by Theorem 2.2 of Newey (1990), regularity of γ̂ follows if
+∂γ (η0 )
+= E[φsη (Y, X |η0 )] = −0 −1 {E[ψ(Z , γ0 )sη (Y1 |X ; η0 )] + E[q(X ; γ0 )rη (X ; η0 )]}.
+∂η
+
+= −0 −1 E[ψ(Z , γ0 ){sη (Y1 |X ; η0 ) + rη (X ; η0 )}]
+
+= −0 −1 {E[ψ(Z , γ0 )sη (Y1 |X ; η0 )] + E[q(X ; γ0 )rη (X ; η0 )]},
+
+as required.
+Consistent variance–covariance matrix estimation
+If Assumptions 2.1–2.4 and either 2.5 or 3.1 or both hold (as well as additional regularity conditions), then the asymptotic
+variance of γ̂ may be consistently estimated by
+ˆ −1 M̂)−1 }1:K ,1:K ,
+9̂ = {( M̂ 0 
+with M̂ =
+
+PN
+
+ˆ
+i=1 Mi (β̂)/N and  =
+
+(A.9)
+
+PN
+
+0
+i=1 m i (β̂)m i (β̂) /N .
+
+Derivation of the higher-order bias of IPT (Theorem 4.1). Here we outline the derivation of the O(N −1 ) bias
+expressions for γ̂IPT (i.e. equation (24) in the main text). The derivation of the corresponding bias expression for the
+class of AIPW estimators discussed in the main text can be found in the supplement. Newey and Smith (2004, Lemma
+A.4, pp. 241–242) provide a general formula for the O(N −1 ) bias of M-estimators. As IPT and AIPW have M-estimator
+representations, we use their general result in our calculations. We maintain Assumption 3.1 throughout in what follows
+(in addition to Assumptions 2.1–2.5).
+Let θ̂ be the solution to the T = dim(θ) equations
+b(θ̂) =
+
+N
+X
+i=1
+
+bi (θ̂) = 0.
+
+(A.10)
+
+Under regularity conditions (see below), Newey and Smith (2004, Lemma A.4) show that the asymptotic bias of θ̂ is
+given by
+
+
+
+T
+X
+ 1
+−B −1  
+Bias(θ̂) =
+φq,i Bq φi  ,
+(A.11)
+E Ai φi + E 
+2
+N
+q=1
+
+where eq is a T × 1 column vector with a one in the q-th row and zeros elsewhere and
+
+∂bi (θ )
+B=E
+,
+∂θ 0
+
+
+φi = −B −1 bi (θ),
+
+∂b (θ )
+Ai = i 0 − B,
+∂θ
+
+"
+
+#
+∂ 2 bi (θ )
+Bq = E
+.
+∂θq ∂θ 0
+
+The IPT estimator of θ = (γ 0 , δ 0 )0 is given by the solution to equation (A.10) with
+
+
+Di
+ψi (γ )
+G
+(δ)
+bi (θ) =  iD
+ .
+i
+G (δ) − 1 ti
+
+(A.12)
+
+i
+
+To apply equation (A.11) to IPT, we require that the parameter space of θ is compact with θ0 in its interior, continuity of
+bi (θ ) in θ and continuous differentiability in a neighbourhood of θ0 , and rank(B) = dim(θ). These conditions are implied
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+We have, using the conditional mean zero property of scores, the MAR assumption, and the fact that p0 (X ) = G(t (X )0 δ0 )
+
+
+
+Di ψ(Z ,γ0 )
+Di
+−1
+0 δ ) − M12 M22 G(t (X )0 δ ) − 1 t (X i )
+G(t
+(X
+)
+−1
+0
+0
+
+
+E[φsη (Y, X |η0 )] = −0 E
+× {sη (Y1 |X ; η0 ) + rη (X ; η0 )}
+
+
+Di ψ(Z , γ0 )
+= −0 −1 E
+{sη (Y1 |X ; η0 ) + rη (X ; η0 )}
+0
+G(t (X ) δ0 )
+
+1076
+
+REVIEW OF ECONOMIC STUDIES
+
+by Assumptions 2.1 and 2.5. Additionally, we require a Lipschitz continuity condition on the third derivative of bi (θ)
+and the existence of certain higher-order moments. Specifically, we assume that (i) for some d(Z ) with E[d(Z )] < ∞,
+∂ 3 bi (θ0 )
+∂ 3 bi (θ )
+−
+∂θ j ∂θk ∂θl ∂θ j ∂θk ∂θl
+
+≤ d(Z i )kθ − θ0 k
+
+ ∂bi (θ0 ) 6   ∂ 2 bi (θ0 ) 6 
+ ∂ 3 bi (θ0 ) 2 
+, E ∂θ ∂θ 0
+, and E ∂θ ∂θ
+and (ii) E[kbi (θ0 )k6 ], E k ∂θ
+are finite for j, k,l = 1, . . . , K + 1 + M
+0
+j k ∂θl
+j
+(see Newey, 2002). These conditions will hold if G(∙) and ψ(z, γ ) are both three times continuously differentiable with
+bounded derivatives and enough moments of t (X ) exist (e.g. if a component of t (X ) is a Cauchy random variable, then
+(A.11) will not hold).
+∂bi (θ0 )
+Objects, ∂θ
+0 , B, and Ai of equation (A.12) above specialize to
+
+i
+
+i
+
+Using the partitioned inverse formula, we have
+
+G
+ G
+−1 
+0 −1 −0 −1 E G1 ψt 0 E G1 tt 0
+−1
+
+.
+B =
+−1
+G
+0
+−E G1 tt 0
+
+(A.13)
+
+Combining the above expressions then gives
+
+" 
+#
+"
+
+
+ 
+
+∂ψ −1 1
+G1 0
+1 − G ∂ψ −1
+G 1 0 −1
+E[Ai φi ] = − E
+0
+0 E
+t
+ψ −E
+ψt E
+tt
+∂γ 0
+G
+G ∂γ 0
+G
+G
++E
+
+"
+
+# "
+##
+
+
+
+
+G 1 0 −1
+1 − G G1 0
+G 1 0 −1
+1 − G G1 0
+t E
+t .
+ψt E
+tt
+tt E
+tt
+G G
+G G
+G
+G
+
+(A.14)
+
+ G
+−1
+def  G
+; using equation (A.14), we have the first K rows of −B −1 E[Ai φi ] equal to
+Let 5∗ ≡ E G1 ψt 0 E G1 tt 0
+
+
+
+
+∂ψ −1 1
+∂ψ −1
+0 −1 E
+0
+0 5∗ t
+(A.15)
+{ψ − 5∗ t} + 0 −1 E
+0
+0
+∂γ
+G
+∂γ
+"
+#
+
+
+1 − G G1
+G 1 0 −1
+t .
+{ψ − 5∗ t}t 0 E
+tt
++ 0 −1 E
+G G
+G
+Assumption 3.1 gives q = 50 t so that 5∗ = 50 ; therefore, applying the law of iterated expectations gives the last term
+in the expression above identically equal to zero.
+Now consider the second component of the bias expression (A.11). Evaluating E[φi φi0 ] yields
+
+
+I(γ0 )−1
+0
+.
+(A.16)
+E[φi φi0 ] =
+0
+VM M (δ)
+For q = 1, . . . , K , using the expression for ∂bi (θ0 )/∂θ 0 , we have
+#
+" 2
+G ∂ψ 0
+∂ ψ
+− G1 ∂γ
+t
+q
+Bq = E ∂γq ∂γ 0
+,
+0
+0
+for Bq as defined in equation (A.12) above. For q = K + 1, . . . , K + 1 + M (=T ), we have instead
+
+
+2
+G1
+G2 
+∂ψ 2G 1
+0
+ − G tq−K ∂γ 0 G 2 − G tq−K ψt 
+Bq = E 
+.
+2G 21
+G2 
+0
+t
+0
+−
+tt
+q−K
+2
+G
+G
+
+(A.17)
+
+(A.18)
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+ D ∂ψ
+
+
+
+G
+Di G 1i
+0
+i
+i
+0 −E G1 ψt 0
+∂bi (θ0 )  G i ∂γ 0 − G i G i ψi ti 
+
+=
+, B=
+ G1 0
+D G
+∂θ 0
+0
+− G i G1i ti ti0
+tt
+0
+−E
+G
+i
+i
+ D ∂ψ
+
+
+i
+i − 0 − Di G 1i ψ t 0 + E G 1 ψt 0
+G i ∂γ 0
+Gi Gi i i
+G
+Ai = 
+ .
+G
+D G
+0
+− G i G1i ti ti0 + E G1 tt 0
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1077
+
+
+−1  PT
+Using equations (A.16), (A.17), and (A.18), the first K rows of −B
+q=1 φq,i Bq φi can be shown to equal
+2N E
+
+
+
+T
+ −B −1
+
+X
+E
+φq,i Bq φi 
+ 2N
+
+q=1
+
+=−
+1:K ,:
+
+"
+#
+K
+∂ 2ψ
+1 X −1
+0 E
+I(γ0 )−1 ek .
+2N
+∂γk ∂γ 0
+k=1
+
+(A.19)
+
+Combining equations (A.15) and (A.19) yields C O as given in the statement of the theorem.
+Computation
+
+with G(∙) as defined in Assumption 2.5. When the propensity score takes the logit G(v) = (1 + exp(−v))−1 form,
+equation (A.20) exists in closed form (see below). We implement the logit specification in the empirical application and
+expect that most users will do likewise. If a different propensity score model is assumed, then equation (A.20) can be
+evaluated numerically.
+The first and second derivatives of ϕ(v) are
+ϕ1 (v) =
+
+1
+,
+G(v)
+
+G (v)
+ϕ2 (v) = − 1 2 ,
+G(v)
+
+(A.21)
+
+so that equation (A.20) is strictly concave.
+We compute δ̂ by solving the following optimization problem:
+max l N (δ),
+δ
+
+l N (δ) =
+
+N
+N
+1 X
+1 X
+Di ϕ(t (X i )0 δ) −
+t (X i )0 δ.
+N
+N
+i=1
+
+(A.22)
+
+i=1
+
+Differentiating l N (δ) with respect to δ gives an 1 + M × 1 gradient vector of
+∇δ l N (δ) =
+1+M×1
+
+N
+N
+1 X
+1 X
+Di ϕ1 (t (X i )0 δ)t (X i ) −
+t (X i ),
+N
+N
+i=1
+
+(A.23)
+
+i=1
+
+which coincides with equation (8) as required. The 1 + M × 1 + M Hessian matrix is
+∇δδ l N (δ) =
+
+1+M×1+M
+
+N
+1 X
+Di ϕ2 (t (X i )0 δ)t (X i )t (X i )0 .
+N
+
+(A.24)
+
+i=1
+
+This is a negative definite function of δ; thePproblem (A.22) is consequently concave with a unique solution (if one
+N t (X )/N lie within the convex hull of the complete case subsample
+exists). Existence of a solution requires that i=1
+i
+(this will be true in large samples under Assumption 2.4 but should nevertheless be checked prior to computation).22
+In practice, equation (A.23) will have an “exploding denominator” when t (X i )0 δ is a large negative number. This
+can lead to numerical
+the Hessian to be ill-conditioned. We address this problem by noting that
+P Ninstabilities by causing
+at a valid solution i=1
+Di /G(t (X i )0 δ̂)/N = 1. Since Assumption 2.5 implies that G(v) is bounded below by zero,
+this means that Di /G(t (X i )0 δ̂) < N for all i = 1, . . . , N . Letting vi = t (X i )0 δ, this inequality corresponds to requiring
+that
+(A.25)
+G −1 (Di /N ) < vi , i = 1, . . . , N ,
+21. The second step is identical to that associated with standard IPW. As the second step is both application specific
+and typically straightforward to compute using standard software (that accepts user-specified weights), we do not detail
+it here.
+22. Convex hull conditions also arise in research on EL (e.g. Owen, 2001, pp. 85–87).
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+Computation of γ̂IPT consists of two steps. In the first step, which is non-standard and detailed here, δ̂ is computed as the
+solution to equation (8). Here we outline an approach to solving equation (8) which we have found to be computationally
+convenient and very reliable in practice. This involves defining δ̂ to be the solution to a globally concave programming
+problem with unrestricted domain. In the second, γ̂ is computed as the solution to equation (7).21
+Consider the following function:
+ 
+Z a
+v
+1
+G −1
++
+dt,
+(A.20)
+ϕ(v) =
+G(v)
+t
+1/G(v)
+
+1078
+
+REVIEW OF ECONOMIC STUDIES
+
+at δ = δ̂. Let v ∗N = G −1 (1/N ); note that v ∗N → −∞ as N → ∞ suggesting that equation (A.25) will be satisfied for most
+values of δ in large enough samples. In small samples, equation (A.25) may be violated for some i at some iterations of
+the maximization procedure (although not at a valid solution). Our approach to estimation involves replacing ϕ(v) with a
+quadratic function when v ≤ v ∗N ; this ensures that the denominator in equation (A.23) is bounded. This will improve the
+condition of the Hessian with respect to δ without changing the solution. Owen (2001, Chapter 12) proposes a similar
+procedure in the context of EL estimation of moment condition models.
+Specifically, we replace ϕ(v) in equations (A.22), (A.23), and (A.24) with
+(
+ϕ(v),
+v > v ∗N ,
+(A.26)
+ϕ ◦N (v) =
+c
+a N + b N v ∗N + 2N (v ∗N )2 , v ≤ v ∗N ,
+where a N , b N , and c N are the solutions to
+
+b N + c N v ∗N = ϕ1 (v ∗N ),
+a N + b N v ∗N +
+
+cN ∗ 2
+(v ) = ϕ0 (v ∗N ).
+2 N
+
+This choice of coefficients ensures that ϕ ◦N (v) equals ϕ(v), as well as equality of first and second derivatives, at v = v ∗N .
+When G(v) is logit, our algorithm is particularly simple to implement. For G(v) = exp(v)/[1 + exp(v)],
+we have
+ϕ(v) ∝ v − exp(−v).
+Differentiating with respect to v then gives ϕ1 (v) = 1 + exp(−v) and ϕ2 (v) = − exp(−v).
+
+1/N 
+= ln N 1−1 so that solving for a N , b N , and c N yields
+We also have v ∗N = G −1 (1/N ) = ln 1−1/N
+"
+
+
+ 
+2 #
+1
+1
+1
++
+ln
+,
+N −1
+2
+N −1
+
+
+1
+, c N = −(N − 1).
+b N =N + (N − 1) ln
+N −1
+
+a N = − (N − 1) 1 + ln
+
+
+
+Acknowledgment. We would like to thank David Card, Stephen Cosslett, Jinyong Hahn, Patrick Kline, Justin McCrary, Richard Smith, Tom Rothenberg, members of the Berkeley Econometrics Reading Group, and especially Michael
+Jansson for helpful discussions. We are particularly grateful to Gary Chamberlain, Guido Imbens, Geert Ridder, Enrique
+Sentana, and three anonymous referees for detailed comments on earlier drafts. We also acknowledge feedback and
+suggestions from participants in seminars at the University of Pittsburgh, Ohio State University, University of Southern
+California, University of California—Riverside, University of California—Davis, University of Maryland, Georgetown
+University, Duke University, the University of California—Berkeley, CEMFI (Madrid), Harvard University, Pontifícia
+Universidade Católica do Rio do Janeiro, and the 2009 Latin American Meetings of the Econometric Society. This is a
+heavily revised and extended version of NBER Working Paper w13981 titled “Inverse probability tilting and missing data
+problems”. Previous versions of this paper also circulated under the title “A new method of estimating moment condition models with missing data when selection is on observables”. Material in Section 4 of the initial NBER paper is not
+included in this version of the paper but may be found in the companion paper “Efficient estimation of data combination
+problems by the method of auxiliary-to-study tilting” (NBER Working Paper w16928). All the usual disclaimers apply.
+
+REFERENCES
+ABOWD, J. M., CRÉPON, B. and KRAMARZ, F. (2001), “Moment Estimation with Attrition: An Application to
+Economic Models”, Journal of the American Statistical Association, 96, 1223–1231.
+ANGRIST, J. D. and KRUEGER, A. B. (1992), “The Effect of Age at School Entry on Educational Attainment: An
+Application of Instrumental Variables with Moments from Two Samples”, Journal of the American Statistical Association, 87, 328–336.
+BACK, K. and BROWN, D. P. (1993), “Implied Probabilities in GMM Estimators”, Econometrica, 61, 971–975.
+BANG, H. and ROBINS, J. M. (2005), “Doubly Robust Estimation in Missing Data and Causal Inference Models”,
+Biometrics, 61, 962–972.
+BUSSO, M., DINARDO, J. and MCCRARY, J. (2009), “Finite Sample Properties of Semiparametric Estimators of
+Average Treatment Effects” (Mimeo).
+CAO, W., TSIATIS, A. A. and DAVIDIAN, M. (2009), “Improving Efficiency and Robustness of the Doubly Robust
+Estimator for a Population Mean with Incomplete Data”, Biometrika, 96, 723–734.
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+c N = ϕ2 (v ∗N ),
+
+GRAHAM ET AL.
+
+INVERSE PROBABILITY TILTING
+
+1079
+
+Downloaded from http://restud.oxfordjournals.org/ at University Freiberg on November 20, 2012
+
+CHEN, X. (2007), “Large Sample Sieve Estimation of Semi-nonparametric Models”, in Heckman, J. J. and Leamer, E. E.
+(eds) Handbook of Econometrics, Vol. 6 (Amsterdam: North-Holland) 5549–5632.
+CHEN, X., HONG, H. and TAROZZI, A. (2004), “Semiparametric Efficiency in GMM Models of Nonclassical Measurement Errors, Missing Data and Treatment Effects” (Mimeo).
+CHEN, X., HONG, H. and TAROZZI, A. (2008), “Semiparametric Efficiency in GMM Models with Auxiliary Data”,
+Annals of Statistics, 36, 808–843.
+DONALD, S. G., IMBENS, G. W. and NEWEY, W. K. (2008), “Choosing the Number of Moments in Conditional
+Moment Restriction Models” (Mimeo).
+GRAHAM, B. S. (2011), “Efficiency Bounds for Missing Data Models with Semiparametric Restrictions”, Econometrica, 79, 437–452.
+GRAHAM, B. S., CAMPOS DE XAVIER PINTO, C. and EGEL, D. (2011), “Inverse Probability Tilting Estimation of
+Average Treatment Effects in Stata” (Mimeo).
+HAHN, J. (1998), “On the Role of the Propensity Score in Efficient Semiparametric Estimation of Average Treatment
+Effects”, Econometrica, 66, 315–331.
+HIRANO, K. and IMBENS, G. W. (2001), “Estimation of Causal Effects Using Propensity Score Weighting: An Application to Data on Right Heart Catheterization”, Health Services and Outcomes Research, 2, 259–278.
+HIRANO, K., IMBENS, G. W. and RIDDER, G. (2003), “Efficient Estimation of Average Treatment Effects Using the
+Estimated Propensity Score”, Econometrica, 71, 1161–1189.
+IMBENS, G. W. (1997), “One-Step Estimators of Over-identified Generalized Method of Moments Models”, Review of
+Economic Studies, 64, 359–383.
+IMBENS, G. W. (2004), “Nonparametric Estimation of Average Treatment Effects under Exogeneity: A Review”, Review of Economics and Statistics, 86, 4–29.
+IMBENS, G. W. and LANCASTER, T. (1996), “Efficient Estimation and Stratified Sampling”, Journal of Econometrics,
+74, 289–318.
+JOHNSON, W. R. and NEAL, D. A. (1998), “Basic Skills and the Black-White Earnings Gap”, in Jencks, C. and
+Phillips, M. (eds) The Black-White Test Score Gap (Washington, DC: The Brookings Institution) 480–500.
+LITTLE, R. J. A. and RUBIN, D. B. (2002), Statistical Analysis with Missing Data (Hoboken: John Wiley & Sons, Inc.).
+NEAL, D. A. and JOHNSON, W. R. (1996), “The Role of Premarket Factors in Black-White Wage Differences”, Journal
+of Political Economy, 104, 869–895.
+NEWEY, W. K. (1990), “Semiparametric Efficiency Bounds”, Journal of Applied Econometrics, 5, 99–135.
+NEWEY, W. K. (1994), “Series Estimation of Regression Functionals”, Econometric Theory, 10, 1–28.
+NEWEY, W. K. (2002) “Stochastic Expansion for M-Estimator” (mimeographed lecture note).
+NEWEY, W. K. and MCFADDEN, D. (1994), “Large Sample Estimation and Hypothesis Testing”, in Engle, R. F. and
+McFadden, D. F. (eds) Handbook of Econometrics, vol. 4 (Amsterdam: North-Holland) 2111–2245.
+NEWEY, W. K. and SMITH, R. J. (2004), “Higher Order Properties of GMM and Generalized Empirical Likelihood
+Estimators”, Econometrica, 72, 219–255.
+OWEN, A. B. (2001), Empirical Likelihood (New York:Chapman & Hall/CRC).
+QIN, J., ZHANG, B. and LEUNG, D. H. Y. (2009), “Empirical Likelihood in Missing Data Problems”, Journal of the
+American Statistical Association, 104, 1492–1503.
+RIDDER, G. and MOFFITT, R. (2007), “The Econometrics of Data Combination”, in Heckman, J. J. and Leamer, E.
+(eds) Handbook of Econometrics, vol. 6 (New York: North-Holland) 5469–5547.
+ROBINS, J. M., ROTNITZKY, A. and ZHAO, L. P. (1994), “Estimation of Regression Coefficients When Some Regressors Are Not Always Observed”, Journal of the American Statistical Association, 89, 846–866.
+ROBINS, J., SUED, M., LEI-GOMEZ, Q. and ROTNITZKY, A. (2007), “Comment: Performance of Double-Robust
+Estimators When “Inverse Probability” Weights Are Highly Variable”, Statistical Science, 22, 544–559.
+TAN, Z. (2010), “Bounded, Efficient and Doubly Robust Estimation with Inverse Weighting”, Biometrika, 97, 661–682.
+TSIATIS, A. A. (2006), Semiparametric Theory and Missing Data (New York: Springer).
+WOOLDRIDGE, J. M. (2001), “Asymptotic Properties of Weighted M-Estimators for Standard Stratified Samples”,
+Econometric Theory, 17, 451–470.
+WOOLDRIDGE, J. M. (2007), “Inverse Probability Weighted Estimation for General Missing Data Problems”, Journal
+of Econometrics, 141, 1281–1301.
+
+

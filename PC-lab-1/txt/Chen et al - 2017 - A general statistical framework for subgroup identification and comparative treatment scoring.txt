@@ -1,0 +1,1410 @@
+Biometrics 73, 1199–1209
+December 2017
+
+DOI: 10.1111/biom.12676
+
+A General Statistical Framework for Subgroup Identiﬁcation
+and Comparative Treatment Scoring
+Shuai Chen,1 Lu Tian,2 Tianxi Cai,3 and Menggang Yu1,*
+1
+
+Department of Biostatistics and Medical Informatics, University of Wisconsin, Madison, Wisconsin 53792, U.S.A.
+2
+Department of Biomedical Data Science, Stanford University, Palo Alto, California 94305, U.S.A.
+3
+Department of Biostatistics, Harvard School of Public Health, Boston, Massachusetts 02115, U.S.A.
+∗ email: meyu@biostat.wisc.edu
+
+Summary. Many statistical methods have recently been developed for identifying subgroups of patients who may beneﬁt
+from diﬀerent available treatments. Compared with the traditional outcome-modeling approaches, these methods focus on
+modeling interactions between the treatments and covariates while by-pass or minimize modeling the main eﬀects of covariates
+because the subgroup identiﬁcation only depends on the sign of the interaction. However, these methods are scattered and
+often narrow in scope. In this article, we propose a general framework, by weighting and A-learning, for subgroup identiﬁcation
+in both randomized clinical trials and observational studies. Our framework involves minimum modeling for the relationship
+between the outcome and covariates pertinent to the subgroup identiﬁcation. Under the proposed framework, we may also
+estimate the magnitude of the interaction, which leads to the construction of scoring system measuring the individualized
+treatment eﬀect. The proposed methods are quite ﬂexible and include many recently proposed estimators as special cases.
+As a result, some estimators originally proposed for randomized clinical trials can be extended to observational studies, and
+procedures based on the weighting method can be converted to an A-learning method and vice versa. Our approaches also allow
+straightforward incorporation of regularization methods for high-dimensional data, as well as possible eﬃciency augmentation
+and generalization to multiple treatments. We examine the empirical performance of several procedures belonging to the
+proposed framework through extensive numerical studies.
+Key words:
+
+A-learning; Individualized treatment rules; Observational studies; Propensity score; Regularization.
+
+1. Introduction
+With increasing numbers and types of treatments for many
+conditions, it is now well known that the beneﬁts of many
+treatments diﬀer substantially across diﬀerent patient subpopulations. A key focus of recent research is to match
+patients with the most eﬀective treatments to improve
+treatment eﬃcacy when there is substantial heterogeneity
+of treatment eﬀectiveness (Gabriel and Normand, 2012).
+To optimize treatment selection for individual patients, an
+important strategy is to use patients’ baseline covariates to
+form a system for ranking or scoring their individualized treatment eﬀects (ITEs). Statistical methods for estimating ITEs
+or constructing optimal individualized treatment rules (ITRs)
+often require investigation of treatment by covariate interactions. These treatment-modifying covariates are known as
+treatment-moderators. They need to be contrasted with prognostic covariates which lead to poorer or better outcomes
+under all treatment options. For example, higher tumor stage
+may be generally associated with worse prognosis for all treatments under considerations. Therefore, if the goal is only for
+treatment selection, the relevant task is to identify treatmentmoderators but ignore prognostic covariates.
+More concretely, let T = ±1, Z and Y denote the
+treatment assignment, baseline covariates, and outcome
+of interest for a patient, respectively. Algebraically,
+we can express E(Y |T, Z) = m(Z) + T(Z), where m(Z) =
+© 2017, The International Biometric Society
+
+0.5{E(Y |T = 1, Z) + E(Y |T = −1, Z)} is a function that
+reﬂects the main eﬀect of Z and (Z) = 0.5{E(Y |T = 1, Z) −
+E(Y |T = −1, Z)} is a contrast function that reﬂects treatment
+eﬀects given Z. Therefore, modeling E(Y |T, Z) is equivalent to
+modeling both m(Z) and (Z) as functions of covariates. Variables involved in m(Z) are prognostic variables, while those
+in (Z) are treatment moderators.
+Traditional approaches to developing optimal ITRs model
+m(Z) and (Z) simultaneously to predict the outcomes and
+then estimate ITEs using these model based estimates. This
+approach requires correct speciﬁcation for both m(Z) and
+(Z), even though in the end only the latter is used to
+guide the treatment selection. In this approach, the main
+eﬀect m(Z) becomes a nuisance parameter, whose speciﬁcation, however, may aﬀect the estimation of treatment contrast
+function (Z). This is especially problematic since in practice there are often many prognostic variables but far fewer
+treatment moderators that actually alter treatment recommendation (Kraemer, 2013). However, if our goal is ranking
+ITE or developing ITR, then only ranks or signs of the contrast function (Z) matter. Hence, it is desirable to have a
+robust estimate of ITEs without necessitating the estimation
+of m(·).
+Several robustness approaches to subgroup identiﬁcation
+have been proposed in recent years. In the randomized clinical
+trial (RCT) setting, it has been shown that mis-speciﬁcation
+
+1199
+
+1200
+
+Biometrics, December 2017
+
+of the main eﬀects m(Z) has limited eﬀects on estimating
+the treatment by covariate interaction (Qian and Murphy,
+2011; Lu et al., 2013; McKeague and Qian, 2014; Ciarleglio
+et al., 2015), especially from the perspective of A-learning
+(Murphy, 2003; Robins, 2004). In the observational study setting, double robust procedure was introduced (Zhang et al.,
+2012). In addition, Vansteelandt et al. (2008) developed multiply robust estimators for interaction parameters, leaving the
+main eﬀects unspeciﬁed. Beyond this robustness from the
+main eﬀect mis-speciﬁcation, it has been found that masking observation such as noninformative censoring also only
+has a limited impact on subgroup identiﬁcation (Xu et al.,
+2015). Shifting from the outcome prediction framework, a
+modiﬁed covariate method was proposed by Tian et al. (2014)
+without the need of explicitly modeling main eﬀects for data
+from RCTs. Furthermore, nonparametric approaches based
+on the regression tree were proposed to separate the main
+eﬀects from the covariate–treatment interaction eﬀects, either
+through sequential testing (Su et al., 2008) or prediction
+strategies (Foster et al., 2011; Loh et al., 2015). Lastly, converting the subgroup identiﬁcation to a classiﬁcation problem,
+outcome weighted learning methods were developed (Qian
+and Murphy, 2011; Zhang et al., 2012; Zhao et al., 2012; Xu
+et al., 2015).
+All aforementioned methods appear to be very diverse:
+some are fairly ad hoc and some are heavily model-dependent.
+The validity of the latter often relies on diﬀerent parametric or non-parametric assumptions for (Z). Furthermore,
+most existing methods focus on the treatment diﬀerence
+(Z) as the metric for summarizing ITE. However, the
+choice of the metric may aﬀect the analysis results and conclusions about ITE. For example, for non-negative Y , one
+may choose to use the ratio E(Y |T= 1, Z)/E(Y |T= −1, Z) to
+measure the ITE instead of the diﬀerence E(Y |T=1, Z) −
+E(Y |T=−1, Z). The patients rankings based on E(Y |T=
+1, Z)/E(Y |T= −1, Z) and E(Y |T= 1, Z) − E(Y |T= −1, Z) can
+potentially be quite diﬀerent although these two metrics
+may lead to the same ITRs with patients assigned to treatment 1 when E(Y |T= 1, Z) > E(Y |T= −1, Z). On the other
+hand, one may employ ITE metrics such as E{U(Y )|T=
+1, Z} − E{U(Y )|T=−1, Z} based on a monotone transformation U(·), which would alter both the ranking and
+the optimal treatment recommendation. Although diﬀerent methods can be developed for speciﬁc choices of the
+ITE metric, we propose in this article a uniﬁed framework
+that can allow for ITEs or ITRs estimation under diﬀerent
+metrics.
+Building upon the weighting approach considered in Tian
+et al. (2014) for RCT, we propose both propensity score
+weighting and A-learning methods for subgroup identiﬁcation that are applicable for both observational studies and
+RCTs. Our framework is ﬂexible and includes many aforementioned estimators in the literature as special cases, despite
+their clearly diﬀerent origins. The rest of the article is organized as follows. In Section 2, we demonstrate that minimizers
+of a class of convex loss functions can recover the optimal
+ITR. With properly chosen loss functions, our proposed estimator can not only recover the ITR but also the magnitude
+of ITE. In Section 3, we show that many recently proposed
+estimators can be represented as special cases within our
+
+frameworks. In Sections 4 and 5, we compare the ﬁnitesample properties of several estimators and their extensions
+within our frameworks via simulation studies and real data
+examples. Finally, we conclude the article with some discussions including extensions to multiple treatment groups in
+Section 6.
+2.
+
+Methods
+
+2.1. Notations and Assumptions
+We adopt the notation based on the potential outcome framework in causal inference (Rubin, 2005). Y (1) and Y (−1) are
+the potential outcomes if the patient receives a new treatment T = 1 and a standard treatment T = −1, respectively.
+We also assume that only one of the potential outcomes
+Y (1) and Y (−1) can be observed for each patient, that is,
+Y = I(T = 1)Y (1) + I(T = −1)Y (−1) , where I(·) is the indicator function. We further assume that T is independent of
+(Y (1) , Y (−1) ) given the covariates Z, that is, the “strongly
+ignorable assumption” (Rosenbaum and Rubin, 1983; Rubin,
+2005). For the treatment assignment, we assume that Pr(T =
+1|Z) = π(Z), where the propensity score π(Z) is typically
+known and free of Z in randomized trials; but is unknown and
+needs to be estimated (e.g., via regression modeling) in observational studies. The observed data {(Yi , Ti , Zi ), i = 1, . . . , n}
+consist of n independent identically distributed (i.i.d) copies of
+(Y, T, Z).
+Our goal is to construct a personalized beneﬁt scoring
+system f (Z) based on the covariates Z via both a weighting approach and an A-learning approach such that the
+new treatment shall be recommended for the patients based
+on f (Z), which is often sign{f (Z)}. We demonstrate in
+Section 2.2 that the optimality of such a rule under diﬀerent scenarios. In addition, we demonstrate in Section 2.4
+that the proposed approach to estimating an optimal f (·)
+is also useful for quantifying the magnitude of treatment
+beneﬁt.
+We consider a loss function M(y, v) satisfying two conditions:
+A: Mv (y, v) = ∂M(y, v)/∂v is increasing in v for any
+given y;
+B: U(y) ≡ Mv (y, 0) is monotone in y.
+Here, condition A ensures that M(y, v) is convex in v, which
+allows us to “order” the expected utility under the comparative treatments to form an ITR. Condition B is simply to make
+the transformed quantity, that is, U(Y ), an interpretable endpoint. For example, M(y, v) can be the squared loss function
+(y − v)2 , which clearly satisﬁes aforementioned two conditions with Mv (y, v) = 2v − 2y and U(y)
+ = −2y. When
+ Y only
+taking non-negative values and Pr Y (t) > 0|Z = z > 0 for
+t = ±1 and any z, we may let M(y, v) = y log{1 + exp(−v)}
+with U(y) = −y/2.
+A “Fisher-consistent” ITR d0 (z) ∈ {1, −1} can be constructed via M. Speciﬁcally,
+d0 (·) maximizes
+
+
+ the value
+function VU (d) = −E U(Y (1) ) − U(Y (−1) ) d(Z) . Note that
+direct maximization of VU (d) is not feasible both statistically and numerically due to the discrete nature of d(·),
+
+A General Framework for Subgroup Identiﬁcation and Scoring
+whereas minimization of smooth loss functions (f ) with
+respect to f (·) overcomes such diﬃculties. Here, (·) is constructed based on M as detailed in the next section. When
+U(y) linear and decreasing in y, the maximizer of VU (d) is
+the same as the maximizer of the standard value function
+E[Y (1) I{d(Z) = 1} + Y (−1) I{d(Z) = −1}] employed in the literature (Qian and Murphy, 2011; Zhao et al., 2012). The
+use of a broader class of M(·, ·) along with its corresponding U(·) enables us to consider alternative metrics to quantify
+treatment beneﬁts. Throughout, we ﬁrst assume that π(Z)
+is known and provide discussions on estimating π(Z) in
+Section 2.3.
+Weighting and A-Learning Approaches to Subgroup
+Identiﬁcation
+2.2.1. Weighting method. For a given M(·, ·) and covariate level z, we ﬁrst consider the loss function W (f ) =
+E{W (f, Z)} and let fW0 = argminf W (f ), where
+2.2.
+
+
+W (f, z) = E
+
+
+
+M{Y, Tf (Z)}
+Z=z
+Tπ(Z) + (1 − T )/2
+
+
+
+
+
+
+
+
+
+= E Mv {Y, −fW0 (Z)}|T = −1, Z = z .
+
+(1)
+
+Consequently, for a patient with a negative score (i.e.,
+fW0 (z) < 0), we have
+E{U(Y (1) )|Z = z} = E{Mv (Y, 0)|T = 1, Z = z}
+
+
+
+
+
+> E Mv {Y, fW0 (Z)}|T = 1, Z = z
+
+
+
+
+
+(2)
+
+= E Mv {Y, −fW0 (Z)}|T = −1, Z = z
+> E{Mv (Y, 0)|T = −1, Z = z}
+= E{U(Y
+
++ E[I(T = −1)M{Y, −π(Z)f (Z)}|Z = z]
+= π(z)E(M[Y, {1 − π(z)}f (z)]|T = 1, Z = z)
++ {1 − π(z)}E[M{Y, −π(z)f (z)}|T = −1, Z = z].
+Then for any z with π(z) ∈ (0, 1), the ﬁrst order condition for
+fA0 is
+E(Mv [Y, {1 − π(z)}fA0 (z)]|T = 1, Z = z)
+= E[Mv {Y, −π(z)fA0 (z)}|T = −1, Z = z].
+
+(4)
+
+Hence, for a patient with negative score (i.e., fA0 (z) < 0), we
+can have
+
+(5)
+
+= E[Mv {Y, −π(Z)fA0 (Z)}|T = −1, Z = z]
+
+
+
+(−1)
+
+= E(I(T = 1)M[Y, {1 − π(Z)}f (Z)]|Z = z)
+
+> E[Mv {Y, {1 − π(Z)}fA0 (Z)}|T = 1, Z = z]
+
+We next show that d0 (Z) = sign{fW0 (Z)} maximizes the value
+function VU (d). For any z, the ﬁrst order condition of the
+minimization is
+
+
+
+A (f, z) = E(M[Y, {(T + 1)/2 − π(Z)} × f (Z)]|Z = z)
+
+= E{Mv (Y, 0)|T = 1, Z = z}
+
++ E M{Y, −f (Z)}|T = −1, Z = z .
+
+
+
+fA0 = argminf A (f ), where
+
+E{U(Y (1) )|Z = z}
+
+= E M{Y, f (Z)}|T = 1, Z = z
+
+E Mv {Y, fW0 (Z)}|T = 1, Z = z
+
+1201
+
+(3)
+
+)|Z = z}.
+
+The inequalities in (2) and (3) follow from the fact that
+Mv (y, v) is increasing in v (Condition A) and the equality
+between (2) and (3) is the consequence of the ﬁrst order condition (1). Similarly, for a patient with a positive score (i.e.,
+fW0 (z) > 0), we have E{U(Y (1) )|Z = z} < E{U(Y (−1) )|Z = z}.
+Hence, d0 (z) = sign{fW0 (z)} is an optimal ITR that maximizes
+VU (d).
+2.2.2. A-learning method. We next demonstrate that the
+optimal ITR can be equivalently obtained via a diﬀerent
+loss function constructed via A-learning ideas (Murphy, 2003;
+Robins, 2004; Lu et al., 2013; Ciarleglio et al., 2015). Specifically, consider the loss function A (f ) = E{A (f, Z)} and let
+
+> E{Mv (Y, 0)|T = −1, Z = z}
+= E{U(Y
+
+(−1)
+
+(6)
+
+)|Z = z}.
+
+The inequalities in (5) and (7) follow from Condition A
+and the equality between (5) and (6) is from the ﬁrst order
+condition (4). Similarly, for a patient with a positive score, we
+can have E{U(Y (1) )|Z = z} < E{U(Y (−1) )|Z = z}. Thus, the
+minimizer fA0 can also be used for subgroup identiﬁcation
+with d0 (Z) = sign{fA0 (Z)} also maximizing the value function
+VU (d).
+2.3. Implementation
+In this section, we provide some details on how to implement
+the proposed procedures in practice. Since most of the discussions apply for both the weighting and A-learning methods,
+we use  = W and A to index these two approaches, respectively, for conciseness. To approximate the minimizer f0 with
+observed data, one may ﬁrst estimate the loss functions  (f )
+empirically. Speciﬁcally, it is straightforward to show that
+W (f ) and A (f ) can be, respectively, estimated by
+LW (f ) =
+LA (f ) =
+
+1
+n
+
+1
+n
+
+n
+
+i=1
+
+M{Yi , Ti f (Zi )}
+Ti π(Zi ) + (1 − Ti )/2
+
+and
+
+(7)
+
+n
+
+M[Yi , {(Ti + 1)/2 − π(Zi )} × f (Zi )].
+
+(8)
+
+i=1
+
+Since the form of f0 is unknown, direct maximization of
+L (f ) among all functional spaces is not feasible. In practice, model assumptions can be imposed to restrict the search
+space of f0 (·). For example, a simple but useful approach
+is to assume that f0 (·) can be approximated by a linear
+combination of a set of basis functions given a priori. That
+
+1202
+
+Biometrics, December 2017
+K
+
+is, f0 (z) ≈ k=1 βk Bk (z), where {Bk (z), k = 1, . . . , K} are K
+basis functions such as B-spline bases (Ruppert et al., 2003).
+One may then ﬁnd (β1 , . . . , βK ) to minimize the loss funcK
+tion L{ k=1 βk Bk (·)} or its penalized counterpart and let
+K
+f (·) = k=1 βk BK (·) be the estimated beneﬁt score. Alternatively, one may employ machine learning algorithms such as
+boosting to construct f (·) based on L (f ) (Hastie et al., 2009).
+In many modern applications, the number of covariates
+is large but typically only a small subset is relevant to the
+treatment selection. Therefore, it is desirable to incorporate
+variable selection in subgroup identiﬁcation using penalization approaches such as lasso (Hastie et al., 2009). For our
+proposed framework, it is easy to apply appropriate regularization to minimize the penalized loss function L (f ) + λ(f )
+where the penalty term λ(f ) can be chosen to screen out
+noise features or encourage speciﬁc structure of the beneﬁt
+score f (·).
+It is also important to note that in observational studies, the propensity scores π(Zi ) are unknown and need to be
+replaced by their consistent estimators in constructing L (f ).
+When Z is discrete or low dimensional, non-parametric estimators can be used for π(·). When the dimension of Z is
+not small, regression models such as logistic regression can be
+imposed for π(·).
+To improve estimation eﬃciency, we may add possible augmentation to M(·, ·) function, while still preserve the same
+interpretation of obtained beneﬁt scores. In Web Appendices
+A and B, we provide the justiﬁcation and implementation for
+the eﬃciency augmentation.
+Estimating the Magnitude of Individualized
+Treatment Eﬀect
+We have shown above that the beneﬁt score, deﬁned as the
+minimizer of the appropriately constructed loss function, can
+be used for subgroup identiﬁcation since the sign of the score
+is consistent with the direction of the treatment eﬀect. In
+this section, via several examples, we will demonstrate that
+often the value of the beneﬁt score can also be used to
+approximate the size of the ITE. By choosing diﬀerent M,
+the corresponding minimizers may reﬂect ITE quantiﬁed by
+diﬀerent metrics. For example, when Y is non-negative, one
+may summarize the ITE given Z as E(Y (1) |Z) − E(Y (−1) |Z)
+or E(Y (1) |Z)/E(Y (−1) |Z) (VanderWeele and Knol, 2014). Both
+metrics are widely used when investigating treatment covariate interactions and the preference of one over the other seems
+to be quite problem-speciﬁc (VanderWeele and Knol, 2014).
+In the traditional outcome prediction approach, one needs to
+employ seemingly diﬀerent regression models to estimate such
+ITEs. Here, we will show that the ITEs under diﬀerent metrics can be naturally uniﬁed under our proposal by considering
+diﬀerent M(·, ·).
+To this end, we ﬁrst consider M(y, v) = (y − v)2 and the
+corresponding propensity score weighted empirical loss function is
+2.4.
+
+LW (f ) =
+
+1
+n
+
+i
+
+{Yi − Ti f (Zi )}2
+.
+Ti π(Zi ) + (1 − Ti )/2
+
+(9)
+
+Assuming that fW0 minimizes W (f ) = E{LW (f )}, the ﬁrst
+order condition given in (1) leads to 2fW0 (z) = E(Y (1) |Z =
+
+z) − E(Y (−1) |Z = z). Hence once an estimator f (·) of fW0 (·)
+is obtained, we can use 2f (Z) to approximate the ITE.
+Similarly, we can consider the A-learning loss function corresponding to the quadratic loss,
+LA (f ) =
+
+1
+n
+
+[Yi − {(Ti + 1)/2 − π(Zi )} × f (Zi )]2 . (10)
+i
+
+The ﬁrst order condition (4) implies that fA0 (·) =
+argminf E{LA (f )} = E(Y (1) |Z = z) − E(Y (−1) |Z = z). Therefore, we also can approximate ITE by constructing
+appropriate estimator for the minimizer of E{LA (f )}. Thus,
+the quadratic loss M(y, v) = (y − v)2 recovers treatment beneﬁt scores that approximate treatment beneﬁt measured by
+mean diﬀerences.
+Next, we consider the exponential loss M(y, v) = y exp(−v).
+The corresponding empirical loss functions are
+LW (f ) =
+LA (f ) =
+
+1
+n
+
+i
+
+1
+n
+
+Yi e−Ti f (Zi )
+Ti π(Zi ) + (1 − Ti )/2
+
+and
+
+Yi e−{(Ti +1)/2−π(Zi )}×f (Zi ) .
+i
+
+Similarly, the ﬁrst order conditions (1) and (4) imply that
+exp{2fW0 (Z)} = E(Y (1) |Z)/E(Y (−1) |Z)
+exp{fA0 (Z)} = E(Y
+
+(1)
+
+|Z)/E(Y
+
+(−1)
+
+and
+
+|Z),
+
+respectively. Thus, the exponential loss leads to beneﬁt scores
+that recover the ITE measured by the ratio of the expected
+outcomes under two diﬀerent treatments.
+3.
+
+A Review of Several Methods and Their
+Relationship with Our Framework
+Tian et al. (2014) proposed a method for RCTs, which is a
+special case of our weighted loss function LW (f ) in (7). Particularly, three diﬀerent types of M, were described in their
+article for continuous, binary, and survival type of outcomes,
+respectively. For continuous outcomes, M(y, v) = (y − v)2 . For
+binary outcomes, M(y, v) = −[yv − log{1 + exp(v)}]. For survival outcomes
+
+ τ 
+M(y, v) = −
+
+
+
+
+
+v − log[E{e I(X ≥ u)}] dN(u) ,
+v
+
+0
+
+ ∧ C, I(X
+ ≤ C)}, X
+ is the survival time,
+where y = (X, δ) = {X
+
+C is the censoring time, N(t) = I(X ≤ t)δ and τ is a ﬁxed
+point such that P(X ≥ τ) > 0. However, the interpretation of
+U(y) = Mv (y, 0) is trickier due to the two-dimensional outcomes and Tian et al. (2014) proved that U(y) is a monotone
+ given additional conditions.
+transformation of survival time X
+Besides, the optimal eﬃciency augmentation forms proposed
+by Tian et al. (2014) can also be viewed as special cases of
+our eﬃciency augmentation.
+For d(Z) = ±1, an outcome weighted estimator
+(OWE) ﬁnds the optimal decision rule by d opt (Z) =
+
+A General Framework for Subgroup Identiﬁcation and Scoring
+argmind E[{Tπ(Z) + (1 − T )/2}−1 YI{Td(Z) < 0}] (Qian and
+Murphy, 2011; Zhao et al., 2012; Zhang et al., 2012).
+However, since the 0-1 loss I(v < 0) is neither convex
+nor continuous, it needs to be replaced by a convex and
+continuous surrogate loss operationally to overcome the
+computational obstacle, for example, replacing yI(v < 0) by
+M(y, v) = yφ(v).Xu et al. (2015)
+used the logistic loss func
+tion φ(v) = log 1 + exp(−v) and Zhao et al. (2012) used
+the hinge function φ(v) = (1 − v)+ , where x+ = max(x, 0).
+With those surrogate loss functions, it is clear that the
+outcome weighted estimation procedure is equivalent to ours
+based on the loss function LW (f ) with the corresponding
+M(·, ·). Although the aforementioned justiﬁcation of our
+proposal is based on diﬀerentiable M(·, ·), we show that
+it can be extended to non-diﬀerentiable hinge function for
+subgroup identiﬁcation in Web Appendix C.
+Moreover, negative outcomes may cause ill-behaved
+OWES. One way to deal with this problem is to shift all
+outcomes to positive values. However, the estimation eﬃciency may be compromised after such a shift. On the other
+hand, one may employ a ﬂipping transformation: for negative
+outcome Y with treatment assignment T : we can change its
+outcome and treatment assignment to −Y and −T, respectively. This ﬂipping transformation does not change the 0-1
+loss based on the original data, but in general aﬀects the
+losses based on the surrogate function φ(v) with unclear
+consequences in ﬁnal estimation. However, within the proposed framework, it is equivalent to using a ﬂipping version
+of M(·, ·) function. For example, the ﬂipping version for
+outcome-weighted logistic loss function M(y, v) = y log{1 +
+exp(−v)} used by Xu et al. (2015) is M(y, v) = |y| log[1 +
+exp{−sign(y)v}] with Mv (y, v) = −y[1 + exp{sign(y)v}]−1 . It is
+not hard to verify that this ﬂipping version of M(·, ·) satisﬁes the two conditions mentioned in Section 2 and thus can
+be used to yield a valid estimator for the beneﬁt score. In
+addition, we show that a doubly robust AIPWE estimator
+proposed by Zhang et al. (2012) can be obtained using a
+generalized augmented loss in Web Appendix F.
+Lu et al. (2013) and Ciarleglio et al. (2015) proposed an
+A-learning estimator for the semiparametric outcome model:
+E(Y |T, Z) = m(Z) + TCG (Z; β), where m(·) is unspeciﬁed and
+β is a ﬁnite dimensional vector. Let f (Z) = CG (Z; β), their
+proposed A-learning estimator is equivalent to minimizing our
+A-learning type loss function LA (f ) with M(·, ·) being the
+squared loss M(y, v) = (y − v)2 . According to our justiﬁcation,
+this A-learning method can also be extended to other M(·, ·),
+and we will illustrate the logistic loss in numerical studies.
+
+4.
+
+Simulation
+
+4.1. Continuous Outcomes
+We conducted extensive numerical studies with both continuous and binary outcomes. We generated a p = 50 dimensional
+covariate vector Z = (Z1 , . . . , Zp ) from a mean-zero multivariate normal distribution with variance 1 and covariance
+ρ, where ρ is set to be either 0 for the independent setting
+or 1/3 for the correlated setting. The treatment assignment
+T was generated from a simple logistic regression model
+logit{π(Z)} = −1 + Z1 . The outcome Y was simulated from
+
+1203
+
+nonlinear model
+
+
+Y=
+
+β0 +
+
+βj Zj
+j=1
+
+
+
+2
+
+10
+
++T
+
+
+
+4
+
+γj Zj + 0.8Z12
+
+γ0 +
+
++ 0.8Z22
+
++ ,
+
+j=1
+
+where
+ ∼ N(0, 2)
+and
+(γ0 , . . . , γ4 ) = (0.4, 0.8, −0.8,
+0.8, −0.8). The coeﬃcients for the main eﬀects were
+set as either (i) β0 = 6−1/2 , β1 = β2 = 0, βj = 0.5 × 6−1/2 ,
+j = 3, . . . , 10, representing moderate main eﬀects; or (ii)
+β0 = 3−1/2 , β1 = β2 = 0, βj = 0.5 × 3−1/2 , j = 3, . . . , 10, representing large main eﬀects. Throughout, we let the training
+sample size n = 300 and tested the performances of methods
+using an independently generated test data with a sample
+size of 10,000. For each simulation scenario, results were
+summarized based on 500 datasets. For all methods, we
+center the outcome Y by its sample average before model
+ﬁtting.
+We considered two functional classes of f (·) when minimizing the loss functions: (i) a linear model with flin (Z) =
+p
+β0 + i=1 βi Zi where the lasso regularization was used to estimate the βi ’s and the tuning parameter of lasso was chosen
+by 5-fold cross-validation (CV); (ii) an additive model with
+p
+fadd (Z) = i=1 fi (Zi ), where fi (·), i = 1, . . . , p, are nonlinear functions to be estimated. In ﬁtting the additive model,
+we ﬁrst screened the covariates by applying lasso regularization to the simple linear additive model. Then, the B-Spline
+method was implemented based on the selected variables
+(Ruppert et al., 2003). Operationally, we capped the maximum number of selected covariates in the ﬁrst step to meet
+the requirement of R package mgcv, which was used to ﬁt
+the additive model. The propensity score function π(·) was
+treated unknown and estimated by ﬁtting a lasso-regularized
+logistic regression with tuning parameter also selected via
+5-fold CV.
+We also considered various choices of M(y, v). Speciﬁcally, we considered the following seven methods: (i) Full:
+Full regression by regressing Y on Z, (T + 1)/2 and (T +
+1)/2 × Z and then use the estimated treatment–covariate
+interaction terms to construct ITE; (ii) Wsq−L : Weighting method with the squared loss M(y, v) = (y − v)2 and
+f = flin . This is a generalization of the modiﬁed covariate model proposed by Tian et al. (2014); (iii) Wsq−A :
+Weighting method with the squared loss M(y, v) = (y − v)2
+and f = fadd ; (iv) Wﬂo−L : Weighting method with the ﬂipping version of the outcome-weighted logistic loss M(y, v) =
+|y| log[1 + exp{−sign(y)v}] and f = flin . This is a variant
+of the estimator proposed by Xu et al. (2015) using ﬂipping transformation; (v) Asq−L : A-learning method with the
+squared loss M(y, v) = (y − v)2 and f = flin . This is the Alearning estimator proposed in Lu et al. (2013); (vi) Asq−A :
+A-learning method with the squared loss M(y, v) = (y − v)2
+and f = fadd ; (vii) Aﬂo−L : A-learning method with the ﬂipping version of the outcome-weighted logistic loss M(y, v) =
+|y| log[1 + exp{−sign(y)v}] and f = flin . This is the extended
+version of the simple outcome-weighted logistic loss under the
+A-learning framework.
+Figure 1 shows the boxplots for the rank correlation
+coeﬃcients between the estimated scores and true treatment eﬀects (Z) in the test set. Higher rank correlation
+
+1204
+
+Biometrics, December 2017
+
+Rank Correlation of Treatment Effect
+
+coeﬃcients should indicate better performance. Here, we used
+(Z) = E(Y (1) − Y (−1) |Z) as the ITE metric. We further evaluate performances regarding subgroup identiﬁcation, that
+(1)
+is, in identifying the subgroup of patients {i|E(Yi |Zi ) >
+(−1)
+E(Yi
+|Zi )}. Figure 2 shows the average receiver operating characteristic (ROC) curves among 500 runs. The full
+regression has the worst performance among these methods, especially with correlated covariates, and other methods
+approximating the beneﬁt score with a linear function have
+comparable performance. More ﬂexible nonlinear additive
+models outperform their linear counterparts as expected.
+The A-learning method with the squared loss M(y, v) =
+(y − v)2 performs slightly worse than the weighting method
+with correlated covariates, while A-learning and weighting
+with M(y, v) = |y| log[1 + exp{−sign(y)v}] have similar performances. When there are big main eﬀects, the performances of
+all methods become slightly worse than the scenarios with
+
+moderate main eﬀects, especially when the covariates are correlated, likely due to the fact that main eﬀect may mask the
+interactions of interest.
+We also checked the performance of eﬃciency augmentation
+and possible inﬂuence of incorrect propensity score model.
+These additional results are in Web Appendix D.
+4.2. Binary Outcomes
+For binary outcomes, we simulated the outcome by
+dichotomizing a continuous latent response: selectfont
+
+
+Y =I
+
+10
+
+( β0 +
+
+βj Z j ) 2 + T ( γ0 +
+j=1
+
+
+
+4
+
+γj Zj + 0.8Z12 + 0.8Z22 ) +  > 0
+
+,
+
+j=1
+
+and all other settings were the same as those for continuous outcomes. To improve estimation eﬃciency, we also
+
+Big Main Eff/Cor Cov
+
+Big Main Eff/Ind Cov
+
+Full Wsq−L Wsq−A Wflo−L Asq−L Asq−A Aflo−L
+
+Full Wsq−L Wsq−A Wflo−L Asq−L Asq−A Aflo−L
+
+1.0
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0.0
+
+Rank Correlation of Treatment Effect
+
+Method
+Moderate Main Eff/Cor Cov
+
+Moderate Main Eff/Ind Cov
+
+1.0
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0.0
+Full Wsq−L Wsq−A Wflo−L Asq−L Asq−A Aflo−L
+
+Full Wsq−L Wsq−A Wflo−L Asq−L Asq−A Aflo−L
+
+Method
+Figure 1. Boxplots for the rank correlation coeﬃcients between the estimated beneﬁt scores and true treatment eﬀects
+for continuous outcomes. Method “Full” uses the full regression; method “Wsq−L ” uses the weighting method with squared
+loss M(y, v) = (y − v)2 and a linear f ; method “Wsq−A ” uses the weighting method with squared loss M(y, v) = (y − v)2
+and a nonparametric additive f ; method “Wﬂo−L ” uses the weighting method with ﬂipping outcome-weighted logistic loss
+M(y, v) = |y| log[1 + exp{−sign(y)v}] and a linear f ; method “Asq−L ” uses the A-learning method with M(y, v) = (y − v)2 and
+a linear f ; method “Asq−A ” uses the A-learning method with M(y, v) = (y − v)2 and a nonparametric additive f ; method
+“Aﬂo−L ” uses the A-learning method with ﬂipping outcome-weighted logistic loss M(y, v) = |y| log[1 + exp{−sign(y)v}] and a
+linear f .
+
+A General Framework for Subgroup Identiﬁcation and Scoring
+Big Main Eff/Ind Cov
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+0.8
+0.6
+0.4
+0.2
+0.0
+
+1.0
+
+0.0
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+False Positive Rate
+
+False Positive Rate
+
+Moderate Main Eff/Cor Cov
+
+Moderate Main Eff/Ind Cov
+
+0.0
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+1.0
+
+False Positive Rate
+
+1.0
+
+0.8
+0.6
+0.2
+
+0.4
+
+Full
+Wsq−L
+Wsq−A
+Wflo−L
+Asq−L
+Asq−A
+Aflo−L
+
+0.0
+
+Average True Positive Rate
+
+1.0
+0.8
+0.6
+0.2
+
+0.4
+
+Full
+Wsq−L
+Wsq−A
+Wflo−L
+Asq−L
+Asq−A
+Aflo−L
+
+0.0
+
+Average True Positive Rate
+
+Full
+Wsq−L
+Wsq−A
+Wflo−L
+Asq−L
+Asq−A
+Aflo−L
+
+1.0
+
+0.0
+
+Average True Positive Rate
+
+0.8
+0.6
+0.2
+
+0.4
+
+Full
+Wsq−L
+Wsq−A
+Wflo−L
+Asq−L
+Asq−A
+Aflo−L
+
+0.0
+
+Average True Positive Rate
+
+1.0
+
+1.0
+
+Big Main Eff/Cor Cov
+
+1205
+
+0.0
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+1.0
+
+False Positive Rate
+
+Figure 2. ROC curves of estimated beneﬁt scores for subgroup identiﬁcation when the outcomes are continuous.
+Method “Full” uses the full regression; method “Wsq−L ” uses the weighting method with squared loss M(y, v) = (y − v)2
+and a linear f ; method “Wsq−A ” uses the weighting method with squared loss M(y, v) = (y − v)2 and a nonparametric additive f ; method “Wﬂo−L ” uses the weighting method with ﬂipping outcome-weighted logistic loss M(y, v) =
+|y| log[1 + exp{−sign(y)v}] and a linear f ; method “Asq−L ” uses the A-learning method with M(y, v) = (y − v)2 and a linear f ; method “Asq−A ” uses the A-learning method with M(y, v) = (y − v)2 and a nonparametric additive f ; method
+“Aﬂo−L ” uses the A-learning method with ﬂipping outcome-weighted logistic loss M(y, v) = |y| log[1 + exp{−sign(y)v}] and a
+linear f .
+
+subtracted 0.5 from all Y s before the analysis for ﬂipping version of outcome-weighted logistic loss. This subtraction was
+used because when y = 0, M(y, v) = 0 for some choices of M.
+Although subjective, this shift was quite helpful for eﬃciency
+gain. Parallel to the settings with continuous outcome, we ﬁrst
+implemented the traditional full logistic regression with both
+main eﬀects and interaction eﬀects. Secondly, we employed
+both weighting and A-learning methods with logistic likelihood M(y, v) = −[yv − log{1 + exp(v)}] proposed by Tian
+et al. (2014), and the ﬂipping outcome-weighted logistic loss
+M(y, v) = |y| log[1 + exp{−sign(y)v}]. The latter case was of
+
+particular interest since the shifted outcome may take negative values. The beneﬁt score was approximated by either
+the simple linear or the nonparametric additive function. The
+lasso regularization was used for feature selection. Figures 3
+and 4 show the corresponding results for rank coeﬃcients and
+ROC curves, respectively. The nonlinear methods outperform
+their linear counterparts in terms of rank correlations with
+the underlying ITE but similarly based on ROC curves. On
+the other hand, the A-learning method seems to perform better than the weighting method in terms of the ROC curves
+but similarly based on rank correlations.
+
+Biometrics, December 2017
+
+Rank Correlation of Treatment Effect
+
+1206
+
+Big Main Eff/Cor Cov
+
+Big Main Eff/Ind Cov
+
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0.0
+Full Wlo−L Wlo−A Wflo−L Alo−L Alo−A Aflo−L
+
+Full Wlo−L Wlo−A Wflo−L Alo−L Alo−A Aflo−L
+
+Rank Correlation of Treatment Effect
+
+Method
+Moderate Main Eff/Cor Cov
+
+Moderate Main Eff/Ind Cov
+
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0.0
+Full Wlo−L Wlo−A Wflo−L Alo−L Alo−A Aflo−L
+
+Full Wlo−L Wlo−A Wflo−L Alo−L Alo−A Aflo−L
+
+Method
+Figure 3. Boxplots for the rank correlation coeﬃcients between the estimated beneﬁt scores and true treatment eﬀects for
+binary outcomes. Method “Full” uses the full logistic regression; method “Wlo−L ” uses the weighting method with logistic
+loss M(y, v) = −[yv − log{1 + exp(v)}] and a linear f ; method “Wlo−A ” uses the weighting method with logistic loss M(y, v) =
+−[yv − log{1 + exp(v)}] and a nonparametric additive f ; method “Wﬂo−L ” uses the weighting method with ﬂipping outcome
+weighted logistic loss M(y, v) = |y| log[1 + exp{−sign(y)v}] and a linear f ; method “Alo−L ” uses the A-learning method with
+logistic loss M(y, v) = −[yv − log{1 + exp(v)}] and a linear f ; method “Alo−A ” uses the A-learning method with logistic loss
+M(y, v) = −[yv − log{1 + exp(v)}] and a nonparametric additive f ; method “Aﬂo−L ” uses the A-learning method with ﬂipping
+outcome weighted logistic loss M(y, v) = |y| log[1 + exp{−sign(y)v}] and a linear f.
+5.
+
+Real Data Example (Mammography
+Screening Study)
+This is a randomized study for female participants who were
+non-adherent to mammography screening guidelines at the
+study baseline. One primary interest of the study was to
+compare the intervention eﬀects of phone counseling on mammography screening (phone intervention) versus usual care at
+21 months post-baseline. The outcome is whether the subject took mammography screening during this time period.
+We conduct outcome shift by subtracting 0.5 from all binary
+outcomes for ﬂipping version of outcome weighted logistic
+loss. There are 530 subjects with 259 in the phone intervention group and 271 in the usual care group. Sixteen binary
+baseline covariates, including sociodemographics, health belief
+variables, and stage of readiness to undertake mammography
+screening, and one categorical variable, number of years had
+
+a mammogram in past 2–5 years, are available in the study.
+Considering the covariates’ ﬁrst and second order interactions,
+there are 204 features in total.
+To compare diﬀerent methods, we randomly selected 80%
+participants and set the rest as a test set to evaluate the
+performance of the estimated beneﬁt scores for ITEs. Speciﬁcally, following Xu et al. (2015), we evaluate the performance
+of a treatment recommendation rule d(Z) = sign{f0 (Z)} by
+the enhanced treatment eﬀects E[{Z, t, d(·)}] = E(Y |d(Z) =
+t, T = t) − E(Y |d(Z) = t, T = −t), which can be estimated by
+the empirical weighted averages in the test set. This quantity
+measures the diﬀerence in the outcome between participants
+received the recommended intervention and those didn’t. If
+both E[{Z, 1, d(·)}] and E[{Z, −1, d(·)}] are positive, then
+the beneﬁt score-based recommendation of the intervention
+is helpful for the participants in the study population. When
+
+A General Framework for Subgroup Identiﬁcation and Scoring
+Big Main Eff/Ind Cov
+
+0.4
+
+0.6
+
+0.8
+
+0.6
+0.4
+0.2
+0.0
+
+1.0
+
+0.0
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+False Positive Rate
+
+False Positive Rate
+
+Moderate Main Eff/Cor Cov
+
+Moderate Main Eff/Ind Cov
+
+0.0
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+1.0
+
+False Positive Rate
+
+1.0
+
+0.8
+0.6
+0.2
+
+0.4
+
+Full
+Wlo−L
+Wlo−A
+Wflo−L
+Alo−L
+Alo−A
+Aflo−L
+
+0.0
+
+Average True Positive Rate
+
+1.0
+0.8
+0.6
+0.2
+
+0.4
+
+Full
+Wlo−L
+Wlo−A
+Wflo−L
+Alo−L
+Alo−A
+Aflo−L
+
+0.0
+
+Average True Positive Rate
+
+0.8
+
+1.0
+0.2
+
+Full
+Wlo−L
+Wlo−A
+Wflo−L
+Alo−L
+Alo−A
+Aflo−L
+
+1.0
+
+0.0
+
+Average True Positive Rate
+
+0.8
+0.6
+0.2
+
+0.4
+
+Full
+Wlo−L
+Wlo−A
+Wflo−L
+Alo−L
+Alo−A
+Aflo−L
+
+0.0
+
+Average True Positive Rate
+
+1.0
+
+Big Main Eff/Cor Cov
+
+1207
+
+0.0
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+1.0
+
+False Positive Rate
+
+Figure 4. ROC curves of estimated beneﬁt scores for subgroup identiﬁcation when outcomes are binary. Method “Full” uses
+the full logistic regression; method “Wlo−L ” uses the weighting method with logistic loss M(y, v) = −[yv − log{1 + exp(v)}] and
+a linear f ; method “Wlo−A ” uses the weighting method with logistic loss M(y, v) = −[yv − log{1 + exp(v)}] and a nonparametric additive f ; method “Wﬂo−L ” uses the weighting method with ﬂipping outcome-weighted logistic loss M(y, v) = |y| log[1 +
+exp{−sign(y)v}] and a linear f ; method “Alo−L ” uses the A-learning method with logistic loss M(y, v) = −[yv − log{1 + exp(v)}]
+and a linear f ; method “Alo−A ” uses the A-learning method with logistic loss M(y, v) = −[yv − log{1 + exp(v)}] and a nonparametric additive f ; method “Aﬂo−L ” uses the A-learning method with ﬂipping outcome-weighted logistic loss M(y, v) =
+|y| log[1 + exp{−sign(y)v}] and a linear f.
+coupled with the inverse probability weighting technique, the
+enhanced treatment eﬀects score is still a valid measure when
+the data are from observational study. The procedures were
+repeated for 200 random splits and the mean enhanced treatment eﬀects (and estimated standard errors from these 200
+splits) for diﬀerent methods are reported in Table 1, where
+larger average enhanced treatment eﬀect indicates better
+performance of the estimator. The beneﬁt scores are approximated by simple linear functions since most features are
+binary. The full regression performs the worst among all methods, and the ﬂipping outcome-weighted logistic loss M(y, v) =
+|y| log[1 + exp{−sign(y)v}] seems slightly better than the logistic likelihood loss M(y, v) = −[yv − log{1 + exp(v)}] under the
+
+same setting, while comparable with the eﬃciency-augmented
+logistic likelihood loss. Additional real data analysis for
+a national supported work study can be found in Web
+Appendix E.
+6. Discussion
+In this article, we proposed a ﬂexible framework for treatment
+scoring in both observational studies and RCTs, based on
+weighting and A-learning methods. The proposed methods
+are quite ﬂexible and many recently proposed estimators can
+be represented as special cases within our frameworks.
+A very practical issue of applying our proposal is the
+choice of the M(·, ·) and f (·) functions. As we demonstrate
+
+1208
+
+Biometrics, December 2017
+
+Table 1
+The average estimated enhanced comparative treatment eﬀect (standard errors) and average subgroup sizes (proportions) in
+test data based on 200 random splits of mammography screening study
+t=1
+Method
+
+Mean (SE)
+
+Full
+Wlo−L
+WloE−L
+Wﬂo−L
+Alo−L
+AloE−L
+Aﬂo−L
+
+−0.005 (0.009)
+0.008 (0.009)
+0.020 (0.010)
+0.014 (0.010)
+0.002 (0.009)
+0.021 (0.010)
+0.012 (0.010)
+
+t = −1
+Subgroup size
+62
+53
+49
+52
+52
+49
+52
+
+(59%)
+(50%)
+(46%)
+(49%)
+(49%)
+(47%)
+(49%)
+
+Mean (SE)
+0.039
+0.058
+0.073
+0.070
+0.056
+0.072
+0.069
+
+(0.011)
+(0.011)
+(0.010)
+(0.010)
+(0.011)
+(0.010)
+(0.011)
+
+Subgroup size
+44 (41%)
+53 (50%)
+57 (54%)
+54 (51%)
+54 (51%)
+57 (53%)
+54 (51%)
+
+Note: “Full” uses full logistic regression; “Wlo−L ” uses weighted logistic likelihood loss M(y, v) = −[yv − log{1 + exp(v)}]; “WloE−L ”
+uses weighted eﬃciency-augmented logistic likelihood loss; “Wﬂo−L ” uses weighted ﬂipping outcome-weighted logistic loss M(y, v) =
+|y| log[1 + exp{−sign(y)v}]; “Alo−L ” uses A-learning method with logistic likelihood loss; “AloE−L ” uses A-learning method with eﬃciencyaugmented logistic likelihood loss; “Wﬂo−L ” uses A-learning method with ﬂipping outcome-weighted logistic loss.
+
+in Section 2.4, the choices may depend on the preference
+of the ITE metrics. For example, if ITE is quantiﬁed by
+E(Y (1) |Z)/E(Y (−1) |Z) instead of E(Y (1) |Z) − E(Y (−1) |Z), suitable M needs to be constructed accordingly. We also note
+that diﬀerent M can have equivalent U(Y ) and ITR. For
+example, M(y, v) = (y − v)2 and M(y, v) = y log{1 + exp(−v)}
+both have U(Y ) as a linear transformation of Y , and therefore should identify the same subgroup. However, they can
+have fairly diﬀerent performances in ﬁnite-sample studies as
+demonstrated in numerical studies.
+When specifying the class of functions for f , one also needs
+to balance the bias variance trade-oﬀ. A simple linear form
+may be appropriate for a speciﬁc data with one type of ITE
+while non-linear bases functions might be needed to adequately approximate the ITE for other cases. With suﬃciently
+large sample size, one may use cross-validation or sample split
+to select an optimal set of basis for a given dataset with a given
+M. When the number of covariates or the number of basis
+functions is large, one may overcome overﬁtting by employing popular lasso or elastic net regularization to help with
+variable selection and stabilize model ﬁtting.
+Suitable eﬃciency augmentation such as outcome shift may
+help to reduce the variability and enhance the robustness
+of relevant estimators. Thus, it is crucial to withhold an
+independent test set to objectively examine the performance
+of resulting ITR estimators based on diﬀerent combinations
+of M, f , regularization procedure and eﬃciency augmentation method (Zhao et al., 2013). An appropriate choice of
+the estimation procedure may be made by considering the
+complexity, clinical interpretability, and computational cost
+associated with the estimation.
+When the models for the propensity and/or f are misspeciﬁed, the rank of the estimated beneﬁt scores can still
+be informative. To account for mis-speciﬁcation in f , one
+may nonparametrically calibrate the treatment eﬀect estimator according to the rank of the scores as in Cai et al. (2011)
+and construct the corresponding ITR. Mis-speciﬁcation in the
+propensity score may lead to sub-optimal estimation of the
+beneﬁt scores, but one may use such scoring systems for future
+clinical trials to more accurately determine ITR.
+
+Although our framework described in earlier sections
+focuses on binary treatments, the generalization to multiple treatments is feasible. In Web Appendix G, we extend
+our framework to multiple treatments with an additional
+assumption on M using the weighting method. Tao and Wang
+(2016) proposed a method for multi-treatment selection by
+generalizing the OWE to settings with more than two treatment arms. Their multi-treatment OWE could be viewed
+as a special case of our generalized framework for multiple
+treatments.
+7. Supplementary Materials
+Sample R codes for implementing the proposed method and
+Web Appendices referenced in Sections 2–5 are available
+with this article at the Biometrics website on Wiley Online
+Library.
+
+Acknowledgements
+This research was supported by a Patient-Centered Outcomes
+Research Institute (PCORI) Award (ME-1409-21219 for Chen
+and Yu) and by grants from the National Institute of Health
+(R01 HL089778-05 and U54 HG007963 for Cai and Tian).
+The views in this publication do not necessarily represent the
+views of the PCORI, its Board of Governors or Methodology
+Committee.
+
+References
+Cai, T., Tian, L., Wong, P. H., and Wei, L. (2011). Analysis of
+randomized comparative clinical trial data for personalized
+treatment selections. Biostatistics 12, 270–282.
+Ciarleglio, A., Petkova, E., Ogden, R. T., and Tarpey, T. (2015).
+Treatment decisions based on scalar and functional baseline
+covariates. Biometrics 71, 884–894.
+Foster, J. C., Taylor, J. M., and Ruberg, S. J. (2011). Subgroup
+identiﬁcation from randomized clinical trial data. Statistics
+in Medicine 30, 2867–2880.
+
+A General Framework for Subgroup Identiﬁcation and Scoring
+Gabriel, S. and Normand, S. (2012). Getting the methods right—
+The foundation of patient-centered outcomes research. The
+New England Journal of Medicine 367, 787–790.
+Hastie, T. J., Tibshirani, R. J., and Friedman, J. H. (2009). The
+Elements of Statistical Learning: Data Mining, Inference,
+and Prediction. Springer Series in Statistics. New York:
+Springer.
+Kraemer, H. C. (2013). Discovering, comparing, and combining
+moderators of treatment on outcome after randomized clinical trials: A parametric approach. Statistics in Medicine 32,
+1964–1973.
+Loh, W.-Y., He, X., and Man, M. (2015). A regression tree approach
+to identifying subgroups with diﬀerential treatment eﬀects.
+Statistics in Medicine 34, 1818–1833.
+Lu, W.,Zhang, H. H., and Zeng, D. (2013). Variable selection for
+optimal treatment decision. Statistical Methods in Medical
+Research 22, 493–504.
+McKeague, I. W. and Qian, M. (2014). Estimation of treatment
+policies based on functional predictors. Statistica Sinica 24,
+1461–1485.
+Murphy, S. A. (2003). Optimal dynamic treatment regimes. Journal of the Royal Statistical Society, Series B (Statistical
+Methodology) 65, 331–355.
+Qian, M. and Murphy, S. A. (2011). Performance guarantees for
+individualized treatment rules. Annals of Statistics 39, 1180.
+Robins, J. M. (2004). Optimal structural nested models for optimal
+sequential decisions. In Proceedings of the Second Seattle Symposium in Biostatistics, 189–326. New York, USA:
+Springer.
+Rosenbaum, P. R. and Rubin, D. B. (1983). The central role of the
+propensity score in observational studies for causal eﬀects.
+Biometrika 70, 41–55.
+Rubin, D. B. (2005). Causal inference using potential outcomes:
+Design, modeling, decisions. Journal of the American Statistical Association 100, 322–331.
+Ruppert, D., Wand, M., and Carroll, R. (2003). Semiparametric
+Regression. Cambridge, UK: Cambridge University Press,
+1st edition.
+
+1209
+
+Su, X., Zhou, T., Yan, X., Fan, J., and Yang, S. (2008). Interaction
+trees with censored survival data. The International Journal
+of Biostatistics 4 2.
+Tao, Y. and Wang, L. (2016). Adaptive contrast weighted learning
+for multi-stage multi-treatment decision-making. Biometrics, DOI: 10.1111/biom.12539.
+Tian, L., Alizadeh, A. A., Gentles, A. J., and Tibshirani, R.
+(2014). A simple method for estimating interactions between
+a treatment and a large number of covariates. Journal of the
+American Statistical Association 109, 1517–1532.
+VanderWeele, T. J. and Knol, M. J. (2014). A tutorial on interaction. Epidemiologic Methods 3, 33–72.
+Vansteelandt, S., VanderWeele, T. J., Tchetgen, E. J., and Robins,
+J. M. (2008). Multiply robust inference for statistical interactions. Journal of the American Statistical Association 103,
+1693–1704.
+Xu, Y., Yu, M., Zhao, Y.-Q., Li, Q., Wang, S., and Shao, J. (2015).
+Regularized outcome weighted subgroup identiﬁcation for
+diﬀerential treatment eﬀects. Biometrics 71, 645–653.
+Zhang, B., Tsiatis, A. A., Davidian, M., Zhang, M., and Laber, E.
+(2012). Estimating optimal treatment regimes from a classiﬁcation perspective. Stat 1, 103–114.
+Zhang, B., Tsiatis, A. A., Laber, E. B., and Davidian, M. (2012).
+A robust method for estimating optimal treatment regimes.
+Biometrics 68, 1010–1018.
+Zhao, L., Tian, L., Cai, T., Claggett, B., and Wei, L.-J. (2013).
+Eﬀectively selecting a target population for a future comparative study. Journal of the American Statistical Association
+108, 527–539.
+Zhao, Y., Zeng, D., Rush, A. J., and Kosorok, M. R. (2012).
+Estimating individualized treatment rules using outcome
+weighted learning. Journal of the American Statistical Association 107, 1106–1118.
+
+Received July 2016. Revised December 2016.
+Accepted January 2017.
+
+

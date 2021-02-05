@@ -1,0 +1,1802 @@
+General Doubly Robust Identi…cation and Estimation
+Arthur Lewbel, Jin-Young Choi, and Zhuzhu Zhou
+original Nov. 2016, revised August 2018
+THIS VERSION IS PRELIMINARY AND INCOMPLETE
+
+Abstract
+Consider two di¤erent parametric models. Suppose one model is correctly speci…ed, but
+we don’t know which one (or both could be right). Both models include a common vector of
+parameters, in addition to other parameters that are separate to each. An estimator for the
+common parameter vector is called Doubly Robust (DR) if the estimator is consistent no matter
+which model is correct. We provide a general technique for constructing DR estimators, which
+we call General Doubly Robust (GDR) estimation. Our GDR estimator is a simple extension
+of the Generalized Method of Moments, with analogous root-n asymptotics. We illustrate the
+GDR with a variety of models, including average treatment e¤ect estimation. Our empirical
+application is an instrumental variables model where either one of two candidate instruments
+might be invalid.
+
+JEL codes: C51, C36, C31, Keywords: Doubly Robust Estimation, Generalized Method of Moments,
+Instrumental Variables, Average Treatment E¤ects, Parametric Models
+
+1
+
+Introduction
+Consider two di¤erent parametric models, which we will call G and H. One of these models
+
+is correctly speci…ed, but we don’t know which one (or both could be right). Both models include
+Corresponding Author: Arthur Lewbel, Department of Economics, Maloney 315, Boston College, 140 Commonwealth Ave., Chestnut Hill, MA, 02467, USA. (617)-552-3678, lewbel@bc.edu,
+https://www2.bc.edu/arthur-lewbel/
+
+1
+
+the same parameter vector . An estimator b is called Doubly Robust (DR) if b is consistent no
+matter which model is correct.
+
+We provide a general technique for constructing doubly robust (DR) estimators, which we call
+General Doubly Robust (GDR) estimation. The technique can be immediately extended to triply
+robust and general multiply robust models. Our GDR takes the form of a straightforward extension
+of Hansen’s (1982) Generalized Method of Moments (GMM) estimator, and we show it has similar
+associated root-n asymptotics.
+The term double robustness was coined by Robins, Rotnitzky, and van der Laan (2000),
+but is based on Scharfstein, Rotnitzky, and Robins (1999) and the augmented inverse probability
+weighting average treatment e¤ect estimator introduced by Robins, Rotnitzky, and Zhao (1994). In
+their application
+
+is a population Average Treatment E¤ect (ATE). To summarize their application,
+
+e (Z; ) be a proposed
+suppose we have data consisting of n observations of a random vector Z. Let G
+
+functional form for the expectation of an outcome given a binary treatment indicator and a vector
+of other observed covariates. Let G denote the model for
+
+e that is, the expectation of
+based on G,
+
+e in the treatment group and the control group. Let H
+e (Z; ) be a proposed
+the di¤erence between G
+functional form for the propensity score, that is, the probability of being given treatment as a
+function of covariates. Then H is the model for ATE
+
+e i.e., expected propensity score
+based on H,
+
+weighted outcomes. A DR estimator b is then an estimator for the ATE
+
+that is consistent if
+
+e or H
+e is (or both are) correctly speci…ed. See, e.g., S÷
+either G
+oczyński and Wooldridge (2018),
+
+Wooldridge (2007), Bang and Robins (2005), Rose and van der Laan (2014), Funk, Westreich,
+Wiesen, Stürmer, Brookhart, and Davidian (2011), Robins, Rotnitzky, and van der Laan (2000),
+and Scharfstein, Rotnitzky, and Robins (1999).
+In this treatment e¤ect example, as in most DR applications, one could consistently estimate
+
+based on a nonparametric estimator of either the conditional outcome or the propensity
+
+e or H
+e could be replaced with nonparametric estiscore. That is, the functional forms of either G
+
+mators of these functions, which could then be substituted into the models G or H to consistently
+
+2
+
+estimate
+
+e and H.
+e
+. The alternative approach used in DR estimation is to parameterize both G
+
+DR methods avoid the complications associated with nonparametric estimation, but still provide
+e or H
+e needs to be
+some insurance against misspeci…cation, since only one of the two functions G
+
+correctly speci…ed, and the user doesn’t need to know which one is correct. Our GDR estimator
+has these same bene…ts. Unlike nonparametric estimators, GDR requires no smoothing functions,
+tuning parameters, regularization, or penalty functions, and does not raise rates of convergence
+issues. And unlike standard parametric models, GDR provides two chances instead of just one to
+correctly specify a functional form.
+e or H
+e was correctly
+An alternative approach to modeling if one thought that either G
+
+speci…ed would be to engage in some form of model selection, which would then entail pretesting
+and the associated complications for inference. Another alternative would be model averaging,
+e and H
+e happened to be correctly speci…ed. Like DR,
+which is generally not consistent unless both G
+
+our GDR avoids these issues.
+
+The main drawback of existing DR estimators is that they are not generic, in that for each
+problem one needs to design a speci…c DR estimator, which can then only be used for that one
+speci…c application. Speci…cally, existing DR applications require that one …nd some clever way
+of expressing
+
+e (Z; ) and H
+e (Z; ) that happens to possess the DR
+as the mean of functions of G
+
+property. In the ATE example, this expression is given by equation (6), which has the tricky DR
+property of equaling the true
+
+e or H
+e is correctly speci…ed. No general method exists for
+if either G
+
+…nding or constructing such equations, and only a very few example of such models are known in
+the literature. In contrast, we provide a general method of constructing estimators that have the
+DR property.
+Existing DR applications express the parameter
+
+e (Z; ), H
+e (Z; ), and
+as a function of G
+
+e and H
+e are conditional mean functions. We further generalize by assuming that the true
+Z, where G
+value of
+
+satis…es either E [G (Z; ; )] = 0 or E [H (Z; ; )] = 0 for some known vector valued
+
+functions G and H. Our GDR estimator then consistently estimates , despite not knowing which
+
+3
+
+of these two sets of equalities actually holds, for any functions G and H that satisfy some regularity
+and identi…cation conditions.
+Unlike existing DR estimators, we do not need to …nd some clever, model speci…c way to
+combine these moments. All that is needed to apply our estimator is to know the functions G and
+H. For example, for estimation of the average treatment e¤ect , the function G is just embodies
+the standard expression for
+
+as the di¤erence in expected outcomes between the treatment and
+
+control groups, while the function H corresponds to just the standard expression of
+
+as the mean
+
+of propensity score weighted outcomes.
+Note that we do not claim that our GDR estimator is superior to existing DR estimators in
+applications where DR estimators are known to exist. Rather, our primary contribution is providing
+a general method for constructing estimators that possess the double robustness property. Also,
+our GDR estimator has an extremely simple numerical form, and an ordinary root N consistent,
+asymptotically normal limiting distribution. The GDR estimator just consists of minimizing an
+objective function that equals the product of two GMM objective functions.
+In the next section we describe our GDR estimator. Section 3 then gives four examples
+of potential applications. In section 4 we prove consistency of the GDR estimator and provide
+limiting distribution theory. Later sections provide an empirical application, and discuss extensions,
+including to triply and other mulitply robust estimators.
+
+2
+
+The GDR Estimator
+In this section we describe the GDR estimator (proof of consistency and limiting distribution
+
+theory is provided later). Let Z be a vector of observed random variables, let ,
+
+and
+
+be vectors
+
+of parameters, and assume G and H are known functions. Assume a sample consisting of n iid
+observations zi of the vector Z. The goal is root-n consistent estimation of .
+Let g0 ( ; )
+
+EfG(Z; ; )g, h0 ( ; )
+
+EfH(Z; ; )g,
+
+4
+
+0
+
+f
+
+0;
+
+0;
+
+0 g,
+
+and
+
+f ; ; g.
+
+Assumption A1: For a compact set
+
+,
+
+Assumption A2: Either 1) g0 (
+
+= 0, or 2) h0 (
+
+0;
+
+0)
+
+0
+
+2
+
+.
+0;
+
+0)
+
+= 0, or both hold.
+
+Assumption A2 says that either the G model is true or the H model is true (or both are
+true), for some unknown true coe¢ cient values
+
+0,
+
+0,
+
+and
+
+0.
+
+This is a de…ning feature DR
+
+estimators, and hence of our GDR estimator.
+Assumption A3: For any f ; ; g 2
+h0 ( ; ) = 0 then f ; g = f
+
+0;
+
+, if g0 ( ; ) = 0 then f ; g = f
+
+0;
+
+0 g,
+
+and if
+
+0 g.
+
+Assumptions A2 and A3 are identi…cation assumptions. They imply that if G is the true
+model, then the true values of the coe¢ cients f
+
+0;
+
+0g
+
+are identi…ed by g0 (
+
+is the true model, then the true values of the coe¢ cients f
+
+0;
+
+0g
+
+0;
+
+0)
+
+= 0, and if H
+
+are identi…ed by h0 (
+
+0;
+
+0)
+
+= 0.
+
+Assumption A3 rules out the existence of alternative pseudo-true values satisfying the ‘wrong’
+moments, e.g., this assumption rules out having both g0 (
+1
+
+6=
+
+0;
+
+0)
+
+= 0 and g0 (
+
+1;
+
+1)
+
+= 0 for some
+
+0.
+
+Note that Assumption A3 is a potentially strong restriction, and is not required by some
+existing DR estimators. As our examples later will illustrate, satisfying this assumption generally
+requires that parameters be over identi…ed, which in turn typically means that the vector G contains
+more elements than the set f ; g, and that the vector H contains more elements than the set
+f ; g. Otherwise, as in method of moments estimation, g0 ( ; ) = 0 and h0 ( ; ) = 0 each have as
+many equations as unknowns, and so typically a pseudo-true solution will exist for whichever one
+is misspeci…ed (if one is), thereby violating Assumption A3.
+To de…ne our proposed estimator, we de…ne the following functions
+1X
+G(Zi ; ; ),
+n i=1
+n
+
+gb( ; )
+
+^g( ; )
+Q
+
+1X
+H(Zi ; ; ),
+n i=1
+n
+
+b
+h( ; )
+
+0
+gb( ; ) b g gb( ; ),
+
+^ h( ; )
+Q
+
+5
+
+b
+h( ; )0 b hb
+h( ; ),
+
+^ g ( ; ) is the standard Hansen (1982)
+where b g and b h are positive de…nite matrices. Note that Q
+and Hansen and Singleton (1982) Generalized Method of Moments (GMM) objective function that
+would be used to estimate
+
+and
+
+^ h ( ; ) is the GMM
+if G were correctly speci…ed. Similarly, Q
+
+objective function that would be used to estimate
+
+and
+
+if H were correctly speci…ed. Our
+
+proposed GDR estimator is just:
+fb; b; bg = arg
+
+min
+
+f ; ; g2
+
+^ ; ; )
+where Q(
+
+^ ; ; )
+Q(
+
+(1)
+
+^ g ( ; )Q
+^ h ( ; ).
+Q
+
+So the GDR objective function is nothing more than the GMM objective function based on the
+moments g0 ( ; ) = 0 times the GMM objective function based on the moments h0 ( ; ) = 0.
+Regarding the weighting matrix b g and b h , note that usual GMM weight matrices are
+
+not generally optimal in our GDR. We will discuss it at the end of section 5 after discussing the
+asymptotic distribution of GDR estimator.
+
+3
+
+GDR Examples
+Before proceeding to show consistency and deriving the limiting distribution of the GDR es-
+
+timator, we consider four example applications. The …rst two examples show how GDR could be
+used in place of existing DR applications. The second two examples are new applications for which
+no existing DR estimator were known.
+
+3.1
+
+Average Treatment E¤ect
+Harking back to the earliest DR estimators like Robins, Rotnitzky, and van der Laan (2000),
+
+Scharfstein, Rotnitzky, and Robins (1999), and Robins, Rotnitzky, and Zhao (1994), here we describe the construction of DR estimates of average treatment e¤ects, as in, e.g., Bang and Robins
+(2005), Funk, Westreich, Wiesen, Stürmer, Brookhart, and Davidian (2011), Rose and van der Laan
+
+6
+
+(2014), Lunceford and Davidian (2004), S÷
+oczyński and Wooldridge (2018) and Wooldridge (2007).
+We then show how this model could alternatively be estimated using our GDR construction.
+The assumption in this application is that either the conditional mean of the outcome or
+the propensity score of treatment is correctly parametrically speci…ed. Let Z = fY; T; Xg where Y
+is an outcome, T is a binary treatment indicator, and X is a J vector of other covariates (including
+a constant). The average treatment e¤ect we wish to estimate is
+= EfE(Y jT = 1; X)
+
+E(Y jT = 0; X)g.
+
+(2)
+
+As is well known, an alternative propensity score weighted expression for the same average treatment
+e¤ect is
+=E
+
+YT
+E(T jX)
+
+Y (1 T )
+1 E(T jX)
+
+.
+
+(3)
+
+e (T; X; ) be the proposed functional form of the conditional mean of the outcome,
+Let G
+
+e is correctly speci…ed, then G
+e (T; X; ) = E(Y jT; X).
+for some K vector of parameters . So if G
+
+e (X; ) be the proposed functional form of the propensity score for some J vector of
+Similarly, let H
+e is correctly speci…ed, then H
+e (X; ) = E(T jX).
+parameters , so if H
+
+One standard estimator of , based on equation (2), consists of …rst estimating
+
+squares, minimizing the sample average of E[fY
+e (1; X; )
+sample average of G
+
+e (T; X; )g2 ], and then estimating
+G
+
+by least
+as the
+
+e (0; X; ). This estimator is equivalent to GMM estimation of
+G
+
+and , using the vector of moments
+2
+3
+e
+6 fY G (T; X; )gr1 (T; X) 7
+E4
+5=0
+e
+e
+fG (1; X; ) G (0; X; )g
+
+(4)
+
+for some vector valued function r1 (T; X). Least squares estimation of
+
+speci…cally chooses
+
+e (T; X; ) =@ , but alternative functions could be used, corresponding to, e.g.,
+r1 (T; X) to equal @ G
+
+weighted least squares estimation, or to the score functions associated with a maximum likelihood
+based estimator of , given a parameterization for the error terms Y
+identify the K vector
+
+e (T; X; ). Note that to
+G
+
+e vector for some K
+e
+, the function r1 (T; X) needs to be a K
+7
+
+K. The
+
+problem with this estimator is that in general
+
+will not be consistently estimated if the functional
+
+e (T; X; ) is not the correct speci…cation of E(Y jT; X).
+form of G
+
+An alternative common estimator of , based on equation (3), consists of …rst estimating
+
+by least squares, minimizing the sample average of E[fT
+the sample average of
+
+YT
+e
+H(X;
+)
+
+, using the vector of moments
+
+Y (1 T )
+.
+e
+1 H(X;
+)
+
+2
+
+6
+E4
+
+fT
+
+e (X; )g2 ], and then estimating
+H
+
+This estimator is equivalent to GMM estimation of
+
+3
+
+e (X; )gr2 (X)
+H
+7
+o 5=0
+n
+Y (1 T )
+e
+1 H(X;
+)
+
+YT
+e
+H(X;
+)
+
+as
+and
+
+(5)
+
+for some Je vector valued function r2 (X). As above, least squares estimation of
+
+sets r2 (X)
+
+e (X; ) =@ , but as above alternative functions could be chosen for r2 (X). To identify
+equal to @ H
+
+the J vector , the function r2 (X) needs to be a Je vector for some Je
+in general
+
+J. With this estimator,
+
+e (X; ) is not the correct
+will not be consistently estimated if the functional form of H
+
+speci…cation of E(T jX).
+
+A doubly robust estimator like that of Bang and Robins (2005) and later authors assumes
+can be expressed as
+(
+e (X; )
+Y (1 T )
+T H
+YT
+e (1; X; )
++
+G
+=E
+e (X; ) 1 H
+e (X; )
+e (X; )
+H
+H
+
+T
+1
+
+)
+e (X; )
+H
+e (0; X; ) .
+G
+e (X; )
+H
+
+(6)
+
+e (X; ) = E(T jX), then the …rst two terms in the above expectation equal equation
+Observe that if H
+(3) and the second two terms have mean zero. By rearranging terms, equation (6) can be rewritten
+as
+"
+
+e (1; X; )
+=E G
+
+e (0; X; ) +
+G
+
+T
+e (X; )
+H
+
+e (1; X; )g
+G
+
+fY
+
+1 T
+fY
+e (X; )
+1 H
+
+#
+
+e (0; X; )g .
+G
+
+(7)
+
+e (T; X; ) = E(Y jT; X), then the …rst two
+Rewriting the equation this way, it can be seen that if G
+
+terms in equation (7) equal equation (2), and the second two terms have mean zero. This shows
+that equation (6) or equivalently (7) is doubly robust, in that it equals the average treatment e¤ect
+
+e (T; X; ) or H
+e (X; ) is correctly speci…ed. The GMM estimator associated with this
+if either G
+8
+
+doubly robust estimator estimates , , and , using the moments
+2
+e (T; X; )gr1 (T; X)
+fY G
+6
+6
+6
+e (X; )gr2 (X)
+E6
+fT H
+6
+o
+n
+4
+e
+e
+Y (1 T )
+T H(X;
+) e
+T H(X;
+) e
+YT
++
+G
+(1;
+X;
+)
+G
+(0;
+X;
+)
+e
+e
+e
+e
+H(X;
+)
+1 H(X;
+)
+H(X;
+)
+1 H(X;
+)
+
+3
+
+7
+7
+7
+7 = 0.
+7
+5
+
+(8)
+
+Construction of this doubly robust estimator required …nding an expression like equation
+
+(6) that is special to the problem at hand. In general, …nding such expressions for any particular
+problem may be di¢ cult or impossible.
+In contrast, our proposed GDR estimator does not require any such creativity. All that
+is required for constructing the GDR for this problem is to know the two alternative standard
+estimators, based on equations (2) and (3), expressed in GMM form, i.e., equation (4) and equation
+(5). Just de…ne G(Z; ; ) to be the vector of functions given in equation (4) and de…ne H(Z; ; )
+to be the vector of functions given in equation (5). That is,
+2
+3
+e
+6 fY G (T; X; )gr1 (T; X) 7
+G(Z; ; ) = 4
+5
+e (1; X; ) G
+e (0; X; )g
+fG
+and
+
+2
+
+6
+H(Z; ; ) = 4
+
+fT
+
+3
+
+e (X; )gr2 (X)
+H
+7
+o 5.
+n
+YT
+e
+H(X;
+)
+
+Y (1 T )
+e
+1 H(X;
+)
+
+(9)
+
+(10)
+
+These functions can then be plugged into the expressions in the previous section to obtain our GDR
+estimator, equation (1), without having to …nd an expression like equation (6) with its di¢ cult to
+satisfy properties.
+The vector r2 (X) can include any functions of X as long as the corresponding moments
+EfH(Z; ; )g exist. To satisfy Assumption A3, we will want to choose r2 (X) to include Je el-
+
+ements where Je is strictly greater than J. What we require is that, if the propensity score is
+incorrectly speci…ed, then there is no
+
+;
+
+(in the set of permitted values) that satis…es the mo-
+
+ments EfH(Z; ; )g = 0, while, if the propensity score is correctly speci…ed, then the only
+that satis…es EfH(Z; ; )g = 0 is
+
+0;
+
+0.
+
+;
+
+e vector
+By the same logic, we will want to choose the K
+9
+
+r1 (T; X) to include strictly more than K elements. For e¢ ciency, it could be sensible to let r2 (X)
+e (X; ) =@ and @ G
+e (T; X; ) =@ , respectively.
+and r1 (T; X) include @ H
+
+3.2
+
+An Instrumental Variables Additive Regression Model
+Okui, Small, Tan, and Rubins (2012) propose a DR estimator for an instrumental variables
+
+(IV) additive regression model. The model is the additive regression
+e
+Y = M (W; ) + G(X)
++ U;
+
+(11)
+
+E (U j X; Q) = 0;
+
+(12)
+
+e
+E(Q j X) = H(X);
+
+where Y is an observed outcome variable, W is a S vector of observed exogenous covariates, X
+is a J vector of observed confounders, and Q is a K
+
+J vector of observed instruments. Note
+
+that this model has features that are unusual for instrumental variables estimation, in particular,
+the assumption that E (U j X; Q) = 0 is stronger than the usual E (U j Q) = 0 assumption. The
+function M (W; ) is assumed to be correctly parameterized, and the goal is estimation of :
+Okui, Small, Tan, and Rubins (2012) construct a DR estimator assuming that, in addition
+e
+e
+e
+e
+to the above, either G(X)
+= G(X;
+) is correctly parameterized, or that H(X)
+= H(X;
+) is
+
+correctly parameterized. Let Z = fY; W; X; Qg, and let r1 (X) and r2 (X) be vectors of functions
+chosen by the user. De…ne G( ; ; Z) and H( ; ; Z) by
+2
+3
+e
+6 fY M (W; ) G(X; )gr1 (X) 7
+G(Z; ; ) = 4
+5
+e
+fY M (W; ) G(X;
+)gQ
+and
+
+2
+
+6
+H(Z; ; ) = 4
+
+e
+H(X;
+)gr2 (X)
+
+fQ
+fY
+
+M (W; )gfQ
+
+e
+H(X;
+)g
+
+3
+
+7
+5.
+
+(13)
+
+(14)
+
+e
+e
+Okui, Small, Tan, and Rubins (2012) take r1 (X) = @ G(X;
+)=@ and r2 (X) = @ H(X;
+)=@ .
+
+e
+e
+If G(X;
+) is correctly speci…ed, then EfG(Z; ; )g = 0, while if H(X;
+) is correctly speci…ed then
+EfH(Z; ; )g = 0.
+
+10
+
+To get their doubly robust estimator, Okui, Small, Tan, and Rubins (2012) …rst specify
+e i ; ) and H(X
+e i ; ), then estimate ^ by the moment:
+G(X
+
+e i; )
+E(QjXi ) = H(X
+
+^ ; ; ^ ), where
+by minimizing a quadratic form of B(
+2
+3
+n
+e i ; )gfQi H(X
+e i ; ^ )g
+X 6 fYi M (Wi ; ) G(X
+7
+^ ; ; ^) = 1
+B(
+4
+5.
+n i=1
+e
+fYi M (Wi ; ) G(Xi ; )gr1 (Xi )
+
+and then estimate
+
+and
+
+In place of the Okui, Small, Tan, and Rubins (2012) DR construction, we could estimate this
+model using the GDR estimator, equation (1), with G and H given by equations (13) and (14). To
+satisfy Assumption A3, r1 (X) needs to include more than S + J
+
+K elements, and r2 (X) needs to
+
+include more than J elements. So, e.g., we would want to include at least one more function of X
+e
+into r1 (X) and r2 (X), in addition to the functions @ G(X;
+)=@
+Small, Tan, and Rubins (2012).
+
+3.3
+
+e
+and @ H(X;
+)=@ used by Okui,
+
+Preference Parameter Estimates
+One of the original applications of GMM estimation was the estimation of marginal utility
+
+parameters and of pricing kernels. See, e.g., Hansen and Singleton (1982) or Cochrane (2001).
+Consider a lifetime utility function of the form
+( T
+)
+X
+u =E
+bt Rt U (Ct ; Xt ; ) j W
+t=0
+
+where u is expected discounted lifetime utility in time period , b is the subjective rate of time
+preference, Rt is the time t gross returns from a traded asset, U is the single period utility function,
+Ct is observable consumption expenditures in time t, Xt is a vector of other observable covariates
+that a¤ect utility,
+
+is a vector of utility parameters, and W is a vector of variables that are
+
+observable in time period . Maximization of this expected utility function under a life time budget
+constraining yields Euler equations of the form
+E
+
+bRt+1
+
+U 0 (Ct+1 ; Xt+1 ; )
+U 0 (Ct ; Xt ; )
+11
+
+1
+
+jW
+
+=0
+
+(15)
+
+where U 0 (Ct ; Xt ; ) denotes @U (Ct ; Xt ; ) =@Ct . If the functional form of U 0 is known, then this
+equation provides moments that allow b and
+
+to be estimated using GMM. But suppose we have
+
+two di¤erent possible speci…cations of U 0 , and we do not know which speci…cation is correct. Then
+our GDR estimator can be immediately applied, replacing the expression in the inner parentheses
+in equation (15) with G(Z; ; ) or H(Z; ; ) to represent the two di¤erent speci…cations. Here
+would represent parameters that are same in either speci…cation, including the subjective rate of
+time preference b.
+To give a speci…c example, a standard speci…cation of utility is constant relative risk aversion
+with habit formation, where utility takes the form
+U (Ct ; Xt ; ) =
+
+fCt
+
+M (Xt )g1
+1
+
+where Xt is a vector of lagged values of Ct , the parameter
+
+1
+
+is coe¢ cient of risk aversion, and
+
+the function M (Xt ) is the habit function. See, e.g., Campbell and Cochrane (1999) or Chen and
+Ludvigson (2009). While this general functional form has widespread acceptance and use, there is
+considerable debate about the correct functional form for M , including whether Xt should include
+the current value of Ct or just lagged values. See, e.g., the debate about whether habits are internal
+or external as discussed in the above papers. Rather than take a stand on which habit model is
+correct, we could estimate the model by GDR.
+To illustrate, suppose that with internal habits the function M (Xt ) would be given by
+e (Xt ; ), where G
+e is the internal habits functional form. Similarly, suppose with external habits
+G
+
+e (Xt ; ) where H
+e is the external habits speci…cation. Then, based on
+M (Xt ) would be given by H
+equation (15), we could de…ne G(Z; ; ) and H(Z; ; ) by
+2
+n
+o
+e (Xt+1 ; )
+C
+G
+t+1
+6
+G(Z; ; ) = 4bRt+1 n
+o
+e
+Ct G (Xt ; )
+2
+
+n
+Ct+1
+6
+H(Z; ; ) = 4bRt+1 n
+Ct
+
+12
+
+o
+e
+H (Xt+1 ; )
+o
+e (Xt ; )
+H
+
+3
+
+7
+15 W
+3
+
+7
+15 W
+
+In this example, we would have
+
+= (b; ), and so would consistently estimate the discount
+
+rate b and the coe¢ cient risk aversion , no matter which habit model is correct. To help satisfy
+Assumption A3, we would generally want W to have more elements than ( ; ) and more than
+( ; ).
+
+3.4
+
+Alternative Sets of Instruments
+Consider a parametric model
+Y = M (W; ) +
+
+where Y is an outcome, W is vector of observed covariates, M is a known functional form,
+vector of parameters to be estimated, and
+
+is a
+
+is an unobserved error term. Let R and Q denote two
+
+di¤erent vectors of observed covariates that are candidate instruments. One may be unsure if either
+R or Q are valid instrument vectors are not, where validity is de…ned as being uncorrelated with .
+We may then de…ne model G by E ( R) = 0, so G(Z; ) = fY
+model H by E ( Q) = 0, so H(Z; ) = fY
+
+M (W; )g R and de…ne
+
+M (W; )g Q. With these de…nition we can then
+
+immediately apply the GDR estimator. In this case both
+
+and
+
+are empty, but more generally,
+
+the variables R and Q could themselves be functions of covariates and of parameters
+
+and ,
+
+respectively.
+To give an example, consider a model based on Lewbel (2012). Suppose Y = X
+
+0
+
+x +S
+
+s+
+
+,
+
+where X is a K-vector of observed exogenous covariates (including a constant term) satisfying
+E ( X), and S is an endogenous or mismeasured covariate that is correlated with . The goal is
+estimation of the set of coe¢ cients
+
+=f
+
+x;
+
+s g.
+
+A standard instrumental variables based estimator for this model would consist of …nding
+one or more covariates L such that E ( L) = 0. Then the set of instruments R would be de…ned
+by R = fX; Lg. The equivalent GMM estimator would be based on the moments EfG(Z; )g =
+
+13
+
+0 where G(Z; ) is given by the stacked vectors
+8
+>
+< X Y
+G(Z; ) =
+>
+: L Y
+
+X
+X
+
+0
+
+0
+
+x
+x
+
+S
+S
+
+s
+s
+
+9
+>
+=
+>
+;
+
+.
+
+(16)
+
+A special case of this estimator (corresponding to a speci…c choice of the GMM weighting matrix) is
+standard linear two stage least squares estimation. The main di¢ culty with applying this estimator
+is that one must …nd one or more covariates L to serve as instruments. De…ning L have more than
+one element results in more moments than parameters, helping to satisfy Assumption A3.
+To illustrate, consider Engel curve estimation (see Lewbel 2008 for a short survey, and
+references therein). Suppose Y is a consumer’s expenditures on food, X is a vector of covariates
+that a¤ect the consumer’s tastes, and S is the consumer’s total consumption expenditures (i.e.,
+their total budget which must be allocated between food and non-food expenditures). Suppose, as
+is commonly the case, that S is observed with some mismeasurement error. Then a possible and
+commonly employed set of instruments L consist of functions of the consumer’s income. However,
+validity of functions of income as instruments for total consumption depends on an assumption of
+separability between the consumer’s decisions on savings and their food expenditure decision, which
+may or may not be valid.
+An alternative method of obtaining potential instruments is by exploiting functional form
+related assumptions. Lewbel (2012) shows that, under some conditions (including standard assumptions regarding classical measurement error), one may construct a set of potential instruments using
+the following procedure: Linearly regress S on X, and obtain the residuals from that regression.
+De…ne a vector of instruments P to be demeaned X (excluding the constant) times these residuals.
+This constructed vector P , along with X, would then the set of instruments used to construct a
+GMM estimator. This estimator is implemented in the STATA module IVREG2H by Baum and
+Scha¤er (2012).
+Let X denote the vector X with the constant removed. Algebraically, we can write the
+instruments obtained in this way as R = fX; P g where P = (X
+14
+
+1 ) (S
+
+X 0 2 ), and where the
+
+vectors
+
+1
+
+and
+
+2
+
+in turn satisfy E (X
+
+1)
+
+= 0 and E fX (S
+
+X 0 2 )g = 0. An e¢ cient estimator
+
+based on this construction would be standard GMM using the moments E fH(Z; ; )g = 0 where
+H(Z; ; ) is a vector that consists of the stacked vectors
+8
+>
+>
+X
+>
+1
+>
+>
+>
+>
+>
+<
+X (S X 0 2 )
+H(Z; ; ) =
+>
+0
+>
+>
+X Y X x S s
+>
+>
+>
+>
+>
+0
+: (X
+X 0 2) Y X
+1 ) (S
+
+9
+>
+>
+>
+>
+>
+>
+>
+>
+=
+x
+
+S
+
+s
+
+>
+>
+>
+>
+>
+>
+>
+>
+;
+
+.
+
+(17)
+
+The estimator will have more moments than parameters if X has more than one element. As shown
+in Lewbel (2012), one set of conditions under which the instruments P are valid (yielding consistency
+of this estimator) if the measurement error in S is classical and if a component of is homoscedastic.
+So this estimator does not require …nding a covariate from outside the model like income to use an
+instrument, but still could be inconsistent if the measurement error or homoskedasticity assumptions
+do not hold.
+The moments given by E fG(Z; )g = 0 or E fH(Z; ; )g = 0 correspond to very di¤erent sets of identifying conditions. GDR estimation based on these moments therefore allows for
+consistent estimation of
+
+4
+
+if either of these sets of conditions hold.
+
+The GDR Estimator Asymptotics
+Here we show identi…cation and consistency of our GDR estimator.
+
+4.1
+
+GDR Identi…cation and Consistency
+To show consistency of b, we apply Theorem 2.1 in Newey and McFadden (1994), which
+
+provides a set of standard su¢ cient conditions for consistency of extremum estimators. For an
+objective function Q( ), their conditions include (a) Q( ) is uniquely maximized at
+
+0;
+
+(b)
+
+is
+
+^ ) converges uniformly in probability to Q( ). The …rst of
+compact; (c) Q( ) is continuous; (d) Q(
+
+15
+
+these conditions concerns identi…cation based on the probability limit of the objective function. The
+following Lemma 1 establishes this identi…cation condition for
+
+0,
+
+and for either
+
+0
+
+or
+
+0,
+
+depending
+
+on which moment condition is correctly speci…ed.
+Let Qg0 ( ; )
+matrices
+
+g
+
+and
+
+g0 ( ; )0
+
+h.
+
+; ) and Qh0 ( ; )
+
+g g0 (
+
+h0 ( ; )0
+
+We later discuss e¢ cient choices for
+
+g
+
+and
+
+h h0 (
+h,
+
+; ) for positive de…nite
+
+using two-step estimation
+
+analogous to two-step GMM.
+Lemma 1 : Suppose Assumptions A1, A2, and A3 hold. Let f
+f ; ; g2
+
+1
+
+=
+
+1;
+
+1g
+
+be any value of
+
+that minimizes
+Qg0 ( ; )Qh0 ( ; ):
+
+Q0 ( ; ; )
+Then
+
+1;
+
+0
+
+and either
+
+1
+
+=
+
+0
+
+or
+
+1
+
+=
+
+0,
+
+or both.
+
+Proof : If A2-1) holds, then Qg0 ( ; ) has a unique minimum at f
+
+0;
+
+0g
+
+by Lemma 2.3 of Newey
+
+and McFadden (1994) regarding GMM estimator. [their proof is: Let Wg be such that Wg0 Wg =
+If f ; g 6= f
+
+0;
+
+0 g,
+
+then
+
+g g0 (
+
+; ) = Wg0 Wg g0 ( ; ) 6= 0 implies Wg g0 ( ; ) 6= 0. And hence
+
+Qg0 ( ; ) = fWg g0 ( ; )g0 fWg g0 ( ; )g > Qg0 (
+
+0;
+
+0)
+
+= 0 for f ; g 6= f
+
+if A2-2) holds then Qh0 ( ; ) has a unique minimum at f
+Now let f
+
+1;
+
+1;
+
+1g
+
+g.
+
+0;
+
+0;
+
+0 g.
+
+Q.E.D.] Similarly,
+
+0 g.
+
+be any value that minimizes Q0 , and consider three possible cases.
+
+Case 1: suppose A2-1) holds, but A2-2) does not. In this case, if f
+
+1;
+
+1g
+
+=
+6 f
+
+0;
+
+0 g,
+
+then by
+
+A3
+Qg0 (
+
+1;
+
+h
+1 )Q0 ( 1 ;
+
+1)
+
+< Qg0 (
+
+0;
+
+h
+0 )Q0 ( 0 ;
+
+1)
+
+= 0;
+
+which cannot hold because Qg0 and Qh0 must be nonnegative. Therefore in this case f
+f
+
+0;
+
+1;
+
+1g
+
+=
+
+0 g.
+
+Case 2: suppose A2-2) holds, but A2-1) does not. Analogously, if f
+
+1;
+
+A3
+Qg0 (
+
+h
+1 )Q0 ( 1 ;
+
+1)
+
+< Qg0 (
+
+which again cannot hold, so in this case f
+
+1;
+
+1g
+
+1;
+
+=f
+
+16
+
+0;
+0;
+
+h
+1 )Q0 ( 0 ;
+0 g.
+
+0)
+
+= 0;
+
+1g
+
+6= f
+
+0;
+
+0 g,
+
+then by
+
+Case 3: Finally, suppose both A2-1) and A2-2) hold. If both f
+f
+
+0;
+
+0g
+
+1;
+
+1g
+
+=
+6 f
+
+0;
+
+0g
+
+and f
+
+1;
+
+1g
+
+=
+6
+
+then by A3 and by Qg0 and Qh0 being quadratics, we again get a contradiction, so in this
+
+case either f
+
+1;
+
+1g
+
+=f
+
+0;
+
+0g
+
+or f
+
+1;
+
+1g
+
+=f
+
+0 g,
+
+0;
+
+or both. Q.E.D.
+
+To satisfy the remaining conditions of Theorem 2.1 in Newey and McFadden (1994), continuity and uniform convergence, we make the following additional assumptions.
+Assumption A4: G(Z; ; ) and H(Z; ; ) are continuous at each f ; ; g 2
+
+with proba-
+
+bility one.
+Assumption A5: E[supf
+
+; g2
+
+jjG(Z; ; )jj] < 1 and E[supf
+
+Theorem 1 : Suppose that zi , i = 1; 2; :::, are iid, b g !P
+
+positive de…nite, and Assumptions A1 to A5 hold. Then b !P
+
+; g2
+g,
+
+0.
+
+jjH(Z; ; )jj] < 1:
+b h !P
+
+h,
+
+g
+
+and
+
+h
+
+are
+
+Proof : The proof proceeds by verifying the four conditions of Theorem 2.1 of in Newey and Mc-
+
+Fadden (1994). Conditions 1-2 of Theorem 2.1 in Newey and McFadden follow by A1-3 and Lemma
+1. By A4-5 and the Uniform Law of Large Numbers (ULLN), one obtains supf
+g0 ( ; )jj !P 0, supf
+
+; g2
+
+jjb
+h( ; )
+
+; g2
+
+jjb
+g( ; )
+
+h0 ( ; )jj !P 0, and g0 ( ; ) and h0 ( ; ) are continuous.
+
+Thus, Condition 3 of Theorem 2.1 in Newey and McFadden holds by continuity of Qg0 ( ; ) and
+Qh0 ( ; ). By the triangle and Cauchy-Schwarz inequality, we have
+^ ; ; )
+jQ(
+
+^ g ( ; )Q
+^ h( ; )
+Q0 ( ; ; )j = jQ
+^g( ; )
+Qh0 ( ; )gj + jfQ
+
+^ g ( ; )fQ
+^ h( ; )
+jQ
+^g( ; )
+jjQ
+
+^ h( ; )
+Qg0 ( ; )jjjjQ
+
+^g( ; )
++ jjQ
+^g( ; )
+jjQ
+
++ jjg0 ( ; )jj2 jj
+^g( ; )
++ jjQ
+
+^ h( ; )
+
+g jjjjQ
+
+Qg0 ( ; )gQh0 ( ; )j
+
+^ h( ; )
+Qh0 ( ; )jj + jjQg0 ( ; )jjjjQ
+
+Qg0 ( ; )jjjjQh0 ( ; )jj
+^ h( ; )
+Qg0 ( ; )jjjjQ
+
+Qg0 ( ; )Qh0 ( ; )j
+
+Qh0 ( ; )jj
+
+Qh0 ( ; )jj
+
+Qg0 ( ; )jjjjh0 ( ; )jj2 jj
+
+h jj:
+
+17
+
+Qh0 ( ; )jj
+
+By A1, g0 ( ; ) is bounded on
+
+, and following the same argument of Theorem 2.6 of Newey and
+
+McFadden, we obtain
+^g( ; )
+jQ
+
+so that supf
+
+Qg0 ( ; )j
+
+; g2
+
+jjb
+g( ; )
+
+g0 ( ; )jj2 jj b g jj + 2jjg0 ( ; )jjjjb
+g( ; )
+
++ jjg0 ( ; )jj2 jj b g
+
+g jj;
+
+^ g ( ; ) Qg0 ( ; )j !P 0. And analogously, supf
+jQ
+
+; g2
+
+g0 ( ; )jjjj b g jj
+
+^ h ( ; ) Qh0 ( ; )j !P
+jQ
+
+0 also holds. Thus Condition 4 of Theorem 2.1 in Newey and McFadden holds. Q.E.D.
+
+4.2
+
+Limiting Distribution
+To be completed.
+
+5
+
+Simulation Results
+To be completed.
+
+6
+
+Empirical Application: Engel Curve Estimation
+
+Here we consider the example discussed in section 3.4. Y is a consumer’s expenditures on food, X is
+a vector of covariates that a¤ect the consumer’s tastes, and S is the consumer’s total consumption
+expenditures (i.e., their total budget which must be allocated between food and non-food expenditures). The budget S is observed with some mismeasurement error. L consists of two or more
+functions of the consumer’s income.
+To be completed.
+
+7
+
+Conclusions
+
+To be completed.
+
+18
+
+references
+Altonji, J., and Segal, L.M. (1996): “Small Sample Bias in GMM Estimation of Covariance Structures”, Journal
+of Economic and Business Statistics, 14(3), 353-366.
+Anderson, T.W., and Sawa, T. (1979): “Evaluation of the Distribution Function of the Two-Stage Least Squares
+Estimate”, Econometrica, 47(1), 163-182.
+Babu, G.J. (1986): “A Note on Bootstrapping the Variance of Sample Quantile”, Annals of the Institute of Statistical Mathematics, 38(A), 439-443
+Bang, H., and Robins, J. (2005): “Doubly Robust Estimation in Missing Data and Causal Inference Models”,
+Biometrics, 61(4), 962-973.
+Baum, C., and Schaffer M. (2012): “IVREG2H: Stata Module to Perform Instrumental Variables Estimation
+Using Heteroskedasticity-based Instruments”, Statistical Software Components S457555, Boston College Department
+of Economics, revised 18 Feb 2018.
+Brown, B.W., and Newey, W.K. (1992): "Bootstrapping for GMM”, Notes for seminar at Monash University.
+Campbell, J., and Cochrane, J. (1999): “By Force of Habit: A Consumption?Based Explanation of Aggregate
+Stock Market Behavior”, Journal of Political Economy, 107(2), 205-251.
+Chen, X., and Ludvigson, S. (2009): “Land of Addicts? an Empirical Investigation of Habit-based Asset Pricing
+Models”, Journal of Applied Econometrics, 24(7), 1057-1093.
+Cochrane, J. (2001): “Long-Term Debt and Optimal Policy in the Fiscal Theory of the Price Level”, Econometrica,
+69(1), 69-116.
+Funk, M., Westreich, D., Wiesen, C., Stürmer, T., Brookhart, M., and Davidian, M. (2011): “Doubly
+Robust Estimation of Causal E¤ects”, American Journal of Epidemiology, 173(7), 761-7.
+Hahn, J. (1996): “A Note on Bootstrapping Generalized Method of Moments Estimators”, Econometric Theory,
+12(1), 187-196.
+Hall, P., and Horowitz, J. (1996): “Bootstrap Critical Values for Tests Based on Generalized Method of Moments”, Econometrica, 64(4), 891-916.
+Hansen, L. (1982): “Large Sample Properties of Generalized Method of Moments Estimators”, Econometrica, 50(4),
+
+19
+
+1029-1054.
+Hansen, L.P., Heaton, J., and Yaron, A. (1996): “Finite-Sample Properties of Some Alternative GMM Estimator”, Journal of Business and Economic Statistics, 14(3), 262-280.
+Hansen, L., and Singleton, K. (1982): “Generalized Instrumental Variables Estimation of Nonlinear Rational
+Expectations Models”, Econometrica, 50(5), 1269-1286.
+Lewbel, A. (2008): “Engel curves”, entry for The New Palgrave Dictionary of Economics, 2nd Edition, MacMillan
+Press.
+Lewbel, A. (2012): “Using Heteroscedasticity to Identify and Estimate Mismeasured and Endogenous Regressor
+Models”, Journal of Business and Economic Statistics, 30(1), 67-80.
+Lunceford, J.K., and Davidian, M. (2004): “Strati…cation and Weighting via the Propensity Score in Estimation
+of Causal Treatment E¤ects: a Comparative Study”, Statistics in Medicine, 23(19), 2937–2960.
+Newey, W. K. and Mcfadden. D. (1994): “Chapter 36 Large Sample Estimation and Hypothesis Testing”,
+in Handbook of Econometrics, 4, 2111-2245.
+Okui, R., Small, D., Tan, Z., and Robins, J. (2012): “Doubly Robust Instrumental Variable Regression”,
+Statistica Sinica, 22(1), 173-205.
+Robins, J., Rotnitzky, A., and Van Der Laan, M. (2000): “On Pro…le Likelihood: Comment”, Journal of the
+American Statistical Association, 95(450), 477-482.
+Robins, J., Rotnitzky, A., and Zhao, L. (1994): “Estimation of Regression Coe¢ cients When Some Regressors
+are not Always Observed”, Journal of the American Statistical Association, 89(427), 846-866.
+Rose, S., and Van der Laan, M. (2014): “A Double Robust Approach to Causal E¤ects in Case-Control Studies”,
+American Journal of Epidemiology, 179(6), 663-669.
+Scharfstein, D., Rotnitzky, A., and Robins, J. (1999): “Adjusting for Nonignorable Drop-Out Using Semiparametric Nonresponse Models”, Journal of the American Statistical Association, 94(448), 1096-1120.
+S÷oczyŃ ski, T., and Wooldridge, J. (2018): “A General Double Robustness Result for Estimating Average
+Treatment E¤ects”, Econometric Theory, 34(01), 112-133.
+Wooldridge, J. (2007): “Inverse Probability Weighted Estimation for General Missing Data Problems”, Journal
+
+20
+
+of Econometrics, 141(2), 1281-1301.
+
+21
+
+

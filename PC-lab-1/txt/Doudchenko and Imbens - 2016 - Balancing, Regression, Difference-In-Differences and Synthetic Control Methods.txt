@@ -1,0 +1,2865 @@
+arXiv:1610.07748v2 [stat.AP] 20 Sep 2017
+
+Balancing, Regression,
+Difference-In-Differences and Synthetic Control
+Methods: A Synthesis∗
+Nikolay Doudchenko†
+
+Guido W. Imbens‡
+
+Current version September 2017
+
+Abstract
+In a seminal paper Abadie, Diamond, and Hainmueller [2010] (ADH), see also Abadie
+and Gardeazabal [2003], Abadie et al. [2014], develop the synthetic control procedure for
+estimating the effect of a treatment, in the presence of a single treated unit and a number of
+control units, with pre-treatment outcomes observed for all units. The method constructs a
+set of weights such that selected covariates and pre-treatment outcomes of the treated unit
+are approximately matched by a weighted average of control units (the synthetic control).
+The weights are restricted to be nonnegative and sum to one, which is important because
+it allows the procedure to obtain unique weights even when the number of lagged outcomes
+is modest relative to the number of control units, a common setting in applications. In
+the current paper we propose a generalization that allows the weights to be negative,
+and their sum to differ from one, and that allows for a permanent additive difference
+between the treated unit and the controls, similar to difference-in-difference procedures.
+The weights directly minimize the distance between the lagged outcomes for the treated
+and the control units, using regularization methods to deal with a potentially large number
+of possible control units.
+
+Keywords: comparative study, synthetic control, difference-in-differences, matching, balancing,
+regularized regression, elastic net, best subset selection
+∗
+
+We are grateful for comments by seminar participants at the California Econometrics Conference
+and Tim Squires.
+†
+Graduate School of Business, Stanford University, nikolayd@stanford.edu.
+‡
+Professor of Economics, Graduate School of Business, Stanford University, SIEPR, and NBER,
+imbens@stanford.edu.
+
+1
+
+Introduction
+
+We consider the problem of estimating the causal effect of an intervention in a panel data
+setting, where we observe the outcome of interest for a number of treated units (possibly only
+a single one), and a number of control units, for a number of periods prior to the receipt of the
+treatment, and for a number of periods after the receipt of the treatment. Two aspects of the
+problem make this different from standard analyses of causal effects using matching approaches
+(see Imbens and Wooldridge [2009] for a recent review). First, the key variables on which we try
+to match treated and control units are pre-treatment outcomes rather than qualitatively different
+characteristics. Second, in social science applications the setting is often one where the number
+of control units, as well as the number of pre-treatment periods for which we observe outcomes
+are modest, and of similar magnitude. In fact, a substantial number of applications has only a
+single, or very few, control units so that estimators motivated by consistency arguments that
+rely on a large number of control units can have poor properties.
+Many of the modern methods researchers have used in this setting can be divided into three
+broad groups. First, difference-in-differences (DID) methods (e.g., Ashenfelter and Card [1985],
+Card [1990], Meyer et al. [1995], Abadie [2005], Bertrand et al. [2004]) where the difference in
+average pre-treatment outcomes between treated and control units is subtracted from the difference in average post-treatment outcomes between treated and control units, with generalizations
+to multiple factor structures in Xu [2015] and Gobillon and Magnac [2013]. Second, matching
+methods where, for each treated unit, one or more matches are found among the controls, based
+on both pre-treatment outcomes and other covariates (e.g., Abadie and Imbens [2006], Diamond
+and Sekhon [2013], Rubin [2006], Heckman et al. [1997, 1998]). Third, synthetic control (SC)
+methods (Abadie and Gardeazabal [2003], Abadie et al. [2010, 2014], Hainmueller [2012]), where
+for each treated unit a synthetic control is constructed as a weighted average of control units
+such that the weighted averages matches pre-treatment outcomes and covariates for the treated
+units.
+In this paper we develop new methods for this setting. We make two specific contributions.
+First, we develop a framework that nests many of the existing approaches. In this framework we
+characterize the estimated counterfactual outcome for the treated unit as a linear combination
+of outcomes for the control units. This framework allows researchers to contrast the critical
+assumptions underlying the previously proposed methods. Substantive differences between ap1
+
+plications, and differences in the data configurations may make some methods more appropriate
+in some cases than in others. For example, a key difference between DID on the one hand,
+and matching and SC approaches on the other hand, is that the DID approach allows for a
+non-zero intercept in this linear representation, corresponding to a permanent additive difference between the treatment and control units. Such an additive difference is often found to be
+important in empirical work. Second, DID methods restrict the weights on the control units to
+be equal, whereas matching and SC methods allow variation in weights to capture the notion
+that some control units make better matches for the treated unit than others. Furthermore,
+many of the current methods, including DID, matching (other than kernel matching with higher
+order kernels) and SC impose non-negativity of the weights. All restrict the weights to sum to
+one.
+In a second contribution we propose a new estimator that relaxes a number of the restrictions
+specific to, or common among, the DID, matching, and SC methods. Generalizing DID methods
+we allow the weights to vary. Generalizing SC and matching methods we allow for permanent
+additive effects. Generalizing DID, SC and nearest neighbor matching methods we allow the
+weights to be non-negative and do not restrict the weights to sum to one. Our proposed method
+can accommodate cases with many or few controls, and with many or few pre-treatment periods.
+In the latter case there is a need for regularization or shrinkage, although standard L1 (lasso)
+type shrinkage towards zero is not necessarily appropriate in general, and in particular if we wish
+to impose a restriction on the sum of the weights. Specifically we recommend an approximate
+balancing method with an elastic net penalty term for the weights.
+We illustrate the proposed methods using three data sets used previously in this literature.
+
+2
+
+Notation
+
+We consider a panel data setting in which there are N + 1 cross-sectional units observed in
+time periods t = 1, . . . , T . There is a subset, possibly containing only a single unit, of treated
+units. For ease of exposition we focus on the case with a single treated unit, unit 0. From
+period T0 onwards, for 1 < T0 ≤ T , this unit receives the treatment of interest. Using the
+potential outcome or Rubin Causal Model set up (Rubin [1974], Holland [1986], Imbens and
+Rubin [2015]), there are for the treated unit, in each of the periods t = T0 through t = T a
+
+2
+
+pair of potential outcomes Y0,t (0) and Y0,t (1), corresponding to the outcome given the control
+and active treatment respectively. The causal effects for this unit for each time period are
+τ0,t = Y0,t (1) − Y0,t (0), for t = T0 + 1, . . . , T .
+Units i = 1, . . . , N are control units which do not receive the treatment in any of the
+time periods. For these units there is a control outcome Yi,t (0), but not necessarily a treated
+potential outcome. In many examples conceptualizing a treated outcome for the control units
+can be difficult – for exampe, in one of the canonical synthetic control applications to the
+German re-unification, it is difficult to imagine the treated (re-unified with East Germany)
+state for countries other than Germany – and we do not need to do so. The treatment received
+is denoted by Wi,t , satisfying:
+
+Wi,t
+
+
+ 1
+=
+ 0
+
+if i = 0, and t ∈ {T0 + 1, . . . , T },
+otherwise.
+
+We are interested in the treatment effects for the unit who receives the treatment, during the
+period this unit receives the treatment, that is, τ0,t , for t = T0 + 1, . . . , T .
+The researcher observes, for unit i in period t, the treatment Wi,t and the realized outcome,
+Yi,tobs :
+
+Yi,tobs
+
+
+ Y (0)
+i,t
+= Yi,t (Wi,t ) =
+ Y (1)
+i,t
+
+if Wi,t = 0,
+if Wi,t = 1.
+
+The researcher may also observe M time-invariant individual-level characteristics Xi,1 , . . . , Xi,M
+for all units.
+In the following discussion we denote by Xi the M × 1 column vector (Xi,1 , . . . , Xi,M )⊤ , for
+i = 0, . . . , N. This vector may also include some of the lagged outcomes, Yi,tobs , in periods t ≤ T0 .
+We denote by Xc the N × M matrix with the (i, m)th entry equal to Xi,m , for i = 1, . . . , N and
+m = 1, . . . , M, excluding the treated unit, and denote by Xt a M-row vector with the mth entry
+equal to X0,m , and finally X = (Xc , Xt ). Similarly, for the outcome, Yiobs denotes the T × 1
+obs
+obs ⊤
+obs
+vector (Yi,T
+, . . . , Yi,1
+) . In addition Yc,pre
+denotes the N × T0 matrix with the (i, t)th entry
+obs
+obs
+equal to Yi,T
+, again excluding the treated unit, Yt,pre
+denotes a T0 -vector with the t-th entry
+0 −t+1
+obs
+obs
+obs
+equal to Y0,t
+, and similarly for Yc,post
+and Yt,post
+for the post-treatment period. The elements of
+
+3
+
+obs
+obs
+obs
+the three matrices Yc,post
+, Yt,pre
+, and Yc,pre
+consist of observations of the control outcome Yi,t (0),
+obs
+and Yt,post
+consists of observations of the treated outcome Yi,t (1). Combining these matrices we
+
+have
+
+
+Y obs = 
+
+obs
+Yt,post
+
+obs
+Yc,post
+
+obs
+Yt,pre
+
+obs
+Yc,pre
+
+
+
+
+
+=
+
+Yt,post (1) Yc,post (0)
+Yt,pre (0)
+
+Yc,pre (0)
+
+
+
+,
+
+and X =
+
+
+
+Xt Xc
+
+
+
+.
+
+The causal effect of interest depends on the pair of matrices Yt,post (1) and Yt,post (0). The
+former is observed, but the latter is not. Putting aside for the moment the presence of covariates,
+the question is how to use the three different sets of control outcomes, Yc,post (0), Yt,pre (0), and
+Yc,pre (0), and specifically how to model their joint relation with the unobserved Yt,post (0) in
+order to impute the latter:
+
+
+Y (0) = 
+
+?
+
+Yc,post (0)
+
+Yt,pre (0) Yc,pre (0)
+
+
+
+.
+
+One approach is to model the relationship between Yt,pre (0) and Yc,pre (0), and assume that
+this relation is the same as that between Yt,post (0) and Yc,post (0). This is where the current setting
+is fundamentally different from that where the pre-treatment variables are fixed characteristics
+rather than pre-treatment outcomes: modelling the relation between covariates for the treated
+unit and the control units would not necessarily translate into a prediction for the post-treatment
+outcome for the treated unit given post-treatment outcomes for the control units. An alternative
+approach is to model the relationship between Yc,post (0) and Yc,pre (0), and assume that this
+relation is the same as that between Yt,post (0) and Yt,pre (0).
+To put the problem, as well as the estimators that we discuss in this paper in context, it is
+useful to bear in mind the relative magnitude of the different dimensions, the number of control
+units N and the number of pre-treatment periods T0 . Part of the motivation to pursue one
+particular identification strategy, rather than a different one, may be the relative magnitude of
+the different components of Y obs , and the corresponding ability, or lack thereof, to precisely
+estimate their relationship. Put differently, depending on these relative magnitudes there may
+be a need for regularization in the estimation strategy and a more compelling case to impose
+restrictions that are typically viewed as approximations at best.
+
+4
+
+Sometimes we have few pre-treatment time periods but relatively many control units, N >>
+T0 , e.g.,
+
+
+?
+
+Y1,3 (0) Y2,3 (0) Y3,3 (0) Y4,3 (0) . . . YN,3(0)
+
+
+
+Y (0) =  Y0,2 (0) Y1,2 (0) Y2,2 (0) Y3,2 (0) Y4,2 (0) . . . YN,2(0)
+
+Y0,1 (0) Y1,1 (0) Y2,1 (0) Y3,1 (0) Y4,1 (0) . . . YN,1(0)
+
+
+
+
+
+.
+
+
+In this case it is difficult to estimate precisely the dependence structure between Yt,pre (0) and
+Yc,pre (0), relative to the dependence between Yc,post (0) and Yc,pre (0). In this case simple matching
+methods are attractive. Matching methods suggest looking for one or more controls that are
+each similar to the treated unit. With T0 small, there are few dimensions where the units need
+to be similar, and with N large, we have a large reservoir of controls to draw from.
+Other times the researcher may have relatively many pre-treatment periods but few control
+units, T0 >> N, e.g.,
+
+
+?
+Y1,T0 +1 (0) Y2,T0 +1 (0)
+
+
+ Y0,T0 (0)
+Y1,T0 (0)
+Y2,T0 (0)
+
+
+ Y0,T0 −1 (0) Y1,T0 −1 (0) Y2,T0 −1 (0)
+Y (0) = 
+
+..
+..
+..
+
+.
+.
+.
+
+
+ Y0,2 (0)
+Y1,2(0)
+Y2,2 (0)
+
+Y0,1 (0)
+Y1,1(0)
+Y2,1 (0)
+
+
+
+
+
+
+
+
+
+.
+
+
+
+
+
+
+
+In this case there is little chance of finding a control unit among the small reservoir of controls
+that is similar to the treated unit in all of the many pre-treatment periods. Instead it may be
+easier to estimate precisely the dependence structure between Yt,pre (0) and Yc,pre (0), for example
+using an autoregressive model. This may motivate time-series approaches as in Brodersen et al.
+[2015] and von Brzeski et al. [2015].
+In other cases the magnitudes of the cross-section and time series dimension may be similar,
+T0 ≈ N. In that case the choice between strategies may be more difficult, and a regularization
+strategy for limiting the number of control units that enter into the estimation of Y0,T0 +1 (0) may
+
+5
+
+be crucial:
+
+
+Y1,T0 +1 (0) Y2,T0 +1 (0)
+?
+
+
+ Y0,T0 (0) Y1,T0 (0)
+Y2,T0 (0)
+
+
+..
+..
+..
+Y (0) = 
+.
+.
+.
+
+
+ Y0,2 (0)
+Y1,2 (0)
+Y2,2(0)
+
+Y0,1 (0)
+Y1,1 (0)
+Y2,1(0)
+
+. . . YN,T0 +1 (0)
+...
+..
+.
+...
+...
+
+
+
+
+
+YN,T0 (0) 
+
+
+..
+.
+.
+
+
+YN,2 (0) 
+
+YN,1 (0)
+
+Finding a cross-section unit that is similar to the treated unit in all of the pre-treatment periods
+is again likely to be difficult in this case. It may be easier to find a linear combination of controls
+that is similar to the treated unit in all pre-treatment outcomes. As a result combinations of
+cross-section approaches as in the traditional DID literature (e.g. Ashenfelter and Card [1985],
+Card [1990], Card and Krueger [1994], Meyer et al. [1995], Angrist and Krueger [2000], Bertrand
+et al. [2004], Imai and Kim [2016], Angrist and Pischke [2008], Athey and Imbens [2006]), and
+time-series approach as in Brodersen et al. [2015] and von Brzeski et al. [2015] may be useful,
+but some type of regularization may be called for.
+
+3
+
+Four Leading Applications
+
+To frame the discussion of the estimators discussed in Sections 4 and 5, let us briefly review
+four influential applications from the DID and SC literatures. In particular we wish to give a
+sense of the relative magnitudes of the control sample size N and the number of pre-intervention
+periods T0 , to make the point that primarily relying on consistency under large N or large T0
+may not be credible.
+
+3.1
+
+The Mariel Boatlift Study
+
+One of the classic applications of DID methods is the Mariel Boatlift study by Card [1990]. Card
+studies the effect of the influx of low-skilled labor into the Miami labor market on wages using
+data on labor markets in other metropolitan areas for comparison. Recently this study has been
+revisited using synthetic control methdos in Peri and Yasenov [2015]. The Peri and Yasenov
+[2015] study uses a single treated unit, N = 44 potential control units, T0 = 7 pre-treatment
+6
+
+periods and T1 = 6 post-treatment periods.
+
+3.2
+
+The New-Jersey Pennsylvania Minimum Wage Study
+
+In the seminal Card and Krueger [1994] study, the focus is on the causal effect of a change in the
+minimum wage in New Jersey. Card and Krueger use data from fast food restaurants in New
+Jersey and Pennsylvania. They use information on N = 78 control (Pennsylvania) units, 321
+treated (new Jersey) units, one pre-treatment period, T0 = 1, and one post treatment period,
+T1 = 1.
+
+3.3
+
+The California Smoking Legislation Study
+
+In the seminal study on SC methods, Abadie et al. [2010] focus on estimating the effect of antismoking legislation in California. It uses smoking per capita as the outcome and uses a single
+treated unit (California) and N = 29 states without such anti-smoking measures as the set of
+potential controls. Abadie et al. [2010] use information on T0 = 17 pre-program years and data
+on T1 = 13 post-program years.
+
+3.4
+
+The German Re-Unification Study
+
+In another classic SC application, Abadie et al. [2014] study the effect on per capita Gross
+Domestic Product in West-Germany of the re-unification with East Germany. They use a single
+treated unit (West-Germany), N = 16 countries as potential controls and use T0 = 30 years of
+data prior to re-unification and T1 = 14 years of data post re-unification.
+
+4
+
+A Class of Estimators
+
+In this section we focus on the setting without covariates. The goals is to impute the unobserved
+control outcomes for the treated unit, Yt,post (0), on the basis of three sets of control outcomes,
+the pre-treatment period outcomes for both treated and control units, and the post-treatment
+period outcomes for the control units, Yc,post (0), Yt,pre (0), and Yc,pre (0). We then use these
+imputed values to estimate the causal effect τ0,t of the receipt of the treatment on the outcome
+for unit 0 in time periods t = T0 + 1, . . . , T0 + T1 .
+7
+
+4.1
+
+A Common Structure
+
+Let us focus on the causal effect for unit 0 and for period T for the moment, τ0,T = Y0,T (1) −
+Y0,T (0). Because this unit receives the active treatment during these periods, it follows that
+obs
+obs
+Y0,T
+= Y0,T (1), and therefore the causal effect is equal to τ0,T = Y0,T
+− Y0,T (0), with only Y0,T (0)
+
+unobserved. The first observation we make is that many of the estimators in the literature share
+the following linear structure for the imputation of the unobserved Y0,T (0):
+
+Ŷ0,T (0) = µ +
+
+N
+X
+
+obs
+ωi · Yi,T
+.
+
+(4.1)
+
+i=1
+
+In other words, the imputed control outcome for the treated unit is a linear combination of the
+control units, with intercept µ and weight ωi for control unit i.1 The various methods differ in
+the way the parameters in this linear combination, the intercept µ and the weights ω, are chosen
+obs
+obs
+obs
+obs
+as a function of the outcomes Yc,post
+, Yt,pre
+, and Yc,pre
+(but typically not involving Yt,post
+). One
+
+obvious way to choose the parameters µ and ω, given the characterization in (4.1), is to estimate
+them by least squares:
+
+ols
+
+ols
+
+(µ̂ , ω̂ ) = arg min
+µ,ω
+
+T0
+X
+s=1
+
+obs
+Y0,s
+
+−µ−
+
+N
+X
+
+ωi ·
+
+i=1
+
+obs
+Y0,s
+
+!2
+
+.
+
+(4.2)
+
+This regression involves T0 observations and N + 1 predictors (the N potential control units and
+an intercept). This approach may be attractive in settings where the number of pre-treatment
+outcomes T0 is large relative to the number of control units N, but would be less so in cases
+where they are of similar magntitude. As illustrated by the examples in Section 3, in practice
+T0 and N are often of a magnitude that simply estimating this regression by least squares is
+not likely to have good properties. In its basic form it may not even be feasible if the number
+of control units is larger than the number of pre-treatment periods. Even if the number of
+pre-treatment periods is large enough to make this approach formally feasible, the resulting
+estimator may suffer from lack of precision. This leads to a need for some regularization for, or
+restrictions on, the weights ω.
+1
+
+One exception is the Changes-In-Changes (CIC) method, a nonlinear generalization of the linear DID method,
+developed in Athey and Imbens [2006]. Another exception is Brodersen et al. [2015] which develops a Bayesian
+method that allows for time-varying coefficients in the regression.
+
+8
+
+4.2
+
+Four Restrictions on the Intercept and Weights
+
+Here we focus on the representation (4.1) of Ŷ0,T (0) as a linear combination of outcomes for
+the control units. We discuss four constraints on the parameters, both the intercept µ and the
+weights ω, that have been considered in the literature. In general none of these restrictions are
+likely to hold in practice and we propose relaxing all four of them. However, relaxing all of them
+can create problems with statistical precision, leading to a need for statistical regularization.
+The four constraints we consider are:
+
+N
+X
+
+µ = 0,
+
+(NO-INTERCEPT)
+
+ωi = 1,
+
+(ADDING-UP)
+
+i=1
+
+ωi ≥ 0, i = 1, . . . , N,
+
+(NON-NEGATIVITY)
+
+ωi = ω, i = 1, . . . , N.
+
+(CONSTANT-WEIGHTS)
+
+The first three restrictions are imposed by Abadie et al. [2010, 2014] in the original synthetic
+control analyses of the California smoking and the Germany re-unification applications. Single
+nearest neighbor matching (Abadie and Imbens [2006]) also imposes the first three restrictions,
+and in addition allows ωi to differ from zero for only a single control unit. More general matching
+methods such as kernel matching and bias-corrected matching (e.g., Heckman et al. [1997, 1998],
+Abadie and Imbens [2011] allow for multiple non-zero and negative weights. The standard DID
+methodology imposes the last three restrictions.
+The first restriction, NO-INTERCEPT rules out the possibility that the outcome for the
+treated unit is systematically larger, by a constant amount, than the other units. Note that
+allowing for such a systematic additive difference between the treatment unit and the control
+units is a critical feature of the standard DID strategy, which assumes that the trends in the
+control outcomes in the different groups are parallel, but which allows for permanently different
+levels for the different units.
+The second restriction, ADDING-UP, requires that the weights sum up to one. It is common
+to matching, DID and SC methods. Like the no-intercept restriction, however, this restriction
+is implausible if the unit of interest is an outlier relative to the other units. For example, in
+the California smoking example, if the outcome was total number of cigarettes smoked in the
+9
+
+state, this would be implausible because California is by far the largest US state in terms of
+population. Using per capita smoking rates as the outcome instead of total number of cigaretts,
+as Abadie et al. [2010] in fact do, addresses part of this problem, but it may still not be sufficient
+to make this restriction plausible. Taking the first two restrictions together, however, makes
+it difficult to obtain good predictions for extreme units, that is, units with systematically the
+largest or smallest values for the outcome.
+The third restriction, NON-NEGATIVITY, requires the weights to be nonnegative. This
+is a key restriction in the ADH estimator, playing a dual role in their approach. It helps
+regularize the estimation of the weights in cases with relatively many control units by ensuring
+in many cases that there is a unique solution. It also helps control the precision of the resulting
+imputation by limiting the sum of the squared weights which enters into the variance. Finally, it
+often ensures that the weights are non-zero only for a small subset of the control units, making
+the weights easier to interpret. The restriction is also substantively interesting. In many cases
+it is plausible, and verifiable, that the raw correlations between the pre-treatment outcomes for
+each pair of units are positive. However, this does not mean that the partial correlations are all
+non-negative, and allowing for negative weights may well improve the out-of-sample prediction.
+To illustrate why one might wish to use negative weights, consider a setting where the units
+are states, with one treated state and two control states, and a key characteristic is the share
+of young and old people in the state. If the share of young people in the treated state is 2/3,
+and the shares of the young people in the two control states are 1/2 and 1/3, then it may well
+be that using weights 2 (for the control state with share of the young equal to 1/2) and -1 (for
+the control state with share of the young equal to 1/3) leads to better results because it would
+make the synthetic control state have a share of the young equal to 2/3, identical to that in the
+treated state.
+A second reason to allow for negative weights is the role they play in bias-reduction. In
+nearest neighbor matching (Abadie and Imbens [2006]) the bias goes to zero slowly in settings
+with many covariates that are to be matched on. Allowing the weights to be negative as in
+bias-corrected matching estimators (Abadie and Imbens [2011]), allows one to improve this rate.
+Note that even simple least squares estimators for treatment effects with covariates implicitly
+allow for negative weights on the control units.
+In cases with the number of potential control units N larger than the number of pre-treatment
+outcomes T0 , and especially when N is much larger than T0 , the combination of the first three
+10
+
+restrictions need not lead to a unique set of values for µ and ω. In such cases there might
+be multiple values that satisfy these constraints. We therefore need to find a way of further
+regularizing the choice of weights, by restricting the set, or by ranking the parameter values
+within the set of values that satisfy the constraints. There are a number of ways of doing so
+that have been proposed in the literature. Matching methods look for a small set of control
+units, or even just a single one, that are similar to the treated unit. Part of the motivation
+for this is that it may be more credible to approximate a treated unit by pretreatment values
+(2, 3) with a single control with pretreatment values (2, 3) rather than as a combination of two
+controls, one with pretreatment values (1, 1) and one with pretreatment values (3, 5). The reason
+is that the approximation with two control units relies more on the linearity being an accurate
+approximation. A second approach is to use the fourth restriction, CONSTANT-WEIGHTS,
+which strengthens the nonnegativity condition by making the assumption that all control units
+are equally valid. This assumption, standard in DID analyses, suggests combining the control
+units by setting all weights equal. In combination with restriction ADDING-UP this implies
+that the weights are all equal to 1/N. Relaxing this restriction is a critical feature of the SC
+approach.
+It is important to stress that the allowing the intercept to differ from zero is conceptually
+different here, than it is in standard matching settings, because in the latter approach the
+matching or balancing is on covariates that are qualitatively different from lagged outcomes.
+Consider the California smoking example where the outcome is number of cigarettes per capita.
+Suppose we have two covariates, beer consumption and cigarette prices. It does not make
+sense to look for a linear combination of other states with an intercept such that the linear
+combination of the other states matches California both in terms of beer consumption and
+in terms of cigarette prices. Even if there was such a linear combination, so that, both for
+beer consumption and cigarette prices, California is equal to 3+0.8×UT+0.5×TX, the results
+would not be scale-invariant: changing prices from dollars to cents would imply that the linear
+approximation would not longer be valid even after changing the coefficients. With the covariates
+qualitatively different the linear model would only make sense if the weights sum to one, and
+if there is no intercept. When all the covariates are lagged outcomes, however, allowing for a
+non-zero intercept, and allowing the sum of the weights to deviate from one, does not violate
+scale invariance because all covariates would change by the same factor.
+
+11
+
+4.3
+
+The Objective Function
+
+There may be many pairs of (µ, ω) that satisfy the set of restrictions imposed, and in fact we may
+not wish to impose all, or even any, of the restrictions. Within the set of (µ, ω) that satisfy the
+restrictions imposed we consider rankings of the pairs of values that take the form of preferences
+over ω. In general we prefer values such that the synthetic control unit is similar to the treated
+unit in terms of lagged outcomes. In addition, we prefer values such that the dispersion of the
+weights is small. We may also prefer to have few control units with non-zero weights, although
+this is a more controversial objective to formally justify. Here we discuss a specific objective
+function, although other approaches are possible.
+The first component of the objective function focuses on balance between the treated unit and
+the control units. Specifically it focuses on the difference between the pre-treatment outcomes
+for the treated unit and the linear combination of the pre-treatment outcomes for the control
+units:
+obs
+obs
+Yt,pre
+− µ − ω ⊤ Yc,pre
+
+2
+2
+
+obs
+obs
+= Yt,pre
+− µ − ω ⊤ Yc,pre
+
+⊤
+
+
+obs
+obs
+Yt,pre
+− µ − ω ⊤ Yc,pre
+. (BALANCE)
+
+If T0 is sufficiently large relative to N, we may be able to find values for (µ, ω) that uniquely
+minimize this objective functions. However, in many cases this will not be possible, a finding
+also noted in Abadie and L’Hour [2016]. When there are multiple weights that provide an exact
+solution to
+obs
+obs
+Yt,pre
+= µ + ω ⊤ Yc,pre
+,
+
+(4.3)
+
+we need to use an objective function that directly compares different values of the weights, in
+other words, we need to regularize the estimator for ω.
+The second component of the objective function does so by focusing on the values of the
+weights themselves. There are two components to the objective function, which implicitly captures a preference for small number of non-zero weights, as well as explicitly a preference for
+smaller weights:
+
+kωk1 =
+
+N
+X
+i=1
+
+|ωi |,
+
+and kωk22 =
+
+N
+X
+
+ωi2 .
+
+i=1
+
+12
+
+We can capture both by using an elastic-net type penalty (Hastie et al. [2009, 2015]) that
+combines these Lasso and ridge terms:
+λ·
+
+
+
+
+1−α
+2
+kωk2 + αkωk1 .
+2
+
+(PENALTY FUNCTION)
+
+In Brodersen et al. [2015] the authors take a Bayesian approach, and use a spike and slab
+prior distribution (George and McCulloch [1997]) to deal with the potentially large number of
+parameters.
+Alternatively one might want to add a penalty term of the form kωk0 =
+
+PN
+
+i=1
+
+1ωi 6=0 , directly
+
+penalizing the number of non-zero weights. Such a penalty, typically in the form of directly
+P
+restricting N
+i=1 1ωi 6=0 , is implicit in the matching literature.
+
+4.4
+
+The Proposed Method
+
+Our main recommendation is to estimate the intercept and weights as
+
+obs
+obs
+(µ̂en (λ, α), ω̂ en(λ, α)) = arg min Q µ, ω Yt,pre
+, Yc,pre
+; λ, α ,
+µ,ω
+
+where
+Q µ, ω
+
+obs
+obs
+Yt,pre
+, Yc,pre
+; λ, α
+
+
+
+=
+
+obs
+Yt,pre
+
+−µ−ω
+
+⊤
+
+obs 2
+Yc,pre
+2
+
++λ·
+
+
+
+
+1−α
+2
+kωk2 + αkωk1 ,
+2
+
+(OBJECTIVE FUNCTION)
+
+without imposing any of the four restrictions (NO-INTERCEPT)-(CONSTANT-WEIGHTS).
+The superscript “en” here stands for elastic net, referring to the form of the penalty term. The
+price for relaxing all four of these restrictions is that we need to impose some regularization
+on the estimators through the choice of the parameters of the penalty term, λ and α. There
+are three issues that requires slight modifications to standard approaches to regularization here.
+obs
+First, we do not want to scale the covariates Yc,pre
+, because that would change the interpretation
+
+of the weights in cases. Without normalization the restriction that the weights sum up to one is
+an important substantive one to consider. With the normalization of the covariates this adding
+up restriction would no longer be substantively meaningful. Second, the weights are likely to sum
+
+13
+
+up to a number close to one, so that shrinking towards zero needs to be done with care. Third,
+if one actually imposes the exact adding up restriction on the ωi , as well as the non-negativity
+constraint, lasso-style L1 regularization does not work because the penalty term would equal
+PN
+PN
+i=1 ωi = 1 for all values of the weights considered.
+i=1 |ωi | =
+Given these issues we propose a particular cross-validation procedure, without normalizing
+
+the covariates. Consider the elastic net procedure with no restrictions on µ and ω. We treat
+each control unit in turn as the pseudo-treated unit, to determine the optimal value for the
+tuning parameters. When we use unit j as the pseudo-treated unit, given tuning parameters α
+and λ, this leads to a set of weights ω̂ien (j; α, λ) and an intercept µ̂en (j; α, λ):
+(µ̂en (j; α, λ), ω̂ en(j; α, λ))
+
+= arg min
+µ,ω
+
+T0
+X
+
+obs
+Yj,t
+
+−µ−
+
+X
+
+ωi ·
+
+i6=0,j
+
+t=1
+
+Yi,tobs
+
+!2
+
++λ·
+
+
+
+1−α
+kωk22 + αkωk1
+2
+
+
+
+Given these weights we predict the outcome for unit j in period T as
+Ŷj,T (0) = µ̂en (j; α, λ) +
+
+X
+
+obs
+ω̂ien (j; α, λ) · Yi,T
+.
+
+i6=j
+
+The performance of the model is then evaluated by computing the mean squared error, for
+period T , averaged over all control units
+N
+X
+1 X
+en
+obs
+obs
+CV (α, λ) =
+Yj,T
+− µ̂en (j; α, λ) −
+ω̂ien (j; α, λ) · Yi,T
+N j=1
+i6=0,j
+
+!2
+
+.
+
+We choose the value of the tuning parameter that minimizes the cross-validation error,
+en
+αopt
+, λen
+opt
+
+
+
+n
+o
+en
+= arg min CV (α, λ) .
+α,λ
+
+We consider a finite set of values for α ∈ {0.1, 0.1, . . . , 0.9}, and all possible positive values for
+en
+λ, λ ∈ (0, ∞). Given (λen
+opt , αopt ), define the final estimates as
+
+
+obs
+obs
+en
+(µ̂en , ω̂ en ) = arg min Q µ, ω Yt,pre
+, Yc,pre
+; λen
+opt , αopt .
+µ,α
+
+14
+
+Although we focus here primarily on the estimator without any of the four restrictions, in
+some applications one may wish to impose some of those restrictions on substantive grounds or
+to improve precision. Here they are not required, however, for regularization purposes.
+
+5
+
+Four Alternative Methods
+
+Here we discuss four alternative methods for choosing µ and ω to put our proposed method
+in perspective. A number of these have been previously proposed. The current set up allows
+for a comparison in a common setting. The first three of these methods impose subsets of the
+restrictions (NO-INTERCEPT)-(CONSTANT-WEIGHTS) that we do not impose. As a result
+of that they do not have the need for the regularization on the weights that we employ.
+
+5.1
+
+Difference-in-Differences
+
+The original DID method (e.g., Ashenfelter and Card [1985], Card [1990], Card and Krueger
+[1994], Meyer et al. [1995], Angrist and Krueger [2000], Bertrand et al. [2004], Angrist and
+Pischke [2008], Athey and Imbens [2006]) can be thought of as solving the optimization problem (5.1) subject to (ADDING-UP), (NON-NEGATIVITY), and (CONSTANT-WEIGHTS). In
+other words, it solves
+
+
+
+obs
+obs
+, Yc,pre
+; λ = 0, α
+µ̂did , ω̂ did = arg min Q µ, ω Yt,pre
+
+(5.1)
+
+µ,ω
+
+s.t.
+
+N
+X
+
+ωi = 1, ωi ≥ 0, ωi = ω.
+
+(5.2)
+
+i=1
+
+imposing the restrictions (ADDING-UP), (NON-NEGATIVITY), and (CONSTANT-WEIGHTS).
+This implies the ω̂ did do not depend on the data, leading to
+1
+, i = 1, . . . , N,
+N
+T0
+T0 X
+N
+1 X
+1 X
+obs
+Y
+−
+Y obs .
+=
+T0 s=1 0,s
+NT0 s=1 i=1 i,s
+
+ωidid =
+µ̂did
+
+15
+
+This in turn leads to estimates for Y0,t (0), for the periods t ≥ T0 + 1, equal to
+did
+Ŷ0,t
+(0)
+
+= µ̂
+
+did
+
++
+
+N
+X
+
+ω̂idid · Yi,tobs
+
+(5.3)
+
+i=1
+
+=
+
+T0
+T0 X
+N
+1 X
+1 X
+obs
+Y0,s
+−
+Y obs
+T0 s=1
+NT0 s=1 i=1 i,s
+
+!
+
++
+
+N
+1 X obs
+Y .
+N i=1 i,t
+
+(5.4)
+
+Let us consider this in the special case with a single pre-treatment period, T0 = 1. In that case
+there is no unique solution for (µ, ω) based on (4.2), and the DID approach addresses this by
+P
+obs
+obs
+fixing ω at 1/N, and using the pre-treatment period to estimate µ as µ̂did = Y0,1
+− N1 N
+i=1 Yi,1 .
+
+This leads to
+τ̂ did =
+
+N
+1 X obs
+obs
+Y0,2 −
+Y
+N i=1 i,2
+
+!
+
+−
+
+N
+1 X obs
+obs
+Y0,1 −
+Y
+N i=1 i,1
+
+!
+
+.
+
+The constant weights restriction takes care of any need to regularize the estimation of the
+weights ω. With that restriction there is a unique solution for µ even in the case with a single
+pre-treatment period. Xu [2015] considers generalizations that allow for a more complex factor
+structure.
+
+5.2
+
+The Abadie-Diamond-Hainmueller Synthetic Control Method
+
+The original synthetic control method of Abadie et al. [2010] imposes the restrictions that the
+intercept is zero, and that weights are non-negative and sum up to one, (constraints (NO-INTERCEPT), (ADDING-UP) and (NON-NEGATIVITY)). The weights ω̂ adh are chosen to match
+both the pre-treatment outcomes and a set of fixed characteristics, denoted by the M-component
+vector Xi for unit i. We first discuss the original ADH implementation in the general case with
+covariates and then return to the special case with no covariates.
+Given an M × M positive semi-definite diagonal matrix V , define the weights ω̂(V ) as the
+
+16
+
+solution
+(ω̂(V ), µ̂(V )) = arg min
+ω,µ
+
+(
+
+s.t.
+
+Xt − µ − ω ⊤ Xc
+
+N
+X
+
+⊤
+
+V Xt − µ − ω ⊤ X
+
+
+
+)
+
+(5.5)
+
+ωi = 1 and ωi ≥ 0, i = 1, . . . , N, µ = 0
+
+i=1
+
+These weights minimize the distance between the treated unit and the weighted combination of
+the other units in terms of the covariates Xi . (Note that in the general ADH approach these
+covariates Xi may include some or all of the pre-treatment Yi,tobs ).
+The diagonal weight matrix V is then chosen to match the lagged outcomes:
+
+V̂ =
+
+arg min
+V =diag(v1 ,...,vM )
+
+s.t.
+
+(
+
+
+obs ⊤
+
+obs
+Yt,pre
+− ω̂(V )⊤ Yc,pre
+
+M
+X
+
+
+obs
+
+obs
+Yt,pre
+− ω̂(V )⊤ Yc,pre
+
+)
+
+(5.6)
+
+vm = 1 and vm ≥ 0, m = 1, . . . , M.
+
+m=1
+
+The ADH weights are then ω̂ adh = ω̂(V̂ ) (and µ̂adh = 0). In general the researcher has a choice
+regarding what to put in the vector of pretreatment variables Xi . This vector may include some
+or all of the pretreatment outcomes Yi,tobs for t = 1, . . . , T0 .
+
+5.3
+
+Constrained Regression
+
+Now consider the special case of the ADH method where Xi is equal to the full vector of
+pretreatment outcomes Yi,t for t = 1, . . . , T0 , and contains no other variables. In that case the
+unconstrained weights that minimize (5.6) are the weights that solve (5.5) with V equal to the
+N × N identity matrix. We refer to this special case of the ADH method as the constrained
+regression. We can characterize it slightly differently by fitting it into the general framework
+(5.1):
+obs
+obs
+, Yc,pre
+; λ = 0, α
+ω̂ constr = arg minQ µ, ω Yt,pre
+µ,ω
+
+s.t. µ = 0,
+
+N
+X
+
+
+
+ωi = 1 and ωi ≥ 0, i = 1, . . . , N.
+
+i=1
+
+17
+
+(5.7)
+
+The original version of the ADH approach, as described in Section 5.2, makes it clear why it
+imposes the NO-INTERCEPT restriction. As discussed before in Section 4.2, in an application
+with qualitatively different covariates, it makes little sense to allow there to be a difference
+between the treated unit and the weighted average of the control units that is the same for
+different covariates. In the context where the pretreatment variables are all the same variable,
+however, just measured at different points in time, allowing those differences to be different from
+zero but requiring them to be the same can be a meaningful relaxation, the way it is in standard
+DID methods. For the constrained estimator, therefore, there is no particular reason why one
+would impose the restriction that the intercept is zero, and this restriction can easily be relaxed.
+Similarly the adding-up restriction can be relaxed without any problems. Note that we do not
+claim that one should always relax these restrictions, our point is that these are substantive
+restrictions that should be considered on their merit.
+Relaxing the zero intercept restriction (NO-INTERCEPT), but maintaining the adding-up
+restriction (ADDING-UP), makes it easier to compare the constrained regression (which is close
+to the original ADH estimator) and the standard difference-in-difference approach. The remaining difference is that the DID imposes the restriction that the weights ωi are all identical
+(restrictions (ADDING-UP) and (CONSTANT-WEIGHTS)), implying that the weights are all
+equal to 1/N. Relaxing this restriction, and allowing the weights to vary, is arguably the key
+innovation of the ADH approach over the standard DID approach. In the constrained regression
+version it becomes clear that this improvement can be achieved without any additional restrictions. Moreover, we can relax the other restrictions, (ADDING-UP) and (NON-NEGATIVITY),
+as well, if there is a sufficiently large number of pretreatment periods.
+In both the original ADH approach and the constrained regression version, there need not be
+a unique solution for ω. Because of the non-negativity constraint on the ω the question whether
+this is an issue in a specific application is not simply a matter of counting the number of pretreatment periods and the number of controls, but with a sufficiently large number of control
+units it is likely that there are multiple solutions. This problem is exacerbated by relaxing the
+zero-intercept restriction, but it also can arise in the presence of that restriction.
+
+18
+
+5.4
+
+Best Subset Selection
+
+An alternative approach is to select the set of best controls. For a fixed number of controls, say
+k, the optimal weights solve
+
+
+
+obs
+obs
+subset
+subset
+= arg minQ µ, ω Yt,pre
+, Yc,pre
+; λ = 0, α ,
+µ̂
+, ω̂
+
+(5.8)
+
+µ,ω
+
+s.t.
+
+N
+X
+
+1ωi 6=0 ≤ k.
+
+i=1
+
+The tuning parameter of the model is the number of weights that are allowed to be different
+from zero, k. Because of the small sample sizes, using cross-validation may not be an attractive
+way to go in practice. Instead we propose using a prior distribution for the number of nonzero weights, using a Poisson distribution with mean and variance equal to β. In practice we
+recommend setting β = 3.
+Part of the differences between this best-subset method, the ADH method and the related
+constrained regression concerns the restrictions NO-INTERCEPT and ADDING-UP. Both the
+restriction that the intercept is zero, and the restriction that the weights sum up to one can
+be relaxed easily in the constrained regression. A more important difference between the two
+methods is the fact that the best subset selection does not require the weights to be nonnegative. A special case is the best single control which uses the pre-treatment data to select a
+single control with weight equal to one:
+
+
+
+obs
+obs
+, Yc,pre
+; λ = 0, α
+µ̂single , ω̂ single = arg minQ µ, ω Yt,pre
+
+(5.9)
+
+µ,ω
+
+s.t. µ = 0,
+
+N
+X
+
+ωi = 1 and ωi ≥ 0, i = 1, . . . , N
+
+N
+X
+
+1ωi 6=0 = 1.
+
+i=1
+
+i=1
+
+This leads to choosing the control unit j that minimizes
+j = arg
+
+min
+
+i∈{1,...,N }
+
+obs
+obs
+− Yi,pre
+Yt,pre
+
+⊤
+
+
+obs
+obs
+.
+− Yi,pre
+Yt,pre
+
+In many difference-in-differences applications with a single treatment and single control group,
+researchers informally choose the control group. The best single control approach formalizes
+
+19
+
+that selection process by choosing the single control unit that is the most similar to the treated
+unit prior to the treatment similar to matching. One might also wish to relax the restriction
+that the intercept is zero, to gain flexibility.
+
+5.5
+
+Covariates
+
+So far the discussion has almost exclusively been about the setting where the only pre-treatment
+variables were the lagged outcomes. With additional pre-treatment variables there are other
+issues. First, we should note that in practic these other pre-treatment variables tend to play a
+relatively minor role. In terms of predictive power the lagged outcomes tend to be substantially
+more important, and as a result the decision how to treat these other pre-treatment variables
+need not be a a very important one.
+As raised in the discussion on the role of the intercept, we cannot treat the pre-treatment
+variables in the same way as the lagged outcomes. Here we suggest one alternative. Prior to
+choosing the weights and possibly the intercept, we can regress the control outcomes on the pretreatment variables and calculate the residuals. Then we use the residuals in the approaches
+discussed in Section 4.4.
+
+6
+
+Inference
+
+To conduct classical inference one needs to be explicit about what is random in the repeated
+sampling procedure. This is often controversial in synthetic control applications. Especially if
+there is only a single treated unit, it is often the case that this unit is unique in some aspects.
+We encountered this issue already in the formal definition of the causal effects and the potential
+outcomes. There it was useful to be careful not to define Yi,t (1) for control units for whom it
+may be different to imagine the treated state (e.g., the German re-unification example). Here
+similarly we do not want to argue that there was some positive probability that control units
+could have received the treatment.
+Here we discuss two specific methods for doing inference. In the first case the unit that is
+treated is viewed as exchangeable with the other units in the absence of the treatment, and in
+the second case the period in which the treated unit first receive the treatment is stochastic.
+We also discuss a method for combining the two methods. This type of randomization inference
+20
+
+is in the spirit of the way p-values are calculated in Abadie et al. [2010], Firpo and Possebom
+[2016], Ando and Sävje [2013], although here we focus on standard errors rather than p-values.
+See also Hahn and Shi [2016], Ferman and Pinto [2016] for a discussion in settings with a large
+number of pre-treatment periods.
+In general the different estimators for τ can be be written as
+obs
+τ̂ = Y0,T
+− Ŷ0,T (0).
+
+obs
+Because the treatment effect is τ = Y0,T (1) − Y0,T (0) = Y0,T
+− Y0,T (0), the estimation error arises
+
+only from the imputation error for Y0,T (0), that is, τ̂ − τ = Y0,T (0) − Ŷ0,T (0). Hence the squared
+error is
+
+
+2
+
+(τ̂ − τ ) = Y0,T (0) − Ŷ0,T (0)
+
+2
+
+.
+
+For discussing inference it is useful to have a more general notation for the estimators. First,
+j,t
+we use Yi,s
+(0), for i ≤ j and s ≤ t as shorthand for the matrix where we use units from the i-th
+
+unit up to the j-th unit and time periods from the s-th time period up to the t-th time period:
+
+j,t
+Yi,s
+
+
+
+
+
+=
+
+
+
+
+Yi,t (0) . . . Yj,t(0)
+
+..
+..
+
+..
+.
+,
+.
+.
+
+Yi,s (0) . . . Yj,s (0)
+
+(i),t
+
+and Y(i),s as shorthand for the matrix where we leave out unit i from the matrix with all units,
+N,t
+Y0,s
+:
+
+(i),t
+Y(i),s
+
+
+
+
+
+=
+
+
+
+
+Y0,t (0) . . . Yi−1,t (0) Yi+1,t (0) . . . YN,t (0)
+
+..
+..
+..
+..
+
+..
+..
+.
+.
+.
+.
+.
+.
+.
+
+Y0,s (0) . . . Yi−1,s (0) Yi+1,s (0) . . . YN,s (0)
+
+Now suppose that we wish to predict Yi,t (0). There are three set of data that will be used to
+i,t−1
+do so. First, outcome values for unit i in periods 1 through t − 1, contained in Yi,1
+. Second,
+(i),t
+
+the period t outcomes for other units, Y(i),t , and third, the earlier outcomes for other units,
+21
+
+(i),t−1
+
+Y(i),1
+
+. The estimators for the missing Y0,T (0) discussed so far can be written as functions of
+
+these three matrices:
+Ŷ0,T (0) = g
+
+6.1
+
+
+
+(0),T
+(0),T −1
+0,T −1
+Y0,1
+, Y(0),T , Y(0),1
+
+
+
+.
+
+Random Assignment of the Unit
+
+In the first approach to doing inference we view the treated unit as exchangeable with the control
+units in the absence of the treatment. We estimate the variance by analyzing the data as if we
+were estimating Yi,T (0) for one of the control units. Had we estimated Yi,T (0) for unit i using
+the same estimator, we would have estimated it as
+
+
+(0,i),T
+(0,i),T −1
+i,T −1
+Ŷi,T (0) = g Yi,1
+, Y(0,i),T , Y(0,i),1
+.
+obs
+We actually observe Yi,T (0) = Yi,T
+, and so we can calculate the squared error (Yi,T (0)− Ŷi,T (0))2 ,
+
+which, if the treated unit was randomly selected, an unbiased estimator for the expected squared
+error, and thus, ignoring the bias, for the variance. We can do this for all control units, leading
+to
+N
+
+2
+1 X
+(0,i),T
+(0,i),T −1
+i,T −1
+V̂c =
+Yi,T (0) − g Yi,1 , Y(0,i),T , Y(0,i),1
+.
+N i=1
+
+(6.1)
+
+This is our preferred estimator for the variance and the one we use in the applications.
+We can weaken the random selection of the treated unit assumption by making it conditional
+on some set of covariates or lagged outcomes. For that to be meaningful we would have to have
+a substantial number of control units.
+
+6.2
+
+Random Selection of the Treatment Period
+
+An alternative is to view the period in which the treated unit was initially treated as randomly
+selected. This leads to
+T0
+
+
+2
+1 X
+(0),t
+(0),t−1
+0,t−1
+Yi,t (0) − g Yi,1
+, Y(0),t , Y(0),1
+.
+V̂t =
+s t=T −s+1
+0
+
+22
+
+6.3
+
+Combining the Methods
+
+Finally, we can combine the two approaches, leading to
+N
+T0
+
+
+2
+1 X X
+(0,i),t
+(0,i),t−1
+i,t−1
+Yi,t(0) − g Yi,1
+, Y(0,i),t , Y(0,i),1
+.
+V̂ct =
+N · s i=1 t=T −s+1
+0
+
+7
+
+Three Applications
+
+We use data from three of the seminal studies in this literature, the California smoking example
+from Abadie et al. [2010], the West Germany re-unification example, from Abadie et al. [2014],
+and the Mariel boatlift (Card [1990], Peri and Yasenov [2015]). In all three cases we report five
+estimates. First the original ADH estimator. Second, the constrained regression modification
+of the ADH estimator. Third we report the standard DID estimator. The last two estimators
+are new estimators. We report both the elastic net and the best subset estimator, in both cases
+without imposing the assumptions NO-INTERCEPT, ADDING-UP, NON-NEGATIVITY, or
+CONSTANT-WEIGHTS. The goal is to compare the relative performance of the five estimators,
+and to assess the importance of relaxing the restrictions.
+
+7.1
+
+The California Smoking Application
+
+Abadie et al. [2010] analyze the effect of anti-smoking legislation in California, enacted in January 1989. We re-analyze their data using the methods discussed in this paper. The outcome
+of interest is the per capita smoking rate. We use data from 1970 to 2000. In Figure 1 we
+present the actual per capita smoking rate in California, as well as the per capita smoking rate
+for a synthetic control version of California, constructed using the five estimators discussed in
+this paper. These five estimators include the original ADH estimator, the constrained estimator
+P
+with the same restrictions, µ = 0, N
+i=1 ωi = 1 and ωi ≥ 0, the best subset estimator, and DID
+
+estimator, and the elastic net estimator. For the best subset estimator the optimal number of
+controls, based on cross-validation, is 1. For the elastic net estimator the tuning parameters,
+choosen by cross-validation, are α = 0.1 and λ = 45.5, leading to 8 states with non-zero weights,
+all of them positive.
+
+23
+
+Figure 1: Tobaco Control Program in California
+California: Smoking per capita
+
+150
+
+Actual data
+ADH synth.
+Regression /w restrictions
+Elastic net (opt. λ and a)
+Best subset (opt. k)
+Difference-in-Differences
+
+Policy →
+
+100
+
+50
+
+0
+1970
+
+1975
+
+1980
+
+1985
+
+1990
+
+1995
+
+2000
+
+California: Weights
+WY
+WI
+WV
+VA
+VT
+UT
+TX
+TN
+SD
+SC
+RI
+PA
+OK
+OH
+ND
+NC
+NM
+NH
+NV
+NE
+MT
+MO
+MS
+MN
+ME
+LA
+KY
+KS
+IA
+IN
+IL
+ID
+GA
+DE
+CT
+CO
+AR
+AL
+-1
+
+WY
+WI
+WV
+VA
+VT
+UT
+TX
+TN
+SD
+SC
+RI
+PA
+OK
+OH
+ND
+NC
+NM
+NH
+NV
+NE
+MT
+MO
+MS
+MN
+ME
+LA
+KY
+KS
+IA
+IN
+IL
+ID
+GA
+DE
+CT
+CO
+AR
+AL
+-0.5
+
+0
+
+0.5
+
+ADH synth.
+
+1
+
+-1
+
+WY
+WI
+WV
+VA
+VT
+UT
+TX
+TN
+SD
+SC
+RI
+PA
+OK
+OH
+ND
+NC
+NM
+NH
+NV
+NE
+MT
+MO
+MS
+MN
+ME
+LA
+KY
+KS
+IA
+IN
+IL
+ID
+GA
+DE
+CT
+CO
+AR
+AL
+-0.5
+
+0
+
+0.5
+
+1
+
+Reg. /w restr.
+
+-1
+
+WY
+WI
+WV
+VA
+VT
+UT
+TX
+TN
+SD
+SC
+RI
+PA
+OK
+OH
+ND
+NC
+NM
+NH
+NV
+NE
+MT
+MO
+MS
+MN
+ME
+LA
+KY
+KS
+IA
+IN
+IL
+ID
+GA
+DE
+CT
+CO
+AR
+AL
+-0.5
+
+0
+
+0.5
+
+Elastic net
+
+24
+
+1
+
+-1
+
+-0.5
+
+0
+
+0.5
+
+Best subset
+
+1
+
+Table 1: California: Parameters
+P
+Model
+µ
+τ̂Cal,1995
+i wi
+Original synth.
+1
+0
+−22.1
+Constrained reg.
+1
+0
+−22.9
+Elastic net
+0.55
+18.5
+−26.9
+Best subset
+0.32
+37.6
+−31.5
+Diff-in-diff
+1
+−14.4 −32.4
+
+25
+
+s.e.
+16.1
+12.8
+16.8
+20.3
+18.9
+
+California: Standard Errors
+
+100
+
+ADH synth. treatment
+Elastic net treatment (opt. λ and a)
+ADH treatment +/- 1.96 * std. err.
+Elastic net treatment +/- 1.96 * std. err.
+
+80
+
+60
+
+40
+
+20
+
+0
+
+-20
+
+-40
+
+-60
+
+-80
+
+-100
+1989
+
+1990
+
+1991
+
+1992
+
+1993
+
+1994
+
+1995
+
+1996
+
+1997
+
+1998
+
+1999
+
+2000
+
+California: Counterfactual Treatment
+
+100
+
+ADH synth. treatment
+Elastic net treatment (opt. λ and a)
+ADH treatment +/- 1.96 * std. err.
+Elastic net treatment +/- 1.96 * std. err.
+
+80
+
+60
+
+40
+
+20
+
+0
+
+-20
+
+-40
+
+-60
+
+-80
+
+-100
+1980
+
+1981
+
+1982
+
+1983
+
+1984
+
+26
+
+1985
+
+1986
+
+1987
+
+1988
+
+7.2
+
+The West Germany Re-Unification Application
+
+In the second application we revisit the analysis by Abadie et al. [2014] of the effect of the
+German re-unification on West Germany’s economy. The outcome is per capita GDP, with data
+from 1960 to 2004. We compare the same set of five estimators. Here the best subset estimator
+selects 5 control countries. For the elastic net estimator the tuning parameters, choosen by
+cross-validation, are α = 0.4 and λ = 52.8, leading to 13 countries with non-zero weights, 2 of
+them negative.
+Table 2: West Germany: Parameters
+P
+Model
+µ
+τ̂Ger,1995
+s.e.
+i wi
+Original synth.
+1
+0
+−1217 1882.3
+Constrained reg.
+1
+0
+−790 1157.6
+Elastic net
+0.93
+213.5
+−882 1147.2
+Best subset
+1.01
+168.5 −1019 1364.1
+Diff-in-diff
+1
+1074.1
+990
+2874.8
+
+27
+
+Figure 3: Reunification of Germany
+West Germany: per capita GDP
+
+35,000
+
+Actual data
+Original synth.
+Regression /w restrictions
+Elastic net (opt. λ and a)
+Best subset (opt. k)
+Difference-in-Differences
+
+30,000
+
+Reunification →
+
+25,000
+
+20,000
+
+15,000
+
+10,000
+
+5,000
+
+0
+1960
+
+1965
+
+1970
+
+1975
+
+1980
+
+1985
+
+1990
+
+1995
+
+2000
+
+West Germany: Weights
+NZL
+
+NZL
+
+NZL
+
+NZL
+
+AUS
+
+AUS
+
+AUS
+
+AUS
+
+ESP
+
+ESP
+
+ESP
+
+ESP
+
+PRT
+
+PRT
+
+PRT
+
+PRT
+
+GRC
+
+GRC
+
+GRC
+
+GRC
+
+JPN
+
+JPN
+
+JPN
+
+JPN
+
+CHE
+
+CHE
+
+CHE
+
+CHE
+
+NOR
+
+NOR
+
+NOR
+
+NOR
+
+NLD
+
+NLD
+
+NLD
+
+NLD
+
+ITA
+
+ITA
+
+ITA
+
+ITA
+
+FRA
+
+FRA
+
+FRA
+
+FRA
+
+DNK
+
+DNK
+
+DNK
+
+DNK
+
+BEL
+
+BEL
+
+BEL
+
+BEL
+
+AUT
+
+AUT
+
+AUT
+
+AUT
+
+GBR
+
+GBR
+
+GBR
+
+GBR
+
+USA
+
+USA
+
+USA
+
+USA
+
+-1
+
+-0.5
+
+0
+
+0.5
+
+Original synth.
+
+1
+
+-1
+
+-0.5
+
+0
+
+0.5
+
+1
+
+Reg. /w restr.
+
+-1
+
+-0.5
+
+0
+
+0.5
+
+Elastic net
+
+28
+
+1
+
+-1
+
+-0.5
+
+0
+
+0.5
+
+Best subset
+
+1
+
+West Germany: Standard Errors
+
+12,500
+
+ADH synth. treatment
+Elastic net treatment (opt. λ and a)
+ADH treatment +/- 1.96 * std. err.
+Elastic net treatment +/- 1.96 * std. err.
+
+10,000
+
+7,500
+
+5,000
+
+2,500
+
+0
+
+-2,500
+
+-5,000
+
+-7,500
+
+-10,000
+
+-12,500
+1990
+
+1992
+
+1994
+
+1996
+
+1998
+
+2000
+
+2002
+
+West Germany: Counterfactual Treatment
+
+12,500
+
+ADH synth. treatment
+Elastic net treatment (opt. λ and a)
+ADH treatment +/- 1.96 * std. err.
+Elastic net treatment +/- 1.96 * std. err.
+
+10,000
+
+7,500
+
+5,000
+
+2,500
+
+0
+
+-2,500
+
+-5,000
+
+-7,500
+
+-10,000
+
+-12,500
+1981
+
+1982
+
+1983
+
+1984
+
+1985
+
+29
+
+1986
+
+1987
+
+1988
+
+1989
+
+7.3
+
+The Mariel Boatlift Application
+
+In the final application we analyze the effect of Mariel Boatlift on the logarithm of weekly
+wages using the data from Peri and Yasenov [2015].2 Table 3 and Figure 5 report the results
+obtained for the subpopulation from 16 to 61 years old. For the best subset estimator the crossvalidation optimal number of controls is 1. Elastic net selects 22 control units (the optimal
+tuning parameters are α = 0.2 and λ = 0.001).
+Table 3: Mariel Boatlift: Parameters
+P
+Model
+µ
+τ̂Miami,1985 s.e.
+i wi
+Original synth.
+1
+0
+0.21
+0.19
+Constrained reg.
+1
+0
+0.36
+0.20
+Elastic net
+0.37
+3.13
+0.11
+0.27
+Best subset
+0.69
+1.53
+0.39
+0.44
+Diff-in-diff
+1
+−0.04
+0.19
+0.17
+
+2
+
+For the counterfactual exercise we drop the average of the logarithm weekly wages and the 1978 logarithm
+weekly wages from the set of covariates used in the original synthetic control procedure.
+
+30
+
+Figure 5: Mariel Boatlift
+Mariel Boatlift: Log Weakly Wages
+
+5.5
+
+Actual data
+ADH synth.
+Regression /w restrictions
+Elastic net (opt. λ and a)
+Best subset (opt. k)
+Difference-in-Differences
+
+Policy →
+5.4
+
+5.3
+
+5.2
+
+5.1
+
+5
+
+4.9
+
+4.8
+
+4.7
+
+4.6
+
+4.5
+1974
+
+1976
+
+1978
+
+1980
+
+1982
+
+1984
+
+1986
+
+1988
+
+1990
+
+Mariel Boatlift: Weights
+GRSB
+ECHG
+AKR
+NOR
+ALB
+BIR
+FWOR
+SAC
+ROCH
+COL
+POR
+TMP
+NORL
+SJC
+IND
+SBRN
+DEN
+KNS
+BUF
+SD
+PAT
+CIN
+ATL
+MLWK
+ANH
+SEA
+DAL
+MNN
+NWK
+HOU
+CLV
+BLT
+SLO
+PIT
+SUFF
+BST
+DC
+SF
+DET
+PHL
+CHG
+LA
+NYC
+-1
+
+GRSB
+ECHG
+AKR
+NOR
+ALB
+BIR
+FWOR
+SAC
+ROCH
+COL
+POR
+TMP
+NORL
+SJC
+IND
+SBRN
+DEN
+KNS
+BUF
+SD
+PAT
+CIN
+ATL
+MLWK
+ANH
+SEA
+DAL
+MNN
+NWK
+HOU
+CLV
+BLT
+SLO
+PIT
+SUFF
+BST
+DC
+SF
+DET
+PHL
+CHG
+LA
+NYC
+-0.5
+
+0
+
+0.5
+
+ADH synth.
+
+1
+
+-1
+
+GRSB
+ECHG
+AKR
+NOR
+ALB
+BIR
+FWOR
+SAC
+ROCH
+COL
+POR
+TMP
+NORL
+SJC
+IND
+SBRN
+DEN
+KNS
+BUF
+SD
+PAT
+CIN
+ATL
+MLWK
+ANH
+SEA
+DAL
+MNN
+NWK
+HOU
+CLV
+BLT
+SLO
+PIT
+SUFF
+BST
+DC
+SF
+DET
+PHL
+CHG
+LA
+NYC
+-0.5
+
+0
+
+0.5
+
+1
+
+Reg. /w restr.
+
+31
+
+-1
+
+GRSB
+ECHG
+AKR
+NOR
+ALB
+BIR
+FWOR
+SAC
+ROCH
+COL
+POR
+TMP
+NORL
+SJC
+IND
+SBRN
+DEN
+KNS
+BUF
+SD
+PAT
+CIN
+ATL
+MLWK
+ANH
+SEA
+DAL
+MNN
+NWK
+HOU
+CLV
+BLT
+SLO
+PIT
+SUFF
+BST
+DC
+SF
+DET
+PHL
+CHG
+LA
+NYC
+-0.5
+
+0
+
+0.5
+
+Elastic net
+
+1
+
+-1
+
+-0.5
+
+0
+
+0.5
+
+Best subset
+
+1
+
+Mariel Boatlift: Standard Errors
+
+1
+
+ADH synth. treatment
+Elastic net treatment (opt. λ and a)
+ADH treatment +/- 1.96 * std. err.
+Elastic net treatment +/- 1.96 * std. err.
+
+0.8
+
+0.6
+
+0.4
+
+0.2
+
+0
+
+-0.2
+
+-0.4
+
+-0.6
+
+-0.8
+
+-1
+1980
+
+1
+
+1981
+
+1982
+
+1983
+
+1984
+
+1985
+
+1986
+
+1987
+
+1988
+
+1989
+
+1990
+
+1991
+
+Mariel Boatlift: Counterfactual Treatment
+ADH synth. treatment
+Elastic net treatment (opt. λ and a)
+ADH treatment +/- 1.96 * std. err.
+Elastic net treatment +/- 1.96 * std. err.
+
+0.8
+
+0.6
+
+0.4
+
+0.2
+
+0
+
+-0.2
+
+-0.4
+
+-0.6
+
+-0.8
+
+-1
+1977
+
+1978
+
+32
+
+1979
+
+References
+Alberto Abadie. Semiparametric difference-in-differences estimators. The Review of Economic
+Studies, 72(1):1–19, 2005.
+Alberto Abadie and Javier Gardeazabal. The economic costs of conflict: A case study of the
+basque country. American Economic Review, 93(-):113–132, 2003.
+Alberto Abadie and Guido W Imbens. Large sample properties of matching estimators for
+average treatment effects. Econometrica, 74(1):235–267, 2006.
+Alberto Abadie and Guido W Imbens. Bias-corrected matching estimators for average treatment
+effects. Journal of Business & Economic Statistics, 29(1):1–11, 2011.
+Alberto Abadie and Jérémy L’Hour. A penalized synthetic control estimator for disaggregated
+data, 2016.
+Alberto Abadie, Alexis Diamond, and Jens Hainmueller. Synthetic control methods for comparative case studies: Estimating the effect of California’s tobacco control program. Journal
+of the American Statistical Association, 105(490):493–505, 2010.
+Alberto Abadie, Alexis Diamond, and Jens Hainmueller. Comparative politics and the synthetic
+control method. American Journal of Political Science, pages 2011–25, 2014.
+Michihito Ando and F Sävje. Hypothesis testing with the synthetic control method. In European
+Economic Association and Econometric Society Meeting, pages 1–35, 2013.
+Joshua Angrist and Alan Krueger. Empirical strategies in labor economics. Handbook of Labor
+Economics, 3, 2000.
+Joshua Angrist and Steve Pischke. Mostly Harmless Econometrics: An Empiricists’ Companion.
+Princeton University Press, 2008.
+Orley Ashenfelter and David Card. Using the longitudinal structure of earnings to estimate the
+effect of training programs. The Review of Economics and Statistics, 67(4):648–660, 1985.
+Susan Athey and Guido Imbens. Identification and inference in nonlinear difference-in-differences
+models. Econometrica, 74(2):431–497, 2006.
+33
+
+Marianne Bertrand, Esther Duflo, and Sendhil Mullainathan. How much should we trust
+differences-in-differences estimates?
+
+The Quarterly Journal of Economics, 119(1):249–275,
+
+2004.
+Kay H Brodersen, Fabian Gallusser, Jim Koehler, Nicolas Remy, Steven L Scott, et al. Inferring
+causal impact using bayesian structural time-series models. The Annals of Applied Statistics,
+9(1):247–274, 2015.
+David Card. The impact of the mariel boatlift on the miami labor market. Industrial and Labor
+Relation, 43(2):245–257, 1990.
+David Card and Alan Krueger. Minimum wages and employment: Case study of the fast-food
+industry in new jersey and pennsylvania. American Economic Review, 84(4):772–793, 1994.
+Alexis Diamond and Jasjeet S Sekhon. Genetic matching for estimating causal effects: A general multivariate matching method for achieving balance in observational studies. Review of
+Economics and Statistics, 95(3):932–945, 2013.
+Bruno Ferman and Christine Pinto. Revisiting the synthetic control estimator, 2016.
+Sergio Firpo and Vitor Possebom. Synthetic control estimation method: A generalized inference
+procedure and confidence sets. 2016.
+Edward I George and Robert E McCulloch. Approaches for bayesian variable selection. Statistica
+sinica, pages 339–373, 1997.
+Laurent Gobillon and Thierry Magnac. Regional policy evaluation: Interactive fixed effects and
+synthetic controls. Review of Economics and Statistics, (00), 2013.
+Jinyong Hahn and Ruoyao Shi. Synthetic control and inference. Available at UCLA, 2016.
+Jens Hainmueller. Entropy balancing for causal effects: A multivariate reweighting method to
+produce balanced samples in observational studies. Political Analysis, 20(1):25–46, 2012.
+Trevor Hastie, Robert Tibshirani, and Jerome Friedman. The Elements of Statistical Learning.
+New York: Springer, 2009.
+
+34
+
+Trevor Hastie, Robert Tibshirani, and Martin Wainwright. Statistical Learning with Sparsity:
+The Lasso and Generalizations. CRC Press, 2015.
+James J Heckman, Hidehiko Ichimura, and Petra E Todd. Matching as an econometric evaluation
+estimator: Evidence from evaluating a job training programme. The review of economic
+studies, 64(4):605–654, 1997.
+James J Heckman, Hidehiko Ichimura, and Petra Todd. Matching as an econometric evaluation
+estimator. The Review of Economic Studies, 65(2):261–294, 1998.
+Paul W Holland. Statistics and causal inference. Journal of the American Statistical Association,
+81(396):945–970, 1986.
+Kosuke Imai and In Song Kim. When Should We Use Linear Fixed Effects Regression Models for
+Causal Inference with Longitudinal Data? PhD thesis, Working paper, Princeton University,
+Princeton, NJ, 2016.
+Guido Imbens and Jeffrey Wooldridge. Recent developments in the econometrics of program
+evaluation. Journal of Economic Literature, 47(1):5–86, 2009.
+Guido W Imbens and Donald B Rubin. Causal Inference in Statistics, Social, and Biomedical
+Sciences. Cambridge University Press, 2015.
+Bruce D Meyer, W Kip Viscusi, and David L Durbin. Workers’ compensation and injury
+duration: evidence from a natural experiment. The American economic review, pages 322–
+340, 1995.
+Giovanni Peri and Vasil Yasenov. The labor market effects of a refugee wave: Applying the synthetic control method to the mariel boatlift. Technical report, National Bureau of Economic
+Research, 2015.
+Donald B Rubin. Estimating causal effects of treatments in randomized and nonrandomized
+studies. Journal of Educational Psychology, 66(5):688–701, 1974.
+Donald B Rubin. Matched sampling for causal effects. Cambridge University Press, 2006.
+Vadim von Brzeski, Matt Taddy, and David Draper. Causal inference in repeated observational
+studies: A case study of ebay product releases. arXiv preprint arXiv:1509.03940, 2015.
+35
+
+Yiqing Xu. Generalized synthetic control method for causal inference with time-series crosssectional data. 2015.
+
+36
+
+
