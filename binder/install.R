@@ -26,6 +26,7 @@ install.packages(
     "lexicon",
     "qdap",
     "textclean",
+    "text2vec",
     "uwot",
     "udpipe",
     "ggrepel",
@@ -38,9 +39,10 @@ install.packages(
     "corpustools",
     "plotly",
     "plot3D",
-    "devtools"
-  ),
-  dependencies = TRUE
+    "devtools",
+    "ranger",
+    "ada",
+  ), dependencies = TRUE
 )
 
 devtools::install_github("quanteda/quanteda.corpora")
