@@ -41,7 +41,7 @@ install.packages(
     "plot3D",
     "devtools",
     "ranger",
-    "ada",
+    "ada"
   ), dependencies = TRUE
 )
 
