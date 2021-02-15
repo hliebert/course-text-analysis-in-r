@@ -48,5 +48,6 @@ install.packages(
   ), dependencies = TRUE
 )
 
-devtools::install_github("quanteda/quanteda.corpora")
-IRkernel::installspec()
+## Optional
+## devtools::install_github("quanteda/quanteda.corpora")
+## IRkernel::installspec()
