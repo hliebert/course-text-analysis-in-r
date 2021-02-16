@@ -38,16 +38,18 @@ install.packages(
     "caret",
     "RCurl",
     "data.table",
-    "IRkernel",
     "corpustools",
     "plotly",
     "plot3D",
     "devtools",
     "ranger",
+    "doc2vec",
     "ada"
   ), dependencies = TRUE
 )
 
 ## Optional
-## devtools::install_github("quanteda/quanteda.corpora")
+## Only if you want to use jupyter notebooks and have jupyter installed.
+## Either install jupyter by installing anaconda or through pip.
+## install.packages("IRkernel")
 ## IRkernel::installspec()

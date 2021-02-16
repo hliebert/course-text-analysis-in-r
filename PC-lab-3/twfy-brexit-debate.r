@@ -3,7 +3,7 @@
 ## Description: 
 ## Author: Helge Liebert
 ## Created: So Mär  1 15:41:38 2020
-## Last-Updated: Mi. Sep 23 10:47:53 2020
+## Last-Updated: Di Feb 16 20:03:49 2021
 ################################################################################
 
 #================================== Libraries ==================================
@@ -28,6 +28,7 @@ library("factoextra")
 library("word2vec")
 library("plotly")
 library("fpc")
+library("doc2vec")
 
 
 #======================= Get data from TheyWorkForYou API ======================
@@ -52,8 +53,8 @@ for (p in seq(1, pages)) {
 }
 
 ## save to file
-fwrite(brexit.debates, "Data/brexit-debates.csv")
-saveRDS(brexit.debates, "Data/brexit-debates.rds")
+## fwrite(brexit.debates, "Data/brexit-debates.csv")
+## saveRDS(brexit.debates, "Data/brexit-debates.rds")
 
 ## read from file
 ## brexit.debates <- readRDS("Data/brexit-debates.rds")
@@ -642,3 +643,90 @@ dim(docvectors)
 ## check which is most similar to first document
 cosinesim <- sim2(x = docvectors, y = docvectors[1, , drop = FALSE], method = "cosine", norm = "l2")
 head(sort(cosinesim[,1], decreasing = TRUE), 5)
+
+
+#=================================== Doc2vec ===================================
+
+# this does not return great results, corpus probably too small
+
+## input
+corp <- data.frame(doc_id = brexit.debates$gid,
+                   text = text,
+                   stringsAsFactors = FALSE)
+
+## low dimension, just for illustrations
+pv.model <- paragraph2vec(
+  x = corp,
+  type = "PV-DM",
+  dim = 5,
+  iter = 3,
+  min_count = 5,
+  lr = 0.05,
+  threads = 1
+)
+
+## More realistic settings, careful, this will run for a bit.
+## pv.model <- paragraph2vec(
+##   x = corp,
+##   type = "PV-DBOW",
+##   dim = 100,
+##   iter = 20,
+##   min_count = 5,
+##   lr = 0.05,
+##   threads = 4
+## )
+## saveRDS(pv.model, "Data/pv-model.rds")
+## pv.model <- readRDS("Data/pv-model.rds")
+
+## Extract the embeddings
+word.embeddings <- as.matrix(pv.model, which = "words")
+head(word.embeddings)
+
+doc.embeddings <- as.matrix(pv.model, which = "docs")
+tail(doc.embeddings)
+
+## Extract the vocabulary
+doc.vocab <- summary(pv.model, which = "words")
+head(doc.vocab)
+
+## word.vocab <- summary(pv.model, which = "docs")
+## head(word.vocab)
+
+# retriev word embeddings (as previously)
+predict(pv.model, "brexit", type = "embedding")
+
+# retrieve most similar words to a word (as previously)
+predict(pv.model,
+  newdata = "brexit",
+  type = "nearest",
+  which = "word2doc"
+)
+
+# retrieve document embeddings
+predict(pv.model,
+  newdata = c("2021-02-11b.563.0", "2021-02-11b.504.0", "2021-02-11b.468.2"),
+  type = "embedding",
+  which = "docs"
+)
+
+# retrieve most similar documents to a document
+predict(pv.model,
+  newdata = "2021-02-11b.563.0",
+  type = "nearest",
+  which = "doc2doc"
+)
+
+## find document closest to a sentence
+predict(pv.model,
+  newdata = list(sent = c("brexit", "will", "not", "disrupt", "trade")),
+  type = "nearest",
+  which = "sent2doc"
+)
+
+## Get embeddings of sentences.
+sentences <- list(
+  sent1 = c("germany", "and", "france", "dominate", "the", "eu"),
+  sent2 = c("brexit", "was", "well", "planned")
+)
+predict(pv.model, newdata = sentences, type = "embedding")
+

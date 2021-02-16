@@ -41,6 +41,7 @@ install.packages(
     "plot3D",
     "devtools",
     "ranger",
+    "doc2vec",
     "ada"
   ), dependencies = TRUE
 )
