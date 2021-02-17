@@ -3,7 +3,7 @@
 ## Description: 
 ## Author: Helge Liebert
 ## Created: So Mär  1 15:41:38 2020
-## Last-Updated: Di Feb 16 20:03:49 2021
+## Last-Updated: Mi. Feb 17 16:45:48 2021
 ################################################################################
 
 #================================== Libraries ==================================
@@ -29,6 +29,8 @@ library("word2vec")
 library("plotly")
 library("fpc")
 library("doc2vec")
+library("glmnet")
+library("caret")
 
 
 #======================= Get data from TheyWorkForYou API ======================
@@ -125,7 +127,7 @@ dtm <- DocumentTermMatrix(
   )),
   control = list(
     language = "english",
-    ## weighting = weightTfIdf,
+    ## weighting = "weightTfIdf",
     weighting = weightTf,
     tolower = TRUE,
     removePunctuation = TRUE,
@@ -619,6 +621,9 @@ berlin <- wordvectors["paris", , drop = FALSE] - wordvectors["france", , drop = 
 cosinesim <- sim2(x = wordvectors, y = berlin, method = "cosine", norm = "l2")
 head(sort(cosinesim[,1], decreasing = TRUE), 5)
 
+
+#========================== Averaged document vectors ==========================
+
 ## simple way to get a document representation: just averaging word vectors within a document
 ## assuming dtm is a document-term-matrix
 
@@ -730,3 +735,70 @@ sentences <- list(
 )
 predict(pv.model, newdata = sentences, type = "embedding")
 
+
+
+#===================== feeding document embeddings to a prediction model =====================
+
+docembeddings <- as.data.frame(cbind(speaker.name = rownames(docvectors), as.data.frame(docvectors)))str(docembeddings)
+str(docembeddings)
+str(brexit.debates)
+
+## aggregate alsoo using the party affiliation
+brexit.speakers <- aggregate(body ~ speaker.name + person_id + speaker.party, data = brexit.debates, paste)
+
+## merge embeddings onto speaker data
+brexit.speakersplus <- merge(brexit.speakers[, c("speaker.name", "speaker.party")], docembeddings, by = "speaker.name")
+brexit.speakersplus <- brexit.speakersplus[complete.cases(brexit.speakersplus), ]
+str(brexit.speakersplus)
+
+## inidicators for tory/labour party
+brexit.speakersplus$tory <- as.numeric(brexit.speakersplus$speaker.party == "Conservative")
+brexit.speakersplus$labour <- as.numeric(brexit.speakersplus$speaker.party == "Labour")
+
+## Partition data in test and training sample
+set.seed(100)
+testids <- sample(floor(nrow(brexit.speakersplus)/5))
+
+# Train and test data
+xtrain <- as.matrix(brexit.speakersplus[-testids, !(names(brexit.speakersplus) %in% c("speaker.name", "speaker.party", "tory", "labour"))])
+xtest  <- as.matrix(brexit.speakersplus[ testids, !(names(brexit.speakersplus) %in% c("speaker.name", "speaker.party", "tory", "labour"))])
+
+ytrain <- as.factor(brexit.speakersplus[-testids,  "tory"])
+ytest  <- as.factor(brexit.speakersplus[ testids,  "tory"])
+
+dim(xtrain)
+length(ytrain)
+
+dim(xtest)
+length(ytest)
+
+## Supervised text regression: L1 penalized logistic regression
+l1classifier <- cv.glmnet(xtrain, ytrain, alpha = 1, family = "binomial")
+l1pred <- as.factor(predict(l1classifier, xtest, s = "lambda.min", type = "class"))
+summary(l1pred)
+
+## Performance statistics
+round(1-mean(as.numeric(l1pred != ytest)), 2)
+confusionMatrix(l1pred, ytest)
+
+
+## random forest
+rfclassifier <- train(
+  y = ytrain,
+  x = xtrain,
+  method = "ranger",
+  num.trees = 200,
+  tuneGrid = expand.grid(
+    mtry = seq(2, 2 * floor(sqrt(ncol(xtrain))), length.out = 10),
+    splitrule = "gini",
+    min.node.size = c(1,3)
+  ),
+  trControl = trainControl(
+    method = "oob"
+  )
+)
+rfpred <- predict(rfclassifier, xtest)
+
+## Performance statistics
+1 - mean(as.numeric(rfpred != ytest))
+confusionMatrix(rfpred, ytest)
