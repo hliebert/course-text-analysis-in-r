@@ -43,5 +43,5 @@ install.packages("gtools")
 install.packages("ada")
 install.packages("Rcpp")
 
-devtools::install_github("bnosac/word2vec", dependencies = TRUE))
+devtools::install_github("bnosac/word2vec", dependencies = TRUE)
 devtools::install_github("bnosac/doc2vec", dependencies = TRUE)
