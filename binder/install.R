@@ -41,9 +41,9 @@ install.packages(
     "plot3D",
     "devtools",
     "ranger",
+    "Rcpp",
+    "gtools",
     "doc2vec",
     "ada"
   ), dependencies = TRUE
 )
-
-devtools::install_github("quanteda/quanteda.corpora")
