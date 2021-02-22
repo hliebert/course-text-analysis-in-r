@@ -1,47 +1,51 @@
-install.packages("twfy")
-install.packages("jsonlite")
-install.packages("xml2")
-install.packages("httr")
-install.packages("rvest")
-install.packages("RSelenium")
-install.packages("wdman")
-install.packages("webdriver")
-install.packages("tm")
-install.packages("quanteda")
-install.packages("spacyr")
-install.packages("readtext")
-install.packages("tidyverse")
-install.packages("tidytext")
-install.packages("wordcloud")
-install.packages("SentimentAnalysis")
-install.packages("naivebayes")
-install.packages("h2o")
-install.packages("fastNaiveBayes")
-install.packages("slam")
-install.packages("lsa")
-install.packages("glmnet")
-install.packages("lexicon")
-install.packages("qdap")
-install.packages("textclean")
-install.packages("text2vec")
-install.packages("uwot")
-install.packages("udpipe")
-install.packages("ggrepel")
-install.packages("factoextra")
-install.packages("fpc")
-install.packages("caret")
-install.packages("RCurl")
-install.packages("data.table")
-install.packages("IRkernel")
-install.packages("corpustools")
-install.packages("plotly")
-install.packages("plot3D")
-install.packages("devtools")
-install.packages("ranger")
-install.packages("Rcpp")
-install.packages("gtools")
-install.packages("ada")
-install.packages("Rcpp")
+install.packages(
+  c(
+    "twfy",
+    "jsonlite",
+    "xml2",
+    "httr",
+    "rvest",
+    "RSelenium",
+    "wdman",
+    "webdriver",
+    "tm",
+    "quanteda",
+    "spacyr",
+    "readtext",
+    "tidyverse",
+    "tidytext",
+    "wordcloud",
+    "SentimentAnalysis",
+    "naivebayes",
+    "h2o",
+    "fastNaiveBayes",
+    "slam",
+    "lsa",
+    "glmnet",
+    "lexicon",
+    "qdap",
+    "textclean",
+    "text2vec",
+    "uwot",
+    "udpipe",
+    "ggrepel",
+    "factoextra",
+    "fpc",
+    "caret",
+    "RCurl",
+    "data.table",
+    "IRkernel",
+    "corpustools",
+    "plotly",
+    "plot3D",
+    "devtools",
+    "ranger",
+    "Rcpp",
+    "gtools",
+    "ada"
+  ),
+  dependencies = TRUE
+)
 
 devtools::install_github("bnosac/word2vec", dependencies = TRUE)
 devtools::install_github("bnosac/doc2vec", dependencies = TRUE)
