@@ -3,7 +3,7 @@
 ## Description: 
 ## Author: Helge Liebert
 ## Created: Di Aug 11 16:12:24 2020
-## Last-Updated: Do. Sep 24 16:12:46 2020
+## Last-Updated: Di Jan 25 14:51:26 2022
 ################################################################################
 
 #================================= Model inputs ================================
@@ -230,7 +230,7 @@ plot(cost_history, type = "l", col = "blue", lwd = 2,
 conv <- as.data.frame(cbind(t(sapply(theta_history, function(x) x[, 1])), cost = cost_history))
 head(conv)
 
-library(plot3D)
+library("plot3D")
 scatter3D(
   x = conv$intercept,
   y = conv$x1,

@@ -3,25 +3,25 @@
 ## Description:
 ## Author: Helge Liebert
 ## Created: Fr Dez  7 15:01:01 2018
-## Last-Updated: Fr Feb  5 15:51:14 2021
+## Last-Updated: Di Jan 25 13:33:36 2022
 ######################################################################
 
 ## Libraries
-library(tm)
-library(data.table)
-library(ggplot2)
-library(tidytext)
-library(dplyr)
-library(topicmodels)
-library(wordcloud)
-library(SentimentAnalysis)
-library(naivebayes)
-library(fastNaiveBayes)
-library(slam)
-library(glmnet)
-library(lexicon)
-library(caret)
-library(ranger)
+library("tm")
+library("data.table")
+library("ggplot2")
+library("tidytext")
+library("dplyr")
+library("topicmodels")
+library("wordcloud")
+library("SentimentAnalysis")
+library("naivebayes")
+library("fastNaiveBayes")
+library("slam")
+library("glmnet")
+library("lexicon")
+library("caret")
+library("ranger")
 
 ## Simple helper function to view first copora elements, only for lecture
 chead <- function(c) lapply(c[1:2], as.character)
@@ -136,8 +136,8 @@ findFreqTerms(dtm, lowfreq = 1000)
 ## Remove sparse terms
 ## Improves tractability and saves time, my laptop cannot handle large matrices
 ## Tweak the sparse parameter to influence # of words
-inspect(dtms)
-dtms <- removeSparseTerms(dtm, sparse=0.90)
+inspect(dtm)
+dtms <- removeSparseTerms(dtm, sparse = 0.95)
 dim(dtms)
 dtms <- dtms[row_sums(dtms) > 0, ]
 dim(dtms)
@@ -239,12 +239,12 @@ summary(termtfidf)
 
 ## Filter by tf-idf
 ## dim(dtmuse)
-dtmuse <- dtmuse[, (termtfidf >= 1.70)]
-dtmuse <- dtmuse[row_sums(dtmuse) > 0, ]
-## dim(dtmuse)
+dtmuse.tfidf <- dtmuse[, (termtfidf >= 1.70)]
+dtmuse.tfidf <- dtmuse.tfidf[row_sums(dtmuse.tfidf) > 0, ]
+## dim(dtmuse.tfidf)
 
 ## Unsupervised method: Topic model
-lda <- LDA(dtmuse, k = 3, control = list(seed = 100))
+lda <- LDA(dtmuse.tfidf, k = 3, control = list(seed = 100))
 ## str(lda)
 
 ## Most likely topic for each document, could merge this to original data
@@ -520,21 +520,16 @@ confusionMatrix(rfpred, ytest)
 ##   )
 ## )
 
+
 #===============================================================================
-#===================== Further example: Predict Loan Amount ====================
+#==================================== Tasks ====================================
 #===============================================================================
 
+## Task: The above examples are all classification. Implement a regression
+## example. Predict the loanamount using L1 penalized linear regression (lasso).
+## ...
 
-#======================== L1 penalized linear regression =======================
+## Task: How would you go about improving performce for the classifiers?
+## ...
 
-## Rebuild outcome vectors
-ytrain <- as.matrix(bag[-testids,  "loanamount"])
-ytest  <- as.matrix(bag[ testids,  "loanamount"])
 
-## Estimate and predict
-l1predictor <- cv.glmnet(xtrain, ytrain, alpha = 1, family = "gaussian")
-l1pred <- predict(l1predictor, xtest, s = "lambda.min", type = "response")
-
-## RMSE
-sqrt(mean((l1pred - ytest)^2))
-postResample(l1pred, ytest)
