@@ -14,7 +14,7 @@ Fribourg. The lab material is set up to run on Binder.
 1. **Install R** 
 
    You can install by downloading the installer from the website
-   (https://cran.r-project.org/, on Windows)[https://cran.r-project.org/], or
+   [https://cran.r-project.org/, on Windows](https://cran.r-project.org/), or
    via your system's package manager (e.g. `homebrew` on MacOS or `apt` on
    Ubuntu/Debian Linux). 
    
