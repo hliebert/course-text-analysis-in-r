@@ -30,7 +30,7 @@
    the `pip` package manager. If you are using Windows and are unsure what a
    package manager is, I recommend installing Anaconda. 
  
-3. **Install package dependencies*** 
+3. **Install package dependencies** 
 
    If you use a native R installation (e.g., from the R project website), just run
    the contents of the `Setup/install.r` file provided. 
@@ -44,7 +44,7 @@
    conda activate course-text-analysis
    ```
 
-4. **Troubleshooting*** 
+4. **Troubleshooting** 
    
    If you run into trouble during installation, please [contact
    me](mailto:helge.liebert@econ.uzh.ch). Supporting all possible edge cases on
