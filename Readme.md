@@ -13,23 +13,21 @@ Fribourg. The lab material is set up to run on Binder.
 
 1. **Install R** 
 
-   You can install R by downloading the installer from the website
-   [https://cran.r-project.org/, on Windows](https://cran.r-project.org/), or
-   via your system's package manager (e.g. `homebrew` on MacOS or `apt` on
-   Ubuntu/Debian Linux). 
+   You can install R by downloading  [the installer from the
+   website](https://cran.r-project.org/) (on Windows), or via your system's
+   package manager (e.g. `homebrew` on MacOS or `apt` on Ubuntu/Debian Linux). 
    
    Alternatively, you can install R through `conda` after installing the
    Anaconda distribution (or its smaller Miniconda version). Anaconda provides
    Python, R, and a repository hosting most of the libraries for both languages.
-   Download links for different operating systems are found [here
-   https://docs.anaconda.com/anaconda/install/](https://docs.anaconda.com/anaconda/install/),
-   documentation and instructions  [here
-   https://conda.io/projects/conda/en/latest/](https://conda.io/projects/conda/en/latest/).
+   Download links for different operating systems are found
+   [here](https://docs.anaconda.com/anaconda/install/), documentation and
+   instructions  [here](https://conda.io/projects/conda/en/latest/).
 
 2. **Install an R GUI or text editor with R support** 
 
    Plugins are available for most editors (VS Code, Emacs, Vim, Atom, ...).
-   I recommend using either of these if you are starting out. 
+   I recommend using one of the following if you are starting out. 
       - [Rstudio](https://www.rstudio.com/products/rstudio/)
       - [VS Code with R plugin](https://code.visualstudio.com/)
 

@@ -2,28 +2,27 @@
 
 1. **Install R** 
 
-   You can install by downloading the installer from the website
-   [https://cran.r-project.org/, on Windows](https://cran.r-project.org/), or
-   via your system's package manager (e.g. `homebrew` on MacOS or `apt` on
-   Ubuntu/Debian Linux). 
+   You can install R by downloading  [the installer from the
+   website](https://cran.r-project.org/) (on Windows), or via your system's
+   package manager (e.g. `homebrew` on MacOS or `apt` on Ubuntu/Debian Linux). 
    
-   Alternatively you can install R through `conda` after installing
-   Anaconda/Miniconda. Download links for different operating systems are found
-   [here
-   https://docs.anaconda.com/anaconda/install/](https://docs.anaconda.com/anaconda/install/),
-   documentation and instructions  [here
-   https://conda.io/projects/conda/en/latest/](https://conda.io/projects/conda/en/latest/).
+   Alternatively, you can install R through `conda` after installing the
+   Anaconda distribution (or its smaller Miniconda version). Anaconda provides
+   Python, R, and a repository hosting most of the libraries for both languages.
+   Download links for different operating systems are found
+   [here](https://docs.anaconda.com/anaconda/install/), documentation and
+   instructions  [here](https://conda.io/projects/conda/en/latest/).
 
 2. **Install an R GUI or text editor with R support** 
 
    Plugins are available for most editors (VS Code, Emacs, Vim, Atom, ...).
-   I recommend using either of these if you are starting out. 
+   I recommend using one of the following if you are starting out. 
       - [Rstudio](https://www.rstudio.com/products/rstudio/)
       - [VS Code with R plugin](https://code.visualstudio.com/)
 
-   All code is provided as simple text files (`.r`) and as Jupyter notebooks
-   using the R kernel (`.ipynb`). I am using the notebooks for didactic purposes
-   only. You do not need to use them to follow the course. 
+   All code is provided as simple text files (suffix `.r`) and as Jupyter
+   notebooks using the R kernel (suffix `.ipynb`). I am using the notebooks for
+   didactic purposes only. You do not need to use them to follow the course. 
    
    However, if you want access to Jupyter notebooks, you need to install
    Anaconda (see above), or install Python and then the `jupyter` package using
