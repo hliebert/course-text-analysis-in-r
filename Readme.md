@@ -2,18 +2,16 @@
 
 This repository contains material for the course Text Analysis in R during the
 2022 Winter School in Data Analytics and Machine Learning at the Université de
-Fribourg.
+Fribourg. The lab material is set up to run on Binder.
 
-The lab material is set up to run on Binder.
-
-Jupyter Notebook [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=tree)  
-Jupyter Lab [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=lab)  
-Rstudio [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=rstudio)  
+[![Binder](https://mybinder.org/badge_logo.svg) Jupyter Notebook](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=tree)  
+[![Binder](https://mybinder.org/badge_logo.svg) Jupyter Lab](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=lab)  
+[![Binder](https://mybinder.org/badge_logo.svg) Rstudio](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=rstudio)  
 
 
 # Setup instructions
 
-1. **Install R.** 
+1. **Install R** 
 
    You can install by downloading the installer from the website
    (https://cran.r-project.org/, on Windows)[https://cran.r-project.org/], or
@@ -64,6 +62,6 @@ Rstudio [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2
    different operating systems is difficult. If everything fails, all lab
    material  can be also be run in your browser using the links below.
 
-   Jupyter Notebook [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=tree)  
-   Jupyter Lab [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=lab)  
-   Rstudio [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=rstudio)  
+   [![Binder](https://mybinder.org/badge_logo.svg) Jupyter Notebook](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=tree)  
+   [![Binder](https://mybinder.org/badge_logo.svg) Jupyter Lab](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=lab)  
+   [![Binder](https://mybinder.org/badge_logo.svg) Rstudio](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=rstudio)  
