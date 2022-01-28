@@ -35,7 +35,8 @@ Fribourg. The lab material is set up to run on Binder.
 
    All code is provided as simple text files (suffix `.r`) and as Jupyter
    notebooks using the R kernel (suffix `.ipynb`). I am using Jupyter for
-   didactic purposes only. You do not need to use them to follow the course. 
+   didactic purposes only. You do not need to use the notebooks to follow the
+   course. 
    
    However, if you want access to Jupyter notebooks, you need to install
    Anaconda (see above), or install Python and then the `jupyter` package using
