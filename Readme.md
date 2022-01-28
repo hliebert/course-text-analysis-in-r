@@ -34,23 +34,24 @@ Fribourg. The lab material is set up to run on Binder.
       - [VS Code with R plugin](https://code.visualstudio.com/)
 
    All code is provided as simple text files (suffix `.r`) and as Jupyter
-   notebooks using the R kernel (suffix `.ipynb`). I am using the notebooks for
+   notebooks using the R kernel (suffix `.ipynb`). I am using Jupyter for
    didactic purposes only. You do not need to use them to follow the course. 
    
    However, if you want access to Jupyter notebooks, you need to install
    Anaconda (see above), or install Python and then the `jupyter` package using
-   the `pip` package manager. If you are using Windows and are unsure what a
-   package manager is, I recommend installing Anaconda. 
+   the `pip` package manager [(instructions here)](https://jupyter.org/install).
+   If you are using Windows and are unsure what a package manager is, I
+   recommend installing Anaconda. 
  
-3. **Install package dependencies** 
+3. **Install required R libraries** 
 
-   If you use a native R installation (e.g., from the R project website), just
-   run the contents of the `Setup/install.r` file provided. Especially on MacOS
-   and Linux, you will most likely need to install additional dependencies on
-   your system. The error messages during the installation will typically point
-   you towards the solution.
+   Installation files are provided in the folder `Setup`. If you use a native R
+   installation (e.g., from the R project website), just run the contents of the
+   `install.r` file provided. On on MacOS and Linux, you may need to install
+   additional dependencies on your system. The error messages during the
+   installation will typically point you towards the solution.
    
-   If you use `conda`, import the file `Setup/environment.yml` using the GUI.
+   If you use Anaconda, import the file `environment.yml` using the GUI.
    Alternatively, run the following commands in a terminal or the Anaconda
    console (on Windows)  to create the environment and  to activate it.
 
@@ -63,8 +64,8 @@ Fribourg. The lab material is set up to run on Binder.
    
    If you run into trouble during installation, please [contact
    me](mailto:helge.liebert@econ.uzh.ch). Supporting all possible edge cases on
-   different operating systems is difficult. If everything fails, all lab
-   material  can be also be run in your browser using the links below.
+   different operating systems is difficult. If all else fails, simply run the
+   lab material in your browser using the links below.
 
    [![Binder](https://mybinder.org/badge_logo.svg) Jupyter Notebook](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=tree)  
    [![Binder](https://mybinder.org/badge_logo.svg) Jupyter Lab](https://mybinder.org/v2/gh/hliebert/course-text-analysis-in-r/HEAD?urlpath=lab)  
