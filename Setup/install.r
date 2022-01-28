@@ -1,0 +1,55 @@
+install.packages(
+  c(
+    "ada"
+    "caret",
+    "data.table",
+    "devtools",
+    "doc2vec",
+    "factoextra",
+    "fastNaiveBayes",
+    "fpc",
+    "ggrepel",
+    "glmnet",
+    "gutenbergr"
+    "h2o",
+    "httr",
+    "jsonlite",
+    "languageserver",
+    "lexicon",
+    "lintr",
+    "lsa",
+    "naivebayes",
+    "plot3D",
+    "plotly",
+    "qdap",
+    "quanteda",
+    "ranger",
+    "RCurl",
+    "readtext",
+    "rvest",
+    "SentimentAnalysis",
+    "slam",
+    "spacyr",
+    "stringr",
+    "styler",
+    "text2vec",
+    "textclean",
+    "tidytext",
+    "tidyverse",
+    "tm",
+    "twfy",
+    "udpipe",
+    "uwot",
+    "wdman",
+    "webdriver",
+    "word2vec",
+    "wordcloud",
+    "xml2",
+  )
+)
+
+## Optional
+## Only if you want to use jupyter notebooks and have jupyter installed.
+## Either install jupyter by installing anaconda or through pip.
+install.packages("IRkernel")
+IRkernel::installspec()
