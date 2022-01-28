@@ -4,7 +4,9 @@
 
    You can install R by downloading  [the installer from the
    website](https://cran.r-project.org/) (on Windows), or via your system's
-   package manager (e.g. `homebrew` on MacOS or `apt` on Ubuntu/Debian Linux). 
+   package manager (e.g. `homebrew` on MacOS or `apt` on Ubuntu/Debian Linux).
+   On Windows, you will also need to install the [Rtools
+   toolchain](https://cran.r-project.org/bin/windows/Rtools/rtools40.html).
    
    Alternatively, you can install R through `conda` after installing the
    Anaconda distribution (or its smaller Miniconda version). Anaconda provides
@@ -31,8 +33,11 @@
  
 3. **Install package dependencies** 
 
-   If you use a native R installation (e.g., from the R project website), just run
-   the contents of the `Setup/install.r` file provided. 
+   If you use a native R installation (e.g., from the R project website), just
+   run the contents of the `Setup/install.r` file provided. Especially on MacOS
+   and Linux, you will most likely need to install additional dependencies on
+   your system. The error messages during the installation will typically point
+   you towards the solution.
    
    If you use `conda`, import the file `Setup/environment.yml` using the GUI.
    Alternatively, run the following commands in a terminal or the Anaconda

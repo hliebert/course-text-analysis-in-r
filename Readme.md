@@ -47,8 +47,8 @@ Fribourg. The lab material is set up to run on Binder.
    If you use a native R installation (e.g., from the R project website), just
    run the contents of the `Setup/install.r` file provided. Especially on MacOS
    and Linux, you will most likely need to install additional dependencies on
-   your system (e.g., `poppler`). The error messages during the installation
-   will typically point you towards the solution.
+   your system. The error messages during the installation will typically point
+   you towards the solution.
    
    If you use `conda`, import the file `Setup/environment.yml` using the GUI.
    Alternatively, run the following commands in a terminal or the Anaconda
