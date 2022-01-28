@@ -19,7 +19,7 @@
 
    Plugins are available for most editors (VS Code, Emacs, Vim, Atom, ...).
    I recommend using one of the following if you are starting out. 
-      - [Rstudio](https://www.rstudio.com/products/rstudio/)
+      - [RStudio](https://www.rstudio.com/products/rstudio/)
       - [VS Code with R plugin](https://code.visualstudio.com/)
 
    All code is provided as simple text files (suffix `.r`) and as Jupyter
