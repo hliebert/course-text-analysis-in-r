@@ -1,6 +1,6 @@
 install.packages(
   c(
-    "ada"
+    "ada",
     "caret",
     "data.table",
     "devtools",
@@ -10,7 +10,7 @@ install.packages(
     "fpc",
     "ggrepel",
     "glmnet",
-    "gutenbergr"
+    "gutenbergr",
     "h2o",
     "httr",
     "jsonlite",
@@ -44,7 +44,7 @@ install.packages(
     "webdriver",
     "word2vec",
     "wordcloud",
-    "xml2",
+    "xml2"
   )
 )
 
