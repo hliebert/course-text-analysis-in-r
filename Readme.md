@@ -26,7 +26,7 @@ Fribourg. The lab material is set up to run on Binder.
    [here](https://www.anaconda.com/products/individual#Downloads), documentation
    and instructions [here](https://conda.io/projects/conda/en/latest/).
 
-2. **Install an R GUI or text editor with R support** 
+2. **Install an R IDE or text editor with R support**
 
    Plugins are available for most editors (VS Code, Emacs, Vim, Atom, ...).
    I recommend using one of the following if you are starting out. 
